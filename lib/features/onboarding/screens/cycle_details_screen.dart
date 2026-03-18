@@ -1,0 +1,118 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
+import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
+import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
+
+class CycleDetailsScreen extends StatefulWidget {
+  const CycleDetailsScreen({super.key});
+
+  @override
+  State<CycleDetailsScreen> createState() => _CycleDetailsScreenState();
+}
+
+class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
+  int _periodLength = 5;
+  int _cycleLength  = 28;
+
+  @override
+  Widget build(BuildContext context) {
+    return OnboardingScaffold(
+      currentStep: 15,
+      bottomBar: GradientButton(
+        label: 'Set Up My Tracker 🌸',
+        onPressed: () => context.go('/onboarding/tracker/done'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 24),
+            Text('How does your cycle usually go? 🌙', style: Theme.of(context).textTheme.headlineLarge),
+            const SizedBox(height: 8),
+            Text("Don't worry if you're not sure — we'll refine predictions as you track!", style: Theme.of(context).textTheme.bodyLarge),
+            const SizedBox(height: 40),
+            // Period length
+            _SliderCard(
+              title: 'Period length',
+              value: _periodLength.toDouble(),
+              min: 2, max: 10,
+              unit: 'days',
+              color: const Color(0xFFF472B6),
+              onChanged: (v) => setState(() => _periodLength = v.round()),
+            ).animate().fadeIn(delay: 100.ms),
+            const SizedBox(height: 20),
+            // Cycle length
+            _SliderCard(
+              title: 'Cycle length',
+              value: _cycleLength.toDouble(),
+              min: 21, max: 45,
+              unit: 'days',
+              color: AppColors.purple,
+              onChanged: (v) => setState(() => _cycleLength = v.round()),
+            ).animate().fadeIn(delay: 200.ms),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(16)),
+              child: Row(
+                children: [
+                  const Text('📊', style: TextStyle(fontSize: 24)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(
+                    'Average period: 5 days · Average cycle: 28 days. Everyone is different — this is just a starting point.',
+                    style: const TextStyle(color: AppColors.textMedium, fontSize: 13, height: 1.5),
+                  )),
+                ],
+              ),
+            ).animate().fadeIn(delay: 300.ms),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SliderCard extends StatelessWidget {
+  const _SliderCard({required this.title, required this.value, required this.min, required this.max, required this.unit, required this.color, required this.onChanged});
+  final String title, unit;
+  final double value, min, max;
+  final Color color;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(20)),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark, fontSize: 16)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                child: Text('${value.round()} $unit', style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: color,
+              inactiveTrackColor: color.withOpacity(0.2),
+              thumbColor: color,
+              overlayColor: color.withOpacity(0.2),
+              trackHeight: 6,
+            ),
+            child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+          ),
+        ],
+      ),
+    );
+  }
+}
