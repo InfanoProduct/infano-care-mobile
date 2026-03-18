@@ -1,0 +1,9 @@
+import 'package:get_it/get_it.dart';
+import 'package:injectable/injectable.dart';
+
+final serviceLocator = GetIt.instance;
+
+@InjectableInit()
+Future<void> initDependencies() async {
+  // Dependency injection initialization will be handled here
+}
