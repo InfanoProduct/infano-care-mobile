@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 import 'package:infano_care_mobile/shared/widgets/points_burst.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 
 /// Simplified SVG-layer avatar builder.
 /// Replace the emoji placeholders with illustrated SVG layers when assets are available.
@@ -45,6 +47,7 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
           Text(_hairEmojis[_hairStyle], style: const TextStyle(fontSize: 40)),
           const SizedBox(height: 4),
           Text(_bodyEmojis[_bodyType], style: const TextStyle(fontSize: 48)),
+          const SizedBox(height: 4),
           Text(_outfitEmojis[_outfit], style: const TextStyle(fontSize: 28)),
         ],
       ),
@@ -54,81 +57,104 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 11,
+      currentStep: 8,
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [
           GradientButton(
             label: 'This Is Me! 💜',
             onPressed: () {
-              setState(() => _showPoints = true);
-              Future.delayed(const Duration(milliseconds: 1500), () {
-                if (mounted) context.go('/onboarding/journey-name');
-              });
+              final bloc = context.read<OnboardingBloc>();
+              bloc.add(SetAvatar({
+                'bodyType': _bodyType,
+                'skinTone': _skinTone,
+                'hairStyle': _hairStyle,
+                'hairColor': _hairColor,
+                'outfit': _outfit,
+              }));
+
+              if (mounted) {
+                setState(() => _showPoints = true);
+                // No need to wait for BLoC loading since we're just updating state locally
+                context.go('/onboarding/journey-name');
+              }
             },
           ),
           if (_showPoints)
-            Positioned(top: -50, right: 20, child: PointsBurst(points: 25, onComplete: () => setState(() => _showPoints = false))),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            Text('Build your Bloom Avatar ✨', style: Theme.of(context).textTheme.headlineLarge, textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            // Preview
-            Center(child: _buildPreview().animate().scaleXY(begin: 0.8, duration: 500.ms, curve: Curves.elasticOut)),
-            const SizedBox(height: 24),
-            // Category tabs
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _categories.asMap().entries.map((e) =>
-                  GestureDetector(
-                    onTap: () => setState(() => _category = e.key),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: _category == e.key ? AppGradients.brand : null,
-                        color: _category == e.key ? null : AppColors.surfaceCard,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Text(e.value, style: TextStyle(color: _category == e.key ? Colors.white : AppColors.textDark, fontWeight: FontWeight.w700)),
-                    ),
-                  ),
-                ).toList(),
+            Positioned(
+              top: -50, right: 20, 
+              child: PointsBurst(
+                points: 25, 
+                onComplete: () {
+                  if (mounted) setState(() => _showPoints = false);
+                },
               ),
             ),
-            const SizedBox(height: 20),
-            // Swatch grid
-            Expanded(
-              child: GridView.count(
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              Text('Build your Bloom Avatar ✨', style: Theme.of(context).textTheme.headlineLarge, textAlign: TextAlign.center),
+              const SizedBox(height: 20),
+              // Preview
+              Center(child: _buildPreview().animate().scaleXY(begin: 0.8, duration: 500.ms, curve: Curves.elasticOut)),
+              const SizedBox(height: 24),
+              // Category tabs
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _categories.asMap().entries.map((e) =>
+                    GestureDetector(
+                      onTap: () => setState(() => _category = e.key),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: _category == e.key ? AppGradients.brand : null,
+                          color: _category == e.key ? null : AppColors.surfaceCard,
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Text(e.value, style: TextStyle(color: _category == e.key ? Colors.white : AppColors.textDark, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ).toList(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Swatch grid
+              GridView.count(
                 crossAxisCount: 6,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
-                children: _getCategoryItems().asMap().entries.map((e) =>
-                  GestureDetector(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: _getCategoryItems().asMap().entries.map((e) {
+                  final item = e.value;
+                  final isColor = _isColor(item);
+                  return GestureDetector(
                     onTap: () => setState(() => _setCategory(e.key)),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: _isColor(e.value) ? Color(e.value as int) : null,
+                        color: isColor ? Color(item as int) : null,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _getCurrentIndex() == e.key ? AppColors.purple : Colors.transparent,
                           width: 2,
                         ),
                       ),
-                      child: _isColor(e.value) ? null : Center(child: Text(e.value as String, style: const TextStyle(fontSize: 24))),
+                      child: isColor ? null : Center(child: Text(item as String, style: const TextStyle(fontSize: 24))),
                     ),
-                  ),
-                ).toList(),
+                  );
+                }).toList(),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );

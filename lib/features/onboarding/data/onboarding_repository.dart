@@ -73,6 +73,10 @@ class OnboardingRepository {
     await _api.dio.post('/onboarding/journey-name', data: {'journeyName': name});
   }
 
+  Future<void> completeOnboarding() async {
+    await _api.dio.post('/onboarding/complete');
+  }
+
   // ── Tracker ───────────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> trackerSetup({
     String? lastPeriodStart,

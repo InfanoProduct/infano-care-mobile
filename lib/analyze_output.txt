@@ -1,0 +1,115 @@
+Analyzing lib...                                                
+
+warning - Unused import: 'package:flutter/material.dart' - core\router\app_router.dart:1:8 - unused_import
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:48:47 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:68:64 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:69:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:70:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:71:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:72:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:73:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:74:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:75:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:76:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:77:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:78:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:79:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:80:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:81:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:82:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:83:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - core\router\app_router.dart:86:43 - unnecessary_underscores
+warning - The value of the field '_personalization' isn't used - core\services\local_storage_service.dart:10:16 - unused_field
+warning - The value of the field '_avatar' isn't used - core\services\local_storage_service.dart:11:16 - unused_field
+warning - The value of the field '_journeyName' isn't used - core\services\local_storage_service.dart:12:16 - unused_field
+warning - The value of the field '_trackerSetup' isn't used - core\services\local_storage_service.dart:13:16 - unused_field
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\home\screens\dashboard_screen.dart:38:41 - deprecated_member_use
+warning - Unused import: 'package:infano_care_mobile/core/theme/app_theme.dart' - features\home\screens\home_screen.dart:3:8 - unused_import
+  error - 'userType' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:18:5 - initializing_formal_for_non_existent_field
+  error - 'displayName' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:19:5 - initializing_formal_for_non_existent_field
+  error - 'pronouns' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:20:5 - initializing_formal_for_non_existent_field
+  error - 'phone' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:21:5 - initializing_formal_for_non_existent_field
+  error - 'birthMonth' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:22:5 - initializing_formal_for_non_existent_field
+  error - 'birthYear' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:23:5 - initializing_formal_for_non_existent_field
+  error - 'age' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:24:5 - initializing_formal_for_non_existent_field
+  error - 'contentTier' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:25:5 - initializing_formal_for_non_existent_field
+  error - 'coppaRequired' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:26:5 - initializing_formal_for_non_existent_field
+  error - 'termsAccepted' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:27:5 - initializing_formal_for_non_existent_field
+  error - 'privacyAccepted' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:28:5 - initializing_formal_for_non_existent_field
+  error - 'marketingOptIn' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:29:5 - initializing_formal_for_non_existent_field
+  error - 'goals' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:30:5 - initializing_formal_for_non_existent_field
+  error - 'periodComfortScore' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:31:5 - initializing_formal_for_non_existent_field
+  error - 'periodStatus' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:32:5 - initializing_formal_for_non_existent_field
+  error - 'interestTopics' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:33:5 - initializing_formal_for_non_existent_field
+  error - 'avatarData' isn't a field in the enclosing class - features\onboarding\bloc\onboarding_bloc.dart:34:5 - initializing_formal_for_non_existent_field
+  error - The getter 'userType' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:55:53 - undefined_getter
+  error - The getter 'displayName' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:56:53 - undefined_getter
+  error - The getter 'pronouns' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:57:53 - undefined_getter
+  error - The getter 'phone' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:58:53 - undefined_getter
+  error - The getter 'birthMonth' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:59:53 - undefined_getter
+  error - The getter 'birthYear' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:60:53 - undefined_getter
+  error - The getter 'age' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:61:53 - undefined_getter
+  error - The getter 'contentTier' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:62:53 - undefined_getter
+  error - The getter 'coppaRequired' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:63:53 - undefined_getter
+  error - The getter 'termsAccepted' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:64:53 - undefined_getter
+  error - The getter 'privacyAccepted' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:65:53 - undefined_getter
+  error - The getter 'marketingOptIn' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:66:53 - undefined_getter
+  error - The getter 'goals' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:67:53 - undefined_getter
+  error - The getter 'periodComfortScore' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:68:54 - undefined_getter
+  error - The getter 'periodStatus' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:69:53 - undefined_getter
+  error - The getter 'interestTopics' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:70:53 - undefined_getter
+  error - The getter 'avatarData' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:71:53 - undefined_getter
+  error - Undefined name 'userType' - features\onboarding\bloc\onboarding_bloc.dart:84:5 - undefined_identifier
+  error - Undefined name 'displayName' - features\onboarding\bloc\onboarding_bloc.dart:84:15 - undefined_identifier
+  error - Undefined name 'pronouns' - features\onboarding\bloc\onboarding_bloc.dart:84:28 - undefined_identifier
+  error - Undefined name 'phone' - features\onboarding\bloc\onboarding_bloc.dart:84:38 - undefined_identifier
+  error - Undefined name 'birthMonth' - features\onboarding\bloc\onboarding_bloc.dart:84:45 - undefined_identifier
+  error - Undefined name 'birthYear' - features\onboarding\bloc\onboarding_bloc.dart:84:57 - undefined_identifier
+  error - Undefined name 'age' - features\onboarding\bloc\onboarding_bloc.dart:84:68 - undefined_identifier
+  error - Undefined name 'contentTier' - features\onboarding\bloc\onboarding_bloc.dart:85:5 - undefined_identifier
+  error - Undefined name 'coppaRequired' - features\onboarding\bloc\onboarding_bloc.dart:85:18 - undefined_identifier
+  error - Undefined name 'termsAccepted' - features\onboarding\bloc\onboarding_bloc.dart:85:33 - undefined_identifier
+  error - Undefined name 'privacyAccepted' - features\onboarding\bloc\onboarding_bloc.dart:85:48 - undefined_identifier
+  error - Undefined name 'marketingOptIn' - features\onboarding\bloc\onboarding_bloc.dart:85:65 - undefined_identifier
+  error - Undefined name 'goals' - features\onboarding\bloc\onboarding_bloc.dart:86:5 - undefined_identifier
+  error - Undefined name 'periodComfortScore' - features\onboarding\bloc\onboarding_bloc.dart:86:12 - undefined_identifier
+  error - Undefined name 'periodStatus' - features\onboarding\bloc\onboarding_bloc.dart:86:32 - undefined_identifier
+  error - Undefined name 'interestTopics' - features\onboarding\bloc\onboarding_bloc.dart:86:46 - undefined_identifier
+  error - Undefined name 'avatarData' - features\onboarding\bloc\onboarding_bloc.dart:86:62 - undefined_identifier
+  error - The getter 'displayName' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:195:31 - undefined_getter
+  error - The getter 'birthMonth' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:196:31 - undefined_getter
+  error - The getter 'birthYear' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:197:31 - undefined_getter
+  error - The getter 'termsAccepted' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:198:31 - undefined_getter
+  error - The getter 'privacyAccepted' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:199:32 - undefined_getter
+  error - The getter 'marketingOptIn' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:200:31 - undefined_getter
+  error - The getter 'goals' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:216:22 - undefined_getter
+  error - The getter 'periodComfortScore' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:217:35 - undefined_getter
+  error - The getter 'periodStatus' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:218:29 - undefined_getter
+  error - The getter 'interestTopics' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:219:31 - undefined_getter
+  error - The getter 'avatarData' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:231:36 - undefined_getter
+  error - The getter 'userType' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:270:47 - undefined_getter
+  error - The getter 'displayName' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:271:50 - undefined_getter
+  error - The getter 'pronouns' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:272:47 - undefined_getter
+  error - The getter 'phone' isn't defined for the type 'OnboardingState' - features\onboarding\bloc\onboarding_bloc.dart:273:44 - undefined_getter
+   info - The private field _hairColor could be 'final' - features\onboarding\screens\avatar_builder_screen.dart:24:7 - prefer_final_fields
+warning - The value of the field '_hairColors' isn't used - features\onboarding\screens\avatar_builder_screen.dart:31:16 - unused_field
+warning - Unused import: 'package:go_router/go_router.dart' - features\onboarding\screens\consent_waiting_screen.dart:4:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\onboarding\screens\cycle_details_screen.dart:124:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\onboarding\screens\cycle_details_screen.dart:133:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\onboarding\screens\cycle_details_screen.dart:135:35 - deprecated_member_use
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - features\onboarding\screens\goals_selection_screen.dart:95:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\onboarding\screens\goals_selection_screen.dart:100:82 - deprecated_member_use
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - features\onboarding\screens\interest_topics_screen.dart:101:54 - deprecated_member_use
+warning - The value of the field '_loading' isn't used - features\onboarding\screens\parental_consent_screen.dart:17:8 - unused_field
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - features\onboarding\screens\path_selector_screen.dart:89:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\onboarding\screens\path_selector_screen.dart:99:68 - deprecated_member_use
+warning - The value of the field '_showPoints' isn't used - features\onboarding\screens\period_comfort_screen.dart:19:8 - unused_field
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - features\onboarding\screens\period_comfort_screen.dart:69:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\onboarding\screens\splash_screen.dart:50:41 - deprecated_member_use
+warning - Unused import: 'package:infano_care_mobile/core/theme/app_theme.dart' - features\onboarding\screens\tracker_activated_screen.dart:4:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\onboarding\screens\tracker_activated_screen.dart:48:65 - deprecated_member_use
+warning - Unused import: 'package:infano_care_mobile/core/services/local_storage_service.dart' - features\onboarding\screens\welcome_world_screen.dart:5:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - features\onboarding\screens\welcome_world_screen.dart:52:65 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - shared\widgets\gradient_button.dart:34:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - shared\widgets\points_burst.dart:47:39 - deprecated_member_use
+

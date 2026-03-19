@@ -5,6 +5,7 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/points_burst.dart';
+import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 
 class NamePronounsScreen extends StatefulWidget {
   const NamePronounsScreen({super.key});
@@ -26,7 +27,7 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
   void _onNameChanged(String value) {
     setState(() {});
     if (value.length >= 2 && !_pointsAwarded) {
-      setState(() { _showPoints = true; _pointsAwarded = true; });
+      if (mounted) setState(() { _showPoints = true; _pointsAwarded = true; });
     }
   }
 
@@ -35,21 +36,26 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
     await storage.setDisplayName(_controller.text.trim());
     await storage.setPronouns(_pronoun);
     await storage.setPoints(10);
-    await storage.setStageComplete('1');
+    // Don't set stage yet, Birthday will set Stage 1
     if (mounted) context.go('/onboarding/birthday');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+    return OnboardingScaffold(
+      currentStep: 2,
+      bottomBar: GradientButton(
+        label: 'Continue',
+        onPressed: _continue,
+        enabled: _valid,
+      ),
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 60),
+              const SizedBox(height: 32),
               Text('What should we call you? 👋',
                 style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: 8),
@@ -74,7 +80,9 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
                       top: -50, right: 12,
                       child: PointsBurst(
                         points: 10,
-                        onComplete: () => setState(() => _showPoints = false),
+                        onComplete: () {
+                          if (mounted) setState(() => _showPoints = false);
+                        },
                       ),
                     ),
                 ],
@@ -85,6 +93,7 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
               const SizedBox(height: 12),
               Wrap(
                 spacing: 12,
+                runSpacing: 12,
                 children: _pronouns.map((p) =>
                   GestureDetector(
                     onTap: () => setState(() => _pronoun = _pronoun == p ? null : p),
@@ -109,15 +118,9 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
                   ),
                 ).toList(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text('You can always change this later.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textLight)),
-              const Spacer(),
-              GradientButton(
-                label: 'Continue',
-                onPressed: _continue,
-                enabled: _valid,
-              ),
               const SizedBox(height: 32),
             ],
           ).animate().fadeIn(duration: 400.ms),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 
 class PeriodExperienceScreen extends StatefulWidget {
   const PeriodExperienceScreen({super.key});
@@ -19,6 +21,7 @@ class _PeriodExperienceScreenState extends State<PeriodExperienceScreen> {
   ];
 
   void _select(String status, String message) {
+    context.read<OnboardingBloc>().add(SetPeriodStatus(status));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: AppColors.purple, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
     );
@@ -31,7 +34,7 @@ class _PeriodExperienceScreenState extends State<PeriodExperienceScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 9,
+      currentStep: 6,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/shared/widgets/points_burst.dart';
 
 class GoalsSelectionScreen extends StatefulWidget {
@@ -49,7 +51,8 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
   }
 
   void _continue() {
-    setState(() => _showPoints = true);
+    context.read<OnboardingBloc>().add(SetGoals(_selected.toList()));
+    if (mounted) setState(() => _showPoints = true);
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) context.go('/onboarding/period-comfort');
     });
@@ -58,60 +61,71 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 7,
+      currentStep: 4,
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [
           GradientButton(label: 'Continue', onPressed: _continue, enabled: _selected.isNotEmpty),
           if (_showPoints)
-            Positioned(top: -50, right: 20, child: PointsBurst(points: 15, onComplete: () => setState(() => _showPoints = false))),
+            Positioned(
+              top: -50, right: 20, 
+              child: PointsBurst(
+                points: 15, 
+                onComplete: () {
+                  if (mounted) setState(() => _showPoints = false);
+                },
+              ),
+            ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 24),
-            Text('What would you love help with? 💭', style: Theme.of(context).textTheme.headlineLarge),
-            const SizedBox(height: 24),
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.4,
-              children: _goals.asMap().entries.map((e) {
-                final g = e.value;
-                final isSelected = _selected.contains(g.$1);
-                return GestureDetector(
-                  onTap: () => _toggle(g.$1),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    transform: Matrix4.identity()..scale(isSelected ? 1.04 : 1.0),
-                    transformAlignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      gradient: isSelected ? AppGradients.brand : AppGradients.softCard,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))] : null,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 24),
+              Text('What would you love help with? 💭', style: Theme.of(context).textTheme.headlineLarge),
+              const SizedBox(height: 24),
+              GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 1.4,
+                children: _goals.asMap().entries.map((e) {
+                  final g = e.value;
+                  final isSelected = _selected.contains(g.$1);
+                  return GestureDetector(
+                    onTap: () => _toggle(g.$1),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      transform: Matrix4.identity()..scale(isSelected ? 1.04 : 1.0),
+                      transformAlignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        gradient: isSelected ? AppGradients.brand : AppGradients.softCard,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))] : null,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(g.$2, style: const TextStyle(fontSize: 28)),
+                          const SizedBox(height: 8),
+                          Text(g.$3, textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13,
+                              color: isSelected ? Colors.white : AppColors.textDark)),
+                          if (isSelected) const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(g.$2, style: const TextStyle(fontSize: 28)),
-                        const SizedBox(height: 8),
-                        Text(g.$3, textAlign: TextAlign.center,
-                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13,
-                            color: isSelected ? Colors.white : AppColors.textDark)),
-                        if (isSelected) const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
-                      ],
-                    ),
-                  ),
-                ).animate(delay: Duration(milliseconds: e.key * 60)).fadeIn(duration: 250.ms).scale(begin: const Offset(0.9, 0.9), duration: 250.ms);
-              }).toList(),
-            ),
-          ],
+                  ).animate(delay: Duration(milliseconds: e.key * 60)).fadeIn(duration: 250.ms).scale(begin: const Offset(0.9, 0.9), duration: 250.ms);
+                }).toList(),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );

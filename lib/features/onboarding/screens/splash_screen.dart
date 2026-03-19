@@ -23,11 +23,13 @@ class _SplashScreenState extends State<SplashScreen> {
     final storage = await LocalStorageService.create();
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
-    // Returning user
+    // Returning user with token
     if (storage.authToken != null) {
       context.go('/home');
       return;
     }
+    // New user who already started survey but hasn't registered
+    // Router redirect handles the specific stage resumption
   }
 
   @override
@@ -43,7 +45,6 @@ class _SplashScreenState extends State<SplashScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Spacer(flex: 2),
-                // Logo placeholder (replace with Lottie)
                 Container(
                   width: 120, height: 120,
                   decoration: BoxDecoration(
@@ -60,7 +61,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   style: Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white),
                 ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
                 const SizedBox(height: 16),
-                // Tagline — word by word
                 _TaglineReveal(),
                 const Spacer(flex: 2),
                 GradientButton(
@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 ).animate().slideY(begin: 0.5, duration: 400.ms, delay: 1200.ms, curve: Curves.easeOut),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: () => context.go('/auth/phone'),
+                  onPressed: () => context.go('/auth/phone?fromOnboarding=false'),
                   child: const Text(
                     'Already have an account? Sign In',
                     style: TextStyle(color: Colors.white70, fontSize: 14),

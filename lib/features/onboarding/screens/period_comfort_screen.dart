@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 import 'package:infano_care_mobile/shared/widgets/points_burst.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 
 class PeriodComfortScreen extends StatefulWidget {
   const PeriodComfortScreen({super.key});
@@ -33,6 +35,7 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
   ];
 
   void _select(int i) {
+    context.read<OnboardingBloc>().add(SetPeriodComfort(i + 1));
     setState(() { _selected = i; _showPoints = true; });
     Future.delayed(const Duration(milliseconds: 1800), () {
       if (mounted) context.go('/onboarding/period-status');
@@ -42,7 +45,7 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 8,
+      currentStep: 5,
       bottomBar: _selected != null ? PointsBurst(points: 10, onComplete: () => setState(() => _showPoints = false)) : null,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),

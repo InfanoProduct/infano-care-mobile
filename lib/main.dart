@@ -18,7 +18,7 @@ void main() async {
 }
 
 class InfanoCareApp extends StatelessWidget {
-  const InfanoCareApp({super.key, required this.storage});
+  InfanoCareApp({super.key, required this.storage});
   final LocalStorageService storage;
 
   @override

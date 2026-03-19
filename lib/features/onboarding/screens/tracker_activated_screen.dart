@@ -13,6 +13,18 @@ class TrackerActivatedScreen extends StatefulWidget {
 
 class _TrackerActivatedScreenState extends State<TrackerActivatedScreen> {
   @override
+  void initState() {
+    super.initState();
+    _autoRoute();
+  }
+
+  Future<void> _autoRoute() async {
+    await Future.delayed(const Duration(seconds: 5));
+    if (!mounted) return;
+    context.go('/home');
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(

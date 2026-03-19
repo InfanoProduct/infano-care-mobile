@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
+import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 
 class AssentTermsScreen extends StatefulWidget {
   const AssentTermsScreen({super.key});
@@ -30,27 +33,29 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
   bool get _canContinue => _terms && _privacy;
 
   Future<void> _letsBloom() async {
-    setState(() => _loading = true);
-    try {
-      // TODO: call OnboardingBloc SubmitRegistration event with tempToken
-      if (mounted) context.go('/onboarding/goals');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+    final bloc = context.read<OnboardingBloc>();
+    final storage = await LocalStorageService.create();
+    
+    // Save to storage immediately to ensure sync finds it
+    await storage.setConsents(terms: _terms, privacy: _privacy, marketing: _marketing);
+    bloc.add(SetConsent(_terms, _privacy, _marketing));
+    
+    // Always navigate to phone entry in the survey-first flow
+    if (mounted) context.go('/auth/phone?fromOnboarding=true');
   }
 
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 6,
+      currentStep: 10,
       bottomBar: GradientButton(
-        label: _loading ? 'Creating your account...' : "Let's Bloom! 🌸",
+        label: "Let's Bloom! 🌸",
         onPressed: _letsBloom,
         enabled: _canContinue && !_loading,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -87,7 +92,7 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
                 label: 'I\'d love tips and updates by SMS (optional)',
                 onChanged: (v) => setState(() => _marketing = v ?? false),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 32),
             ],
           ),
         ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
@@ -20,9 +22,33 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
   Widget build(BuildContext context) {
     return OnboardingScaffold(
       currentStep: 15,
-      bottomBar: GradientButton(
-        label: 'Set Up My Tracker 🌸',
-        onPressed: () => context.go('/onboarding/tracker/done'),
+      bottomBar: BlocBuilder<OnboardingBloc, OnboardingState>(
+        builder: (context, state) {
+          return GradientButton(
+            label: state.isLoading ? 'Setting up...' : 'Set Up My Tracker 🌸',
+            onPressed: state.isLoading ? null : () async {
+              final bloc = context.read<OnboardingBloc>();
+              bloc.add(SetTrackerDetails(_periodLength, _cycleLength, bloc.state.lastPeriod));
+              bloc.add(const SubmitTrackerSetup());
+
+              // Wait for submission completion
+              await for (final s in bloc.stream) {
+                if (!s.isLoading) {
+                  if (s.errorMessage == null) {
+                    if (mounted) context.go('/onboarding/tracker/done');
+                  } else {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(s.errorMessage!)),
+                      );
+                    }
+                  }
+                  break;
+                }
+              }
+            },
+          );
+        },
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
