@@ -7,7 +7,7 @@ class OnboardingScaffold extends StatelessWidget {
     super.key,
     required this.body,
     this.currentStep = 1,
-    this.totalSteps = 16,
+    this.totalSteps = 12,
     this.canGoBack = true,
     this.onBack,
     this.bottomBar,

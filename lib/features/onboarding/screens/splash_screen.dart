@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,9 +21,13 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAndRoute() async {
-    final storage = await LocalStorageService.create();
-    await Future.delayed(const Duration(milliseconds: 600));
+    // Remove native splash now that Flutter is ready
+    FlutterNativeSplash.remove();
+
+    final storage = await LocalStorageService.create(); // Still fast, but ideally passed in
+    await Future.delayed(const Duration(milliseconds: 400)); // Reduced from 600ms
     if (!mounted) return;
+    
     // Returning user with token
     if (storage.authToken != null) {
       context.go('/home');
@@ -66,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 GradientButton(
                   label: 'Start My Journey',
                   icon: '✨',
-                  onPressed: () => context.go('/onboarding/path'),
+                  onPressed: () => context.go('/auth/phone?fromOnboarding=true'),
                 ).animate().slideY(begin: 0.5, duration: 400.ms, delay: 1200.ms, curve: Curves.easeOut),
                 const SizedBox(height: 16),
                 TextButton(

@@ -7,8 +7,11 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/features/onboarding/data/onboarding_repository.dart';
 
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Bootstrap services
   final storage = await LocalStorageService.create();

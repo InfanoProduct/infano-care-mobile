@@ -28,28 +28,54 @@ GoRouter createRouter(LocalStorageService storage) {
     redirect: (context, state) {
       // Resume logic — map ob_stage_complete to correct route
       final token = storage.authToken;
+      final tempToken = storage.tempToken;
       final stage = storage.stageComplete;
       final path  = state.uri.path;
 
-      // Skip redirect for routes that handle themselves
-      if (path == '/splash') return null;
-      if (path.startsWith('/auth')) return null;
-      if (path.startsWith('/onboarding')) return null;
+      // 1. Splash & Auth are always accessible
+      if (path == '/splash' || path.startsWith('/auth')) return null;
 
-      if (token == null && stage == null) return '/splash';
-      
-      // New User Resume Logic (Survey stages)
+      // 2. Not Authenticated
       if (token == null) {
-        if (stage == '1') return '/onboarding/goals';
-        if (stage == '2') return '/onboarding/avatar';
-        if (stage == '3') return '/onboarding/terms';
-        return null;
+        // If they have a tempToken, they can perform onboarding
+        if (tempToken != null) {
+          if (path.startsWith('/onboarding')) {
+            // Check for resumption within survey
+            if (path == '/onboarding/path' || path == '/onboarding/welcome') return null; // allow these
+            
+            if (stage == '1') {
+               final allowed = ['/onboarding/goals', '/onboarding/period-comfort', '/onboarding/period-status', '/onboarding/interests'];
+               if (!allowed.any((a) => path.startsWith(a))) {
+                 return '/onboarding/goals';
+               }
+            }
+            if (stage == '2') {
+               final allowed = ['/onboarding/avatar', '/onboarding/journey-name'];
+               if (!allowed.any((a) => path.startsWith(a))) {
+                 return '/onboarding/avatar';
+               }
+            }
+            if (stage == '3') {
+               if (path != '/onboarding/terms') return '/onboarding/terms';
+            }
+            return null;
+          }
+          // If they try to go home or elsewhere, send to onboarding
+          return '/onboarding/path';
+        }
+        // No tokens at all: must be at splash/auth
+        return '/splash';
       }
 
-      // Authenticated User Resume Logic
-      if (token != null) {
-        if (stage == '4') return '/onboarding/tracker/date';
-        if (stage == '5') return '/home';
+      // 3. Authenticated (token != null)
+      if (path == '/splash' || path.startsWith('/auth') || path == '/onboarding/path') {
+         if (stage == '4') return '/onboarding/tracker/date';
+         if (stage == '5') return '/home';
+         return '/home'; // default for auth users
+      }
+
+      if (stage == '5' && path.startsWith('/onboarding') && !path.contains('tracker')) {
+        return '/home';
       }
 
       return null;

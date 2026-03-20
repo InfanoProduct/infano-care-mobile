@@ -55,9 +55,13 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
         children: [
           GradientButton(
             label: 'Show Me My Universe 🌟',
-            onPressed: () {
+            onPressed: () async {
               final bloc = context.read<OnboardingBloc>();
               bloc.add(SetInterestTopics(_selected.toList()));
+
+              // Advance stage to avatar
+              final storage = await LocalStorageService.create();
+              await storage.setStageComplete('2');
 
               if (mounted) {
                 setState(() => _showPoints = true);

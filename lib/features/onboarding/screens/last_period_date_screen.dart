@@ -21,7 +21,7 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 14,
+      currentStep: 11,
       bottomBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

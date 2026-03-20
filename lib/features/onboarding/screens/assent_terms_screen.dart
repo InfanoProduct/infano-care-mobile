@@ -36,12 +36,38 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
     final bloc = context.read<OnboardingBloc>();
     final storage = await LocalStorageService.create();
     
-    // Save to storage immediately to ensure sync finds it
+    setState(() => _loading = true);
+    
+    // 1. Save locally
     await storage.setConsents(terms: _terms, privacy: _privacy, marketing: _marketing);
     bloc.add(SetConsent(_terms, _privacy, _marketing));
     
-    // Always navigate to phone entry in the survey-first flow
-    if (mounted) context.go('/auth/phone?fromOnboarding=true');
+    // 2. Submit Registration (Profile) using the tempToken from auth step
+    final tempToken = storage.tempToken;
+    if (tempToken == null) {
+      if (mounted) setState(() { _loading = false; _expanded = 0; }); // Show first item as "error" or similar
+      return;
+    }
+
+    bloc.add(SubmitRegistration(tempToken));
+
+    // 3. Wait for BLoC
+    await for (final state in bloc.stream) {
+      if (!state.isLoading) {
+        if (mounted) {
+          setState(() => _loading = false);
+          if (state.errorMessage == null) {
+            context.go('/onboarding/welcome');
+          } else {
+            // Error handling: maybe show a snackbar or alert
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.errorMessage ?? 'Registration failed')),
+            );
+          }
+        }
+        break;
+      }
+    }
   }
 
   @override

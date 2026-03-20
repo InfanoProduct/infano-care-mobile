@@ -21,7 +21,7 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 15,
+      currentStep: 12,
       bottomBar: BlocBuilder<OnboardingBloc, OnboardingState>(
         builder: (context, state) {
           return GradientButton(
