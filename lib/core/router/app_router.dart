@@ -4,6 +4,7 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/screens/phone_entry_screen.dart';
 import 'package:infano_care_mobile/features/auth/screens/otp_verify_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/splash_screen.dart';
+import 'package:infano_care_mobile/features/account/screens/account_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/path_selector_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/name_pronouns_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/birthday_input_screen.dart';
@@ -26,62 +27,58 @@ GoRouter createRouter(LocalStorageService storage) {
   return GoRouter(
     initialLocation: '/splash',
     redirect: (context, state) {
-      // Resume logic — map ob_stage_complete to correct route
       final token = storage.authToken;
       final tempToken = storage.tempToken;
       final stage = storage.stageComplete;
-      final path  = state.uri.path;
+      final path = state.uri.path;
 
-      // 1. Splash & Auth are always accessible
+      // 1. Screens always accessible
       if (path == '/splash' || path.startsWith('/auth')) return null;
 
-      // 2. Not Authenticated
+      // 2. Not Authenticated (no access token)
       if (token == null) {
-        // If they have a tempToken, they can perform onboarding
+        // If they have a tempToken, they can continue early onboarding
         if (tempToken != null) {
-          if (path.startsWith('/onboarding')) {
-            // Check for resumption within survey
-            if (path == '/onboarding/path' || path == '/onboarding/welcome') return null; // allow these
-            
-            if (stage == '1') {
-               final allowed = ['/onboarding/goals', '/onboarding/period-comfort', '/onboarding/period-status', '/onboarding/interests'];
-               if (!allowed.any((a) => path.startsWith(a))) {
-                 return '/onboarding/goals';
-               }
-            }
-            if (stage == '2') {
-               final allowed = ['/onboarding/avatar', '/onboarding/journey-name'];
-               if (!allowed.any((a) => path.startsWith(a))) {
-                 return '/onboarding/avatar';
-               }
-            }
-            if (stage == '3') {
-               if (path != '/onboarding/terms') return '/onboarding/terms';
-            }
-            return null;
-          }
-          // If they try to go home or elsewhere, send to onboarding
+          if (path.startsWith('/onboarding')) return null;
           return '/onboarding/path';
         }
-        // No tokens at all: must be at splash/auth
+        // No tokens: force to splash
         return '/splash';
       }
 
       // 3. Authenticated (token != null)
-      if (path == '/splash' || path.startsWith('/auth') || path == '/onboarding/path') {
-         if (stage == '4') return '/onboarding/tracker/date';
-         if (stage == '5') return '/home';
-         return '/home'; // default for auth users
-      }
+      final bool onOnboarding = path.startsWith('/onboarding');
+      final bool onAuth = path.startsWith('/auth') || path == '/splash';
 
-      if (stage == '5' && path.startsWith('/onboarding') && !path.contains('tracker')) {
-        return '/home';
+      if (stage != '5') {
+        // Enforce onboarding flow
+        final routes = {
+          '0': '/onboarding/path',
+          '1': '/onboarding/goals',        // Basic profile done, choose interests
+          '2': '/onboarding/avatar',       // Interests done, build avatar
+          '3': '/onboarding/journey-name', // Avatar done, name journey
+          '4': '/onboarding/terms',        // Journey named, accept terms
+        };
+        final target = routes[stage ?? '0'] ?? '/onboarding/path';
+        
+        if (path != target && !path.contains('tracker')) {
+          // If they are on a DIFFERENT onboarding screen, allow it (for flexibility) 
+          // but if they are NOT on onboarding at all, force them in.
+          if (!onOnboarding) return target;
+          
+          // If they specifically tried to go to /home or /account, force them back
+          if (path == '/home' || path == '/account') return target;
+        }
+      } else {
+        // Stage 5 (Complete) - Send to home if on auth/onboarding
+        if (onAuth || onOnboarding) return '/home';
       }
 
       return null;
     },
     routes: [
       GoRoute(path: '/splash',   builder: (_, __) => const SplashScreen()),
+      GoRoute(path: '/account',  builder: (_, __) => AccountScreen(storage: storage)),
 
       // Auth (Phone + OTP)
       GoRoute(
@@ -119,7 +116,7 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(path: '/onboarding/tracker/done',    builder: (_, __) => const TrackerActivatedScreen()),
 
       // Home
-      GoRoute(path: '/home', builder: (_, __) => const DashboardScreen()),
+      GoRoute(path: '/home', builder: (_, __) => DashboardScreen(storage: storage)),
     ],
   );
 }

@@ -58,14 +58,17 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
             onPressed: () async {
               final bloc = context.read<OnboardingBloc>();
               bloc.add(SetInterestTopics(_selected.toList()));
-
-              // Advance stage to avatar
-              final storage = await LocalStorageService.create();
-              await storage.setStageComplete('2');
+              bloc.add(const SubmitPersonalization());
 
               if (mounted) {
                 setState(() => _showPoints = true);
-                context.go('/onboarding/avatar');
+                
+                // Wait for sync to backend
+                await bloc.stream.firstWhere((state) => !state.isLoading);
+                
+                if (mounted) {
+                  context.go('/onboarding/avatar');
+                }
               }
             },
             enabled: _selected.isNotEmpty,

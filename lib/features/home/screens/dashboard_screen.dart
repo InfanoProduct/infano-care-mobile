@@ -8,9 +8,13 @@ import 'package:infano_care_mobile/features/home/screens/learn_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/connect_screen.dart';
+import 'package:infano_care_mobile/core/services/local_storage_service.dart';
+import 'package:go_router/go_router.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  const DashboardScreen({super.key, required this.storage});
+
+  final LocalStorageService storage;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +31,13 @@ class DashboardScreen extends StatelessWidget {
           ];
 
           return Scaffold(
+            appBar: AppBar(
+              title: Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
+              backgroundColor: Colors.white,
+              elevation: 0,
+              iconTheme: const IconThemeData(color: AppColors.purple),
+            ),
+            drawer: _buildDrawer(context),
             body: IndexedStack(
               index: state.selectedIndex,
               children: screens,
@@ -159,5 +170,76 @@ class DashboardScreen extends StatelessWidget {
         .scaleXY(begin: 1.0, end: 1.15, duration: 1000.ms, curve: Curves.easeInOut)
         .then()
         .scaleXY(begin: 1.15, end: 1.0, duration: 1000.ms);
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: Column(
+        children: [
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: AppGradients.brandDiagonal,
+            ),
+            accountName: Text(storage.displayName ?? 'Infano User', 
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            accountEmail: Text(storage.phone ?? ''),
+            currentAccountPicture: CircleAvatar(
+              backgroundColor: Colors.white.withOpacity(0.3),
+              child: const Text('👤', style: TextStyle(fontSize: 32)),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person_outline, color: AppColors.purple),
+            title: const Text('Account Details'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/account');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined, color: AppColors.purple),
+            title: const Text('Profile Settings'),
+            onTap: () => Navigator.pop(context),
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: AppColors.purple),
+            title: const Text('Help & Support'),
+            onTap: () => Navigator.pop(context),
+          ),
+          const Spacer(),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout, color: AppColors.error),
+            title: const Text('Logout', style: TextStyle(color: AppColors.error)),
+            onTap: () => _handleLogout(context),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout?'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await storage.clearAll();
+      if (context.mounted) {
+        context.go('/splash');
+      }
+    }
   }
 }

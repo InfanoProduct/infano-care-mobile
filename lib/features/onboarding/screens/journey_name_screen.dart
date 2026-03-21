@@ -30,9 +30,13 @@ class _JourneyNameScreenState extends State<JourneyNameScreen> {
         onPressed: () async {
           final bloc = context.read<OnboardingBloc>();
           bloc.add(SetJourneyName(_controller.text.trim()));
-          final storage = await LocalStorageService.create();
-          await storage.setStageComplete('3');
-          if (mounted) context.go('/onboarding/terms');
+          bloc.add(const SubmitJourneyName());
+
+          if (mounted) {
+            // Wait for sync to backend
+            await bloc.stream.firstWhere((state) => !state.isLoading);
+            if (mounted) context.go('/onboarding/terms');
+          }
         },
         enabled: _valid,
       ),

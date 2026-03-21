@@ -24,17 +24,17 @@ class _SplashScreenState extends State<SplashScreen> {
     // Remove native splash now that Flutter is ready
     FlutterNativeSplash.remove();
 
-    final storage = await LocalStorageService.create(); // Still fast, but ideally passed in
-    await Future.delayed(const Duration(milliseconds: 400)); // Reduced from 600ms
+    final storage = await LocalStorageService.create();
+    await Future.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
     
-    // Returning user with token
+    // If we ALREADY have a token, we can go home (or router will redirect based on stage)
     if (storage.authToken != null) {
       context.go('/home');
       return;
     }
-    // New user who already started survey but hasn't registered
-    // Router redirect handles the specific stage resumption
+    
+    // Otherwise, we stay here and show the "Start My Journey" button
   }
 
   @override
@@ -71,16 +71,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 GradientButton(
                   label: 'Start My Journey',
                   icon: '✨',
-                  onPressed: () => context.go('/auth/phone?fromOnboarding=true'),
+                  onPressed: () => context.go('/auth/phone'),
                 ).animate().slideY(begin: 0.5, duration: 400.ms, delay: 1200.ms, curve: Curves.easeOut),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => context.go('/auth/phone?fromOnboarding=false'),
-                  child: const Text(
-                    'Already have an account? Sign In',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ).animate().fadeIn(delay: 1400.ms),
                 const SizedBox(height: 32),
               ],
             ),

@@ -69,8 +69,9 @@ class OnboardingRepository {
     await _api.dio.post('/onboarding/avatar', data: avatarData);
   }
 
-  Future<void> saveJourneyName(String name) async {
-    await _api.dio.post('/onboarding/journey-name', data: {'journeyName': name});
+  Future<Map<String, dynamic>> saveJourneyName(String name) async {
+    final res = await _api.dio.post('/onboarding/journey-name', data: {'journeyName': name});
+    return Map<String, dynamic>.from(res.data);
   }
 
   Future<void> completeOnboarding() async {

@@ -56,19 +56,27 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
 
       if (!mounted) return;
 
-      if (result.isNewUser) {
-        // New user: Save context in BLoC if needed, then start survey
-        context.read<OnboardingBloc>().add(SetPhone(widget.phone));
-        context.go('/onboarding/path');
+      // Resumption Logic:
+      // Stage 0-1: Needs registration
+      // Stage 2-4: Needs login to get tokens, then resume
+      // Stage 5: Needs login, then Home
+      
+      if (result.onboardingStage < 2) {
+        // New User: Register early so we can track progress on server
+        final bloc = context.read<OnboardingBloc>();
+        bloc.add(SetPhone(widget.phone));
+        bloc.add(SubmitRegistration(result.tempToken));
+        
+        // Wait for registration to finish before navigating
+        await bloc.stream.firstWhere((state) => !state.isLoading);
+        
+        if (mounted) context.go('/onboarding/path');
       } else {
-        // Existing user: Login to get JWT and check stage
-        final loginRes = await _repo.login(result.tempToken);
+        // Returning User: Login to get authToken, then let router decide
+        await _repo.login(result.tempToken);
         if (mounted) {
-          if (loginRes.onboardingStage < 5) {
-            context.go('/onboarding/path'); // Router will redirect to the correct resume step
-          } else {
-            context.go('/home');
-          }
+          // Go to home; router will redirect to correct onboarding stage if stage < 5
+          context.go('/home');
         }
       }
     } catch (e) {

@@ -6,8 +6,15 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 class OtpVerifyResult {
   final String tempToken;
   final bool isNewUser;
+  final int onboardingStage;
+  final String accountStatus;
 
-  OtpVerifyResult({required this.tempToken, required this.isNewUser});
+  OtpVerifyResult({
+    required this.tempToken,
+    required this.isNewUser,
+    required this.onboardingStage,
+    required this.accountStatus,
+  });
 }
 
 /// Returned after a successful login for returning users.
@@ -49,8 +56,10 @@ class AuthRepository {
       });
       final data = resp.data as Map<String, dynamic>;
       final result = OtpVerifyResult(
-        tempToken: data['tempToken'] as String,
-        isNewUser: data['isNewUser'] as bool,
+        tempToken:       data['tempToken']       as String,
+        isNewUser:       data['isNewUser']       as bool,
+        onboardingStage: data['onboardingStage'] as int,
+        accountStatus:   data['accountStatus']   as String,
       );
       // Persist tempToken for the onboarding register step
       await _storage.setTempToken(result.tempToken);
@@ -75,6 +84,7 @@ class AuthRepository {
       await _storage.setAuthToken(result.accessToken);
       await _storage.setRefreshToken(result.refreshToken);
       await _storage.setUserId(result.userId);
+      await _storage.setStageComplete(result.onboardingStage.toString());
       return result;
     } on DioException catch (e) {
       throw _extractError(e, 'Login failed.');

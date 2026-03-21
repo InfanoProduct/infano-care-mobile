@@ -130,8 +130,11 @@ class SetJourneyName       extends OnboardingEvent { final String name; const Se
 class SetTrackerDetails    extends OnboardingEvent { final int periodDays; final int cycleDays; final DateTime? lastPeriod; const SetTrackerDetails(this.periodDays, this.cycleDays, this.lastPeriod); @override List<Object?> get props => [periodDays, cycleDays, lastPeriod]; }
 class AddPoints            extends OnboardingEvent { final int points; const AddPoints(this.points); @override List<Object?> get props => [points]; }
 class SubmitRegistration   extends OnboardingEvent { final String tempToken; const SubmitRegistration(this.tempToken); @override List<Object?> get props => [tempToken]; }
-class SubmitTrackerSetup   extends OnboardingEvent { const SubmitTrackerSetup(); }
-class SyncFromStorage      extends OnboardingEvent { const SyncFromStorage(); }
+class SubmitPersonalization extends OnboardingEvent { const SubmitPersonalization(); }
+class SubmitAvatar          extends OnboardingEvent { const SubmitAvatar(); }
+class SubmitJourneyName     extends OnboardingEvent { const SubmitJourneyName(); }
+class SubmitTrackerSetup    extends OnboardingEvent { const SubmitTrackerSetup(); }
+class SyncFromStorage       extends OnboardingEvent { const SyncFromStorage(); }
 
 // ─── BLoC ─────────────────────────────────────────────────────────────────────
 
@@ -154,6 +157,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<SetTrackerDetails>(_onSetTrackerDetails);
     on<AddPoints>(_onAddPoints);
     on<SubmitRegistration>(_onSubmitRegistration);
+    on<SubmitPersonalization>(_onSubmitPersonalization);
+    on<SubmitAvatar>(_onSubmitAvatar);
+    on<SubmitJourneyName>(_onSubmitJourneyName);
     on<SubmitTrackerSetup>(_onSubmitTrackerSetup);
     on<SyncFromStorage>(_onSyncFromStorage);
   }
@@ -203,11 +209,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   Future<void> _onSubmitRegistration(SubmitRegistration e, Emitter<OnboardingState> emit) async {
-    _onSyncFromStorage(const SyncFromStorage(), emit);
-    
-    emit(state.copyWith(isLoading: true, sessionExpired: false, errorMessage: null));
+    emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
-      // 1. Register
       final result = await _repo.register(
         tempToken:       e.tempToken,
         displayName:     state.displayName,
@@ -221,27 +224,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       await _storage.setAuthToken(result['accessToken']);
       await _storage.setRefreshToken(result['refreshToken']);
       await _storage.setUserId(result['userId']);
-
-      // 2. Submit Personalization
-      await _repo.savePersonalization(
-        goals: state.goals,
-        periodComfortScore: state.periodComfortScore,
-        periodStatus: state.periodStatus,
-        interestTopics: state.interestTopics,
-      );
-
-      // 3. Submit Avatar
-      if (state.avatarData.isNotEmpty) {
-        await _repo.saveAvatar(state.avatarData);
-      }
-
-      // 4. Submit Journey Name
-      if (state.journeyName.isNotEmpty) {
-        await _repo.saveJourneyName(state.journeyName);
-      }
-
-      // 5. Finalize survey phase
-      await _storage.setStageComplete('4');
+      await _storage.setStageComplete(result['onboardingStage'].toString());
       
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
@@ -249,6 +232,47 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final isExpired = errorStr.contains('Session expired');
       if (isExpired) await _storage.clearTempToken();
       emit(state.copyWith(isLoading: false, errorMessage: errorStr, sessionExpired: isExpired));
+    }
+  }
+
+  Future<void> _onSubmitPersonalization(SubmitPersonalization e, Emitter<OnboardingState> emit) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final res = await _repo.savePersonalization(
+        goals: state.goals,
+        periodComfortScore: state.periodComfortScore,
+        periodStatus: state.periodStatus,
+        interestTopics: state.interestTopics,
+      );
+      await _storage.setPoints(res['pointsTotal']);
+      await _storage.setStageComplete('3');
+      emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
+    } catch (err) {
+      emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
+    }
+  }
+
+  Future<void> _onSubmitAvatar(SubmitAvatar e, Emitter<OnboardingState> emit) async {
+    if (state.avatarData.isEmpty) return;
+    emit(state.copyWith(isLoading: true));
+    try {
+      await _repo.saveAvatar(state.avatarData);
+      await _storage.setStageComplete('4');
+      emit(state.copyWith(isLoading: false));
+    } catch (err) {
+      emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
+    }
+  }
+
+  Future<void> _onSubmitJourneyName(SubmitJourneyName e, Emitter<OnboardingState> emit) async {
+    if (state.journeyName.isEmpty) return;
+    emit(state.copyWith(isLoading: true));
+    try {
+      final res = await _repo.saveJourneyName(state.journeyName);
+      await _storage.setPoints(res['pointsTotal']);
+      emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
+    } catch (err) {
+      emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
     }
   }
 

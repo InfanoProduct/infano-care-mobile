@@ -63,7 +63,7 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
         children: [
           GradientButton(
             label: 'This Is Me! 💜',
-            onPressed: () {
+            onPressed: () async {
               final bloc = context.read<OnboardingBloc>();
               bloc.add(SetAvatar({
                 'bodyType': _bodyType,
@@ -72,11 +72,17 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
                 'hairColor': _hairColor,
                 'outfit': _outfit,
               }));
+              bloc.add(const SubmitAvatar());
 
               if (mounted) {
                 setState(() => _showPoints = true);
-                // No need to wait for BLoC loading since we're just updating state locally
-                context.go('/onboarding/journey-name');
+                
+                // Wait for sync to backend
+                await bloc.stream.firstWhere((state) => !state.isLoading);
+                
+                if (mounted) {
+                  context.go('/onboarding/journey-name');
+                }
               }
             },
           ),

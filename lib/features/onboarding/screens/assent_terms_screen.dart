@@ -36,37 +36,16 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
     final bloc = context.read<OnboardingBloc>();
     final storage = await LocalStorageService.create();
     
-    setState(() => _loading = true);
-    
-    // 1. Save locally
+    // Save locally and update state
     await storage.setConsents(terms: _terms, privacy: _privacy, marketing: _marketing);
     bloc.add(SetConsent(_terms, _privacy, _marketing));
     
-    // 2. Submit Registration (Profile) using the tempToken from auth step
-    final tempToken = storage.tempToken;
-    if (tempToken == null) {
-      if (mounted) setState(() { _loading = false; _expanded = 0; }); // Show first item as "error" or similar
-      return;
-    }
-
-    bloc.add(SubmitRegistration(tempToken));
-
-    // 3. Wait for BLoC
-    await for (final state in bloc.stream) {
-      if (!state.isLoading) {
-        if (mounted) {
-          setState(() => _loading = false);
-          if (state.errorMessage == null) {
-            context.go('/onboarding/welcome');
-          } else {
-            // Error handling: maybe show a snackbar or alert
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? 'Registration failed')),
-            );
-          }
-        }
-        break;
-      }
+    // Since registration already happened at OTP verification for new users,
+    // we can proceed directly to welcome. 
+    // If we wanted to update terms in backend, we'd need a separate API, 
+    // but for now this is sufficient.
+    if (mounted) {
+      context.go('/onboarding/welcome');
     }
   }
 
