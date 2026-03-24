@@ -31,18 +31,40 @@ class _LandingScreenState extends State<LandingScreen> {
     if (!mounted) return;
     
     final token = storage.authToken;
-    final stage = storage.stageComplete;
-
+    
     if (token != null) {
-      if (stage == '5') {
-        // Fully complete: go home
-        context.go('/home');
-      } else {
-        // Incomplete onboarding: show Resume button
-        setState(() {
-          _isResuming = true;
-          _userName = storage.displayName;
-        });
+      try {
+        // Sync stage from server to reflect any external resets
+        final resp = await ApiService.instance.dio.get('/user/me');
+        final serverStage = resp.data['onboardingStage'];
+        final serverName = resp.data['profile']?['displayName'];
+        
+        await storage.setStageComplete(serverStage.toString());
+        if (serverName != null) await storage.setDisplayName(serverName);
+
+        final stage = serverStage.toString();
+
+        if (stage == '13') {
+          // Fully complete: go home
+          context.go('/home');
+        } else if (int.parse(stage) > 1) {
+          // Incomplete but started: show Resume button
+          setState(() {
+            _isResuming = true;
+            _userName = serverName;
+          });
+        }
+        // If stage is 0 or 1, they haven't really "started" the journey beyond phone entry,
+        // so we show "Start My Journey".
+      } catch (e) {
+        // Token might be invalid or network error, fallback to local if available
+        final stage = storage.stageComplete;
+        if (stage != '13' && stage != null && int.parse(stage) > 1) {
+          setState(() {
+            _isResuming = true;
+            _userName = storage.displayName;
+          });
+        }
       }
     }
   }

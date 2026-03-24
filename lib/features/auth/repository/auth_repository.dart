@@ -4,31 +4,18 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 
 /// Result from verifyOtp — carries enough info to drive navigation.
 class OtpVerifyResult {
-  final String tempToken;
+  final String accessToken;
+  final String refreshToken;
   final bool isNewUser;
   final int onboardingStage;
   final String accountStatus;
 
   OtpVerifyResult({
-    required this.tempToken,
+    required this.accessToken,
+    required this.refreshToken,
     required this.isNewUser,
     required this.onboardingStage,
     required this.accountStatus,
-  });
-}
-
-/// Returned after a successful login for returning users.
-class LoginResult {
-  final String accessToken;
-  final String refreshToken;
-  final String userId;
-  final int onboardingStage;
-
-  LoginResult({
-    required this.accessToken,
-    required this.refreshToken,
-    required this.userId,
-    required this.onboardingStage,
   });
 }
 
@@ -56,38 +43,24 @@ class AuthRepository {
       });
       final data = resp.data as Map<String, dynamic>;
       final result = OtpVerifyResult(
-        tempToken:       data['tempToken']       as String,
+        accessToken:     data['accessToken']     as String,
+        refreshToken:    data['refreshToken']    as String,
         isNewUser:       data['isNewUser']       as bool,
         onboardingStage: data['onboardingStage'] as int,
         accountStatus:   data['accountStatus']   as String,
       );
-      // Persist tempToken for the onboarding register step
-      await _storage.setTempToken(result.tempToken);
+      // Persist tokens and stage immediately
+      await _storage.setAuthToken(result.accessToken);
+      await _storage.setRefreshToken(result.refreshToken);
       await _storage.setPhone(phone);
+      await _storage.setStageComplete(result.onboardingStage.toString());
+      
+      // Clear legacy tempToken if present
+      await _storage.clearTempToken();
+
       return result;
     } on DioException catch (e) {
       throw _extractError(e, 'OTP verification failed.');
-    }
-  }
-
-  // ── Login (returning user) ──────────────────────────────────────────────────
-  Future<LoginResult> login(String tempToken) async {
-    try {
-      final resp = await _dio.post('/auth/login', data: {'tempToken': tempToken});
-      final data = resp.data as Map<String, dynamic>;
-      final result = LoginResult(
-        accessToken:     data['accessToken']     as String,
-        refreshToken:    data['refreshToken']    as String,
-        userId:          data['userId']          as String,
-        onboardingStage: data['onboardingStage'] as int,
-      );
-      await _storage.setAuthToken(result.accessToken);
-      await _storage.setRefreshToken(result.refreshToken);
-      await _storage.setUserId(result.userId);
-      await _storage.setStageComplete(result.onboardingStage.toString());
-      return result;
-    } on DioException catch (e) {
-      throw _extractError(e, 'Login failed.');
     }
   }
 

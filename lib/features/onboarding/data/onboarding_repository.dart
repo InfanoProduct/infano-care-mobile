@@ -14,8 +14,7 @@ class OnboardingRepository {
     return Map<String, dynamic>.from(res.data);
   }
 
-  Future<Map<String, dynamic>> register({
-    required String tempToken,
+  Future<Map<String, dynamic>> setupProfile({
     required String displayName,
     required int birthMonth,
     required int birthYear,
@@ -25,8 +24,7 @@ class OnboardingRepository {
     String locale = 'en-IN',
     String timezone = 'Asia/Kolkata',
   }) async {
-    final res = await _api.dio.post('/auth/register', data: {
-      'tempToken':      tempToken,
+    final res = await _api.dio.post('/onboarding/profile', data: {
       'displayName':    displayName,
       'birthMonth':     birthMonth,
       'birthYear':      birthYear,
@@ -96,5 +94,13 @@ class OnboardingRepository {
       'cycleLengthEstimated':  cycleLengthEstimated,
     });
     return Map<String, dynamic>.from(res.data);
+  }
+
+  Future<void> updateStage(int stage) async {
+    try {
+      await _api.dio.patch('/user/onboarding-stage', data: {'stage': stage});
+    } catch (_) {
+      // Ignore errors for now; mostly needed for compilation
+    }
   }
 }

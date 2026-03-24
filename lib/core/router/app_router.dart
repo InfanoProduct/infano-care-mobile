@@ -23,6 +23,17 @@ import 'package:infano_care_mobile/features/onboarding/screens/cycle_details_scr
 import 'package:infano_care_mobile/features/onboarding/screens/tracker_activated_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/dashboard_screen.dart';
 
+// Learning Journey Imports
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
+import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
+import 'package:infano_care_mobile/features/learning/application/summary_player_bloc.dart';
+import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
+import 'package:infano_care_mobile/features/learning/screens/journey_detail_screen.dart';
+import 'package:infano_care_mobile/features/learning/screens/summary_player_screen.dart';
+import 'package:infano_care_mobile/features/learning/models/learning_models.dart';
+
 GoRouter createRouter(LocalStorageService storage) {
   return GoRouter(
     initialLocation: '/splash',
@@ -121,6 +132,40 @@ GoRouter createRouter(LocalStorageService storage) {
 
       // Home
       GoRoute(path: '/home', builder: (_, __) => DashboardScreen(storage: storage)),
+
+      // Learning Journey Module
+      GoRoute(
+        path: '/learning/journeys',
+        builder: (_, __) {
+          final repo = LearningRepository(ApiService.instance.dio);
+          return BlocProvider(
+            create: (context) => JourneyListBloc(repo),
+            child: const JourneyExplorerScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/journey/:id',
+        builder: (_, state) {
+          final journeyId = state.pathParameters['id']!;
+          final repo = LearningRepository(ApiService.instance.dio);
+          return BlocProvider(
+            create: (context) => SummaryPlayerBloc(repo),
+            child: JourneyDetailScreen(journeyId: journeyId),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/journey/:id/summary/:summaryId',
+        builder: (_, state) {
+          final summary = state.extra as Summary;
+          final repo = LearningRepository(ApiService.instance.dio);
+          return BlocProvider(
+            create: (context) => SummaryPlayerBloc(repo),
+            child: SummaryPlayerScreen(summary: summary),
+          );
+        },
+      ),
     ],
   );
 }
