@@ -30,7 +30,7 @@ class InfanoCareApp extends StatelessWidget {
     final router = createRouter(storage);
 
     return BlocProvider(
-      create: (_) => OnboardingBloc(repo, storage),
+      create: (_) => OnboardingBloc(repo, storage)..add(const SyncFromStorage()),
       child: MaterialApp.router(
         title: 'Infano.Care',
         debugShowCheckedModeBanner: false,

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/screens/phone_entry_screen.dart';
 import 'package:infano_care_mobile/features/auth/screens/otp_verify_screen.dart';
-import 'package:infano_care_mobile/features/onboarding/screens/splash_screen.dart';
+import 'package:infano_care_mobile/features/onboarding/screens/landing_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/account_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/path_selector_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/name_pronouns_screen.dart';
@@ -50,34 +50,38 @@ GoRouter createRouter(LocalStorageService storage) {
       final bool onOnboarding = path.startsWith('/onboarding');
       final bool onAuth = path.startsWith('/auth') || path == '/splash';
 
-      if (stage != '5') {
+      if (stage != '13') {
         // Enforce onboarding flow
         final routes = {
-          '0': '/onboarding/path',
-          '1': '/onboarding/goals',        // Basic profile done, choose interests
-          '2': '/onboarding/avatar',       // Interests done, build avatar
-          '3': '/onboarding/journey-name', // Avatar done, name journey
-          '4': '/onboarding/terms',        // Journey named, accept terms
+          '0':  '/onboarding/path',
+          '1':  '/onboarding/name',
+          '2':  '/onboarding/birthday',
+          '3':  '/onboarding/consent/send', // Or terms if not needed
+          '4':  '/onboarding/goals',
+          '5':  '/onboarding/period-comfort',
+          '6':  '/onboarding/period-status',
+          '7':  '/onboarding/interests',
+          '8':  '/onboarding/avatar',
+          '9':  '/onboarding/journey-name',
+          '10': '/onboarding/terms',
+          '11': '/onboarding/tracker/date',
+          '12': '/onboarding/tracker/details',
         };
         final target = routes[stage ?? '0'] ?? '/onboarding/path';
         
-        if (path != target && !path.contains('tracker')) {
-          // If they are on a DIFFERENT onboarding screen, allow it (for flexibility) 
-          // but if they are NOT on onboarding at all, force them in.
+        if (path != target && !path.contains('tracker') && path != '/onboarding/welcome') {
           if (!onOnboarding) return target;
-          
-          // If they specifically tried to go to /home or /account, force them back
           if (path == '/home' || path == '/account') return target;
         }
       } else {
-        // Stage 5 (Complete) - Send to home if on auth/onboarding
+        // Stage 13 (Complete) - Send to home if on auth/onboarding
         if (onAuth || onOnboarding) return '/home';
       }
 
       return null;
     },
     routes: [
-      GoRoute(path: '/splash',   builder: (_, __) => const SplashScreen()),
+      GoRoute(path: '/splash',   builder: (_, __) => const LandingScreen()),
       GoRoute(path: '/account',  builder: (_, __) => AccountScreen(storage: storage)),
 
       // Auth (Phone + OTP)

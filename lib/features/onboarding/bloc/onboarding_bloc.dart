@@ -166,12 +166,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   void _onSetUserType(SetUserType e, Emitter<OnboardingState> emit) {
     _storage.setUserType(e.t);
+    _storage.setStageComplete('1');
+    _repo.updateStage(1);
     emit(state.copyWith(userType: e.t));
   }
 
   void _onSetDisplayName(SetDisplayName e, Emitter<OnboardingState> emit) {
     _storage.setDisplayName(e.name);
     _storage.setPronouns(e.pronouns);
+    _storage.setStageComplete('2');
+    _repo.updateStage(2);
     emit(state.copyWith(displayName: e.name, pronouns: e.pronouns));
   }
 
@@ -187,20 +191,52 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     final tier = age < 13 ? 'JUNIOR' : age < 16 ? 'TEEN_EARLY' : age < 18 ? 'TEEN_LATE' : 'ADULT';
     emit(state.copyWith(birthMonth: e.month, birthYear: e.year, age: age, contentTier: tier, coppaRequired: age < 13));
     _storage.setBirthDate(e.month, e.year);
+    _storage.setStageComplete('3');
+    _repo.updateStage(3);
   }
 
   void _onSetConsent(SetConsent e, Emitter<OnboardingState> emit) {
     emit(state.copyWith(termsAccepted: e.terms, privacyAccepted: e.privacy, marketingOptIn: e.marketing));
     _storage.setConsents(terms: e.terms, privacy: e.privacy, marketing: e.marketing);
+    _storage.setStageComplete('4'); 
+    _repo.updateStage(4);
   }
 
-  void _onSetGoals(SetGoals e, Emitter<OnboardingState> emit) => emit(state.copyWith(goals: e.goals));
-  void _onSetPeriodComfort(SetPeriodComfort e, Emitter<OnboardingState> emit) => emit(state.copyWith(periodComfortScore: e.score));
-  void _onSetPeriodStatus(SetPeriodStatus e, Emitter<OnboardingState> emit) => emit(state.copyWith(periodStatus: e.status));
-  void _onSetInterestTopics(SetInterestTopics e, Emitter<OnboardingState> emit) => emit(state.copyWith(interestTopics: e.topics));
-  void _onSetAvatar(SetAvatar e, Emitter<OnboardingState> emit) => emit(state.copyWith(avatarData: e.data));
-  void _onSetJourneyName(SetJourneyName e, Emitter<OnboardingState> emit) => emit(state.copyWith(journeyName: e.name));
-  void _onSetTrackerDetails(SetTrackerDetails e, Emitter<OnboardingState> emit) => emit(state.copyWith(periodLength: e.periodDays, cycleLength: e.cycleDays, lastPeriod: e.lastPeriod));
+  void _onSetGoals(SetGoals e, Emitter<OnboardingState> emit) {
+    _storage.setStageComplete('5');
+    _repo.updateStage(5);
+    emit(state.copyWith(goals: e.goals));
+  }
+  void _onSetPeriodComfort(SetPeriodComfort e, Emitter<OnboardingState> emit) {
+    _storage.setStageComplete('6');
+    _repo.updateStage(6);
+    emit(state.copyWith(periodComfortScore: e.score));
+  }
+  void _onSetPeriodStatus(SetPeriodStatus e, Emitter<OnboardingState> emit) {
+    _storage.setStageComplete('7');
+    _repo.updateStage(7);
+    emit(state.copyWith(periodStatus: e.status));
+  }
+  void _onSetInterestTopics(SetInterestTopics e, Emitter<OnboardingState> emit) {
+    _storage.setStageComplete('8');
+    _repo.updateStage(8);
+    emit(state.copyWith(interestTopics: e.topics));
+  }
+  void _onSetAvatar(SetAvatar e, Emitter<OnboardingState> emit) {
+    _storage.setStageComplete('9');
+    _repo.updateStage(9);
+    emit(state.copyWith(avatarData: e.data));
+  }
+  void _onSetJourneyName(SetJourneyName e, Emitter<OnboardingState> emit) {
+    _storage.setStageComplete('10');
+    _repo.updateStage(10);
+    emit(state.copyWith(journeyName: e.name));
+  }
+  void _onSetTrackerDetails(SetTrackerDetails e, Emitter<OnboardingState> emit) {
+    _storage.setStageComplete('12');
+    _repo.updateStage(12);
+    emit(state.copyWith(periodLength: e.periodDays, cycleLength: e.cycleDays, lastPeriod: e.lastPeriod));
+  }
   
   void _onAddPoints(AddPoints e, Emitter<OnboardingState> emit) {
     final newTotal = state.totalPoints + e.points;
@@ -270,6 +306,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       final res = await _repo.saveJourneyName(state.journeyName);
       await _storage.setPoints(res['pointsTotal']);
+      await _storage.setStageComplete('4.1');
       emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -285,7 +322,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         cycleLengthDays:  state.cycleLength,
       );
       await _repo.completeOnboarding();
-      await _storage.setStageComplete('5');
+      await _storage.setStageComplete('13');
+      _repo.updateStage(13);
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));

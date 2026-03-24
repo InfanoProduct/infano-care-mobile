@@ -6,14 +6,17 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class LandingScreen extends StatefulWidget {
+  const LandingScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<LandingScreen> createState() => _LandingScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _LandingScreenState extends State<LandingScreen> {
+  bool _isResuming = false;
+  String? _userName;
+
   @override
   void initState() {
     super.initState();
@@ -21,20 +24,27 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAndRoute() async {
-    // Remove native splash now that Flutter is ready
     FlutterNativeSplash.remove();
 
     final storage = await LocalStorageService.create();
     await Future.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
     
-    // If we ALREADY have a token, we can go home (or router will redirect based on stage)
-    if (storage.authToken != null) {
-      context.go('/home');
-      return;
+    final token = storage.authToken;
+    final stage = storage.stageComplete;
+
+    if (token != null) {
+      if (stage == '5') {
+        // Fully complete: go home
+        context.go('/home');
+      } else {
+        // Incomplete onboarding: show Resume button
+        setState(() {
+          _isResuming = true;
+          _userName = storage.displayName;
+        });
+      }
     }
-    
-    // Otherwise, we stay here and show the "Start My Journey" button
   }
 
   @override
@@ -66,12 +76,29 @@ class _SplashScreenState extends State<SplashScreen> {
                   style: Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white),
                 ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
                 const SizedBox(height: 16),
-                _TaglineReveal(),
+                if (_isResuming) ...[
+                  Text(
+                    'Welcome back${_userName != null ? ', $_userName' : ''}! ✨',
+                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+                  ).animate().fadeIn(delay: 600.ms),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Ready to continue your journey?',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ).animate().fadeIn(delay: 800.ms),
+                ] else
+                  _TaglineReveal(),
                 const Spacer(flex: 2),
                 GradientButton(
-                  label: 'Start My Journey',
+                  label: _isResuming ? 'Resume My Journey' : 'Start My Journey',
                   icon: '✨',
-                  onPressed: () => context.go('/auth/phone'),
+                  onPressed: () {
+                    if (_isResuming) {
+                      context.go('/home'); // Router will redirect to the correct onboarding stage
+                    } else {
+                      context.go('/auth/phone');
+                    }
+                  },
                 ).animate().slideY(begin: 0.5, duration: 400.ms, delay: 1200.ms, curve: Curves.easeOut),
                 const SizedBox(height: 32),
               ],
