@@ -10,6 +10,10 @@ import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/connect_screen.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
+import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
+import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key, required this.storage});
@@ -24,7 +28,10 @@ class DashboardScreen extends StatelessWidget {
         builder: (context, state) {
           final screens = [
             const HomeScreen(),
-            const LearnScreen(),
+            BlocProvider(
+              create: (context) => JourneyListBloc(LearningRepository(ApiService.instance.dio)),
+              child: const JourneyExplorerScreen(),
+            ),
             const TrackScreen(),
             const QuestScreen(),
             const ConnectScreen(),

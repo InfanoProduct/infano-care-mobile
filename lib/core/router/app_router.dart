@@ -28,38 +28,43 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
 import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
-import 'package:infano_care_mobile/features/learning/application/summary_player_bloc.dart';
+import 'package:infano_care_mobile/features/learning/application/episode_player_bloc.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_detail_screen.dart';
-import 'package:infano_care_mobile/features/learning/screens/summary_player_screen.dart';
+import 'package:infano_care_mobile/features/learning/screens/episode_player_screen.dart';
 import 'package:infano_care_mobile/features/learning/models/learning_models.dart';
 
 GoRouter createRouter(LocalStorageService storage) {
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: storage,
     redirect: (context, state) {
       final token = storage.authToken;
       final tempToken = storage.tempToken;
       final stage = storage.stageComplete;
       final path = state.uri.path;
 
-      // 1. Screens always accessible
-      if (path == '/splash' || path.startsWith('/auth')) return null;
+      final onAuth = path.startsWith('/auth') || path == '/splash';
 
-      // 2. Not Authenticated (no access token)
+      // 1. Not Authenticated
       if (token == null) {
         // If they have a tempToken, they can continue early onboarding
         if (tempToken != null) {
-          if (path.startsWith('/onboarding')) return null;
+          if (path.startsWith('/onboarding') || onAuth) return null;
           return '/onboarding/path';
         }
-        // No tokens: force to splash
+        // No tokens: allow auth/splash, otherwise force splash
+        if (onAuth) return null;
         return '/splash';
       }
 
-      // 3. Authenticated (token != null)
+      // 2. Authenticated (token != null)
       final bool onOnboarding = path.startsWith('/onboarding');
-      final bool onAuth = path.startsWith('/auth') || path == '/splash';
+
+      if (stage == null && onAuth) {
+        // Allow splash to stay and perform initial sync
+        return null;
+      }
 
       if (stage != '13') {
         // Enforce onboarding flow
@@ -67,7 +72,7 @@ GoRouter createRouter(LocalStorageService storage) {
           '0':  '/onboarding/path',
           '1':  '/onboarding/name',
           '2':  '/onboarding/birthday',
-          '3':  '/onboarding/consent/send', // Or terms if not needed
+          '3':  '/onboarding/consent/send',
           '4':  '/onboarding/goals',
           '5':  '/onboarding/period-comfort',
           '6':  '/onboarding/period-status',
@@ -150,19 +155,19 @@ GoRouter createRouter(LocalStorageService storage) {
           final journeyId = state.pathParameters['id']!;
           final repo = LearningRepository(ApiService.instance.dio);
           return BlocProvider(
-            create: (context) => SummaryPlayerBloc(repo),
+            create: (context) => EpisodePlayerBloc(repo),
             child: JourneyDetailScreen(journeyId: journeyId),
           );
         },
       ),
       GoRoute(
-        path: '/journey/:id/summary/:summaryId',
+        path: '/journey/:id/episode/:episodeId',
         builder: (_, state) {
-          final summary = state.extra as Summary;
+          final episode = state.extra as Episode;
           final repo = LearningRepository(ApiService.instance.dio);
           return BlocProvider(
-            create: (context) => SummaryPlayerBloc(repo),
-            child: SummaryPlayerScreen(summary: summary),
+            create: (context) => EpisodePlayerBloc(repo),
+            child: EpisodePlayerScreen(episode: episode),
           );
         },
       ),

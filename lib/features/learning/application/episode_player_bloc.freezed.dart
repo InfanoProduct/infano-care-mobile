@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'summary_player_bloc.dart';
+part of 'episode_player_bloc.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -16,95 +16,116 @@ final _privateConstructorUsedError = UnsupportedError(
 );
 
 /// @nodoc
-mixin _$SummaryPlayerEvent {
+mixin _$EpisodePlayerEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String journeyId) loadSummary,
-    required TResult Function(String itemId, dynamic data) completeItem,
-    required TResult Function(String summaryId) submitSummary,
+    required TResult Function(String journeyId) loadJourney,
+    required TResult Function(String itemId, dynamic data) updateProgress,
+    required TResult Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )
+    completeEpisode,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String journeyId)? loadSummary,
-    TResult? Function(String itemId, dynamic data)? completeItem,
-    TResult? Function(String summaryId)? submitSummary,
+    TResult? Function(String journeyId)? loadJourney,
+    TResult? Function(String itemId, dynamic data)? updateProgress,
+    TResult? Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )?
+    completeEpisode,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String journeyId)? loadSummary,
-    TResult Function(String itemId, dynamic data)? completeItem,
-    TResult Function(String summaryId)? submitSummary,
+    TResult Function(String journeyId)? loadJourney,
+    TResult Function(String itemId, dynamic data)? updateProgress,
+    TResult Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )?
+    completeEpisode,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_LoadSummary value) loadSummary,
-    required TResult Function(_CompleteItem value) completeItem,
-    required TResult Function(_SubmitSummary value) submitSummary,
+    required TResult Function(_LoadJourney value) loadJourney,
+    required TResult Function(_UpdateProgress value) updateProgress,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_LoadSummary value)? loadSummary,
-    TResult? Function(_CompleteItem value)? completeItem,
-    TResult? Function(_SubmitSummary value)? submitSummary,
+    TResult? Function(_LoadJourney value)? loadJourney,
+    TResult? Function(_UpdateProgress value)? updateProgress,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_LoadSummary value)? loadSummary,
-    TResult Function(_CompleteItem value)? completeItem,
-    TResult Function(_SubmitSummary value)? submitSummary,
+    TResult Function(_LoadJourney value)? loadJourney,
+    TResult Function(_UpdateProgress value)? updateProgress,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $SummaryPlayerEventCopyWith<$Res> {
-  factory $SummaryPlayerEventCopyWith(
-    SummaryPlayerEvent value,
-    $Res Function(SummaryPlayerEvent) then,
-  ) = _$SummaryPlayerEventCopyWithImpl<$Res, SummaryPlayerEvent>;
+abstract class $EpisodePlayerEventCopyWith<$Res> {
+  factory $EpisodePlayerEventCopyWith(
+    EpisodePlayerEvent value,
+    $Res Function(EpisodePlayerEvent) then,
+  ) = _$EpisodePlayerEventCopyWithImpl<$Res, EpisodePlayerEvent>;
 }
 
 /// @nodoc
-class _$SummaryPlayerEventCopyWithImpl<$Res, $Val extends SummaryPlayerEvent>
-    implements $SummaryPlayerEventCopyWith<$Res> {
-  _$SummaryPlayerEventCopyWithImpl(this._value, this._then);
+class _$EpisodePlayerEventCopyWithImpl<$Res, $Val extends EpisodePlayerEvent>
+    implements $EpisodePlayerEventCopyWith<$Res> {
+  _$EpisodePlayerEventCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
-abstract class _$$LoadSummaryImplCopyWith<$Res> {
-  factory _$$LoadSummaryImplCopyWith(
-    _$LoadSummaryImpl value,
-    $Res Function(_$LoadSummaryImpl) then,
-  ) = __$$LoadSummaryImplCopyWithImpl<$Res>;
+abstract class _$$LoadJourneyImplCopyWith<$Res> {
+  factory _$$LoadJourneyImplCopyWith(
+    _$LoadJourneyImpl value,
+    $Res Function(_$LoadJourneyImpl) then,
+  ) = __$$LoadJourneyImplCopyWithImpl<$Res>;
   @useResult
   $Res call({String journeyId});
 }
 
 /// @nodoc
-class __$$LoadSummaryImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerEventCopyWithImpl<$Res, _$LoadSummaryImpl>
-    implements _$$LoadSummaryImplCopyWith<$Res> {
-  __$$LoadSummaryImplCopyWithImpl(
-    _$LoadSummaryImpl _value,
-    $Res Function(_$LoadSummaryImpl) _then,
+class __$$LoadJourneyImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$LoadJourneyImpl>
+    implements _$$LoadJourneyImplCopyWith<$Res> {
+  __$$LoadJourneyImplCopyWithImpl(
+    _$LoadJourneyImpl _value,
+    $Res Function(_$LoadJourneyImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({Object? journeyId = null}) {
     return _then(
-      _$LoadSummaryImpl(
+      _$LoadJourneyImpl(
         null == journeyId
             ? _value.journeyId
             : journeyId // ignore: cast_nullable_to_non_nullable
@@ -116,22 +137,22 @@ class __$$LoadSummaryImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$LoadSummaryImpl implements _LoadSummary {
-  const _$LoadSummaryImpl(this.journeyId);
+class _$LoadJourneyImpl implements _LoadJourney {
+  const _$LoadJourneyImpl(this.journeyId);
 
   @override
   final String journeyId;
 
   @override
   String toString() {
-    return 'SummaryPlayerEvent.loadSummary(journeyId: $journeyId)';
+    return 'EpisodePlayerEvent.loadJourney(journeyId: $journeyId)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$LoadSummaryImpl &&
+            other is _$LoadJourneyImpl &&
             (identical(other.journeyId, journeyId) ||
                 other.journeyId == journeyId));
   }
@@ -139,44 +160,65 @@ class _$LoadSummaryImpl implements _LoadSummary {
   @override
   int get hashCode => Object.hash(runtimeType, journeyId);
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$LoadSummaryImplCopyWith<_$LoadSummaryImpl> get copyWith =>
-      __$$LoadSummaryImplCopyWithImpl<_$LoadSummaryImpl>(this, _$identity);
+  _$$LoadJourneyImplCopyWith<_$LoadJourneyImpl> get copyWith =>
+      __$$LoadJourneyImplCopyWithImpl<_$LoadJourneyImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String journeyId) loadSummary,
-    required TResult Function(String itemId, dynamic data) completeItem,
-    required TResult Function(String summaryId) submitSummary,
+    required TResult Function(String journeyId) loadJourney,
+    required TResult Function(String itemId, dynamic data) updateProgress,
+    required TResult Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )
+    completeEpisode,
   }) {
-    return loadSummary(journeyId);
+    return loadJourney(journeyId);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String journeyId)? loadSummary,
-    TResult? Function(String itemId, dynamic data)? completeItem,
-    TResult? Function(String summaryId)? submitSummary,
+    TResult? Function(String journeyId)? loadJourney,
+    TResult? Function(String itemId, dynamic data)? updateProgress,
+    TResult? Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )?
+    completeEpisode,
   }) {
-    return loadSummary?.call(journeyId);
+    return loadJourney?.call(journeyId);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String journeyId)? loadSummary,
-    TResult Function(String itemId, dynamic data)? completeItem,
-    TResult Function(String summaryId)? submitSummary,
+    TResult Function(String journeyId)? loadJourney,
+    TResult Function(String itemId, dynamic data)? updateProgress,
+    TResult Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )?
+    completeEpisode,
     required TResult orElse(),
   }) {
-    if (loadSummary != null) {
-      return loadSummary(journeyId);
+    if (loadJourney != null) {
+      return loadJourney(journeyId);
     }
     return orElse();
   }
@@ -184,76 +226,76 @@ class _$LoadSummaryImpl implements _LoadSummary {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_LoadSummary value) loadSummary,
-    required TResult Function(_CompleteItem value) completeItem,
-    required TResult Function(_SubmitSummary value) submitSummary,
+    required TResult Function(_LoadJourney value) loadJourney,
+    required TResult Function(_UpdateProgress value) updateProgress,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
   }) {
-    return loadSummary(this);
+    return loadJourney(this);
   }
 
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_LoadSummary value)? loadSummary,
-    TResult? Function(_CompleteItem value)? completeItem,
-    TResult? Function(_SubmitSummary value)? submitSummary,
+    TResult? Function(_LoadJourney value)? loadJourney,
+    TResult? Function(_UpdateProgress value)? updateProgress,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
   }) {
-    return loadSummary?.call(this);
+    return loadJourney?.call(this);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_LoadSummary value)? loadSummary,
-    TResult Function(_CompleteItem value)? completeItem,
-    TResult Function(_SubmitSummary value)? submitSummary,
+    TResult Function(_LoadJourney value)? loadJourney,
+    TResult Function(_UpdateProgress value)? updateProgress,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
     required TResult orElse(),
   }) {
-    if (loadSummary != null) {
-      return loadSummary(this);
+    if (loadJourney != null) {
+      return loadJourney(this);
     }
     return orElse();
   }
 }
 
-abstract class _LoadSummary implements SummaryPlayerEvent {
-  const factory _LoadSummary(final String journeyId) = _$LoadSummaryImpl;
+abstract class _LoadJourney implements EpisodePlayerEvent {
+  const factory _LoadJourney(final String journeyId) = _$LoadJourneyImpl;
 
   String get journeyId;
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$LoadSummaryImplCopyWith<_$LoadSummaryImpl> get copyWith =>
+  _$$LoadJourneyImplCopyWith<_$LoadJourneyImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$CompleteItemImplCopyWith<$Res> {
-  factory _$$CompleteItemImplCopyWith(
-    _$CompleteItemImpl value,
-    $Res Function(_$CompleteItemImpl) then,
-  ) = __$$CompleteItemImplCopyWithImpl<$Res>;
+abstract class _$$UpdateProgressImplCopyWith<$Res> {
+  factory _$$UpdateProgressImplCopyWith(
+    _$UpdateProgressImpl value,
+    $Res Function(_$UpdateProgressImpl) then,
+  ) = __$$UpdateProgressImplCopyWithImpl<$Res>;
   @useResult
   $Res call({String itemId, dynamic data});
 }
 
 /// @nodoc
-class __$$CompleteItemImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerEventCopyWithImpl<$Res, _$CompleteItemImpl>
-    implements _$$CompleteItemImplCopyWith<$Res> {
-  __$$CompleteItemImplCopyWithImpl(
-    _$CompleteItemImpl _value,
-    $Res Function(_$CompleteItemImpl) _then,
+class __$$UpdateProgressImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$UpdateProgressImpl>
+    implements _$$UpdateProgressImplCopyWith<$Res> {
+  __$$UpdateProgressImplCopyWithImpl(
+    _$UpdateProgressImpl _value,
+    $Res Function(_$UpdateProgressImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({Object? itemId = null, Object? data = freezed}) {
     return _then(
-      _$CompleteItemImpl(
+      _$UpdateProgressImpl(
         null == itemId
             ? _value.itemId
             : itemId // ignore: cast_nullable_to_non_nullable
@@ -269,8 +311,8 @@ class __$$CompleteItemImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$CompleteItemImpl implements _CompleteItem {
-  const _$CompleteItemImpl(this.itemId, this.data);
+class _$UpdateProgressImpl implements _UpdateProgress {
+  const _$UpdateProgressImpl(this.itemId, this.data);
 
   @override
   final String itemId;
@@ -279,14 +321,14 @@ class _$CompleteItemImpl implements _CompleteItem {
 
   @override
   String toString() {
-    return 'SummaryPlayerEvent.completeItem(itemId: $itemId, data: $data)';
+    return 'EpisodePlayerEvent.updateProgress(itemId: $itemId, data: $data)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$CompleteItemImpl &&
+            other is _$UpdateProgressImpl &&
             (identical(other.itemId, itemId) || other.itemId == itemId) &&
             const DeepCollectionEquality().equals(other.data, data));
   }
@@ -298,44 +340,68 @@ class _$CompleteItemImpl implements _CompleteItem {
     const DeepCollectionEquality().hash(data),
   );
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$CompleteItemImplCopyWith<_$CompleteItemImpl> get copyWith =>
-      __$$CompleteItemImplCopyWithImpl<_$CompleteItemImpl>(this, _$identity);
+  _$$UpdateProgressImplCopyWith<_$UpdateProgressImpl> get copyWith =>
+      __$$UpdateProgressImplCopyWithImpl<_$UpdateProgressImpl>(
+        this,
+        _$identity,
+      );
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String journeyId) loadSummary,
-    required TResult Function(String itemId, dynamic data) completeItem,
-    required TResult Function(String summaryId) submitSummary,
+    required TResult Function(String journeyId) loadJourney,
+    required TResult Function(String itemId, dynamic data) updateProgress,
+    required TResult Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )
+    completeEpisode,
   }) {
-    return completeItem(itemId, data);
+    return updateProgress(itemId, data);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String journeyId)? loadSummary,
-    TResult? Function(String itemId, dynamic data)? completeItem,
-    TResult? Function(String summaryId)? submitSummary,
+    TResult? Function(String journeyId)? loadJourney,
+    TResult? Function(String itemId, dynamic data)? updateProgress,
+    TResult? Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )?
+    completeEpisode,
   }) {
-    return completeItem?.call(itemId, data);
+    return updateProgress?.call(itemId, data);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String journeyId)? loadSummary,
-    TResult Function(String itemId, dynamic data)? completeItem,
-    TResult Function(String summaryId)? submitSummary,
+    TResult Function(String journeyId)? loadJourney,
+    TResult Function(String itemId, dynamic data)? updateProgress,
+    TResult Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )?
+    completeEpisode,
     required TResult orElse(),
   }) {
-    if (completeItem != null) {
-      return completeItem(itemId, data);
+    if (updateProgress != null) {
+      return updateProgress(itemId, data);
     }
     return orElse();
   }
@@ -343,82 +409,110 @@ class _$CompleteItemImpl implements _CompleteItem {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_LoadSummary value) loadSummary,
-    required TResult Function(_CompleteItem value) completeItem,
-    required TResult Function(_SubmitSummary value) submitSummary,
+    required TResult Function(_LoadJourney value) loadJourney,
+    required TResult Function(_UpdateProgress value) updateProgress,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
   }) {
-    return completeItem(this);
+    return updateProgress(this);
   }
 
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_LoadSummary value)? loadSummary,
-    TResult? Function(_CompleteItem value)? completeItem,
-    TResult? Function(_SubmitSummary value)? submitSummary,
+    TResult? Function(_LoadJourney value)? loadJourney,
+    TResult? Function(_UpdateProgress value)? updateProgress,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
   }) {
-    return completeItem?.call(this);
+    return updateProgress?.call(this);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_LoadSummary value)? loadSummary,
-    TResult Function(_CompleteItem value)? completeItem,
-    TResult Function(_SubmitSummary value)? submitSummary,
+    TResult Function(_LoadJourney value)? loadJourney,
+    TResult Function(_UpdateProgress value)? updateProgress,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
     required TResult orElse(),
   }) {
-    if (completeItem != null) {
-      return completeItem(this);
+    if (updateProgress != null) {
+      return updateProgress(this);
     }
     return orElse();
   }
 }
 
-abstract class _CompleteItem implements SummaryPlayerEvent {
-  const factory _CompleteItem(final String itemId, final dynamic data) =
-      _$CompleteItemImpl;
+abstract class _UpdateProgress implements EpisodePlayerEvent {
+  const factory _UpdateProgress(final String itemId, final dynamic data) =
+      _$UpdateProgressImpl;
 
   String get itemId;
   dynamic get data;
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CompleteItemImplCopyWith<_$CompleteItemImpl> get copyWith =>
+  _$$UpdateProgressImplCopyWith<_$UpdateProgressImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$SubmitSummaryImplCopyWith<$Res> {
-  factory _$$SubmitSummaryImplCopyWith(
-    _$SubmitSummaryImpl value,
-    $Res Function(_$SubmitSummaryImpl) then,
-  ) = __$$SubmitSummaryImplCopyWithImpl<$Res>;
+abstract class _$$CompleteEpisodeImplCopyWith<$Res> {
+  factory _$$CompleteEpisodeImplCopyWith(
+    _$CompleteEpisodeImpl value,
+    $Res Function(_$CompleteEpisodeImpl) then,
+  ) = __$$CompleteEpisodeImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({String summaryId});
+  $Res call({
+    String episodeId,
+    int knowledgeCheckAccuracy,
+    String reflectionMode,
+    String? reflectionContent,
+    String? voiceUrl,
+  });
 }
 
 /// @nodoc
-class __$$SubmitSummaryImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerEventCopyWithImpl<$Res, _$SubmitSummaryImpl>
-    implements _$$SubmitSummaryImplCopyWith<$Res> {
-  __$$SubmitSummaryImplCopyWithImpl(
-    _$SubmitSummaryImpl _value,
-    $Res Function(_$SubmitSummaryImpl) _then,
+class __$$CompleteEpisodeImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$CompleteEpisodeImpl>
+    implements _$$CompleteEpisodeImplCopyWith<$Res> {
+  __$$CompleteEpisodeImplCopyWithImpl(
+    _$CompleteEpisodeImpl _value,
+    $Res Function(_$CompleteEpisodeImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? summaryId = null}) {
+  $Res call({
+    Object? episodeId = null,
+    Object? knowledgeCheckAccuracy = null,
+    Object? reflectionMode = null,
+    Object? reflectionContent = freezed,
+    Object? voiceUrl = freezed,
+  }) {
     return _then(
-      _$SubmitSummaryImpl(
-        null == summaryId
-            ? _value.summaryId
-            : summaryId // ignore: cast_nullable_to_non_nullable
+      _$CompleteEpisodeImpl(
+        episodeId: null == episodeId
+            ? _value.episodeId
+            : episodeId // ignore: cast_nullable_to_non_nullable
                   as String,
+        knowledgeCheckAccuracy: null == knowledgeCheckAccuracy
+            ? _value.knowledgeCheckAccuracy
+            : knowledgeCheckAccuracy // ignore: cast_nullable_to_non_nullable
+                  as int,
+        reflectionMode: null == reflectionMode
+            ? _value.reflectionMode
+            : reflectionMode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        reflectionContent: freezed == reflectionContent
+            ? _value.reflectionContent
+            : reflectionContent // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        voiceUrl: freezed == voiceUrl
+            ? _value.voiceUrl
+            : voiceUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -426,67 +520,138 @@ class __$$SubmitSummaryImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$SubmitSummaryImpl implements _SubmitSummary {
-  const _$SubmitSummaryImpl(this.summaryId);
+class _$CompleteEpisodeImpl implements _CompleteEpisode {
+  const _$CompleteEpisodeImpl({
+    required this.episodeId,
+    required this.knowledgeCheckAccuracy,
+    required this.reflectionMode,
+    this.reflectionContent,
+    this.voiceUrl,
+  });
 
   @override
-  final String summaryId;
+  final String episodeId;
+  @override
+  final int knowledgeCheckAccuracy;
+  @override
+  final String reflectionMode;
+  @override
+  final String? reflectionContent;
+  @override
+  final String? voiceUrl;
 
   @override
   String toString() {
-    return 'SummaryPlayerEvent.submitSummary(summaryId: $summaryId)';
+    return 'EpisodePlayerEvent.completeEpisode(episodeId: $episodeId, knowledgeCheckAccuracy: $knowledgeCheckAccuracy, reflectionMode: $reflectionMode, reflectionContent: $reflectionContent, voiceUrl: $voiceUrl)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SubmitSummaryImpl &&
-            (identical(other.summaryId, summaryId) ||
-                other.summaryId == summaryId));
+            other is _$CompleteEpisodeImpl &&
+            (identical(other.episodeId, episodeId) ||
+                other.episodeId == episodeId) &&
+            (identical(other.knowledgeCheckAccuracy, knowledgeCheckAccuracy) ||
+                other.knowledgeCheckAccuracy == knowledgeCheckAccuracy) &&
+            (identical(other.reflectionMode, reflectionMode) ||
+                other.reflectionMode == reflectionMode) &&
+            (identical(other.reflectionContent, reflectionContent) ||
+                other.reflectionContent == reflectionContent) &&
+            (identical(other.voiceUrl, voiceUrl) ||
+                other.voiceUrl == voiceUrl));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, summaryId);
+  int get hashCode => Object.hash(
+    runtimeType,
+    episodeId,
+    knowledgeCheckAccuracy,
+    reflectionMode,
+    reflectionContent,
+    voiceUrl,
+  );
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$SubmitSummaryImplCopyWith<_$SubmitSummaryImpl> get copyWith =>
-      __$$SubmitSummaryImplCopyWithImpl<_$SubmitSummaryImpl>(this, _$identity);
+  _$$CompleteEpisodeImplCopyWith<_$CompleteEpisodeImpl> get copyWith =>
+      __$$CompleteEpisodeImplCopyWithImpl<_$CompleteEpisodeImpl>(
+        this,
+        _$identity,
+      );
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String journeyId) loadSummary,
-    required TResult Function(String itemId, dynamic data) completeItem,
-    required TResult Function(String summaryId) submitSummary,
+    required TResult Function(String journeyId) loadJourney,
+    required TResult Function(String itemId, dynamic data) updateProgress,
+    required TResult Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )
+    completeEpisode,
   }) {
-    return submitSummary(summaryId);
+    return completeEpisode(
+      episodeId,
+      knowledgeCheckAccuracy,
+      reflectionMode,
+      reflectionContent,
+      voiceUrl,
+    );
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String journeyId)? loadSummary,
-    TResult? Function(String itemId, dynamic data)? completeItem,
-    TResult? Function(String summaryId)? submitSummary,
+    TResult? Function(String journeyId)? loadJourney,
+    TResult? Function(String itemId, dynamic data)? updateProgress,
+    TResult? Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )?
+    completeEpisode,
   }) {
-    return submitSummary?.call(summaryId);
+    return completeEpisode?.call(
+      episodeId,
+      knowledgeCheckAccuracy,
+      reflectionMode,
+      reflectionContent,
+      voiceUrl,
+    );
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String journeyId)? loadSummary,
-    TResult Function(String itemId, dynamic data)? completeItem,
-    TResult Function(String summaryId)? submitSummary,
+    TResult Function(String journeyId)? loadJourney,
+    TResult Function(String itemId, dynamic data)? updateProgress,
+    TResult Function(
+      String episodeId,
+      int knowledgeCheckAccuracy,
+      String reflectionMode,
+      String? reflectionContent,
+      String? voiceUrl,
+    )?
+    completeEpisode,
     required TResult orElse(),
   }) {
-    if (submitSummary != null) {
-      return submitSummary(summaryId);
+    if (completeEpisode != null) {
+      return completeEpisode(
+        episodeId,
+        knowledgeCheckAccuracy,
+        reflectionMode,
+        reflectionContent,
+        voiceUrl,
+      );
     }
     return orElse();
   }
@@ -494,59 +659,69 @@ class _$SubmitSummaryImpl implements _SubmitSummary {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_LoadSummary value) loadSummary,
-    required TResult Function(_CompleteItem value) completeItem,
-    required TResult Function(_SubmitSummary value) submitSummary,
+    required TResult Function(_LoadJourney value) loadJourney,
+    required TResult Function(_UpdateProgress value) updateProgress,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
   }) {
-    return submitSummary(this);
+    return completeEpisode(this);
   }
 
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_LoadSummary value)? loadSummary,
-    TResult? Function(_CompleteItem value)? completeItem,
-    TResult? Function(_SubmitSummary value)? submitSummary,
+    TResult? Function(_LoadJourney value)? loadJourney,
+    TResult? Function(_UpdateProgress value)? updateProgress,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
   }) {
-    return submitSummary?.call(this);
+    return completeEpisode?.call(this);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_LoadSummary value)? loadSummary,
-    TResult Function(_CompleteItem value)? completeItem,
-    TResult Function(_SubmitSummary value)? submitSummary,
+    TResult Function(_LoadJourney value)? loadJourney,
+    TResult Function(_UpdateProgress value)? updateProgress,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
     required TResult orElse(),
   }) {
-    if (submitSummary != null) {
-      return submitSummary(this);
+    if (completeEpisode != null) {
+      return completeEpisode(this);
     }
     return orElse();
   }
 }
 
-abstract class _SubmitSummary implements SummaryPlayerEvent {
-  const factory _SubmitSummary(final String summaryId) = _$SubmitSummaryImpl;
+abstract class _CompleteEpisode implements EpisodePlayerEvent {
+  const factory _CompleteEpisode({
+    required final String episodeId,
+    required final int knowledgeCheckAccuracy,
+    required final String reflectionMode,
+    final String? reflectionContent,
+    final String? voiceUrl,
+  }) = _$CompleteEpisodeImpl;
 
-  String get summaryId;
+  String get episodeId;
+  int get knowledgeCheckAccuracy;
+  String get reflectionMode;
+  String? get reflectionContent;
+  String? get voiceUrl;
 
-  /// Create a copy of SummaryPlayerEvent
+  /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SubmitSummaryImplCopyWith<_$SubmitSummaryImpl> get copyWith =>
+  _$$CompleteEpisodeImplCopyWith<_$CompleteEpisodeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-mixin _$SummaryPlayerState {
+mixin _$EpisodePlayerState {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function(LearningJourney journey) loaded,
     required TResult Function() submitting,
-    required TResult Function() completed,
+    required TResult Function(int pointsEarned) completed,
     required TResult Function(String message) error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -555,7 +730,7 @@ mixin _$SummaryPlayerState {
     TResult? Function()? loading,
     TResult? Function(LearningJourney journey)? loaded,
     TResult? Function()? submitting,
-    TResult? Function()? completed,
+    TResult? Function(int pointsEarned)? completed,
     TResult? Function(String message)? error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -564,7 +739,7 @@ mixin _$SummaryPlayerState {
     TResult Function()? loading,
     TResult Function(LearningJourney journey)? loaded,
     TResult Function()? submitting,
-    TResult Function()? completed,
+    TResult Function(int pointsEarned)? completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
@@ -599,24 +774,24 @@ mixin _$SummaryPlayerState {
 }
 
 /// @nodoc
-abstract class $SummaryPlayerStateCopyWith<$Res> {
-  factory $SummaryPlayerStateCopyWith(
-    SummaryPlayerState value,
-    $Res Function(SummaryPlayerState) then,
-  ) = _$SummaryPlayerStateCopyWithImpl<$Res, SummaryPlayerState>;
+abstract class $EpisodePlayerStateCopyWith<$Res> {
+  factory $EpisodePlayerStateCopyWith(
+    EpisodePlayerState value,
+    $Res Function(EpisodePlayerState) then,
+  ) = _$EpisodePlayerStateCopyWithImpl<$Res, EpisodePlayerState>;
 }
 
 /// @nodoc
-class _$SummaryPlayerStateCopyWithImpl<$Res, $Val extends SummaryPlayerState>
-    implements $SummaryPlayerStateCopyWith<$Res> {
-  _$SummaryPlayerStateCopyWithImpl(this._value, this._then);
+class _$EpisodePlayerStateCopyWithImpl<$Res, $Val extends EpisodePlayerState>
+    implements $EpisodePlayerStateCopyWith<$Res> {
+  _$EpisodePlayerStateCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
 }
 
@@ -630,14 +805,14 @@ abstract class _$$InitialImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$InitialImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerStateCopyWithImpl<$Res, _$InitialImpl>
+    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$InitialImpl>
     implements _$$InitialImplCopyWith<$Res> {
   __$$InitialImplCopyWithImpl(
     _$InitialImpl _value,
     $Res Function(_$InitialImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
 }
 
@@ -648,7 +823,7 @@ class _$InitialImpl implements _Initial {
 
   @override
   String toString() {
-    return 'SummaryPlayerState.initial()';
+    return 'EpisodePlayerState.initial()';
   }
 
   @override
@@ -667,7 +842,7 @@ class _$InitialImpl implements _Initial {
     required TResult Function() loading,
     required TResult Function(LearningJourney journey) loaded,
     required TResult Function() submitting,
-    required TResult Function() completed,
+    required TResult Function(int pointsEarned) completed,
     required TResult Function(String message) error,
   }) {
     return initial();
@@ -680,7 +855,7 @@ class _$InitialImpl implements _Initial {
     TResult? Function()? loading,
     TResult? Function(LearningJourney journey)? loaded,
     TResult? Function()? submitting,
-    TResult? Function()? completed,
+    TResult? Function(int pointsEarned)? completed,
     TResult? Function(String message)? error,
   }) {
     return initial?.call();
@@ -693,7 +868,7 @@ class _$InitialImpl implements _Initial {
     TResult Function()? loading,
     TResult Function(LearningJourney journey)? loaded,
     TResult Function()? submitting,
-    TResult Function()? completed,
+    TResult Function(int pointsEarned)? completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -747,7 +922,7 @@ class _$InitialImpl implements _Initial {
   }
 }
 
-abstract class _Initial implements SummaryPlayerState {
+abstract class _Initial implements EpisodePlayerState {
   const factory _Initial() = _$InitialImpl;
 }
 
@@ -761,14 +936,14 @@ abstract class _$$LoadingImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$LoadingImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerStateCopyWithImpl<$Res, _$LoadingImpl>
+    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$LoadingImpl>
     implements _$$LoadingImplCopyWith<$Res> {
   __$$LoadingImplCopyWithImpl(
     _$LoadingImpl _value,
     $Res Function(_$LoadingImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
 }
 
@@ -779,7 +954,7 @@ class _$LoadingImpl implements _Loading {
 
   @override
   String toString() {
-    return 'SummaryPlayerState.loading()';
+    return 'EpisodePlayerState.loading()';
   }
 
   @override
@@ -798,7 +973,7 @@ class _$LoadingImpl implements _Loading {
     required TResult Function() loading,
     required TResult Function(LearningJourney journey) loaded,
     required TResult Function() submitting,
-    required TResult Function() completed,
+    required TResult Function(int pointsEarned) completed,
     required TResult Function(String message) error,
   }) {
     return loading();
@@ -811,7 +986,7 @@ class _$LoadingImpl implements _Loading {
     TResult? Function()? loading,
     TResult? Function(LearningJourney journey)? loaded,
     TResult? Function()? submitting,
-    TResult? Function()? completed,
+    TResult? Function(int pointsEarned)? completed,
     TResult? Function(String message)? error,
   }) {
     return loading?.call();
@@ -824,7 +999,7 @@ class _$LoadingImpl implements _Loading {
     TResult Function()? loading,
     TResult Function(LearningJourney journey)? loaded,
     TResult Function()? submitting,
-    TResult Function()? completed,
+    TResult Function(int pointsEarned)? completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -878,7 +1053,7 @@ class _$LoadingImpl implements _Loading {
   }
 }
 
-abstract class _Loading implements SummaryPlayerState {
+abstract class _Loading implements EpisodePlayerState {
   const factory _Loading() = _$LoadingImpl;
 }
 
@@ -896,14 +1071,14 @@ abstract class _$$LoadedImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$LoadedImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerStateCopyWithImpl<$Res, _$LoadedImpl>
+    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$LoadedImpl>
     implements _$$LoadedImplCopyWith<$Res> {
   __$$LoadedImplCopyWithImpl(
     _$LoadedImpl _value,
     $Res Function(_$LoadedImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -918,7 +1093,7 @@ class __$$LoadedImplCopyWithImpl<$Res>
     );
   }
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -939,7 +1114,7 @@ class _$LoadedImpl implements _Loaded {
 
   @override
   String toString() {
-    return 'SummaryPlayerState.loaded(journey: $journey)';
+    return 'EpisodePlayerState.loaded(journey: $journey)';
   }
 
   @override
@@ -953,7 +1128,7 @@ class _$LoadedImpl implements _Loaded {
   @override
   int get hashCode => Object.hash(runtimeType, journey);
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
@@ -968,7 +1143,7 @@ class _$LoadedImpl implements _Loaded {
     required TResult Function() loading,
     required TResult Function(LearningJourney journey) loaded,
     required TResult Function() submitting,
-    required TResult Function() completed,
+    required TResult Function(int pointsEarned) completed,
     required TResult Function(String message) error,
   }) {
     return loaded(journey);
@@ -981,7 +1156,7 @@ class _$LoadedImpl implements _Loaded {
     TResult? Function()? loading,
     TResult? Function(LearningJourney journey)? loaded,
     TResult? Function()? submitting,
-    TResult? Function()? completed,
+    TResult? Function(int pointsEarned)? completed,
     TResult? Function(String message)? error,
   }) {
     return loaded?.call(journey);
@@ -994,7 +1169,7 @@ class _$LoadedImpl implements _Loaded {
     TResult Function()? loading,
     TResult Function(LearningJourney journey)? loaded,
     TResult Function()? submitting,
-    TResult Function()? completed,
+    TResult Function(int pointsEarned)? completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1048,12 +1223,12 @@ class _$LoadedImpl implements _Loaded {
   }
 }
 
-abstract class _Loaded implements SummaryPlayerState {
+abstract class _Loaded implements EpisodePlayerState {
   const factory _Loaded(final LearningJourney journey) = _$LoadedImpl;
 
   LearningJourney get journey;
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$LoadedImplCopyWith<_$LoadedImpl> get copyWith =>
@@ -1070,14 +1245,14 @@ abstract class _$$SubmittingImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$SubmittingImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerStateCopyWithImpl<$Res, _$SubmittingImpl>
+    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$SubmittingImpl>
     implements _$$SubmittingImplCopyWith<$Res> {
   __$$SubmittingImplCopyWithImpl(
     _$SubmittingImpl _value,
     $Res Function(_$SubmittingImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
 }
 
@@ -1088,7 +1263,7 @@ class _$SubmittingImpl implements _Submitting {
 
   @override
   String toString() {
-    return 'SummaryPlayerState.submitting()';
+    return 'EpisodePlayerState.submitting()';
   }
 
   @override
@@ -1107,7 +1282,7 @@ class _$SubmittingImpl implements _Submitting {
     required TResult Function() loading,
     required TResult Function(LearningJourney journey) loaded,
     required TResult Function() submitting,
-    required TResult Function() completed,
+    required TResult Function(int pointsEarned) completed,
     required TResult Function(String message) error,
   }) {
     return submitting();
@@ -1120,7 +1295,7 @@ class _$SubmittingImpl implements _Submitting {
     TResult? Function()? loading,
     TResult? Function(LearningJourney journey)? loaded,
     TResult? Function()? submitting,
-    TResult? Function()? completed,
+    TResult? Function(int pointsEarned)? completed,
     TResult? Function(String message)? error,
   }) {
     return submitting?.call();
@@ -1133,7 +1308,7 @@ class _$SubmittingImpl implements _Submitting {
     TResult Function()? loading,
     TResult Function(LearningJourney journey)? loaded,
     TResult Function()? submitting,
-    TResult Function()? completed,
+    TResult Function(int pointsEarned)? completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1187,7 +1362,7 @@ class _$SubmittingImpl implements _Submitting {
   }
 }
 
-abstract class _Submitting implements SummaryPlayerState {
+abstract class _Submitting implements EpisodePlayerState {
   const factory _Submitting() = _$SubmittingImpl;
 }
 
@@ -1197,39 +1372,67 @@ abstract class _$$CompletedImplCopyWith<$Res> {
     _$CompletedImpl value,
     $Res Function(_$CompletedImpl) then,
   ) = __$$CompletedImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({int pointsEarned});
 }
 
 /// @nodoc
 class __$$CompletedImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerStateCopyWithImpl<$Res, _$CompletedImpl>
+    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$CompletedImpl>
     implements _$$CompletedImplCopyWith<$Res> {
   __$$CompletedImplCopyWithImpl(
     _$CompletedImpl _value,
     $Res Function(_$CompletedImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? pointsEarned = null}) {
+    return _then(
+      _$CompletedImpl(
+        pointsEarned: null == pointsEarned
+            ? _value.pointsEarned
+            : pointsEarned // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
 }
 
 /// @nodoc
 
 class _$CompletedImpl implements _Completed {
-  const _$CompletedImpl();
+  const _$CompletedImpl({required this.pointsEarned});
+
+  @override
+  final int pointsEarned;
 
   @override
   String toString() {
-    return 'SummaryPlayerState.completed()';
+    return 'EpisodePlayerState.completed(pointsEarned: $pointsEarned)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$CompletedImpl);
+        (other.runtimeType == runtimeType &&
+            other is _$CompletedImpl &&
+            (identical(other.pointsEarned, pointsEarned) ||
+                other.pointsEarned == pointsEarned));
   }
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode => Object.hash(runtimeType, pointsEarned);
+
+  /// Create a copy of EpisodePlayerState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CompletedImplCopyWith<_$CompletedImpl> get copyWith =>
+      __$$CompletedImplCopyWithImpl<_$CompletedImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1238,10 +1441,10 @@ class _$CompletedImpl implements _Completed {
     required TResult Function() loading,
     required TResult Function(LearningJourney journey) loaded,
     required TResult Function() submitting,
-    required TResult Function() completed,
+    required TResult Function(int pointsEarned) completed,
     required TResult Function(String message) error,
   }) {
-    return completed();
+    return completed(pointsEarned);
   }
 
   @override
@@ -1251,10 +1454,10 @@ class _$CompletedImpl implements _Completed {
     TResult? Function()? loading,
     TResult? Function(LearningJourney journey)? loaded,
     TResult? Function()? submitting,
-    TResult? Function()? completed,
+    TResult? Function(int pointsEarned)? completed,
     TResult? Function(String message)? error,
   }) {
-    return completed?.call();
+    return completed?.call(pointsEarned);
   }
 
   @override
@@ -1264,12 +1467,12 @@ class _$CompletedImpl implements _Completed {
     TResult Function()? loading,
     TResult Function(LearningJourney journey)? loaded,
     TResult Function()? submitting,
-    TResult Function()? completed,
+    TResult Function(int pointsEarned)? completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
     if (completed != null) {
-      return completed();
+      return completed(pointsEarned);
     }
     return orElse();
   }
@@ -1318,8 +1521,16 @@ class _$CompletedImpl implements _Completed {
   }
 }
 
-abstract class _Completed implements SummaryPlayerState {
-  const factory _Completed() = _$CompletedImpl;
+abstract class _Completed implements EpisodePlayerState {
+  const factory _Completed({required final int pointsEarned}) = _$CompletedImpl;
+
+  int get pointsEarned;
+
+  /// Create a copy of EpisodePlayerState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CompletedImplCopyWith<_$CompletedImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -1334,14 +1545,14 @@ abstract class _$$ErrorImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$ErrorImplCopyWithImpl<$Res>
-    extends _$SummaryPlayerStateCopyWithImpl<$Res, _$ErrorImpl>
+    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$ErrorImpl>
     implements _$$ErrorImplCopyWith<$Res> {
   __$$ErrorImplCopyWithImpl(
     _$ErrorImpl _value,
     $Res Function(_$ErrorImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -1367,7 +1578,7 @@ class _$ErrorImpl implements _Error {
 
   @override
   String toString() {
-    return 'SummaryPlayerState.error(message: $message)';
+    return 'EpisodePlayerState.error(message: $message)';
   }
 
   @override
@@ -1381,7 +1592,7 @@ class _$ErrorImpl implements _Error {
   @override
   int get hashCode => Object.hash(runtimeType, message);
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
@@ -1396,7 +1607,7 @@ class _$ErrorImpl implements _Error {
     required TResult Function() loading,
     required TResult Function(LearningJourney journey) loaded,
     required TResult Function() submitting,
-    required TResult Function() completed,
+    required TResult Function(int pointsEarned) completed,
     required TResult Function(String message) error,
   }) {
     return error(message);
@@ -1409,7 +1620,7 @@ class _$ErrorImpl implements _Error {
     TResult? Function()? loading,
     TResult? Function(LearningJourney journey)? loaded,
     TResult? Function()? submitting,
-    TResult? Function()? completed,
+    TResult? Function(int pointsEarned)? completed,
     TResult? Function(String message)? error,
   }) {
     return error?.call(message);
@@ -1422,7 +1633,7 @@ class _$ErrorImpl implements _Error {
     TResult Function()? loading,
     TResult Function(LearningJourney journey)? loaded,
     TResult Function()? submitting,
-    TResult Function()? completed,
+    TResult Function(int pointsEarned)? completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1476,12 +1687,12 @@ class _$ErrorImpl implements _Error {
   }
 }
 
-abstract class _Error implements SummaryPlayerState {
+abstract class _Error implements EpisodePlayerState {
   const factory _Error(final String message) = _$ErrorImpl;
 
   String get message;
 
-  /// Create a copy of SummaryPlayerState
+  /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ErrorImplCopyWith<_$ErrorImpl> get copyWith =>

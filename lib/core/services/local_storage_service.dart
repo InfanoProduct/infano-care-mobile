@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Typed wrapper around SharedPreferences for onboarding state persistence.
-class LocalStorageService {
+class LocalStorageService extends ChangeNotifier {
   static const _userType       = 'ob_user_type';
   static const _displayName    = 'ob_display_name';
   static const _pronouns       = 'ob_pronouns';
@@ -32,7 +33,11 @@ class LocalStorageService {
 
   // ── Onboarding stage checkpoints ─────────────────────────────────────────
   String? get stageComplete     => _prefs.getString(_stageComplete);
-  Future<void> setStageComplete(String stage) => _prefs.setString(_stageComplete, stage);
+  Future<void> setStageComplete(String stage) {
+    final result = _prefs.setString(_stageComplete, stage);
+    notifyListeners();
+    return result;
+  }
 
   // ── Identity ──────────────────────────────────────────────────────────────
   String? get userType          => _prefs.getString(_userType);
@@ -40,10 +45,26 @@ class LocalStorageService {
   String? get pronouns          => _prefs.getString(_pronouns);
   String? get phone             => _prefs.getString(_phone);
 
-  Future<void> setUserType(String t)     => _prefs.setString(_userType, t);
-  Future<void> setDisplayName(String n)  => _prefs.setString(_displayName, n);
-  Future<void> setPronouns(String? p)    => p != null ? _prefs.setString(_pronouns, p) : _prefs.remove(_pronouns);
-  Future<void> setPhone(String p)        => _prefs.setString(_phone, p);
+  Future<void> setUserType(String t) {
+    final result = _prefs.setString(_userType, t);
+    notifyListeners();
+    return result;
+  }
+  Future<void> setDisplayName(String n) {
+    final result = _prefs.setString(_displayName, n);
+    notifyListeners();
+    return result;
+  }
+  Future<void> setPronouns(String? p) {
+    final result = p != null ? _prefs.setString(_pronouns, p) : _prefs.remove(_pronouns);
+    notifyListeners();
+    return result;
+  }
+  Future<void> setPhone(String p) {
+    final result = _prefs.setString(_phone, p);
+    notifyListeners();
+    return result;
+  }
 
   // ── Points ────────────────────────────────────────────────────────────────
   int get points                => _prefs.getInt(_points) ?? 0;
@@ -55,7 +76,12 @@ class LocalStorageService {
   String? get refreshToken      => _prefs.getString(_refreshToken);
   String? get userId            => _prefs.getString(_userId);
 
-  Future<void> setAuthToken(String t)    => _prefs.setString(_authToken, t);
+  Future<void> setAuthToken(String t) {
+    final result = _prefs.setString(_authToken, t);
+    notifyListeners();
+    return result;
+  }
+  
   Future<void> setRefreshToken(String t) => _prefs.setString(_refreshToken, t);
   Future<void> setUserId(String id)      => _prefs.setString(_userId, id);
 
@@ -83,6 +109,7 @@ class LocalStorageService {
     await _prefs.remove(_authToken);
     await _prefs.remove(_refreshToken);
     await _prefs.remove(_tempToken);
+    notifyListeners();
   }
 
   // ── Clear all onboarding state ────────────────────────────────────────────

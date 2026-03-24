@@ -18,18 +18,41 @@ class LearningRepository {
     return LearningJourney.fromJson(response.data);
   }
 
-  Future<void> completeSummary({
-    required String summaryId,
+  Future<void> updateEpisodeProgress({
+    required String episodeId,
     required List<dynamic> completedItems,
     String? lastViewedItemId,
   }) async {
     await _dio.post(
-      '/learning/summaries/$summaryId/complete',
+      '/learning/episodes/$episodeId/progress',
       data: {
         'completedItems': completedItems,
         'lastViewedItemId': lastViewedItemId,
       },
     );
+  }
+
+  Future<void> completeEpisode({
+    required String episodeId,
+    required int knowledgeCheckAccuracy,
+    required String reflectionMode,
+    String? reflectionContent,
+    String? voiceUrl,
+  }) async {
+    await _dio.post(
+      '/learning/episodes/$episodeId/complete',
+      data: {
+        'knowledgeCheckAccuracy': knowledgeCheckAccuracy,
+        'reflectionMode': reflectionMode,
+        'reflectionContent': reflectionContent,
+        'voiceUrl': voiceUrl,
+      },
+    );
+  }
+
+  Future<List<dynamic>> getCommunityReflections(String episodeId) async {
+    final response = await _dio.get('/learning/episodes/$episodeId/reflections');
+    return response.data as List;
   }
 
   Future<List<UserProgress>> getMyProgress() async {

@@ -21,7 +21,7 @@ class LearningJourney with _$LearningJourney {
     @Default([]) List<String> tags,
     @Default('moderate') String contentTone,
     @Default('TEEN_EARLY') String minContentTier,
-    @Default([]) List<Summary> summaries,
+    @Default([]) List<Episode> episodes,
   }) = _LearningJourney;
 
   factory LearningJourney.fromJson(Map<String, dynamic> json) =>
@@ -29,21 +29,21 @@ class LearningJourney with _$LearningJourney {
 }
 
 @freezed
-class Summary with _$Summary {
-  const factory Summary({
+class Episode with _$Episode {
+  const factory Episode({
     required String id,
     required String journeyId,
     required String title,
     required String slug,
     String? description,
     @Default(0) int order,
-    required dynamic content, // JSON Array of SummaryItems
+    required dynamic content, // Structured map of 5 segments
     @Default(50) int points,
     @Default(true) bool isActive,
-  }) = _Summary;
+  }) = _Episode;
 
-  factory Summary.fromJson(Map<String, dynamic> json) =>
-      _$SummaryFromJson(json);
+  factory Episode.fromJson(Map<String, dynamic> json) =>
+      _$EpisodeFromJson(json);
 }
 
 @freezed
@@ -51,12 +51,12 @@ class UserProgress with _$UserProgress {
   const factory UserProgress({
     required String id,
     required String userId,
-    required String summaryId,
+    required String episodeId,
     @Default(false) bool completed,
     String? lastViewedItemId,
     required dynamic completedItems,
     required DateTime updatedAt,
-    Summary? summary,
+    Episode? episode,
   }) = _UserProgress;
 
   factory UserProgress.fromJson(Map<String, dynamic> json) =>

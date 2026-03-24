@@ -30,9 +30,9 @@ _$LearningJourneyImpl _$$LearningJourneyImplFromJson(
       const [],
   contentTone: json['contentTone'] as String? ?? 'moderate',
   minContentTier: json['minContentTier'] as String? ?? 'TEEN_EARLY',
-  summaries:
-      (json['summaries'] as List<dynamic>?)
-          ?.map((e) => Summary.fromJson(e as Map<String, dynamic>))
+  episodes:
+      (json['episodes'] as List<dynamic>?)
+          ?.map((e) => Episode.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
 );
@@ -55,11 +55,11 @@ Map<String, dynamic> _$$LearningJourneyImplToJson(
   'tags': instance.tags,
   'contentTone': instance.contentTone,
   'minContentTier': instance.minContentTier,
-  'summaries': instance.summaries,
+  'episodes': instance.episodes,
 };
 
-_$SummaryImpl _$$SummaryImplFromJson(Map<String, dynamic> json) =>
-    _$SummaryImpl(
+_$EpisodeImpl _$$EpisodeImplFromJson(Map<String, dynamic> json) =>
+    _$EpisodeImpl(
       id: json['id'] as String,
       journeyId: json['journeyId'] as String,
       title: json['title'] as String,
@@ -71,7 +71,7 @@ _$SummaryImpl _$$SummaryImplFromJson(Map<String, dynamic> json) =>
       isActive: json['isActive'] as bool? ?? true,
     );
 
-Map<String, dynamic> _$$SummaryImplToJson(_$SummaryImpl instance) =>
+Map<String, dynamic> _$$EpisodeImplToJson(_$EpisodeImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'journeyId': instance.journeyId,
@@ -88,24 +88,24 @@ _$UserProgressImpl _$$UserProgressImplFromJson(Map<String, dynamic> json) =>
     _$UserProgressImpl(
       id: json['id'] as String,
       userId: json['userId'] as String,
-      summaryId: json['summaryId'] as String,
+      episodeId: json['episodeId'] as String,
       completed: json['completed'] as bool? ?? false,
       lastViewedItemId: json['lastViewedItemId'] as String?,
       completedItems: json['completedItems'],
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      summary: json['summary'] == null
+      episode: json['episode'] == null
           ? null
-          : Summary.fromJson(json['summary'] as Map<String, dynamic>),
+          : Episode.fromJson(json['episode'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$UserProgressImplToJson(_$UserProgressImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'userId': instance.userId,
-      'summaryId': instance.summaryId,
+      'episodeId': instance.episodeId,
       'completed': instance.completed,
       'lastViewedItemId': instance.lastViewedItemId,
       'completedItems': instance.completedItems,
       'updatedAt': instance.updatedAt.toIso8601String(),
-      'summary': instance.summary,
+      'episode': instance.episode,
     };

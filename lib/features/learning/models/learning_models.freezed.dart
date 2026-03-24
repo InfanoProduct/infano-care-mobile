@@ -36,7 +36,7 @@ mixin _$LearningJourney {
   List<String> get tags => throw _privateConstructorUsedError;
   String get contentTone => throw _privateConstructorUsedError;
   String get minContentTier => throw _privateConstructorUsedError;
-  List<Summary> get summaries => throw _privateConstructorUsedError;
+  List<Episode> get episodes => throw _privateConstructorUsedError;
 
   /// Serializes this LearningJourney to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -71,7 +71,7 @@ abstract class $LearningJourneyCopyWith<$Res> {
     List<String> tags,
     String contentTone,
     String minContentTier,
-    List<Summary> summaries,
+    List<Episode> episodes,
   });
 }
 
@@ -105,7 +105,7 @@ class _$LearningJourneyCopyWithImpl<$Res, $Val extends LearningJourney>
     Object? tags = null,
     Object? contentTone = null,
     Object? minContentTier = null,
-    Object? summaries = null,
+    Object? episodes = null,
   }) {
     return _then(
       _value.copyWith(
@@ -169,10 +169,10 @@ class _$LearningJourneyCopyWithImpl<$Res, $Val extends LearningJourney>
                 ? _value.minContentTier
                 : minContentTier // ignore: cast_nullable_to_non_nullable
                       as String,
-            summaries: null == summaries
-                ? _value.summaries
-                : summaries // ignore: cast_nullable_to_non_nullable
-                      as List<Summary>,
+            episodes: null == episodes
+                ? _value.episodes
+                : episodes // ignore: cast_nullable_to_non_nullable
+                      as List<Episode>,
           )
           as $Val,
     );
@@ -204,7 +204,7 @@ abstract class _$$LearningJourneyImplCopyWith<$Res>
     List<String> tags,
     String contentTone,
     String minContentTier,
-    List<Summary> summaries,
+    List<Episode> episodes,
   });
 }
 
@@ -237,7 +237,7 @@ class __$$LearningJourneyImplCopyWithImpl<$Res>
     Object? tags = null,
     Object? contentTone = null,
     Object? minContentTier = null,
-    Object? summaries = null,
+    Object? episodes = null,
   }) {
     return _then(
       _$LearningJourneyImpl(
@@ -301,10 +301,10 @@ class __$$LearningJourneyImplCopyWithImpl<$Res>
             ? _value.minContentTier
             : minContentTier // ignore: cast_nullable_to_non_nullable
                   as String,
-        summaries: null == summaries
-            ? _value._summaries
-            : summaries // ignore: cast_nullable_to_non_nullable
-                  as List<Summary>,
+        episodes: null == episodes
+            ? _value._episodes
+            : episodes // ignore: cast_nullable_to_non_nullable
+                  as List<Episode>,
       ),
     );
   }
@@ -329,11 +329,11 @@ class _$LearningJourneyImpl implements _LearningJourney {
     final List<String> tags = const [],
     this.contentTone = 'moderate',
     this.minContentTier = 'TEEN_EARLY',
-    final List<Summary> summaries = const [],
+    final List<Episode> episodes = const [],
   }) : _topics = topics,
        _goals = goals,
        _tags = tags,
-       _summaries = summaries;
+       _episodes = episodes;
 
   factory _$LearningJourneyImpl.fromJson(Map<String, dynamic> json) =>
       _$$LearningJourneyImplFromJson(json);
@@ -393,18 +393,18 @@ class _$LearningJourneyImpl implements _LearningJourney {
   @override
   @JsonKey()
   final String minContentTier;
-  final List<Summary> _summaries;
+  final List<Episode> _episodes;
   @override
   @JsonKey()
-  List<Summary> get summaries {
-    if (_summaries is EqualUnmodifiableListView) return _summaries;
+  List<Episode> get episodes {
+    if (_episodes is EqualUnmodifiableListView) return _episodes;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_summaries);
+    return EqualUnmodifiableListView(_episodes);
   }
 
   @override
   String toString() {
-    return 'LearningJourney(id: $id, title: $title, slug: $slug, description: $description, thumbnailUrl: $thumbnailUrl, bannerImage: $bannerImage, totalXP: $totalXP, category: $category, isActive: $isActive, ageBand: $ageBand, topics: $topics, goals: $goals, tags: $tags, contentTone: $contentTone, minContentTier: $minContentTier, summaries: $summaries)';
+    return 'LearningJourney(id: $id, title: $title, slug: $slug, description: $description, thumbnailUrl: $thumbnailUrl, bannerImage: $bannerImage, totalXP: $totalXP, category: $category, isActive: $isActive, ageBand: $ageBand, topics: $topics, goals: $goals, tags: $tags, contentTone: $contentTone, minContentTier: $minContentTier, episodes: $episodes)';
   }
 
   @override
@@ -434,10 +434,7 @@ class _$LearningJourneyImpl implements _LearningJourney {
                 other.contentTone == contentTone) &&
             (identical(other.minContentTier, minContentTier) ||
                 other.minContentTier == minContentTier) &&
-            const DeepCollectionEquality().equals(
-              other._summaries,
-              _summaries,
-            ));
+            const DeepCollectionEquality().equals(other._episodes, _episodes));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -459,7 +456,7 @@ class _$LearningJourneyImpl implements _LearningJourney {
     const DeepCollectionEquality().hash(_tags),
     contentTone,
     minContentTier,
-    const DeepCollectionEquality().hash(_summaries),
+    const DeepCollectionEquality().hash(_episodes),
   );
 
   /// Create a copy of LearningJourney
@@ -496,7 +493,7 @@ abstract class _LearningJourney implements LearningJourney {
     final List<String> tags,
     final String contentTone,
     final String minContentTier,
-    final List<Summary> summaries,
+    final List<Episode> episodes,
   }) = _$LearningJourneyImpl;
 
   factory _LearningJourney.fromJson(Map<String, dynamic> json) =
@@ -533,7 +530,7 @@ abstract class _LearningJourney implements LearningJourney {
   @override
   String get minContentTier;
   @override
-  List<Summary> get summaries;
+  List<Episode> get episodes;
 
   /// Create a copy of LearningJourney
   /// with the given fields replaced by the non-null parameter values.
@@ -543,12 +540,12 @@ abstract class _LearningJourney implements LearningJourney {
       throw _privateConstructorUsedError;
 }
 
-Summary _$SummaryFromJson(Map<String, dynamic> json) {
-  return _Summary.fromJson(json);
+Episode _$EpisodeFromJson(Map<String, dynamic> json) {
+  return _Episode.fromJson(json);
 }
 
 /// @nodoc
-mixin _$Summary {
+mixin _$Episode {
   String get id => throw _privateConstructorUsedError;
   String get journeyId => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
@@ -556,23 +553,23 @@ mixin _$Summary {
   String? get description => throw _privateConstructorUsedError;
   int get order => throw _privateConstructorUsedError;
   dynamic get content =>
-      throw _privateConstructorUsedError; // JSON Array of SummaryItems
+      throw _privateConstructorUsedError; // Structured map of 5 segments
   int get points => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
 
-  /// Serializes this Summary to a JSON map.
+  /// Serializes this Episode to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of Summary
+  /// Create a copy of Episode
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SummaryCopyWith<Summary> get copyWith => throw _privateConstructorUsedError;
+  $EpisodeCopyWith<Episode> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $SummaryCopyWith<$Res> {
-  factory $SummaryCopyWith(Summary value, $Res Function(Summary) then) =
-      _$SummaryCopyWithImpl<$Res, Summary>;
+abstract class $EpisodeCopyWith<$Res> {
+  factory $EpisodeCopyWith(Episode value, $Res Function(Episode) then) =
+      _$EpisodeCopyWithImpl<$Res, Episode>;
   @useResult
   $Res call({
     String id,
@@ -588,16 +585,16 @@ abstract class $SummaryCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$SummaryCopyWithImpl<$Res, $Val extends Summary>
-    implements $SummaryCopyWith<$Res> {
-  _$SummaryCopyWithImpl(this._value, this._then);
+class _$EpisodeCopyWithImpl<$Res, $Val extends Episode>
+    implements $EpisodeCopyWith<$Res> {
+  _$EpisodeCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Summary
+  /// Create a copy of Episode
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -657,11 +654,11 @@ class _$SummaryCopyWithImpl<$Res, $Val extends Summary>
 }
 
 /// @nodoc
-abstract class _$$SummaryImplCopyWith<$Res> implements $SummaryCopyWith<$Res> {
-  factory _$$SummaryImplCopyWith(
-    _$SummaryImpl value,
-    $Res Function(_$SummaryImpl) then,
-  ) = __$$SummaryImplCopyWithImpl<$Res>;
+abstract class _$$EpisodeImplCopyWith<$Res> implements $EpisodeCopyWith<$Res> {
+  factory _$$EpisodeImplCopyWith(
+    _$EpisodeImpl value,
+    $Res Function(_$EpisodeImpl) then,
+  ) = __$$EpisodeImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({
@@ -678,15 +675,15 @@ abstract class _$$SummaryImplCopyWith<$Res> implements $SummaryCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$SummaryImplCopyWithImpl<$Res>
-    extends _$SummaryCopyWithImpl<$Res, _$SummaryImpl>
-    implements _$$SummaryImplCopyWith<$Res> {
-  __$$SummaryImplCopyWithImpl(
-    _$SummaryImpl _value,
-    $Res Function(_$SummaryImpl) _then,
+class __$$EpisodeImplCopyWithImpl<$Res>
+    extends _$EpisodeCopyWithImpl<$Res, _$EpisodeImpl>
+    implements _$$EpisodeImplCopyWith<$Res> {
+  __$$EpisodeImplCopyWithImpl(
+    _$EpisodeImpl _value,
+    $Res Function(_$EpisodeImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of Summary
+  /// Create a copy of Episode
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -702,7 +699,7 @@ class __$$SummaryImplCopyWithImpl<$Res>
     Object? isActive = null,
   }) {
     return _then(
-      _$SummaryImpl(
+      _$EpisodeImpl(
         id: null == id
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
@@ -746,8 +743,8 @@ class __$$SummaryImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$SummaryImpl implements _Summary {
-  const _$SummaryImpl({
+class _$EpisodeImpl implements _Episode {
+  const _$EpisodeImpl({
     required this.id,
     required this.journeyId,
     required this.title,
@@ -759,8 +756,8 @@ class _$SummaryImpl implements _Summary {
     this.isActive = true,
   });
 
-  factory _$SummaryImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SummaryImplFromJson(json);
+  factory _$EpisodeImpl.fromJson(Map<String, dynamic> json) =>
+      _$$EpisodeImplFromJson(json);
 
   @override
   final String id;
@@ -777,7 +774,7 @@ class _$SummaryImpl implements _Summary {
   final int order;
   @override
   final dynamic content;
-  // JSON Array of SummaryItems
+  // Structured map of 5 segments
   @override
   @JsonKey()
   final int points;
@@ -787,14 +784,14 @@ class _$SummaryImpl implements _Summary {
 
   @override
   String toString() {
-    return 'Summary(id: $id, journeyId: $journeyId, title: $title, slug: $slug, description: $description, order: $order, content: $content, points: $points, isActive: $isActive)';
+    return 'Episode(id: $id, journeyId: $journeyId, title: $title, slug: $slug, description: $description, order: $order, content: $content, points: $points, isActive: $isActive)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SummaryImpl &&
+            other is _$EpisodeImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.journeyId, journeyId) ||
                 other.journeyId == journeyId) &&
@@ -824,22 +821,22 @@ class _$SummaryImpl implements _Summary {
     isActive,
   );
 
-  /// Create a copy of Summary
+  /// Create a copy of Episode
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$SummaryImplCopyWith<_$SummaryImpl> get copyWith =>
-      __$$SummaryImplCopyWithImpl<_$SummaryImpl>(this, _$identity);
+  _$$EpisodeImplCopyWith<_$EpisodeImpl> get copyWith =>
+      __$$EpisodeImplCopyWithImpl<_$EpisodeImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SummaryImplToJson(this);
+    return _$$EpisodeImplToJson(this);
   }
 }
 
-abstract class _Summary implements Summary {
-  const factory _Summary({
+abstract class _Episode implements Episode {
+  const factory _Episode({
     required final String id,
     required final String journeyId,
     required final String title,
@@ -849,9 +846,9 @@ abstract class _Summary implements Summary {
     required final dynamic content,
     final int points,
     final bool isActive,
-  }) = _$SummaryImpl;
+  }) = _$EpisodeImpl;
 
-  factory _Summary.fromJson(Map<String, dynamic> json) = _$SummaryImpl.fromJson;
+  factory _Episode.fromJson(Map<String, dynamic> json) = _$EpisodeImpl.fromJson;
 
   @override
   String get id;
@@ -866,17 +863,17 @@ abstract class _Summary implements Summary {
   @override
   int get order;
   @override
-  dynamic get content; // JSON Array of SummaryItems
+  dynamic get content; // Structured map of 5 segments
   @override
   int get points;
   @override
   bool get isActive;
 
-  /// Create a copy of Summary
+  /// Create a copy of Episode
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SummaryImplCopyWith<_$SummaryImpl> get copyWith =>
+  _$$EpisodeImplCopyWith<_$EpisodeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -888,12 +885,12 @@ UserProgress _$UserProgressFromJson(Map<String, dynamic> json) {
 mixin _$UserProgress {
   String get id => throw _privateConstructorUsedError;
   String get userId => throw _privateConstructorUsedError;
-  String get summaryId => throw _privateConstructorUsedError;
+  String get episodeId => throw _privateConstructorUsedError;
   bool get completed => throw _privateConstructorUsedError;
   String? get lastViewedItemId => throw _privateConstructorUsedError;
   dynamic get completedItems => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
-  Summary? get summary => throw _privateConstructorUsedError;
+  Episode? get episode => throw _privateConstructorUsedError;
 
   /// Serializes this UserProgress to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -915,15 +912,15 @@ abstract class $UserProgressCopyWith<$Res> {
   $Res call({
     String id,
     String userId,
-    String summaryId,
+    String episodeId,
     bool completed,
     String? lastViewedItemId,
     dynamic completedItems,
     DateTime updatedAt,
-    Summary? summary,
+    Episode? episode,
   });
 
-  $SummaryCopyWith<$Res>? get summary;
+  $EpisodeCopyWith<$Res>? get episode;
 }
 
 /// @nodoc
@@ -943,12 +940,12 @@ class _$UserProgressCopyWithImpl<$Res, $Val extends UserProgress>
   $Res call({
     Object? id = null,
     Object? userId = null,
-    Object? summaryId = null,
+    Object? episodeId = null,
     Object? completed = null,
     Object? lastViewedItemId = freezed,
     Object? completedItems = freezed,
     Object? updatedAt = null,
-    Object? summary = freezed,
+    Object? episode = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -960,9 +957,9 @@ class _$UserProgressCopyWithImpl<$Res, $Val extends UserProgress>
                 ? _value.userId
                 : userId // ignore: cast_nullable_to_non_nullable
                       as String,
-            summaryId: null == summaryId
-                ? _value.summaryId
-                : summaryId // ignore: cast_nullable_to_non_nullable
+            episodeId: null == episodeId
+                ? _value.episodeId
+                : episodeId // ignore: cast_nullable_to_non_nullable
                       as String,
             completed: null == completed
                 ? _value.completed
@@ -980,10 +977,10 @@ class _$UserProgressCopyWithImpl<$Res, $Val extends UserProgress>
                 ? _value.updatedAt
                 : updatedAt // ignore: cast_nullable_to_non_nullable
                       as DateTime,
-            summary: freezed == summary
-                ? _value.summary
-                : summary // ignore: cast_nullable_to_non_nullable
-                      as Summary?,
+            episode: freezed == episode
+                ? _value.episode
+                : episode // ignore: cast_nullable_to_non_nullable
+                      as Episode?,
           )
           as $Val,
     );
@@ -993,13 +990,13 @@ class _$UserProgressCopyWithImpl<$Res, $Val extends UserProgress>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $SummaryCopyWith<$Res>? get summary {
-    if (_value.summary == null) {
+  $EpisodeCopyWith<$Res>? get episode {
+    if (_value.episode == null) {
       return null;
     }
 
-    return $SummaryCopyWith<$Res>(_value.summary!, (value) {
-      return _then(_value.copyWith(summary: value) as $Val);
+    return $EpisodeCopyWith<$Res>(_value.episode!, (value) {
+      return _then(_value.copyWith(episode: value) as $Val);
     });
   }
 }
@@ -1016,16 +1013,16 @@ abstract class _$$UserProgressImplCopyWith<$Res>
   $Res call({
     String id,
     String userId,
-    String summaryId,
+    String episodeId,
     bool completed,
     String? lastViewedItemId,
     dynamic completedItems,
     DateTime updatedAt,
-    Summary? summary,
+    Episode? episode,
   });
 
   @override
-  $SummaryCopyWith<$Res>? get summary;
+  $EpisodeCopyWith<$Res>? get episode;
 }
 
 /// @nodoc
@@ -1044,12 +1041,12 @@ class __$$UserProgressImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? userId = null,
-    Object? summaryId = null,
+    Object? episodeId = null,
     Object? completed = null,
     Object? lastViewedItemId = freezed,
     Object? completedItems = freezed,
     Object? updatedAt = null,
-    Object? summary = freezed,
+    Object? episode = freezed,
   }) {
     return _then(
       _$UserProgressImpl(
@@ -1061,9 +1058,9 @@ class __$$UserProgressImplCopyWithImpl<$Res>
             ? _value.userId
             : userId // ignore: cast_nullable_to_non_nullable
                   as String,
-        summaryId: null == summaryId
-            ? _value.summaryId
-            : summaryId // ignore: cast_nullable_to_non_nullable
+        episodeId: null == episodeId
+            ? _value.episodeId
+            : episodeId // ignore: cast_nullable_to_non_nullable
                   as String,
         completed: null == completed
             ? _value.completed
@@ -1081,10 +1078,10 @@ class __$$UserProgressImplCopyWithImpl<$Res>
             ? _value.updatedAt
             : updatedAt // ignore: cast_nullable_to_non_nullable
                   as DateTime,
-        summary: freezed == summary
-            ? _value.summary
-            : summary // ignore: cast_nullable_to_non_nullable
-                  as Summary?,
+        episode: freezed == episode
+            ? _value.episode
+            : episode // ignore: cast_nullable_to_non_nullable
+                  as Episode?,
       ),
     );
   }
@@ -1096,12 +1093,12 @@ class _$UserProgressImpl implements _UserProgress {
   const _$UserProgressImpl({
     required this.id,
     required this.userId,
-    required this.summaryId,
+    required this.episodeId,
     this.completed = false,
     this.lastViewedItemId,
     required this.completedItems,
     required this.updatedAt,
-    this.summary,
+    this.episode,
   });
 
   factory _$UserProgressImpl.fromJson(Map<String, dynamic> json) =>
@@ -1112,7 +1109,7 @@ class _$UserProgressImpl implements _UserProgress {
   @override
   final String userId;
   @override
-  final String summaryId;
+  final String episodeId;
   @override
   @JsonKey()
   final bool completed;
@@ -1123,11 +1120,11 @@ class _$UserProgressImpl implements _UserProgress {
   @override
   final DateTime updatedAt;
   @override
-  final Summary? summary;
+  final Episode? episode;
 
   @override
   String toString() {
-    return 'UserProgress(id: $id, userId: $userId, summaryId: $summaryId, completed: $completed, lastViewedItemId: $lastViewedItemId, completedItems: $completedItems, updatedAt: $updatedAt, summary: $summary)';
+    return 'UserProgress(id: $id, userId: $userId, episodeId: $episodeId, completed: $completed, lastViewedItemId: $lastViewedItemId, completedItems: $completedItems, updatedAt: $updatedAt, episode: $episode)';
   }
 
   @override
@@ -1137,8 +1134,8 @@ class _$UserProgressImpl implements _UserProgress {
             other is _$UserProgressImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
-            (identical(other.summaryId, summaryId) ||
-                other.summaryId == summaryId) &&
+            (identical(other.episodeId, episodeId) ||
+                other.episodeId == episodeId) &&
             (identical(other.completed, completed) ||
                 other.completed == completed) &&
             (identical(other.lastViewedItemId, lastViewedItemId) ||
@@ -1149,7 +1146,7 @@ class _$UserProgressImpl implements _UserProgress {
             ) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
-            (identical(other.summary, summary) || other.summary == summary));
+            (identical(other.episode, episode) || other.episode == episode));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1158,12 +1155,12 @@ class _$UserProgressImpl implements _UserProgress {
     runtimeType,
     id,
     userId,
-    summaryId,
+    episodeId,
     completed,
     lastViewedItemId,
     const DeepCollectionEquality().hash(completedItems),
     updatedAt,
-    summary,
+    episode,
   );
 
   /// Create a copy of UserProgress
@@ -1184,12 +1181,12 @@ abstract class _UserProgress implements UserProgress {
   const factory _UserProgress({
     required final String id,
     required final String userId,
-    required final String summaryId,
+    required final String episodeId,
     final bool completed,
     final String? lastViewedItemId,
     required final dynamic completedItems,
     required final DateTime updatedAt,
-    final Summary? summary,
+    final Episode? episode,
   }) = _$UserProgressImpl;
 
   factory _UserProgress.fromJson(Map<String, dynamic> json) =
@@ -1200,7 +1197,7 @@ abstract class _UserProgress implements UserProgress {
   @override
   String get userId;
   @override
-  String get summaryId;
+  String get episodeId;
   @override
   bool get completed;
   @override
@@ -1210,7 +1207,7 @@ abstract class _UserProgress implements UserProgress {
   @override
   DateTime get updatedAt;
   @override
-  Summary? get summary;
+  Episode? get episode;
 
   /// Create a copy of UserProgress
   /// with the given fields replaced by the non-null parameter values.

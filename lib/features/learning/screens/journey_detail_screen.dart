@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../application/summary_player_bloc.dart';
+import '../application/episode_player_bloc.dart';
+import '../models/learning_models.dart';
 import 'package:go_router/go_router.dart';
 
 class JourneyDetailScreen extends StatefulWidget {
@@ -16,14 +17,14 @@ class _JourneyDetailScreenState extends State<JourneyDetailScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<SummaryPlayerBloc>().add(SummaryPlayerEvent.loadSummary(widget.journeyId));
+    context.read<EpisodePlayerBloc>().add(EpisodePlayerEvent.loadJourney(widget.journeyId));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Journey Details')),
-      body: BlocBuilder<SummaryPlayerBloc, SummaryPlayerState>(
+      body: BlocBuilder<EpisodePlayerBloc, EpisodePlayerState>(
         builder: (context, state) {
           return state.maybeWhen(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -36,19 +37,19 @@ class _JourneyDetailScreenState extends State<JourneyDetailScreen> {
                   const SizedBox(height: 8),
                   Text(journey.description),
                   const SizedBox(height: 24),
-                  const Text('Available Summaries', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Text('Available Episodes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   const SizedBox(height: 16),
-                  if (journey.summaries.isEmpty)
+                  if (journey.episodes.isEmpty)
                     const Text('No content available for this journey yet.'),
-                  ...journey.summaries.map((summary) => Card(
+                  ...journey.episodes.map((episode) => Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
-                      title: Text(summary.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(summary.description ?? '${summary.points} XP'),
+                      title: Text(episode.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(episode.description ?? '${episode.points} XP'),
                       trailing: const Icon(Icons.play_circle_fill, color: Colors.deepPurple, size: 32),
                       onTap: () {
-                        // Navigate to Summary Player
-                        context.push('/journey/${journey.id}/summary/${summary.id}', extra: summary);
+                        // Navigate to Episode Player
+                        context.push('/journey/${journey.id}/episode/${episode.id}', extra: episode);
                       },
                     ),
                   )),

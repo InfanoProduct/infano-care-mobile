@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/router/app_router.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
@@ -20,22 +21,34 @@ void main() async {
   runApp(InfanoCareApp(storage: storage));
 }
 
-class InfanoCareApp extends StatelessWidget {
-  InfanoCareApp({super.key, required this.storage});
+class InfanoCareApp extends StatefulWidget {
+  const InfanoCareApp({super.key, required this.storage});
   final LocalStorageService storage;
 
   @override
-  Widget build(BuildContext context) {
-    final repo   = OnboardingRepository(ApiService.instance);
-    final router = createRouter(storage);
+  State<InfanoCareApp> createState() => _InfanoCareAppState();
+}
 
+class _InfanoCareAppState extends State<InfanoCareApp> {
+  late final GoRouter _router;
+  late final OnboardingRepository _repo;
+
+  @override
+  void initState() {
+    super.initState();
+    _repo = OnboardingRepository(ApiService.instance);
+    _router = createRouter(widget.storage);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OnboardingBloc(repo, storage)..add(const SyncFromStorage()),
+      create: (_) => OnboardingBloc(_repo, widget.storage)..add(const SyncFromStorage()),
       child: MaterialApp.router(
         title: 'Infano.Care',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        routerConfig: router,
+        routerConfig: _router,
       ),
     );
   }

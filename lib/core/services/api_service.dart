@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
@@ -11,6 +12,8 @@ class ApiService {
     _instance ??= ApiService._();
     return _instance!;
   }
+
+  static Completer<void>? _refreshCompleter;
 
   /// Override at build/run time:
   ///   flutter run --dart-define=API_URL=http://192.168.1.105:4000/api
@@ -47,16 +50,37 @@ class ApiService {
       },
       onError: (error, handler) async {
         if (error.response?.statusCode == 401 && storage.refreshToken != null) {
+          // 1. If a refresh is already in progress, wait for it
+          if (_refreshCompleter != null) {
+            await _refreshCompleter!.future;
+            // Retry the original request with the new token
+            error.requestOptions.headers['Authorization'] = 'Bearer ${storage.authToken}';
+            return handler.resolve(await _dio.fetch(error.requestOptions));
+          }
+
+          // 2. Start a new refresh operation
+          _refreshCompleter = Completer<void>();
           try {
             final resp = await Dio().post(
-              '$_baseUrl/auth/refresh',   // ← fixed: was hardcoded to 10.0.2.2
+              '$_baseUrl/auth/refresh',
               data: {'refreshToken': storage.refreshToken},
             );
-            await storage.setAuthToken(resp.data['accessToken']);
-            await storage.setRefreshToken(resp.data['refreshToken']);
-            error.requestOptions.headers['Authorization'] = 'Bearer ${resp.data['accessToken']}';
+
+            final newAccess = resp.data['accessToken'];
+            final newRefresh = resp.data['refreshToken'];
+
+            await storage.setAuthToken(newAccess);
+            await storage.setRefreshToken(newRefresh);
+
+            _refreshCompleter!.complete();
+            _refreshCompleter = null;
+
+            // Retry the original request
+            error.requestOptions.headers['Authorization'] = 'Bearer $newAccess';
             return handler.resolve(await _dio.fetch(error.requestOptions));
-          } catch (_) {
+          } catch (e) {
+            _refreshCompleter!.completeError(e);
+            _refreshCompleter = null;
             await storage.clearAuthTokens();
           }
         }
