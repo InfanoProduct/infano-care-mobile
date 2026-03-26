@@ -60,13 +60,17 @@ class _LandingScreenState extends State<LandingScreen> {
       } catch (e) {
         // Token might be invalid or network error, fallback to local if available
         final stage = storage.stageComplete;
-        if (stage != '13' && stage != null && int.parse(stage) > 1) {
+        if (stage == '13') {
+          context.go('/home');
+        } else if (stage != '13' && stage != null && int.parse(stage) > 1) {
           setState(() {
             _isResuming = true;
             _userName = storage.displayName;
           });
         }
       }
+    } else {
+      // No token, just remove splash and show Landing UI
     }
   }
 

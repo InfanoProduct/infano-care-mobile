@@ -18,45 +18,71 @@ class LearningRepository {
     return LearningJourney.fromJson(response.data);
   }
 
+  Future<Episode> getEpisode(String id) async {
+    final response = await _dio.get('/learning/episodes/$id');
+    return Episode.fromJson(response.data);
+  }
+
+  /// Fetch progress for a single episode.
+  Future<UserProgress?> getEpisodeProgress(String episodeId) async {
+    try {
+      final response =
+          await _dio.get('/learning/episodes/$episodeId/progress');
+      return UserProgress.fromJson(response.data);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Post progress to the backend.
+  /// [completedSegments] – list of completed segment indices (0-4).
+  /// [lastViewedItemId]  – e.g. "segment_2".
   Future<void> updateEpisodeProgress({
     required String episodeId,
-    required List<dynamic> completedItems,
+    List<int> completedSegments = const [],
     String? lastViewedItemId,
   }) async {
     await _dio.post(
       '/learning/episodes/$episodeId/progress',
       data: {
-        'completedItems': completedItems,
-        'lastViewedItemId': lastViewedItemId,
+        'completedItems': completedSegments,
+        if (lastViewedItemId != null) 'lastViewedItemId': lastViewedItemId,
       },
     );
   }
 
-  Future<void> completeEpisode({
+  /// Complete the episode and receive the backend-calculated point totals.
+  Future<Map<String, dynamic>> completeEpisode({
     required String episodeId,
     required int knowledgeCheckAccuracy,
     required String reflectionMode,
     String? reflectionContent,
     String? voiceUrl,
+    bool isBingeBonus = false,
   }) async {
-    await _dio.post(
+    final response = await _dio.post(
       '/learning/episodes/$episodeId/complete',
       data: {
         'knowledgeCheckAccuracy': knowledgeCheckAccuracy,
         'reflectionMode': reflectionMode,
         'reflectionContent': reflectionContent,
         'voiceUrl': voiceUrl,
+        'isBingeBonus': isBingeBonus,
       },
     );
+    return response.data;
   }
 
   Future<List<dynamic>> getCommunityReflections(String episodeId) async {
-    final response = await _dio.get('/learning/episodes/$episodeId/reflections');
+    final response =
+        await _dio.get('/learning/episodes/$episodeId/reflections');
     return response.data as List;
   }
 
   Future<List<UserProgress>> getMyProgress() async {
     final response = await _dio.get('/learning/my-progress');
-    return (response.data as List).map((json) => UserProgress.fromJson(json)).toList();
+    return (response.data as List)
+        .map((json) => UserProgress.fromJson(json))
+        .toList();
   }
 }

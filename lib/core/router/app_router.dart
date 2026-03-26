@@ -28,6 +28,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
 import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
+import 'package:infano_care_mobile/features/learning/application/journey_detail_bloc.dart';
 import 'package:infano_care_mobile/features/learning/application/episode_player_bloc.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_detail_screen.dart';
@@ -61,8 +62,9 @@ GoRouter createRouter(LocalStorageService storage) {
       // 2. Authenticated (token != null)
       final bool onOnboarding = path.startsWith('/onboarding');
 
-      if (stage == null && onAuth) {
-        // Allow splash to stay and perform initial sync
+      // Always allow splash screen to load so it can remove the native splash
+      // and perform the initial API synchronization.
+      if (path == '/splash') {
         return null;
       }
 
@@ -155,7 +157,7 @@ GoRouter createRouter(LocalStorageService storage) {
           final journeyId = state.pathParameters['id']!;
           final repo = LearningRepository(ApiService.instance.dio);
           return BlocProvider(
-            create: (context) => EpisodePlayerBloc(repo),
+            create: (context) => JourneyDetailBloc(repo)..add(JourneyDetailEvent.loadJourney(journeyId)),
             child: JourneyDetailScreen(journeyId: journeyId),
           );
         },

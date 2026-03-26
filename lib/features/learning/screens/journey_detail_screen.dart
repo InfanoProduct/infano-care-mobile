@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../application/episode_player_bloc.dart';
+import '../application/journey_detail_bloc.dart';
 import '../models/learning_models.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,16 +15,10 @@ class JourneyDetailScreen extends StatefulWidget {
 
 class _JourneyDetailScreenState extends State<JourneyDetailScreen> {
   @override
-  void initState() {
-    super.initState();
-    context.read<EpisodePlayerBloc>().add(EpisodePlayerEvent.loadJourney(widget.journeyId));
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Journey Details')),
-      body: BlocBuilder<EpisodePlayerBloc, EpisodePlayerState>(
+      body: BlocBuilder<JourneyDetailBloc, JourneyDetailState>(
         builder: (context, state) {
           return state.maybeWhen(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -43,12 +37,14 @@ class _JourneyDetailScreenState extends State<JourneyDetailScreen> {
                     const Text('No content available for this journey yet.'),
                   ...journey.episodes.map((episode) => Card(
                     margin: const EdgeInsets.only(bottom: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
                       title: Text(episode.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(episode.description ?? '${episode.points} XP'),
-                      trailing: const Icon(Icons.play_circle_fill, color: Colors.deepPurple, size: 32),
+                      trailing: const Icon(Icons.play_circle_fill, color: Colors.deepPurple, size: 40),
                       onTap: () {
-                        // Navigate to Episode Player
+                        // Navigate to Episode Player with the episode object
                         context.push('/journey/${journey.id}/episode/${episode.id}', extra: episode);
                       },
                     ),

@@ -19,60 +19,63 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$EpisodePlayerEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String journeyId) loadJourney,
-    required TResult Function(String itemId, dynamic data) updateProgress,
-    required TResult Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )
-    completeEpisode,
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String journeyId)? loadJourney,
-    TResult? Function(String itemId, dynamic data)? updateProgress,
-    TResult? Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )?
-    completeEpisode,
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String journeyId)? loadJourney,
-    TResult Function(String itemId, dynamic data)? updateProgress,
-    TResult Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )?
-    completeEpisode,
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_LoadJourney value) loadJourney,
-    required TResult Function(_UpdateProgress value) updateProgress,
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_LoadJourney value)? loadJourney,
-    TResult? Function(_UpdateProgress value)? updateProgress,
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_LoadJourney value)? loadJourney,
-    TResult Function(_UpdateProgress value)? updateProgress,
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
@@ -101,34 +104,34 @@ class _$EpisodePlayerEventCopyWithImpl<$Res, $Val extends EpisodePlayerEvent>
 }
 
 /// @nodoc
-abstract class _$$LoadJourneyImplCopyWith<$Res> {
-  factory _$$LoadJourneyImplCopyWith(
-    _$LoadJourneyImpl value,
-    $Res Function(_$LoadJourneyImpl) then,
-  ) = __$$LoadJourneyImplCopyWithImpl<$Res>;
+abstract class _$$LoadEpisodeImplCopyWith<$Res> {
+  factory _$$LoadEpisodeImplCopyWith(
+    _$LoadEpisodeImpl value,
+    $Res Function(_$LoadEpisodeImpl) then,
+  ) = __$$LoadEpisodeImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({String journeyId});
+  $Res call({String episodeId});
 }
 
 /// @nodoc
-class __$$LoadJourneyImplCopyWithImpl<$Res>
-    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$LoadJourneyImpl>
-    implements _$$LoadJourneyImplCopyWith<$Res> {
-  __$$LoadJourneyImplCopyWithImpl(
-    _$LoadJourneyImpl _value,
-    $Res Function(_$LoadJourneyImpl) _then,
+class __$$LoadEpisodeImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$LoadEpisodeImpl>
+    implements _$$LoadEpisodeImplCopyWith<$Res> {
+  __$$LoadEpisodeImplCopyWithImpl(
+    _$LoadEpisodeImpl _value,
+    $Res Function(_$LoadEpisodeImpl) _then,
   ) : super(_value, _then);
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? journeyId = null}) {
+  $Res call({Object? episodeId = null}) {
     return _then(
-      _$LoadJourneyImpl(
-        null == journeyId
-            ? _value.journeyId
-            : journeyId // ignore: cast_nullable_to_non_nullable
+      _$LoadEpisodeImpl(
+        null == episodeId
+            ? _value.episodeId
+            : episodeId // ignore: cast_nullable_to_non_nullable
                   as String,
       ),
     );
@@ -137,88 +140,79 @@ class __$$LoadJourneyImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$LoadJourneyImpl implements _LoadJourney {
-  const _$LoadJourneyImpl(this.journeyId);
+class _$LoadEpisodeImpl implements _LoadEpisode {
+  const _$LoadEpisodeImpl(this.episodeId);
 
   @override
-  final String journeyId;
+  final String episodeId;
 
   @override
   String toString() {
-    return 'EpisodePlayerEvent.loadJourney(journeyId: $journeyId)';
+    return 'EpisodePlayerEvent.loadEpisode(episodeId: $episodeId)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$LoadJourneyImpl &&
-            (identical(other.journeyId, journeyId) ||
-                other.journeyId == journeyId));
+            other is _$LoadEpisodeImpl &&
+            (identical(other.episodeId, episodeId) ||
+                other.episodeId == episodeId));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, journeyId);
+  int get hashCode => Object.hash(runtimeType, episodeId);
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$LoadJourneyImplCopyWith<_$LoadJourneyImpl> get copyWith =>
-      __$$LoadJourneyImplCopyWithImpl<_$LoadJourneyImpl>(this, _$identity);
+  _$$LoadEpisodeImplCopyWith<_$LoadEpisodeImpl> get copyWith =>
+      __$$LoadEpisodeImplCopyWithImpl<_$LoadEpisodeImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String journeyId) loadJourney,
-    required TResult Function(String itemId, dynamic data) updateProgress,
-    required TResult Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )
-    completeEpisode,
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
   }) {
-    return loadJourney(journeyId);
+    return loadEpisode(episodeId);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String journeyId)? loadJourney,
-    TResult? Function(String itemId, dynamic data)? updateProgress,
-    TResult? Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )?
-    completeEpisode,
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
   }) {
-    return loadJourney?.call(journeyId);
+    return loadEpisode?.call(episodeId);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String journeyId)? loadJourney,
-    TResult Function(String itemId, dynamic data)? updateProgress,
-    TResult Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )?
-    completeEpisode,
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
     required TResult orElse(),
   }) {
-    if (loadJourney != null) {
-      return loadJourney(journeyId);
+    if (loadEpisode != null) {
+      return loadEpisode(episodeId);
     }
     return orElse();
   }
@@ -226,84 +220,366 @@ class _$LoadJourneyImpl implements _LoadJourney {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_LoadJourney value) loadJourney,
-    required TResult Function(_UpdateProgress value) updateProgress,
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
   }) {
-    return loadJourney(this);
+    return loadEpisode(this);
   }
 
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_LoadJourney value)? loadJourney,
-    TResult? Function(_UpdateProgress value)? updateProgress,
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
   }) {
-    return loadJourney?.call(this);
+    return loadEpisode?.call(this);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_LoadJourney value)? loadJourney,
-    TResult Function(_UpdateProgress value)? updateProgress,
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
     required TResult orElse(),
   }) {
-    if (loadJourney != null) {
-      return loadJourney(this);
+    if (loadEpisode != null) {
+      return loadEpisode(this);
     }
     return orElse();
   }
 }
 
-abstract class _LoadJourney implements EpisodePlayerEvent {
-  const factory _LoadJourney(final String journeyId) = _$LoadJourneyImpl;
+abstract class _LoadEpisode implements EpisodePlayerEvent {
+  const factory _LoadEpisode(final String episodeId) = _$LoadEpisodeImpl;
 
-  String get journeyId;
+  String get episodeId;
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$LoadJourneyImplCopyWith<_$LoadJourneyImpl> get copyWith =>
+  _$$LoadEpisodeImplCopyWith<_$LoadEpisodeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$UpdateProgressImplCopyWith<$Res> {
-  factory _$$UpdateProgressImplCopyWith(
-    _$UpdateProgressImpl value,
-    $Res Function(_$UpdateProgressImpl) then,
-  ) = __$$UpdateProgressImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({String itemId, dynamic data});
+abstract class _$$NextSegmentImplCopyWith<$Res> {
+  factory _$$NextSegmentImplCopyWith(
+    _$NextSegmentImpl value,
+    $Res Function(_$NextSegmentImpl) then,
+  ) = __$$NextSegmentImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$UpdateProgressImplCopyWithImpl<$Res>
-    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$UpdateProgressImpl>
-    implements _$$UpdateProgressImplCopyWith<$Res> {
-  __$$UpdateProgressImplCopyWithImpl(
-    _$UpdateProgressImpl _value,
-    $Res Function(_$UpdateProgressImpl) _then,
+class __$$NextSegmentImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$NextSegmentImpl>
+    implements _$$NextSegmentImplCopyWith<$Res> {
+  __$$NextSegmentImplCopyWithImpl(
+    _$NextSegmentImpl _value,
+    $Res Function(_$NextSegmentImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$NextSegmentImpl implements _NextSegment {
+  const _$NextSegmentImpl();
+
+  @override
+  String toString() {
+    return 'EpisodePlayerEvent.nextSegment()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$NextSegmentImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
+  }) {
+    return nextSegment();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
+  }) {
+    return nextSegment?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
+    required TResult orElse(),
+  }) {
+    if (nextSegment != null) {
+      return nextSegment();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
+  }) {
+    return nextSegment(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
+  }) {
+    return nextSegment?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
+    required TResult orElse(),
+  }) {
+    if (nextSegment != null) {
+      return nextSegment(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _NextSegment implements EpisodePlayerEvent {
+  const factory _NextSegment() = _$NextSegmentImpl;
+}
+
+/// @nodoc
+abstract class _$$PreviousSegmentImplCopyWith<$Res> {
+  factory _$$PreviousSegmentImplCopyWith(
+    _$PreviousSegmentImpl value,
+    $Res Function(_$PreviousSegmentImpl) then,
+  ) = __$$PreviousSegmentImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$PreviousSegmentImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$PreviousSegmentImpl>
+    implements _$$PreviousSegmentImplCopyWith<$Res> {
+  __$$PreviousSegmentImplCopyWithImpl(
+    _$PreviousSegmentImpl _value,
+    $Res Function(_$PreviousSegmentImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$PreviousSegmentImpl implements _PreviousSegment {
+  const _$PreviousSegmentImpl();
+
+  @override
+  String toString() {
+    return 'EpisodePlayerEvent.previousSegment()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$PreviousSegmentImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
+  }) {
+    return previousSegment();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
+  }) {
+    return previousSegment?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
+    required TResult orElse(),
+  }) {
+    if (previousSegment != null) {
+      return previousSegment();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
+  }) {
+    return previousSegment(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
+  }) {
+    return previousSegment?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
+    required TResult orElse(),
+  }) {
+    if (previousSegment != null) {
+      return previousSegment(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _PreviousSegment implements EpisodePlayerEvent {
+  const factory _PreviousSegment() = _$PreviousSegmentImpl;
+}
+
+/// @nodoc
+abstract class _$$JumpToSegmentImplCopyWith<$Res> {
+  factory _$$JumpToSegmentImplCopyWith(
+    _$JumpToSegmentImpl value,
+    $Res Function(_$JumpToSegmentImpl) then,
+  ) = __$$JumpToSegmentImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({int index});
+}
+
+/// @nodoc
+class __$$JumpToSegmentImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$JumpToSegmentImpl>
+    implements _$$JumpToSegmentImplCopyWith<$Res> {
+  __$$JumpToSegmentImplCopyWithImpl(
+    _$JumpToSegmentImpl _value,
+    $Res Function(_$JumpToSegmentImpl) _then,
   ) : super(_value, _then);
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? itemId = null, Object? data = freezed}) {
+  $Res call({Object? index = null}) {
     return _then(
-      _$UpdateProgressImpl(
-        null == itemId
-            ? _value.itemId
-            : itemId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        freezed == data
-            ? _value.data
-            : data // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
+      _$JumpToSegmentImpl(
+        null == index
+            ? _value.index
+            : index // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -311,42 +587,208 @@ class __$$UpdateProgressImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$UpdateProgressImpl implements _UpdateProgress {
-  const _$UpdateProgressImpl(this.itemId, this.data);
+class _$JumpToSegmentImpl implements _JumpToSegment {
+  const _$JumpToSegmentImpl(this.index);
 
   @override
-  final String itemId;
-  @override
-  final dynamic data;
+  final int index;
 
   @override
   String toString() {
-    return 'EpisodePlayerEvent.updateProgress(itemId: $itemId, data: $data)';
+    return 'EpisodePlayerEvent.jumpToSegment(index: $index)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UpdateProgressImpl &&
-            (identical(other.itemId, itemId) || other.itemId == itemId) &&
-            const DeepCollectionEquality().equals(other.data, data));
+            other is _$JumpToSegmentImpl &&
+            (identical(other.index, index) || other.index == index));
   }
 
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    itemId,
-    const DeepCollectionEquality().hash(data),
-  );
+  int get hashCode => Object.hash(runtimeType, index);
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$UpdateProgressImplCopyWith<_$UpdateProgressImpl> get copyWith =>
-      __$$UpdateProgressImplCopyWithImpl<_$UpdateProgressImpl>(
+  _$$JumpToSegmentImplCopyWith<_$JumpToSegmentImpl> get copyWith =>
+      __$$JumpToSegmentImplCopyWithImpl<_$JumpToSegmentImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
+  }) {
+    return jumpToSegment(index);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
+  }) {
+    return jumpToSegment?.call(index);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
+    required TResult orElse(),
+  }) {
+    if (jumpToSegment != null) {
+      return jumpToSegment(index);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
+  }) {
+    return jumpToSegment(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
+  }) {
+    return jumpToSegment?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
+    required TResult orElse(),
+  }) {
+    if (jumpToSegment != null) {
+      return jumpToSegment(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _JumpToSegment implements EpisodePlayerEvent {
+  const factory _JumpToSegment(final int index) = _$JumpToSegmentImpl;
+
+  int get index;
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$JumpToSegmentImplCopyWith<_$JumpToSegmentImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$AnswerQuestionImplCopyWith<$Res> {
+  factory _$$AnswerQuestionImplCopyWith(
+    _$AnswerQuestionImpl value,
+    $Res Function(_$AnswerQuestionImpl) then,
+  ) = __$$AnswerQuestionImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({bool isCorrect});
+}
+
+/// @nodoc
+class __$$AnswerQuestionImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$AnswerQuestionImpl>
+    implements _$$AnswerQuestionImplCopyWith<$Res> {
+  __$$AnswerQuestionImplCopyWithImpl(
+    _$AnswerQuestionImpl _value,
+    $Res Function(_$AnswerQuestionImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? isCorrect = null}) {
+    return _then(
+      _$AnswerQuestionImpl(
+        isCorrect: null == isCorrect
+            ? _value.isCorrect
+            : isCorrect // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+class _$AnswerQuestionImpl implements _AnswerQuestion {
+  const _$AnswerQuestionImpl({required this.isCorrect});
+
+  @override
+  final bool isCorrect;
+
+  @override
+  String toString() {
+    return 'EpisodePlayerEvent.answerQuestion(isCorrect: $isCorrect)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$AnswerQuestionImpl &&
+            (identical(other.isCorrect, isCorrect) ||
+                other.isCorrect == isCorrect));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, isCorrect);
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$AnswerQuestionImplCopyWith<_$AnswerQuestionImpl> get copyWith =>
+      __$$AnswerQuestionImplCopyWithImpl<_$AnswerQuestionImpl>(
         this,
         _$identity,
       );
@@ -354,54 +796,45 @@ class _$UpdateProgressImpl implements _UpdateProgress {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String journeyId) loadJourney,
-    required TResult Function(String itemId, dynamic data) updateProgress,
-    required TResult Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )
-    completeEpisode,
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
   }) {
-    return updateProgress(itemId, data);
+    return answerQuestion(isCorrect);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String journeyId)? loadJourney,
-    TResult? Function(String itemId, dynamic data)? updateProgress,
-    TResult? Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )?
-    completeEpisode,
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
   }) {
-    return updateProgress?.call(itemId, data);
+    return answerQuestion?.call(isCorrect);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String journeyId)? loadJourney,
-    TResult Function(String itemId, dynamic data)? updateProgress,
-    TResult Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )?
-    completeEpisode,
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
     required TResult orElse(),
   }) {
-    if (updateProgress != null) {
-      return updateProgress(itemId, data);
+    if (answerQuestion != null) {
+      return answerQuestion(isCorrect);
     }
     return orElse();
   }
@@ -409,49 +842,246 @@ class _$UpdateProgressImpl implements _UpdateProgress {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_LoadJourney value) loadJourney,
-    required TResult Function(_UpdateProgress value) updateProgress,
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
   }) {
-    return updateProgress(this);
+    return answerQuestion(this);
   }
 
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_LoadJourney value)? loadJourney,
-    TResult? Function(_UpdateProgress value)? updateProgress,
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
   }) {
-    return updateProgress?.call(this);
+    return answerQuestion?.call(this);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_LoadJourney value)? loadJourney,
-    TResult Function(_UpdateProgress value)? updateProgress,
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
     required TResult orElse(),
   }) {
-    if (updateProgress != null) {
-      return updateProgress(this);
+    if (answerQuestion != null) {
+      return answerQuestion(this);
     }
     return orElse();
   }
 }
 
-abstract class _UpdateProgress implements EpisodePlayerEvent {
-  const factory _UpdateProgress(final String itemId, final dynamic data) =
-      _$UpdateProgressImpl;
+abstract class _AnswerQuestion implements EpisodePlayerEvent {
+  const factory _AnswerQuestion({required final bool isCorrect}) =
+      _$AnswerQuestionImpl;
 
-  String get itemId;
-  dynamic get data;
+  bool get isCorrect;
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UpdateProgressImplCopyWith<_$UpdateProgressImpl> get copyWith =>
+  _$$AnswerQuestionImplCopyWith<_$AnswerQuestionImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$UpdateReflectionImplCopyWith<$Res> {
+  factory _$$UpdateReflectionImplCopyWith(
+    _$UpdateReflectionImpl value,
+    $Res Function(_$UpdateReflectionImpl) then,
+  ) = __$$UpdateReflectionImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String mode, String? content});
+}
+
+/// @nodoc
+class __$$UpdateReflectionImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$UpdateReflectionImpl>
+    implements _$$UpdateReflectionImplCopyWith<$Res> {
+  __$$UpdateReflectionImplCopyWithImpl(
+    _$UpdateReflectionImpl _value,
+    $Res Function(_$UpdateReflectionImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? mode = null, Object? content = freezed}) {
+    return _then(
+      _$UpdateReflectionImpl(
+        mode: null == mode
+            ? _value.mode
+            : mode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        content: freezed == content
+            ? _value.content
+            : content // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+class _$UpdateReflectionImpl implements _UpdateReflection {
+  const _$UpdateReflectionImpl({required this.mode, this.content});
+
+  @override
+  final String mode;
+  @override
+  final String? content;
+
+  @override
+  String toString() {
+    return 'EpisodePlayerEvent.updateReflection(mode: $mode, content: $content)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UpdateReflectionImpl &&
+            (identical(other.mode, mode) || other.mode == mode) &&
+            (identical(other.content, content) || other.content == content));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, mode, content);
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UpdateReflectionImplCopyWith<_$UpdateReflectionImpl> get copyWith =>
+      __$$UpdateReflectionImplCopyWithImpl<_$UpdateReflectionImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
+  }) {
+    return updateReflection(mode, content);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
+  }) {
+    return updateReflection?.call(mode, content);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
+    required TResult orElse(),
+  }) {
+    if (updateReflection != null) {
+      return updateReflection(mode, content);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
+  }) {
+    return updateReflection(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
+  }) {
+    return updateReflection?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
+    required TResult orElse(),
+  }) {
+    if (updateReflection != null) {
+      return updateReflection(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _UpdateReflection implements EpisodePlayerEvent {
+  const factory _UpdateReflection({
+    required final String mode,
+    final String? content,
+  }) = _$UpdateReflectionImpl;
+
+  String get mode;
+  String? get content;
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$UpdateReflectionImplCopyWith<_$UpdateReflectionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -462,13 +1092,7 @@ abstract class _$$CompleteEpisodeImplCopyWith<$Res> {
     $Res Function(_$CompleteEpisodeImpl) then,
   ) = __$$CompleteEpisodeImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({
-    String episodeId,
-    int knowledgeCheckAccuracy,
-    String reflectionMode,
-    String? reflectionContent,
-    String? voiceUrl,
-  });
+  $Res call({bool isBingeBonus});
 }
 
 /// @nodoc
@@ -484,35 +1108,13 @@ class __$$CompleteEpisodeImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? episodeId = null,
-    Object? knowledgeCheckAccuracy = null,
-    Object? reflectionMode = null,
-    Object? reflectionContent = freezed,
-    Object? voiceUrl = freezed,
-  }) {
+  $Res call({Object? isBingeBonus = null}) {
     return _then(
       _$CompleteEpisodeImpl(
-        episodeId: null == episodeId
-            ? _value.episodeId
-            : episodeId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        knowledgeCheckAccuracy: null == knowledgeCheckAccuracy
-            ? _value.knowledgeCheckAccuracy
-            : knowledgeCheckAccuracy // ignore: cast_nullable_to_non_nullable
-                  as int,
-        reflectionMode: null == reflectionMode
-            ? _value.reflectionMode
-            : reflectionMode // ignore: cast_nullable_to_non_nullable
-                  as String,
-        reflectionContent: freezed == reflectionContent
-            ? _value.reflectionContent
-            : reflectionContent // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        voiceUrl: freezed == voiceUrl
-            ? _value.voiceUrl
-            : voiceUrl // ignore: cast_nullable_to_non_nullable
-                  as String?,
+        isBingeBonus: null == isBingeBonus
+            ? _value.isBingeBonus
+            : isBingeBonus // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -521,28 +1123,15 @@ class __$$CompleteEpisodeImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$CompleteEpisodeImpl implements _CompleteEpisode {
-  const _$CompleteEpisodeImpl({
-    required this.episodeId,
-    required this.knowledgeCheckAccuracy,
-    required this.reflectionMode,
-    this.reflectionContent,
-    this.voiceUrl,
-  });
+  const _$CompleteEpisodeImpl({this.isBingeBonus = false});
 
   @override
-  final String episodeId;
-  @override
-  final int knowledgeCheckAccuracy;
-  @override
-  final String reflectionMode;
-  @override
-  final String? reflectionContent;
-  @override
-  final String? voiceUrl;
+  @JsonKey()
+  final bool isBingeBonus;
 
   @override
   String toString() {
-    return 'EpisodePlayerEvent.completeEpisode(episodeId: $episodeId, knowledgeCheckAccuracy: $knowledgeCheckAccuracy, reflectionMode: $reflectionMode, reflectionContent: $reflectionContent, voiceUrl: $voiceUrl)';
+    return 'EpisodePlayerEvent.completeEpisode(isBingeBonus: $isBingeBonus)';
   }
 
   @override
@@ -550,27 +1139,12 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CompleteEpisodeImpl &&
-            (identical(other.episodeId, episodeId) ||
-                other.episodeId == episodeId) &&
-            (identical(other.knowledgeCheckAccuracy, knowledgeCheckAccuracy) ||
-                other.knowledgeCheckAccuracy == knowledgeCheckAccuracy) &&
-            (identical(other.reflectionMode, reflectionMode) ||
-                other.reflectionMode == reflectionMode) &&
-            (identical(other.reflectionContent, reflectionContent) ||
-                other.reflectionContent == reflectionContent) &&
-            (identical(other.voiceUrl, voiceUrl) ||
-                other.voiceUrl == voiceUrl));
+            (identical(other.isBingeBonus, isBingeBonus) ||
+                other.isBingeBonus == isBingeBonus));
   }
 
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    episodeId,
-    knowledgeCheckAccuracy,
-    reflectionMode,
-    reflectionContent,
-    voiceUrl,
-  );
+  int get hashCode => Object.hash(runtimeType, isBingeBonus);
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -586,72 +1160,45 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String journeyId) loadJourney,
-    required TResult Function(String itemId, dynamic data) updateProgress,
-    required TResult Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )
-    completeEpisode,
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
   }) {
-    return completeEpisode(
-      episodeId,
-      knowledgeCheckAccuracy,
-      reflectionMode,
-      reflectionContent,
-      voiceUrl,
-    );
+    return completeEpisode(isBingeBonus);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String journeyId)? loadJourney,
-    TResult? Function(String itemId, dynamic data)? updateProgress,
-    TResult? Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )?
-    completeEpisode,
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
   }) {
-    return completeEpisode?.call(
-      episodeId,
-      knowledgeCheckAccuracy,
-      reflectionMode,
-      reflectionContent,
-      voiceUrl,
-    );
+    return completeEpisode?.call(isBingeBonus);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String journeyId)? loadJourney,
-    TResult Function(String itemId, dynamic data)? updateProgress,
-    TResult Function(
-      String episodeId,
-      int knowledgeCheckAccuracy,
-      String reflectionMode,
-      String? reflectionContent,
-      String? voiceUrl,
-    )?
-    completeEpisode,
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
     required TResult orElse(),
   }) {
     if (completeEpisode != null) {
-      return completeEpisode(
-        episodeId,
-        knowledgeCheckAccuracy,
-        reflectionMode,
-        reflectionContent,
-        voiceUrl,
-      );
+      return completeEpisode(isBingeBonus);
     }
     return orElse();
   }
@@ -659,8 +1206,12 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_LoadJourney value) loadJourney,
-    required TResult Function(_UpdateProgress value) updateProgress,
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
   }) {
     return completeEpisode(this);
@@ -669,8 +1220,12 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_LoadJourney value)? loadJourney,
-    TResult? Function(_UpdateProgress value)? updateProgress,
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
   }) {
     return completeEpisode?.call(this);
@@ -679,8 +1234,12 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_LoadJourney value)? loadJourney,
-    TResult Function(_UpdateProgress value)? updateProgress,
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
     required TResult orElse(),
   }) {
@@ -692,19 +1251,10 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
 }
 
 abstract class _CompleteEpisode implements EpisodePlayerEvent {
-  const factory _CompleteEpisode({
-    required final String episodeId,
-    required final int knowledgeCheckAccuracy,
-    required final String reflectionMode,
-    final String? reflectionContent,
-    final String? voiceUrl,
-  }) = _$CompleteEpisodeImpl;
+  const factory _CompleteEpisode({final bool isBingeBonus}) =
+      _$CompleteEpisodeImpl;
 
-  String get episodeId;
-  int get knowledgeCheckAccuracy;
-  String get reflectionMode;
-  String? get reflectionContent;
-  String? get voiceUrl;
+  bool get isBingeBonus;
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -719,27 +1269,63 @@ mixin _$EpisodePlayerState {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(LearningJourney journey) loaded,
-    required TResult Function() submitting,
-    required TResult Function(int pointsEarned) completed,
+    required TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )
+    loaded,
+    required TResult Function(
+      int pointsEarned,
+      Map<String, int> pointsBreakdown,
+    )
+    completed,
     required TResult Function(String message) error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(LearningJourney journey)? loaded,
-    TResult? Function()? submitting,
-    TResult? Function(int pointsEarned)? completed,
+    TResult? Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult? Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult? Function(String message)? error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(LearningJourney journey)? loaded,
-    TResult Function()? submitting,
-    TResult Function(int pointsEarned)? completed,
+    TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
@@ -747,8 +1333,7 @@ mixin _$EpisodePlayerState {
   TResult map<TResult extends Object?>({
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
-    required TResult Function(_Loaded value) loaded,
-    required TResult Function(_Submitting value) submitting,
+    required TResult Function(_EpisodePlayerLoaded value) loaded,
     required TResult Function(_Completed value) completed,
     required TResult Function(_Error value) error,
   }) => throw _privateConstructorUsedError;
@@ -756,8 +1341,7 @@ mixin _$EpisodePlayerState {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
-    TResult? Function(_Loaded value)? loaded,
-    TResult? Function(_Submitting value)? submitting,
+    TResult? Function(_EpisodePlayerLoaded value)? loaded,
     TResult? Function(_Completed value)? completed,
     TResult? Function(_Error value)? error,
   }) => throw _privateConstructorUsedError;
@@ -765,8 +1349,7 @@ mixin _$EpisodePlayerState {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
-    TResult Function(_Loaded value)? loaded,
-    TResult Function(_Submitting value)? submitting,
+    TResult Function(_EpisodePlayerLoaded value)? loaded,
     TResult Function(_Completed value)? completed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
@@ -840,9 +1423,23 @@ class _$InitialImpl implements _Initial {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(LearningJourney journey) loaded,
-    required TResult Function() submitting,
-    required TResult Function(int pointsEarned) completed,
+    required TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )
+    loaded,
+    required TResult Function(
+      int pointsEarned,
+      Map<String, int> pointsBreakdown,
+    )
+    completed,
     required TResult Function(String message) error,
   }) {
     return initial();
@@ -853,9 +1450,20 @@ class _$InitialImpl implements _Initial {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(LearningJourney journey)? loaded,
-    TResult? Function()? submitting,
-    TResult? Function(int pointsEarned)? completed,
+    TResult? Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult? Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult? Function(String message)? error,
   }) {
     return initial?.call();
@@ -866,9 +1474,20 @@ class _$InitialImpl implements _Initial {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(LearningJourney journey)? loaded,
-    TResult Function()? submitting,
-    TResult Function(int pointsEarned)? completed,
+    TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -883,8 +1502,7 @@ class _$InitialImpl implements _Initial {
   TResult map<TResult extends Object?>({
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
-    required TResult Function(_Loaded value) loaded,
-    required TResult Function(_Submitting value) submitting,
+    required TResult Function(_EpisodePlayerLoaded value) loaded,
     required TResult Function(_Completed value) completed,
     required TResult Function(_Error value) error,
   }) {
@@ -896,8 +1514,7 @@ class _$InitialImpl implements _Initial {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
-    TResult? Function(_Loaded value)? loaded,
-    TResult? Function(_Submitting value)? submitting,
+    TResult? Function(_EpisodePlayerLoaded value)? loaded,
     TResult? Function(_Completed value)? completed,
     TResult? Function(_Error value)? error,
   }) {
@@ -909,8 +1526,7 @@ class _$InitialImpl implements _Initial {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
-    TResult Function(_Loaded value)? loaded,
-    TResult Function(_Submitting value)? submitting,
+    TResult Function(_EpisodePlayerLoaded value)? loaded,
     TResult Function(_Completed value)? completed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
@@ -971,9 +1587,23 @@ class _$LoadingImpl implements _Loading {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(LearningJourney journey) loaded,
-    required TResult Function() submitting,
-    required TResult Function(int pointsEarned) completed,
+    required TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )
+    loaded,
+    required TResult Function(
+      int pointsEarned,
+      Map<String, int> pointsBreakdown,
+    )
+    completed,
     required TResult Function(String message) error,
   }) {
     return loading();
@@ -984,9 +1614,20 @@ class _$LoadingImpl implements _Loading {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(LearningJourney journey)? loaded,
-    TResult? Function()? submitting,
-    TResult? Function(int pointsEarned)? completed,
+    TResult? Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult? Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult? Function(String message)? error,
   }) {
     return loading?.call();
@@ -997,9 +1638,20 @@ class _$LoadingImpl implements _Loading {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(LearningJourney journey)? loaded,
-    TResult Function()? submitting,
-    TResult Function(int pointsEarned)? completed,
+    TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1014,8 +1666,7 @@ class _$LoadingImpl implements _Loading {
   TResult map<TResult extends Object?>({
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
-    required TResult Function(_Loaded value) loaded,
-    required TResult Function(_Submitting value) submitting,
+    required TResult Function(_EpisodePlayerLoaded value) loaded,
     required TResult Function(_Completed value) completed,
     required TResult Function(_Error value) error,
   }) {
@@ -1027,8 +1678,7 @@ class _$LoadingImpl implements _Loading {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
-    TResult? Function(_Loaded value)? loaded,
-    TResult? Function(_Submitting value)? submitting,
+    TResult? Function(_EpisodePlayerLoaded value)? loaded,
     TResult? Function(_Completed value)? completed,
     TResult? Function(_Error value)? error,
   }) {
@@ -1040,8 +1690,7 @@ class _$LoadingImpl implements _Loading {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
-    TResult Function(_Loaded value)? loaded,
-    TResult Function(_Submitting value)? submitting,
+    TResult Function(_EpisodePlayerLoaded value)? loaded,
     TResult Function(_Completed value)? completed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
@@ -1058,37 +1707,89 @@ abstract class _Loading implements EpisodePlayerState {
 }
 
 /// @nodoc
-abstract class _$$LoadedImplCopyWith<$Res> {
-  factory _$$LoadedImplCopyWith(
-    _$LoadedImpl value,
-    $Res Function(_$LoadedImpl) then,
-  ) = __$$LoadedImplCopyWithImpl<$Res>;
+abstract class _$$EpisodePlayerLoadedImplCopyWith<$Res> {
+  factory _$$EpisodePlayerLoadedImplCopyWith(
+    _$EpisodePlayerLoadedImpl value,
+    $Res Function(_$EpisodePlayerLoadedImpl) then,
+  ) = __$$EpisodePlayerLoadedImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({LearningJourney journey});
+  $Res call({
+    Episode episode,
+    int currentSegmentIndex,
+    int correctAnswers,
+    int questionsAnswered,
+    String reflectionMode,
+    String? reflectionContent,
+    bool isCompleting,
+    List<int> completedSegmentIndices,
+    Map<String, int> segmentPoints,
+  });
 
-  $LearningJourneyCopyWith<$Res> get journey;
+  $EpisodeCopyWith<$Res> get episode;
 }
 
 /// @nodoc
-class __$$LoadedImplCopyWithImpl<$Res>
-    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$LoadedImpl>
-    implements _$$LoadedImplCopyWith<$Res> {
-  __$$LoadedImplCopyWithImpl(
-    _$LoadedImpl _value,
-    $Res Function(_$LoadedImpl) _then,
+class __$$EpisodePlayerLoadedImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$EpisodePlayerLoadedImpl>
+    implements _$$EpisodePlayerLoadedImplCopyWith<$Res> {
+  __$$EpisodePlayerLoadedImplCopyWithImpl(
+    _$EpisodePlayerLoadedImpl _value,
+    $Res Function(_$EpisodePlayerLoadedImpl) _then,
   ) : super(_value, _then);
 
   /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? journey = null}) {
+  $Res call({
+    Object? episode = null,
+    Object? currentSegmentIndex = null,
+    Object? correctAnswers = null,
+    Object? questionsAnswered = null,
+    Object? reflectionMode = null,
+    Object? reflectionContent = freezed,
+    Object? isCompleting = null,
+    Object? completedSegmentIndices = null,
+    Object? segmentPoints = null,
+  }) {
     return _then(
-      _$LoadedImpl(
-        null == journey
-            ? _value.journey
-            : journey // ignore: cast_nullable_to_non_nullable
-                  as LearningJourney,
+      _$EpisodePlayerLoadedImpl(
+        episode: null == episode
+            ? _value.episode
+            : episode // ignore: cast_nullable_to_non_nullable
+                  as Episode,
+        currentSegmentIndex: null == currentSegmentIndex
+            ? _value.currentSegmentIndex
+            : currentSegmentIndex // ignore: cast_nullable_to_non_nullable
+                  as int,
+        correctAnswers: null == correctAnswers
+            ? _value.correctAnswers
+            : correctAnswers // ignore: cast_nullable_to_non_nullable
+                  as int,
+        questionsAnswered: null == questionsAnswered
+            ? _value.questionsAnswered
+            : questionsAnswered // ignore: cast_nullable_to_non_nullable
+                  as int,
+        reflectionMode: null == reflectionMode
+            ? _value.reflectionMode
+            : reflectionMode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        reflectionContent: freezed == reflectionContent
+            ? _value.reflectionContent
+            : reflectionContent // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isCompleting: null == isCompleting
+            ? _value.isCompleting
+            : isCompleting // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        completedSegmentIndices: null == completedSegmentIndices
+            ? _value._completedSegmentIndices
+            : completedSegmentIndices // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
+        segmentPoints: null == segmentPoints
+            ? _value._segmentPoints
+            : segmentPoints // ignore: cast_nullable_to_non_nullable
+                  as Map<String, int>,
       ),
     );
   }
@@ -1097,56 +1798,169 @@ class __$$LoadedImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $LearningJourneyCopyWith<$Res> get journey {
-    return $LearningJourneyCopyWith<$Res>(_value.journey, (value) {
-      return _then(_value.copyWith(journey: value));
+  $EpisodeCopyWith<$Res> get episode {
+    return $EpisodeCopyWith<$Res>(_value.episode, (value) {
+      return _then(_value.copyWith(episode: value));
     });
   }
 }
 
 /// @nodoc
 
-class _$LoadedImpl implements _Loaded {
-  const _$LoadedImpl(this.journey);
+class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
+  const _$EpisodePlayerLoadedImpl({
+    required this.episode,
+    this.currentSegmentIndex = 0,
+    this.correctAnswers = 0,
+    this.questionsAnswered = 0,
+    this.reflectionMode = 'private',
+    this.reflectionContent,
+    this.isCompleting = false,
+    final List<int> completedSegmentIndices = const [],
+    final Map<String, int> segmentPoints = const {},
+  }) : _completedSegmentIndices = completedSegmentIndices,
+       _segmentPoints = segmentPoints;
 
   @override
-  final LearningJourney journey;
+  final Episode episode;
+  @override
+  @JsonKey()
+  final int currentSegmentIndex;
+  @override
+  @JsonKey()
+  final int correctAnswers;
+  @override
+  @JsonKey()
+  final int questionsAnswered;
+  @override
+  @JsonKey()
+  final String reflectionMode;
+  @override
+  final String? reflectionContent;
+  @override
+  @JsonKey()
+  final bool isCompleting;
+
+  /// Backend-reported completed segment indices (0-4).
+  final List<int> _completedSegmentIndices;
+
+  /// Backend-reported completed segment indices (0-4).
+  @override
+  @JsonKey()
+  List<int> get completedSegmentIndices {
+    if (_completedSegmentIndices is EqualUnmodifiableListView)
+      return _completedSegmentIndices;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_completedSegmentIndices);
+  }
+
+  /// Points breakdown from backend episode content, e.g.
+  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'quest': 15}
+  final Map<String, int> _segmentPoints;
+
+  /// Points breakdown from backend episode content, e.g.
+  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'quest': 15}
+  @override
+  @JsonKey()
+  Map<String, int> get segmentPoints {
+    if (_segmentPoints is EqualUnmodifiableMapView) return _segmentPoints;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_segmentPoints);
+  }
 
   @override
   String toString() {
-    return 'EpisodePlayerState.loaded(journey: $journey)';
+    return 'EpisodePlayerState.loaded(episode: $episode, currentSegmentIndex: $currentSegmentIndex, correctAnswers: $correctAnswers, questionsAnswered: $questionsAnswered, reflectionMode: $reflectionMode, reflectionContent: $reflectionContent, isCompleting: $isCompleting, completedSegmentIndices: $completedSegmentIndices, segmentPoints: $segmentPoints)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$LoadedImpl &&
-            (identical(other.journey, journey) || other.journey == journey));
+            other is _$EpisodePlayerLoadedImpl &&
+            (identical(other.episode, episode) || other.episode == episode) &&
+            (identical(other.currentSegmentIndex, currentSegmentIndex) ||
+                other.currentSegmentIndex == currentSegmentIndex) &&
+            (identical(other.correctAnswers, correctAnswers) ||
+                other.correctAnswers == correctAnswers) &&
+            (identical(other.questionsAnswered, questionsAnswered) ||
+                other.questionsAnswered == questionsAnswered) &&
+            (identical(other.reflectionMode, reflectionMode) ||
+                other.reflectionMode == reflectionMode) &&
+            (identical(other.reflectionContent, reflectionContent) ||
+                other.reflectionContent == reflectionContent) &&
+            (identical(other.isCompleting, isCompleting) ||
+                other.isCompleting == isCompleting) &&
+            const DeepCollectionEquality().equals(
+              other._completedSegmentIndices,
+              _completedSegmentIndices,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._segmentPoints,
+              _segmentPoints,
+            ));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, journey);
+  int get hashCode => Object.hash(
+    runtimeType,
+    episode,
+    currentSegmentIndex,
+    correctAnswers,
+    questionsAnswered,
+    reflectionMode,
+    reflectionContent,
+    isCompleting,
+    const DeepCollectionEquality().hash(_completedSegmentIndices),
+    const DeepCollectionEquality().hash(_segmentPoints),
+  );
 
   /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$LoadedImplCopyWith<_$LoadedImpl> get copyWith =>
-      __$$LoadedImplCopyWithImpl<_$LoadedImpl>(this, _$identity);
+  _$$EpisodePlayerLoadedImplCopyWith<_$EpisodePlayerLoadedImpl> get copyWith =>
+      __$$EpisodePlayerLoadedImplCopyWithImpl<_$EpisodePlayerLoadedImpl>(
+        this,
+        _$identity,
+      );
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(LearningJourney journey) loaded,
-    required TResult Function() submitting,
-    required TResult Function(int pointsEarned) completed,
+    required TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )
+    loaded,
+    required TResult Function(
+      int pointsEarned,
+      Map<String, int> pointsBreakdown,
+    )
+    completed,
     required TResult Function(String message) error,
   }) {
-    return loaded(journey);
+    return loaded(
+      episode,
+      currentSegmentIndex,
+      correctAnswers,
+      questionsAnswered,
+      reflectionMode,
+      reflectionContent,
+      isCompleting,
+      completedSegmentIndices,
+      segmentPoints,
+    );
   }
 
   @override
@@ -1154,12 +1968,33 @@ class _$LoadedImpl implements _Loaded {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(LearningJourney journey)? loaded,
-    TResult? Function()? submitting,
-    TResult? Function(int pointsEarned)? completed,
+    TResult? Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult? Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult? Function(String message)? error,
   }) {
-    return loaded?.call(journey);
+    return loaded?.call(
+      episode,
+      currentSegmentIndex,
+      correctAnswers,
+      questionsAnswered,
+      reflectionMode,
+      reflectionContent,
+      isCompleting,
+      completedSegmentIndices,
+      segmentPoints,
+    );
   }
 
   @override
@@ -1167,14 +2002,35 @@ class _$LoadedImpl implements _Loaded {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(LearningJourney journey)? loaded,
-    TResult Function()? submitting,
-    TResult Function(int pointsEarned)? completed,
+    TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
     if (loaded != null) {
-      return loaded(journey);
+      return loaded(
+        episode,
+        currentSegmentIndex,
+        correctAnswers,
+        questionsAnswered,
+        reflectionMode,
+        reflectionContent,
+        isCompleting,
+        completedSegmentIndices,
+        segmentPoints,
+      );
     }
     return orElse();
   }
@@ -1184,8 +2040,7 @@ class _$LoadedImpl implements _Loaded {
   TResult map<TResult extends Object?>({
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
-    required TResult Function(_Loaded value) loaded,
-    required TResult Function(_Submitting value) submitting,
+    required TResult Function(_EpisodePlayerLoaded value) loaded,
     required TResult Function(_Completed value) completed,
     required TResult Function(_Error value) error,
   }) {
@@ -1197,8 +2052,7 @@ class _$LoadedImpl implements _Loaded {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
-    TResult? Function(_Loaded value)? loaded,
-    TResult? Function(_Submitting value)? submitting,
+    TResult? Function(_EpisodePlayerLoaded value)? loaded,
     TResult? Function(_Completed value)? completed,
     TResult? Function(_Error value)? error,
   }) {
@@ -1210,8 +2064,7 @@ class _$LoadedImpl implements _Loaded {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
-    TResult Function(_Loaded value)? loaded,
-    TResult Function(_Submitting value)? submitting,
+    TResult Function(_EpisodePlayerLoaded value)? loaded,
     TResult Function(_Completed value)? completed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
@@ -1223,147 +2076,39 @@ class _$LoadedImpl implements _Loaded {
   }
 }
 
-abstract class _Loaded implements EpisodePlayerState {
-  const factory _Loaded(final LearningJourney journey) = _$LoadedImpl;
+abstract class _EpisodePlayerLoaded implements EpisodePlayerState {
+  const factory _EpisodePlayerLoaded({
+    required final Episode episode,
+    final int currentSegmentIndex,
+    final int correctAnswers,
+    final int questionsAnswered,
+    final String reflectionMode,
+    final String? reflectionContent,
+    final bool isCompleting,
+    final List<int> completedSegmentIndices,
+    final Map<String, int> segmentPoints,
+  }) = _$EpisodePlayerLoadedImpl;
 
-  LearningJourney get journey;
+  Episode get episode;
+  int get currentSegmentIndex;
+  int get correctAnswers;
+  int get questionsAnswered;
+  String get reflectionMode;
+  String? get reflectionContent;
+  bool get isCompleting;
+
+  /// Backend-reported completed segment indices (0-4).
+  List<int> get completedSegmentIndices;
+
+  /// Points breakdown from backend episode content, e.g.
+  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'quest': 15}
+  Map<String, int> get segmentPoints;
 
   /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$LoadedImplCopyWith<_$LoadedImpl> get copyWith =>
+  _$$EpisodePlayerLoadedImplCopyWith<_$EpisodePlayerLoadedImpl> get copyWith =>
       throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class _$$SubmittingImplCopyWith<$Res> {
-  factory _$$SubmittingImplCopyWith(
-    _$SubmittingImpl value,
-    $Res Function(_$SubmittingImpl) then,
-  ) = __$$SubmittingImplCopyWithImpl<$Res>;
-}
-
-/// @nodoc
-class __$$SubmittingImplCopyWithImpl<$Res>
-    extends _$EpisodePlayerStateCopyWithImpl<$Res, _$SubmittingImpl>
-    implements _$$SubmittingImplCopyWith<$Res> {
-  __$$SubmittingImplCopyWithImpl(
-    _$SubmittingImpl _value,
-    $Res Function(_$SubmittingImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of EpisodePlayerState
-  /// with the given fields replaced by the non-null parameter values.
-}
-
-/// @nodoc
-
-class _$SubmittingImpl implements _Submitting {
-  const _$SubmittingImpl();
-
-  @override
-  String toString() {
-    return 'EpisodePlayerState.submitting()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$SubmittingImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initial,
-    required TResult Function() loading,
-    required TResult Function(LearningJourney journey) loaded,
-    required TResult Function() submitting,
-    required TResult Function(int pointsEarned) completed,
-    required TResult Function(String message) error,
-  }) {
-    return submitting();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initial,
-    TResult? Function()? loading,
-    TResult? Function(LearningJourney journey)? loaded,
-    TResult? Function()? submitting,
-    TResult? Function(int pointsEarned)? completed,
-    TResult? Function(String message)? error,
-  }) {
-    return submitting?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initial,
-    TResult Function()? loading,
-    TResult Function(LearningJourney journey)? loaded,
-    TResult Function()? submitting,
-    TResult Function(int pointsEarned)? completed,
-    TResult Function(String message)? error,
-    required TResult orElse(),
-  }) {
-    if (submitting != null) {
-      return submitting();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_Initial value) initial,
-    required TResult Function(_Loading value) loading,
-    required TResult Function(_Loaded value) loaded,
-    required TResult Function(_Submitting value) submitting,
-    required TResult Function(_Completed value) completed,
-    required TResult Function(_Error value) error,
-  }) {
-    return submitting(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_Initial value)? initial,
-    TResult? Function(_Loading value)? loading,
-    TResult? Function(_Loaded value)? loaded,
-    TResult? Function(_Submitting value)? submitting,
-    TResult? Function(_Completed value)? completed,
-    TResult? Function(_Error value)? error,
-  }) {
-    return submitting?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Initial value)? initial,
-    TResult Function(_Loading value)? loading,
-    TResult Function(_Loaded value)? loaded,
-    TResult Function(_Submitting value)? submitting,
-    TResult Function(_Completed value)? completed,
-    TResult Function(_Error value)? error,
-    required TResult orElse(),
-  }) {
-    if (submitting != null) {
-      return submitting(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class _Submitting implements EpisodePlayerState {
-  const factory _Submitting() = _$SubmittingImpl;
 }
 
 /// @nodoc
@@ -1373,7 +2118,7 @@ abstract class _$$CompletedImplCopyWith<$Res> {
     $Res Function(_$CompletedImpl) then,
   ) = __$$CompletedImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({int pointsEarned});
+  $Res call({int pointsEarned, Map<String, int> pointsBreakdown});
 }
 
 /// @nodoc
@@ -1389,13 +2134,17 @@ class __$$CompletedImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? pointsEarned = null}) {
+  $Res call({Object? pointsEarned = null, Object? pointsBreakdown = null}) {
     return _then(
       _$CompletedImpl(
         pointsEarned: null == pointsEarned
             ? _value.pointsEarned
             : pointsEarned // ignore: cast_nullable_to_non_nullable
                   as int,
+        pointsBreakdown: null == pointsBreakdown
+            ? _value._pointsBreakdown
+            : pointsBreakdown // ignore: cast_nullable_to_non_nullable
+                  as Map<String, int>,
       ),
     );
   }
@@ -1404,14 +2153,29 @@ class __$$CompletedImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$CompletedImpl implements _Completed {
-  const _$CompletedImpl({required this.pointsEarned});
+  const _$CompletedImpl({
+    required this.pointsEarned,
+    final Map<String, int> pointsBreakdown = const {},
+  }) : _pointsBreakdown = pointsBreakdown;
 
   @override
   final int pointsEarned;
 
+  /// Full breakdown map returned by backend (may be empty).
+  final Map<String, int> _pointsBreakdown;
+
+  /// Full breakdown map returned by backend (may be empty).
+  @override
+  @JsonKey()
+  Map<String, int> get pointsBreakdown {
+    if (_pointsBreakdown is EqualUnmodifiableMapView) return _pointsBreakdown;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_pointsBreakdown);
+  }
+
   @override
   String toString() {
-    return 'EpisodePlayerState.completed(pointsEarned: $pointsEarned)';
+    return 'EpisodePlayerState.completed(pointsEarned: $pointsEarned, pointsBreakdown: $pointsBreakdown)';
   }
 
   @override
@@ -1420,11 +2184,19 @@ class _$CompletedImpl implements _Completed {
         (other.runtimeType == runtimeType &&
             other is _$CompletedImpl &&
             (identical(other.pointsEarned, pointsEarned) ||
-                other.pointsEarned == pointsEarned));
+                other.pointsEarned == pointsEarned) &&
+            const DeepCollectionEquality().equals(
+              other._pointsBreakdown,
+              _pointsBreakdown,
+            ));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, pointsEarned);
+  int get hashCode => Object.hash(
+    runtimeType,
+    pointsEarned,
+    const DeepCollectionEquality().hash(_pointsBreakdown),
+  );
 
   /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
@@ -1439,12 +2211,26 @@ class _$CompletedImpl implements _Completed {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(LearningJourney journey) loaded,
-    required TResult Function() submitting,
-    required TResult Function(int pointsEarned) completed,
+    required TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )
+    loaded,
+    required TResult Function(
+      int pointsEarned,
+      Map<String, int> pointsBreakdown,
+    )
+    completed,
     required TResult Function(String message) error,
   }) {
-    return completed(pointsEarned);
+    return completed(pointsEarned, pointsBreakdown);
   }
 
   @override
@@ -1452,12 +2238,23 @@ class _$CompletedImpl implements _Completed {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(LearningJourney journey)? loaded,
-    TResult? Function()? submitting,
-    TResult? Function(int pointsEarned)? completed,
+    TResult? Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult? Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult? Function(String message)? error,
   }) {
-    return completed?.call(pointsEarned);
+    return completed?.call(pointsEarned, pointsBreakdown);
   }
 
   @override
@@ -1465,14 +2262,25 @@ class _$CompletedImpl implements _Completed {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(LearningJourney journey)? loaded,
-    TResult Function()? submitting,
-    TResult Function(int pointsEarned)? completed,
+    TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
     if (completed != null) {
-      return completed(pointsEarned);
+      return completed(pointsEarned, pointsBreakdown);
     }
     return orElse();
   }
@@ -1482,8 +2290,7 @@ class _$CompletedImpl implements _Completed {
   TResult map<TResult extends Object?>({
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
-    required TResult Function(_Loaded value) loaded,
-    required TResult Function(_Submitting value) submitting,
+    required TResult Function(_EpisodePlayerLoaded value) loaded,
     required TResult Function(_Completed value) completed,
     required TResult Function(_Error value) error,
   }) {
@@ -1495,8 +2302,7 @@ class _$CompletedImpl implements _Completed {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
-    TResult? Function(_Loaded value)? loaded,
-    TResult? Function(_Submitting value)? submitting,
+    TResult? Function(_EpisodePlayerLoaded value)? loaded,
     TResult? Function(_Completed value)? completed,
     TResult? Function(_Error value)? error,
   }) {
@@ -1508,8 +2314,7 @@ class _$CompletedImpl implements _Completed {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
-    TResult Function(_Loaded value)? loaded,
-    TResult Function(_Submitting value)? submitting,
+    TResult Function(_EpisodePlayerLoaded value)? loaded,
     TResult Function(_Completed value)? completed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
@@ -1522,9 +2327,15 @@ class _$CompletedImpl implements _Completed {
 }
 
 abstract class _Completed implements EpisodePlayerState {
-  const factory _Completed({required final int pointsEarned}) = _$CompletedImpl;
+  const factory _Completed({
+    required final int pointsEarned,
+    final Map<String, int> pointsBreakdown,
+  }) = _$CompletedImpl;
 
   int get pointsEarned;
+
+  /// Full breakdown map returned by backend (may be empty).
+  Map<String, int> get pointsBreakdown;
 
   /// Create a copy of EpisodePlayerState
   /// with the given fields replaced by the non-null parameter values.
@@ -1605,9 +2416,23 @@ class _$ErrorImpl implements _Error {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(LearningJourney journey) loaded,
-    required TResult Function() submitting,
-    required TResult Function(int pointsEarned) completed,
+    required TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )
+    loaded,
+    required TResult Function(
+      int pointsEarned,
+      Map<String, int> pointsBreakdown,
+    )
+    completed,
     required TResult Function(String message) error,
   }) {
     return error(message);
@@ -1618,9 +2443,20 @@ class _$ErrorImpl implements _Error {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(LearningJourney journey)? loaded,
-    TResult? Function()? submitting,
-    TResult? Function(int pointsEarned)? completed,
+    TResult? Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult? Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult? Function(String message)? error,
   }) {
     return error?.call(message);
@@ -1631,9 +2467,20 @@ class _$ErrorImpl implements _Error {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(LearningJourney journey)? loaded,
-    TResult Function()? submitting,
-    TResult Function(int pointsEarned)? completed,
+    TResult Function(
+      Episode episode,
+      int currentSegmentIndex,
+      int correctAnswers,
+      int questionsAnswered,
+      String reflectionMode,
+      String? reflectionContent,
+      bool isCompleting,
+      List<int> completedSegmentIndices,
+      Map<String, int> segmentPoints,
+    )?
+    loaded,
+    TResult Function(int pointsEarned, Map<String, int> pointsBreakdown)?
+    completed,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1648,8 +2495,7 @@ class _$ErrorImpl implements _Error {
   TResult map<TResult extends Object?>({
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
-    required TResult Function(_Loaded value) loaded,
-    required TResult Function(_Submitting value) submitting,
+    required TResult Function(_EpisodePlayerLoaded value) loaded,
     required TResult Function(_Completed value) completed,
     required TResult Function(_Error value) error,
   }) {
@@ -1661,8 +2507,7 @@ class _$ErrorImpl implements _Error {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
-    TResult? Function(_Loaded value)? loaded,
-    TResult? Function(_Submitting value)? submitting,
+    TResult? Function(_EpisodePlayerLoaded value)? loaded,
     TResult? Function(_Completed value)? completed,
     TResult? Function(_Error value)? error,
   }) {
@@ -1674,8 +2519,7 @@ class _$ErrorImpl implements _Error {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
-    TResult Function(_Loaded value)? loaded,
-    TResult Function(_Submitting value)? submitting,
+    TResult Function(_EpisodePlayerLoaded value)? loaded,
     TResult Function(_Completed value)? completed,
     TResult Function(_Error value)? error,
     required TResult orElse(),
