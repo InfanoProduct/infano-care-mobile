@@ -17,7 +17,7 @@ class ApiService {
 
   /// Override at build/run time:
   ///   flutter run --dart-define=API_URL=http://192.168.1.105:4000/api
-  static const _defaultBaseUrl = 'http://10.0.2.2:4000/api'; // emulator fallback
+  static const _defaultBaseUrl = 'http://109.199.120.104:8084/api'; // VPS fallback (was 10.0.2.2:4000)
   static const _baseUrl = String.fromEnvironment('API_URL', defaultValue: _defaultBaseUrl);
 
   static void init(LocalStorageService storage) {
