@@ -16,3 +16,9 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 flutter run --dart-define=API_URL=http://192.168.1.4:4000/api  
+
+
+flutter run --dart-define=API_URL=http://109.199.120.104:8084/api
+
+flutter run --dart-define=API_URL=http://192.168.1.102:4000/api
+
