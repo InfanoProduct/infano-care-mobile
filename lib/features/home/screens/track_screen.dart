@@ -208,7 +208,7 @@ class TrackScreen extends StatelessWidget {
           backgroundColor: Colors.transparent,
           builder: (sheetContext) => BlocProvider.value(
             value: BlocProvider.of<TrackerBloc>(context),
-            child: const DailyLogSheet(date: null ?? DateTime.now()), // Passing current date
+            child: DailyLogSheet(date: DateTime.now()), // Passing current date
           ),
         ),
         child: const Text('Log Your Day 🌸'),

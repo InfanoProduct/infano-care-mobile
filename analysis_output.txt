@@ -1,0 +1,109 @@
+Analyzing infano-care-mobile...                                 
+
+warning - Unused import: 'package:flutter/material.dart' - lib\core\router\app_router.dart:1:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:102:47 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:103:47 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:123:64 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:124:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:125:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:126:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:127:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:128:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:129:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:130:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:131:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:132:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:133:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:134:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:135:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:136:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:137:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:138:65 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:141:43 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:146:22 - unnecessary_underscores
+warning - The value of the field '_personalization' isn't used - lib\core\services\local_storage_service.dart:11:16 - unused_field
+warning - The value of the field '_avatar' isn't used - lib\core\services\local_storage_service.dart:12:16 - unused_field
+warning - The value of the field '_journeyName' isn't used - lib\core\services\local_storage_service.dart:13:16 - unused_field
+warning - The value of the field '_trackerSetup' isn't used - lib\core\services\local_storage_service.dart:14:16 - unused_field
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\account\screens\account_screen.dart:47:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\account\screens\account_screen.dart:78:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\account\screens\account_screen.dart:118:51 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\features\auth\screens\otp_verify_screen.dart:13:3 - prefer_const_constructors_in_immutables
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\features\auth\screens\phone_entry_screen.dart:10:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:infano_care_mobile/features/home/screens/learn_screen.dart' - lib\features\home\screens\dashboard_screen.dart:7:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\screens\dashboard_screen.dart:56:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\screens\dashboard_screen.dart:194:45 - deprecated_member_use
+warning - Unused import: 'package:infano_care_mobile/core/theme/app_theme.dart' - lib\features\home\screens\home_screen.dart:3:8 - unused_import
+   info - Missing type annotation - lib\features\home\screens\track_screen.dart:61:29 - strict_top_level_inference
+   info - Missing type annotation - lib\features\home\screens\track_screen.dart:61:38 - strict_top_level_inference
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\screens\track_screen.dart:66:85 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\screens\track_screen.dart:142:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\screens\track_screen.dart:188:129 - deprecated_member_use
+   info - Unnecessary use of '??' with 'null' - lib\features\home\screens\track_screen.dart:211:40 - unnecessary_null_in_if_null_operators
+   info - Use the null-aware marker '?' rather than a null check via an 'if' - lib\features\learning\repositories\learning_repository.dart:11:7 - use_null_aware_elements
+   info - Use the null-aware marker '?' rather than a null check via an 'if' - lib\features\learning\repositories\learning_repository.dart:49:9 - use_null_aware_elements
+   info - Unnecessary use of multiple underscores - lib\features\learning\screens\episode_player_screen.dart:109:26 - unnecessary_underscores
+   info - Unnecessary escape in string literal - lib\features\learning\screens\episode_player_screen.dart:770:107 - unnecessary_string_escapes
+   info - The local variable '_e' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:984:51 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_i' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:984:55 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_c' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:984:59 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_m' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:984:66 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_c2' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:984:70 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_cm' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:984:75 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_ci' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:984:80 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_sp' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:984:85 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_e' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:985:50 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_i' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:985:54 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_a' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:985:61 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_m' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:985:65 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_c2' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:985:69 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_cm' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:985:74 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_ci' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:985:79 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_sp' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:985:84 - no_leading_underscores_for_local_identifiers
+   info - Unnecessary use of multiple underscores - lib\features\learning\screens\episode_player_screen.dart:1167:29 - unnecessary_underscores
+warning - Unused import: '../models/learning_models.dart' - lib\features\learning\screens\journey_detail_screen.dart:4:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\features\learning\screens\journey_explorer_screen.dart:59:49 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\learning\screens\journey_explorer_screen.dart:59:53 - unnecessary_underscores
+   info - The private field _hairColor could be 'final' - lib\features\onboarding\screens\avatar_builder_screen.dart:24:7 - prefer_final_fields
+warning - The value of the field '_hairColors' isn't used - lib\features\onboarding\screens\avatar_builder_screen.dart:31:16 - unused_field
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\onboarding\screens\avatar_builder_screen.dart:84:19 - use_build_context_synchronously
+warning - Unused import: 'package:go_router/go_router.dart' - lib\features\onboarding\screens\consent_waiting_screen.dart:4:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\screens\cycle_details_screen.dart:124:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\screens\cycle_details_screen.dart:133:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\screens\cycle_details_screen.dart:135:35 - deprecated_member_use
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\features\onboarding\screens\goals_selection_screen.dart:104:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\screens\goals_selection_screen.dart:109:84 - deprecated_member_use
+warning - Unused import: 'package:infano_care_mobile/core/services/local_storage_service.dart' - lib\features\onboarding\screens\interest_topics_screen.dart:6:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\onboarding\screens\interest_topics_screen.dart:70:19 - use_build_context_synchronously
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\features\onboarding\screens\interest_topics_screen.dart:113:54 - deprecated_member_use
+warning - Unused import: 'package:infano_care_mobile/core/services/local_storage_service.dart' - lib\features\onboarding\screens\journey_name_screen.dart:6:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\onboarding\screens\journey_name_screen.dart:38:26 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\onboarding\screens\landing_screen.dart:50:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\onboarding\screens\landing_screen.dart:64:11 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\screens\landing_screen.dart:93:41 - deprecated_member_use
+warning - The value of the field '_loading' isn't used - lib\features\onboarding\screens\parental_consent_screen.dart:17:8 - unused_field
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\features\onboarding\screens\path_selector_screen.dart:89:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\screens\path_selector_screen.dart:99:68 - deprecated_member_use
+warning - The value of the field '_showPoints' isn't used - lib\features\onboarding\screens\period_comfort_screen.dart:19:8 - unused_field
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\features\onboarding\screens\period_comfort_screen.dart:69:54 - deprecated_member_use
+warning - Unused import: 'package:infano_care_mobile/core/theme/app_theme.dart' - lib\features\onboarding\screens\tracker_activated_screen.dart:4:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\screens\tracker_activated_screen.dart:60:65 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\screens\welcome_world_screen.dart:51:65 - deprecated_member_use
+   info - Use the null-aware marker '?' rather than a null check via an 'if' - lib\features\tracker\data\repositories\tracker_repository.dart:54:9 - use_null_aware_elements
+   info - Use the null-aware marker '?' rather than a null check via an 'if' - lib\features\tracker\data\repositories\tracker_repository.dart:55:9 - use_null_aware_elements
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\tracker\presentation\widgets\cycle_ring_painter.dart:53:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\tracker\presentation\widgets\cycle_ring_painter.dart:82:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\tracker\presentation\widgets\cycle_ring_painter.dart:108:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\tracker\presentation\widgets\cycle_ring_painter.dart:124:36 - deprecated_member_use
+   info - The private field _sleepQuality could be 'final' - lib\features\tracker\presentation\widgets\daily_log_sheet.dart:23:7 - prefer_final_fields
+   info - Unnecessary use of multiple underscores - lib\features\tracker\presentation\widgets\daily_log_sheet.dart:139:37 - unnecessary_underscores
+   info - Statements in an if should be enclosed in a block - lib\features\tracker\presentation\widgets\daily_log_sheet.dart:176:35 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\tracker\presentation\widgets\daily_log_sheet.dart:177:24 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\tracker\presentation\widgets\daily_log_sheet.dart:185:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\tracker\presentation\widgets\daily_log_sheet.dart:271:80 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\tracker\presentation\widgets\mood_wheel.dart:212:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\gradient_button.dart:34:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\points_burst.dart:47:39 - deprecated_member_use
+warning - Unused import: 'package:flutter/material.dart' - test\widget_test.dart:8:8 - unused_import
+warning - Unused import: 'package:infano_care_mobile/main.dart' - test\widget_test.dart:11:8 - unused_import
+

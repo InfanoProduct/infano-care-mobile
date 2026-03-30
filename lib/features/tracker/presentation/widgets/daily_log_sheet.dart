@@ -146,7 +146,7 @@ class _DailyLogSheetState extends State<DailyLogSheet> {
                   onSelected: (val) => setState(() => _flow = val ? option.toLowerCase() : null),
                   selectedColor: AppColors.purple,
                   labelStyle: TextStyle(color: isSelected ? Colors.white : AppColors.textMedium, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
-                  shape: StadiumBorder(borderSide: BorderSide(color: isSelected ? AppColors.purple : Colors.grey[200]!)),
+                  shape: StadiumBorder(side: BorderSide(color: isSelected ? AppColors.purple : Colors.grey[200]!)),
                   backgroundColor: Colors.white,
                   showCheckmark: false,
                 );
