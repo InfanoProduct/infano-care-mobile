@@ -31,6 +31,7 @@ class OnboardingState extends Equatable {
   final bool isLoading;
   final String? errorMessage;
   final bool sessionExpired;
+  final bool isIrregular;
 
   const OnboardingState({
     this.userType           = 'teen',
@@ -58,6 +59,7 @@ class OnboardingState extends Equatable {
     this.isLoading          = false,
     this.errorMessage,
     this.sessionExpired     = false,
+    this.isIrregular        = false,
   });
 
   OnboardingState copyWith({
@@ -69,6 +71,7 @@ class OnboardingState extends Equatable {
     Map<String, dynamic>? avatarData, String? journeyName,
     int? totalPoints, DateTime? lastPeriod, int? periodLength, int? cycleLength,
     bool? isLoading, String? errorMessage, bool? sessionExpired,
+    bool? isIrregular,
   }) {
     return OnboardingState(
       userType:           userType          ?? this.userType,
@@ -96,6 +99,7 @@ class OnboardingState extends Equatable {
       isLoading:          isLoading         ?? this.isLoading,
       errorMessage:       errorMessage,
       sessionExpired:     sessionExpired    ?? this.sessionExpired,
+      isIrregular:        isIrregular       ?? this.isIrregular,
     );
   }
 
@@ -129,6 +133,7 @@ class SetAvatar            extends OnboardingEvent { final Map<String, dynamic> 
 class SetJourneyName       extends OnboardingEvent { final String name; const SetJourneyName(this.name); @override List<Object?> get props => [name]; }
 class SetTrackerDetails    extends OnboardingEvent { final int periodDays; final int cycleDays; final DateTime? lastPeriod; const SetTrackerDetails(this.periodDays, this.cycleDays, this.lastPeriod); @override List<Object?> get props => [periodDays, cycleDays, lastPeriod]; }
 class AddPoints            extends OnboardingEvent { final int points; const AddPoints(this.points); @override List<Object?> get props => [points]; }
+class SetRegularity         extends OnboardingEvent { final bool isIrregular; const SetRegularity(this.isIrregular); @override List<Object?> get props => [isIrregular]; }
 class SubmitProfile        extends OnboardingEvent { const SubmitProfile(); }
 class SubmitPersonalization extends OnboardingEvent { const SubmitPersonalization(); }
 class SubmitAvatar          extends OnboardingEvent { const SubmitAvatar(); }
@@ -162,6 +167,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<SubmitJourneyName>(_onSubmitJourneyName);
     on<SubmitTrackerSetup>(_onSubmitTrackerSetup);
     on<SyncFromStorage>(_onSyncFromStorage);
+    on<SetRegularity>(_onSetRegularity);
   }
 
   void _onSetUserType(SetUserType e, Emitter<OnboardingState> emit) {
@@ -236,6 +242,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     _storage.setStageComplete('12');
     _repo.updateStage(12);
     emit(state.copyWith(periodLength: e.periodDays, cycleLength: e.cycleDays, lastPeriod: e.lastPeriod));
+  }
+  
+  void _onSetRegularity(SetRegularity e, Emitter<OnboardingState> emit) {
+    emit(state.copyWith(isIrregular: e.isIrregular));
   }
   
   void _onAddPoints(AddPoints e, Emitter<OnboardingState> emit) {
@@ -320,13 +330,21 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   Future<void> _onSubmitTrackerSetup(SubmitTrackerSetup e, Emitter<OnboardingState> emit) async {
     emit(state.copyWith(isLoading: true));
     try {
+      String trackerMode = 'active';
+      if (state.periodStatus == 'waiting' || state.periodStatus == 'unsure') {
+        trackerMode = 'watching_waiting';
+      } else if (state.isIrregular) {
+        trackerMode = 'irregular_support';
+      }
+
       await _repo.trackerSetup(
         lastPeriodStart:  state.lastPeriod?.toIso8601String(),
         periodLengthDays: state.periodLength,
         cycleLengthDays:  state.cycleLength,
+        trackerMode:      trackerMode,
       );
       await _repo.completeOnboarding();
-      await _storage.setStageComplete('13');
+      await _storage.setIsOnboarded(true);
       _repo.updateStage(13);
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {

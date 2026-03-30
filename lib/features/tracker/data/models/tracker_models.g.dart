@@ -99,10 +99,16 @@ _$PredictionResultModelImpl _$$PredictionResultModelImplFromJson(
   predictedStart: DateTime.parse(json['predictedStart'] as String),
   windowEarly: DateTime.parse(json['windowEarly'] as String),
   windowLate: DateTime.parse(json['windowLate'] as String),
+  ovulationDate: DateTime.parse(json['ovulationDate'] as String),
+  fertilityStart: DateTime.parse(json['fertilityStart'] as String),
+  fertilityEnd: DateTime.parse(json['fertilityEnd'] as String),
   confidenceLevel: json['confidenceLevel'] as String,
   daysUntilPrediction: (json['daysUntilPrediction'] as num).toInt(),
   currentPhase: json['currentPhase'] as String,
   cycleDay: (json['cycleDay'] as num).toInt(),
+  insights:
+      (json['insights'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$PredictionResultModelImplToJson(
@@ -111,8 +117,12 @@ Map<String, dynamic> _$$PredictionResultModelImplToJson(
   'predictedStart': instance.predictedStart.toIso8601String(),
   'windowEarly': instance.windowEarly.toIso8601String(),
   'windowLate': instance.windowLate.toIso8601String(),
+  'ovulationDate': instance.ovulationDate.toIso8601String(),
+  'fertilityStart': instance.fertilityStart.toIso8601String(),
+  'fertilityEnd': instance.fertilityEnd.toIso8601String(),
   'confidenceLevel': instance.confidenceLevel,
   'daysUntilPrediction': instance.daysUntilPrediction,
   'currentPhase': instance.currentPhase,
   'cycleDay': instance.cycleDay,
+  'insights': instance.insights,
 };

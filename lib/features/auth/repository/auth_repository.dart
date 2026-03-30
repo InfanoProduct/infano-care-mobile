@@ -9,6 +9,7 @@ class OtpVerifyResult {
   final bool isNewUser;
   final int onboardingStage;
   final String accountStatus;
+  final bool isOnboardingCompleted;
 
   OtpVerifyResult({
     required this.accessToken,
@@ -16,6 +17,7 @@ class OtpVerifyResult {
     required this.isNewUser,
     required this.onboardingStage,
     required this.accountStatus,
+    required this.isOnboardingCompleted,
   });
 }
 
@@ -48,12 +50,14 @@ class AuthRepository {
         isNewUser:       data['isNewUser']       as bool,
         onboardingStage: data['onboardingStage'] as int,
         accountStatus:   data['accountStatus']   as String,
+        isOnboardingCompleted: data['isOnboardingCompleted'] as bool,
       );
       // Persist tokens and stage immediately
       await _storage.setAuthToken(result.accessToken);
       await _storage.setRefreshToken(result.refreshToken);
       await _storage.setPhone(phone);
       await _storage.setStageComplete(result.onboardingStage.toString());
+      await _storage.setIsOnboarded(result.isOnboardingCompleted);
       
       // Clear legacy tempToken if present
       await _storage.clearTempToken();

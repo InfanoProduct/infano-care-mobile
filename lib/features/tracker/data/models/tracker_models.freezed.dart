@@ -912,10 +912,14 @@ mixin _$PredictionResultModel {
   DateTime get predictedStart => throw _privateConstructorUsedError;
   DateTime get windowEarly => throw _privateConstructorUsedError;
   DateTime get windowLate => throw _privateConstructorUsedError;
+  DateTime get ovulationDate => throw _privateConstructorUsedError;
+  DateTime get fertilityStart => throw _privateConstructorUsedError;
+  DateTime get fertilityEnd => throw _privateConstructorUsedError;
   String get confidenceLevel => throw _privateConstructorUsedError;
   int get daysUntilPrediction => throw _privateConstructorUsedError;
   String get currentPhase => throw _privateConstructorUsedError;
   int get cycleDay => throw _privateConstructorUsedError;
+  List<String> get insights => throw _privateConstructorUsedError;
 
   /// Serializes this PredictionResultModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -938,10 +942,14 @@ abstract class $PredictionResultModelCopyWith<$Res> {
     DateTime predictedStart,
     DateTime windowEarly,
     DateTime windowLate,
+    DateTime ovulationDate,
+    DateTime fertilityStart,
+    DateTime fertilityEnd,
     String confidenceLevel,
     int daysUntilPrediction,
     String currentPhase,
     int cycleDay,
+    List<String> insights,
   });
 }
 
@@ -966,10 +974,14 @@ class _$PredictionResultModelCopyWithImpl<
     Object? predictedStart = null,
     Object? windowEarly = null,
     Object? windowLate = null,
+    Object? ovulationDate = null,
+    Object? fertilityStart = null,
+    Object? fertilityEnd = null,
     Object? confidenceLevel = null,
     Object? daysUntilPrediction = null,
     Object? currentPhase = null,
     Object? cycleDay = null,
+    Object? insights = null,
   }) {
     return _then(
       _value.copyWith(
@@ -984,6 +996,18 @@ class _$PredictionResultModelCopyWithImpl<
             windowLate: null == windowLate
                 ? _value.windowLate
                 : windowLate // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            ovulationDate: null == ovulationDate
+                ? _value.ovulationDate
+                : ovulationDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            fertilityStart: null == fertilityStart
+                ? _value.fertilityStart
+                : fertilityStart // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            fertilityEnd: null == fertilityEnd
+                ? _value.fertilityEnd
+                : fertilityEnd // ignore: cast_nullable_to_non_nullable
                       as DateTime,
             confidenceLevel: null == confidenceLevel
                 ? _value.confidenceLevel
@@ -1001,6 +1025,10 @@ class _$PredictionResultModelCopyWithImpl<
                 ? _value.cycleDay
                 : cycleDay // ignore: cast_nullable_to_non_nullable
                       as int,
+            insights: null == insights
+                ? _value.insights
+                : insights // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -1020,10 +1048,14 @@ abstract class _$$PredictionResultModelImplCopyWith<$Res>
     DateTime predictedStart,
     DateTime windowEarly,
     DateTime windowLate,
+    DateTime ovulationDate,
+    DateTime fertilityStart,
+    DateTime fertilityEnd,
     String confidenceLevel,
     int daysUntilPrediction,
     String currentPhase,
     int cycleDay,
+    List<String> insights,
   });
 }
 
@@ -1045,10 +1077,14 @@ class __$$PredictionResultModelImplCopyWithImpl<$Res>
     Object? predictedStart = null,
     Object? windowEarly = null,
     Object? windowLate = null,
+    Object? ovulationDate = null,
+    Object? fertilityStart = null,
+    Object? fertilityEnd = null,
     Object? confidenceLevel = null,
     Object? daysUntilPrediction = null,
     Object? currentPhase = null,
     Object? cycleDay = null,
+    Object? insights = null,
   }) {
     return _then(
       _$PredictionResultModelImpl(
@@ -1063,6 +1099,18 @@ class __$$PredictionResultModelImplCopyWithImpl<$Res>
         windowLate: null == windowLate
             ? _value.windowLate
             : windowLate // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        ovulationDate: null == ovulationDate
+            ? _value.ovulationDate
+            : ovulationDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        fertilityStart: null == fertilityStart
+            ? _value.fertilityStart
+            : fertilityStart // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        fertilityEnd: null == fertilityEnd
+            ? _value.fertilityEnd
+            : fertilityEnd // ignore: cast_nullable_to_non_nullable
                   as DateTime,
         confidenceLevel: null == confidenceLevel
             ? _value.confidenceLevel
@@ -1080,6 +1128,10 @@ class __$$PredictionResultModelImplCopyWithImpl<$Res>
             ? _value.cycleDay
             : cycleDay // ignore: cast_nullable_to_non_nullable
                   as int,
+        insights: null == insights
+            ? _value._insights
+            : insights // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -1092,11 +1144,15 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
     required this.predictedStart,
     required this.windowEarly,
     required this.windowLate,
+    required this.ovulationDate,
+    required this.fertilityStart,
+    required this.fertilityEnd,
     required this.confidenceLevel,
     required this.daysUntilPrediction,
     required this.currentPhase,
     required this.cycleDay,
-  });
+    final List<String> insights = const [],
+  }) : _insights = insights;
 
   factory _$PredictionResultModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$PredictionResultModelImplFromJson(json);
@@ -1108,6 +1164,12 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
   @override
   final DateTime windowLate;
   @override
+  final DateTime ovulationDate;
+  @override
+  final DateTime fertilityStart;
+  @override
+  final DateTime fertilityEnd;
+  @override
   final String confidenceLevel;
   @override
   final int daysUntilPrediction;
@@ -1115,10 +1177,18 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
   final String currentPhase;
   @override
   final int cycleDay;
+  final List<String> _insights;
+  @override
+  @JsonKey()
+  List<String> get insights {
+    if (_insights is EqualUnmodifiableListView) return _insights;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_insights);
+  }
 
   @override
   String toString() {
-    return 'PredictionResultModel(predictedStart: $predictedStart, windowEarly: $windowEarly, windowLate: $windowLate, confidenceLevel: $confidenceLevel, daysUntilPrediction: $daysUntilPrediction, currentPhase: $currentPhase, cycleDay: $cycleDay)';
+    return 'PredictionResultModel(predictedStart: $predictedStart, windowEarly: $windowEarly, windowLate: $windowLate, ovulationDate: $ovulationDate, fertilityStart: $fertilityStart, fertilityEnd: $fertilityEnd, confidenceLevel: $confidenceLevel, daysUntilPrediction: $daysUntilPrediction, currentPhase: $currentPhase, cycleDay: $cycleDay, insights: $insights)';
   }
 
   @override
@@ -1132,6 +1202,12 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
                 other.windowEarly == windowEarly) &&
             (identical(other.windowLate, windowLate) ||
                 other.windowLate == windowLate) &&
+            (identical(other.ovulationDate, ovulationDate) ||
+                other.ovulationDate == ovulationDate) &&
+            (identical(other.fertilityStart, fertilityStart) ||
+                other.fertilityStart == fertilityStart) &&
+            (identical(other.fertilityEnd, fertilityEnd) ||
+                other.fertilityEnd == fertilityEnd) &&
             (identical(other.confidenceLevel, confidenceLevel) ||
                 other.confidenceLevel == confidenceLevel) &&
             (identical(other.daysUntilPrediction, daysUntilPrediction) ||
@@ -1139,7 +1215,8 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
             (identical(other.currentPhase, currentPhase) ||
                 other.currentPhase == currentPhase) &&
             (identical(other.cycleDay, cycleDay) ||
-                other.cycleDay == cycleDay));
+                other.cycleDay == cycleDay) &&
+            const DeepCollectionEquality().equals(other._insights, _insights));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1149,10 +1226,14 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
     predictedStart,
     windowEarly,
     windowLate,
+    ovulationDate,
+    fertilityStart,
+    fertilityEnd,
     confidenceLevel,
     daysUntilPrediction,
     currentPhase,
     cycleDay,
+    const DeepCollectionEquality().hash(_insights),
   );
 
   /// Create a copy of PredictionResultModel
@@ -1178,10 +1259,14 @@ abstract class _PredictionResultModel implements PredictionResultModel {
     required final DateTime predictedStart,
     required final DateTime windowEarly,
     required final DateTime windowLate,
+    required final DateTime ovulationDate,
+    required final DateTime fertilityStart,
+    required final DateTime fertilityEnd,
     required final String confidenceLevel,
     required final int daysUntilPrediction,
     required final String currentPhase,
     required final int cycleDay,
+    final List<String> insights,
   }) = _$PredictionResultModelImpl;
 
   factory _PredictionResultModel.fromJson(Map<String, dynamic> json) =
@@ -1194,6 +1279,12 @@ abstract class _PredictionResultModel implements PredictionResultModel {
   @override
   DateTime get windowLate;
   @override
+  DateTime get ovulationDate;
+  @override
+  DateTime get fertilityStart;
+  @override
+  DateTime get fertilityEnd;
+  @override
   String get confidenceLevel;
   @override
   int get daysUntilPrediction;
@@ -1201,6 +1292,8 @@ abstract class _PredictionResultModel implements PredictionResultModel {
   String get currentPhase;
   @override
   int get cycleDay;
+  @override
+  List<String> get insights;
 
   /// Create a copy of PredictionResultModel
   /// with the given fields replaced by the non-null parameter values.

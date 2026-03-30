@@ -68,7 +68,7 @@ GoRouter createRouter(LocalStorageService storage) {
         return null;
       }
 
-      if (stage != '13') {
+      if (!storage.isOnboarded) {
         // Enforce onboarding flow
         final routes = {
           '0':  '/onboarding/path',

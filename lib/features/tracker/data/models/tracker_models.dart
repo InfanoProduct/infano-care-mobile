@@ -53,10 +53,14 @@ class PredictionResultModel with _$PredictionResultModel {
     required DateTime predictedStart,
     required DateTime windowEarly,
     required DateTime windowLate,
+    required DateTime ovulationDate,
+    required DateTime fertilityStart,
+    required DateTime fertilityEnd,
     required String confidenceLevel,
     required int daysUntilPrediction,
     required String currentPhase,
     required int cycleDay,
+    @Default([]) List<String> insights,
   }) = _PredictionResultModel;
 
   factory PredictionResultModel.fromJson(Map<String, dynamic> json) =>

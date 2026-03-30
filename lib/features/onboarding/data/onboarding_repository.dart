@@ -82,6 +82,7 @@ class OnboardingRepository {
     String? lastPeriodEnd,
     required int periodLengthDays,
     required int cycleLengthDays,
+    required String trackerMode,
     bool periodLengthEstimated = false,
     bool cycleLengthEstimated  = false,
   }) async {
@@ -90,6 +91,7 @@ class OnboardingRepository {
       'lastPeriodEnd':         lastPeriodEnd,
       'periodLengthDays':      periodLengthDays,
       'cycleLengthDays':       cycleLengthDays,
+      'trackerMode':           trackerMode,
       'periodLengthEstimated': periodLengthEstimated,
       'cycleLengthEstimated':  cycleLengthEstimated,
     });

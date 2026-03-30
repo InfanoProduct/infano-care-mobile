@@ -20,6 +20,7 @@ class TrackerState with _$TrackerState {
     required CycleProfileModel profile,
     PredictionResultModel? prediction,
     @Default([]) List<CycleLogModel> recentLogs,
+    String? milestone,
   }) = _Loaded;
   const factory TrackerState.error(String message) = _Error;
 }
@@ -55,8 +56,19 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
       if (currentState is! _Loaded) return;
 
       try {
-        await _repository.logDaily(event.data);
-        add(const TrackerEvent.load()); // Refresh prediction and logs
+        final result = await _repository.logDaily(event.data);
+        final profile = await _repository.getProfile();
+        final prediction = await _repository.getPrediction();
+        final logs = await _repository.getLogs();
+
+        if (profile != null) {
+          emit(TrackerState.loaded(
+            profile: profile,
+            prediction: prediction,
+            recentLogs: logs,
+            milestone: result['milestone'], // Pass milestone to UI
+          ));
+        }
       } catch (e) {
         // Handle error toast in UI
       }
