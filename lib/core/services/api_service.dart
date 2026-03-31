@@ -28,16 +28,15 @@ class ApiService {
     ));
 
     // ── Request/Response logger (shows in flutter run console) ───────────────
-    if (kDebugMode) {
-      _dio.interceptors.add(LogInterceptor(
-        requestHeader: false,
-        requestBody: true,
-        responseBody: true,
-        responseHeader: false,
-        error: true,
-        logPrint: (o) => debugPrint('[API] $o'),
-      ));
-    }
+    // ── Request/Response logger (shows even in release/APK) ────────────────
+    _dio.interceptors.add(LogInterceptor(
+      requestHeader: false,
+      requestBody: true,
+      responseBody: true,
+      responseHeader: false,
+      error: true,
+      logPrint: (o) => debugPrint('[API] $o'),
+    ));
 
     // ── JWT interceptor ───────────────────────────────────────────────────────
     _dio.interceptors.add(InterceptorsWrapper(
@@ -89,13 +88,12 @@ class ApiService {
     ));
 
     // ── Startup connectivity ping ──────────────────────────────────────────────
-    if (kDebugMode) {
-      Dio().get('${_baseUrl.replaceAll('/api', '')}/health').then((r) {
-        debugPrint('[API] ✅ Backend reachable: ${r.data}');
-      }).catchError((e) {
-        debugPrint('[API] ❌ Backend NOT reachable at $_baseUrl — $e');
-      });
-    }
+    // ── Startup connectivity ping ──────────────────────────────────────────
+    Dio().get('${_baseUrl.replaceAll('/api', '')}/health').then((r) {
+      debugPrint('[API] ✅ Backend reachable: ${r.data}');
+    }).catchError((e) {
+      debugPrint('[API] ❌ Backend NOT reachable at $_baseUrl — $e');
+    });
   }
 
   Dio get dio => _dio;
