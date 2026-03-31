@@ -22,6 +22,8 @@ class CycleRingPainter extends CustomPainter {
   final double fertileEnd;
   final String confidenceLevel; // 'none', 'low', 'medium', 'high'
   final bool isIrregular;
+  final double currentProgress;
+  final double dotPulseScale;
 
   CycleRingPainter({
     required this.phases,

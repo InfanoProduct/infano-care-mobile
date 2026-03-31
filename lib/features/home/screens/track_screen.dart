@@ -12,7 +12,10 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:infano_care_mobile/core/services/privacy_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
 
 class TrackScreen extends StatelessWidget {
@@ -21,7 +24,13 @@ class TrackScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TrackerBloc(TrackerRepository(ApiService.instance.dio))..add(const TrackerEvent.load()),
+      create: (context) => TrackerBloc(
+        TrackerRepository(
+          ApiService.instance.dio,
+          PrivacyService(const FlutterSecureStorage()),
+        ),
+      )..add(const TrackerEvent.load()),
+
       child: DefaultTabController(
         length: 3,
         child: Scaffold(
