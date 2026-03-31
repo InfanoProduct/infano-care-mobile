@@ -195,10 +195,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     int age = now.year - e.year;
     if (now.month < e.month) age--;
     final tier = age < 13 ? 'JUNIOR' : age < 16 ? 'TEEN_EARLY' : age < 18 ? 'TEEN_LATE' : 'ADULT';
-    emit(state.copyWith(birthMonth: e.month, birthYear: e.year, age: age, contentTier: tier, coppaRequired: age < 13));
+    final isUnder13 = age < 13;
+    emit(state.copyWith(birthMonth: e.month, birthYear: e.year, age: age, contentTier: tier, coppaRequired: isUnder13));
     _storage.setBirthDate(e.month, e.year);
-    _storage.setStageComplete('3');
-    _repo.updateStage(3);
+    
+    final nextStage = isUnder13 ? '3' : '4';
+    _storage.setStageComplete(nextStage);
+    _repo.updateStage(int.parse(nextStage));
   }
 
   void _onSetConsent(SetConsent e, Emitter<OnboardingState> emit) {

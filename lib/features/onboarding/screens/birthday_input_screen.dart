@@ -41,11 +41,12 @@ class _BirthdayInputScreenState extends State<BirthdayInputScreen> {
     if (mounted) {
       context.read<OnboardingBloc>().add(SetBirthDate(_selectedMonth + 1, _selectedYear));
       
-    if (mounted) {
-      context.read<OnboardingBloc>().add(SetBirthDate(_selectedMonth + 1, _selectedYear));
-      await storage.setStageComplete('1');
-      if (mounted) context.go('/onboarding/goals');
-    }
+      // Immediate navigation check based on age
+      if (age < 13) {
+        context.go('/onboarding/consent/send');
+      } else {
+        context.go('/onboarding/goals');
+      }
     }
   }
 
