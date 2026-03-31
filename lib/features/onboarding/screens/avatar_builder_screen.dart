@@ -57,7 +57,8 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 8,
+      currentStep: 9,
+      totalSteps: 13,
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [

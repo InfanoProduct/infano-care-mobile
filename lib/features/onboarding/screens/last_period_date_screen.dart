@@ -21,7 +21,8 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 11,
+      currentStep: 12,
+      totalSteps: 13,
       bottomBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -37,7 +38,12 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
           ),
           const SizedBox(height: 10),
           TextButton(
-            onPressed: () => context.go('/home'),
+            onPressed: () async {
+              final bloc = context.read<OnboardingBloc>();
+              bloc.add(const SkipTracker());
+              await bloc.stream.firstWhere((state) => !state.isLoading);
+              if (mounted) context.go('/home');
+            },
             child: const Text("I'll do this later", style: TextStyle(color: AppColors.textLight)),
           ),
         ],

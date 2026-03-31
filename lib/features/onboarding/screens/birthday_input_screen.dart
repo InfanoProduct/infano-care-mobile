@@ -69,6 +69,7 @@ class _BirthdayInputScreenState extends State<BirthdayInputScreen> {
 
     return OnboardingScaffold(
       currentStep: 3,
+      totalSteps: 13,
       bottomBar: GradientButton(label: 'Continue', onPressed: _proceed, enabled: _age >= 6),
       body: SingleChildScrollView(
         child: Padding(

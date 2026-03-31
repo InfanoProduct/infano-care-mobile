@@ -42,7 +42,7 @@ GoRouter createRouter(LocalStorageService storage) {
     redirect: (context, state) {
       final token = storage.authToken;
       final tempToken = storage.tempToken;
-      final stage = storage.stageComplete;
+      final step = storage.stepComplete;
       final path = state.uri.path;
 
       final onAuth = path.startsWith('/auth') || path == '/splash';
@@ -85,15 +85,16 @@ GoRouter createRouter(LocalStorageService storage) {
           '11': '/onboarding/tracker/date',
           '12': '/onboarding/tracker/details',
         };
-        final target = routes[stage ?? '0'] ?? '/onboarding/path';
+        final target = routes[step ?? '0'] ?? '/onboarding/path';
         
         if (path != target && !path.contains('tracker') && path != '/onboarding/welcome') {
           if (!onOnboarding) return target;
           if (path == '/home' || path == '/account') return target;
         }
       } else {
-        // Stage 13 (Complete) - Send to home if on auth/onboarding
-        if (onAuth || onOnboarding) return '/home';
+        // Step 13 (Complete) - Send to home if on auth/onboarding
+        // Allow tracker setup screens even if already onboarded
+        if (onAuth || (onOnboarding && !path.contains('tracker'))) return '/home';
       }
 
       return null;

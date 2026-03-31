@@ -57,18 +57,18 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
       if (!mounted) return;
 
       // Resumption Logic:
-      // Stage 0-1: Needs registration
-      // Stage 2-4: Needs login to get tokens, then resume
-      // Stage 5: Needs login, then Home
+      // Step 0-1: Needs registration
+      // Step 2-4: Needs login to get tokens, then resume
+      // Step 5: Needs login, then Home
       
-      if (result.onboardingStage == 0) {
+      if (result.onboardingStep == 0) {
         // Brand new user: Start at path selection
         final bloc = context.read<OnboardingBloc>();
         bloc.add(SetPhone(widget.phone));
         if (mounted) context.go('/onboarding/path');
       } else {
         // Returning or partially onboarded user:
-        // Go to home; router will redirect to correct onboarding stage based on result.onboardingStage
+        // Go to home; router will redirect to correct onboarding step based on result.onboardingStep
         if (mounted) context.go('/home');
       }
     } catch (e) {

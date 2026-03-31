@@ -98,9 +98,9 @@ class OnboardingRepository {
     return Map<String, dynamic>.from(res.data);
   }
 
-  Future<void> updateStage(int stage) async {
+  Future<void> updateStep(int step) async {
     try {
-      await _api.dio.patch('/user/onboarding-stage', data: {'stage': stage});
+      await _api.dio.patch('/user/onboarding-step', data: {'step': step});
     } catch (_) {
       // Ignore errors for now; mostly needed for compilation
     }

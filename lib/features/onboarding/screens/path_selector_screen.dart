@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
+import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 
 class PathSelectorScreen extends StatefulWidget {
   const PathSelectorScreen({super.key});
@@ -18,7 +19,7 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
     setState(() => _selected = index);
     final storage = await LocalStorageService.create();
     await storage.setUserType(index == 0 ? 'teen' : 'parent');
-    await storage.setStageComplete('0.5');
+    await storage.setStepComplete('0.5');
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     if (index == 0) {
@@ -31,42 +32,42 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 60),
-              Text('Who are you?',
-                style: Theme.of(context).textTheme.headlineLarge),
-              const SizedBox(height: 8),
-              Text('Choose the right path for you 💜',
-                style: Theme.of(context).textTheme.bodyLarge),
-              const SizedBox(height: 40),
-              ...[
-                _PathCard(
-                  emoji: '🌸',
-                  title: "I'm a Girl or Young Woman",
-                  subtitle: 'Ages 10–24',
-                  selected: _selected == 0,
-                  onTap: () => _select(0),
-                ),
-                const SizedBox(height: 16),
-                _PathCard(
-                  emoji: '👨‍👧',
-                  title: "I'm a Parent or Guardian",
-                  subtitle: 'Set up for my daughter',
-                  selected: _selected == 1,
-                  onTap: () => _select(1),
-                ),
-              ].asMap().entries.map((e) =>
-                e.value.animate(delay: Duration(milliseconds: 200 + e.key * 150))
-                  .fadeIn(duration: 300.ms).slideY(begin: 0.1, duration: 300.ms)),
-            ],
-          ),
+    return OnboardingScaffold(
+      currentStep: 1,
+      totalSteps: 13,
+      onBack: () => context.go('/splash'),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 32),
+            Text('Who are you?',
+              style: Theme.of(context).textTheme.headlineLarge),
+            const SizedBox(height: 8),
+            const Text('Choose the right path for you 💜',
+              style: TextStyle(color: AppColors.textLight, fontSize: 16)),
+            const SizedBox(height: 40),
+            ...[
+              _PathCard(
+                emoji: '🌸',
+                title: "I'm a Girl or Young Woman",
+                subtitle: 'Ages 10–24',
+                selected: _selected == 0,
+                onTap: () => _select(0),
+              ),
+              const SizedBox(height: 16),
+              _PathCard(
+                emoji: '👨‍👧',
+                title: "I'm a Parent or Guardian",
+                subtitle: 'Set up for my daughter',
+                selected: _selected == 1,
+                onTap: () => _select(1),
+              ),
+            ].asMap().entries.map((e) =>
+              e.value.animate(delay: Duration(milliseconds: 200 + e.key * 150))
+                .fadeIn(duration: 300.ms).slideY(begin: 0.1, duration: 300.ms)),
+          ],
         ),
       ),
     );

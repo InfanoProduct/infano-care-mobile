@@ -22,6 +22,7 @@ class TrackerState with _$TrackerState {
     @Default([]) List<CycleLogModel> recentLogs,
     String? milestone,
   }) = _Loaded;
+  const factory TrackerState.notStarted() = _NotStarted;
   const factory TrackerState.error(String message) = _Error;
 }
 
@@ -34,7 +35,7 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
       try {
         final profile = await _repository.getProfile();
         if (profile == null) {
-          emit(const TrackerState.error('No cycle profile found'));
+          emit(const TrackerState.notStarted());
           return;
         }
 

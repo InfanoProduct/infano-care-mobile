@@ -13,6 +13,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class TrackScreen extends StatelessWidget {
   const TrackScreen({super.key});
@@ -64,6 +65,7 @@ class TrackScreen extends StatelessWidget {
                   initial: () => const Center(child: CircularProgressIndicator()),
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (msg) => _buildErrorState(context, msg),
+                  notStarted: () => _buildNotStartedState(context),
                   loaded: (profile, prediction, logs, milestone) => Stack(
                     children: [
                       TabBarView(
@@ -477,6 +479,58 @@ class TrackScreen extends StatelessWidget {
           const SizedBox(height: 24),
           ElevatedButton(onPressed: () => context.read<TrackerBloc>().add(const TrackerEvent.load()), child: const Text('Retry')),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNotStartedState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('🌸', style: TextStyle(fontSize: 80)).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+            const SizedBox(height: 24),
+            Text(
+              'Your Bloom Tracker awaits! ✨',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w900,
+                fontSize: 24,
+                color: AppColors.purple,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Track your cycle, predict your next period, and understand your unique body patterns with Gigi\'s help.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontSize: 16,
+                color: AppColors.textMedium,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => context.push('/onboarding/tracker/date'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.purple,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Set Up My Tracker 🌸',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18),
+                ),
+              ),
+            ).animate().slideY(begin: 0.2, duration: 600.ms),
+          ],
+        ),
       ),
     );
   }

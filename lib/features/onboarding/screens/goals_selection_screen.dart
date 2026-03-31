@@ -61,7 +61,8 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 4,
+      currentStep: 5,
+      totalSteps: 13,
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [

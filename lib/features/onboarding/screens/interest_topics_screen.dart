@@ -49,7 +49,8 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 7,
+      currentStep: 8,
+      totalSteps: 13,
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [

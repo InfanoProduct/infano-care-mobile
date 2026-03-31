@@ -7,7 +7,7 @@ class OtpVerifyResult {
   final String accessToken;
   final String refreshToken;
   final bool isNewUser;
-  final int onboardingStage;
+  final int onboardingStep;
   final String accountStatus;
   final bool isOnboardingCompleted;
 
@@ -15,7 +15,7 @@ class OtpVerifyResult {
     required this.accessToken,
     required this.refreshToken,
     required this.isNewUser,
-    required this.onboardingStage,
+    required this.onboardingStep,
     required this.accountStatus,
     required this.isOnboardingCompleted,
   });
@@ -48,7 +48,7 @@ class AuthRepository {
         accessToken:     data['accessToken']     as String,
         refreshToken:    data['refreshToken']    as String,
         isNewUser:       data['isNewUser']       as bool,
-        onboardingStage: data['onboardingStage'] as int,
+        onboardingStep: data['onboardingStep'] as int,
         accountStatus:   data['accountStatus']   as String,
         isOnboardingCompleted: data['isOnboardingCompleted'] as bool,
       );
@@ -56,7 +56,7 @@ class AuthRepository {
       await _storage.setAuthToken(result.accessToken);
       await _storage.setRefreshToken(result.refreshToken);
       await _storage.setPhone(phone);
-      await _storage.setStageComplete(result.onboardingStage.toString());
+      await _storage.setStepComplete(result.onboardingStep.toString());
       await _storage.setIsOnboarded(result.isOnboardingCompleted);
       
       // Clear legacy tempToken if present

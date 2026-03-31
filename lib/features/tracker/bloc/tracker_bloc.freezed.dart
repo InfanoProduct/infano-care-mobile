@@ -511,6 +511,7 @@ mixin _$TrackerState {
       String? milestone,
     )
     loaded,
+    required TResult Function() notStarted,
     required TResult Function(String message) error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -524,6 +525,7 @@ mixin _$TrackerState {
       String? milestone,
     )?
     loaded,
+    TResult? Function()? notStarted,
     TResult? Function(String message)? error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -537,6 +539,7 @@ mixin _$TrackerState {
       String? milestone,
     )?
     loaded,
+    TResult Function()? notStarted,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
@@ -545,6 +548,7 @@ mixin _$TrackerState {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
     required TResult Function(_Loaded value) loaded,
+    required TResult Function(_NotStarted value) notStarted,
     required TResult Function(_Error value) error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -552,6 +556,7 @@ mixin _$TrackerState {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Loaded value)? loaded,
+    TResult? Function(_NotStarted value)? notStarted,
     TResult? Function(_Error value)? error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -559,6 +564,7 @@ mixin _$TrackerState {
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
     TResult Function(_Loaded value)? loaded,
+    TResult Function(_NotStarted value)? notStarted,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
@@ -638,6 +644,7 @@ class _$InitialImpl implements _Initial {
       String? milestone,
     )
     loaded,
+    required TResult Function() notStarted,
     required TResult Function(String message) error,
   }) {
     return initial();
@@ -655,6 +662,7 @@ class _$InitialImpl implements _Initial {
       String? milestone,
     )?
     loaded,
+    TResult? Function()? notStarted,
     TResult? Function(String message)? error,
   }) {
     return initial?.call();
@@ -672,6 +680,7 @@ class _$InitialImpl implements _Initial {
       String? milestone,
     )?
     loaded,
+    TResult Function()? notStarted,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -687,6 +696,7 @@ class _$InitialImpl implements _Initial {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
     required TResult Function(_Loaded value) loaded,
+    required TResult Function(_NotStarted value) notStarted,
     required TResult Function(_Error value) error,
   }) {
     return initial(this);
@@ -698,6 +708,7 @@ class _$InitialImpl implements _Initial {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Loaded value)? loaded,
+    TResult? Function(_NotStarted value)? notStarted,
     TResult? Function(_Error value)? error,
   }) {
     return initial?.call(this);
@@ -709,6 +720,7 @@ class _$InitialImpl implements _Initial {
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
     TResult Function(_Loaded value)? loaded,
+    TResult Function(_NotStarted value)? notStarted,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -775,6 +787,7 @@ class _$LoadingImpl implements _Loading {
       String? milestone,
     )
     loaded,
+    required TResult Function() notStarted,
     required TResult Function(String message) error,
   }) {
     return loading();
@@ -792,6 +805,7 @@ class _$LoadingImpl implements _Loading {
       String? milestone,
     )?
     loaded,
+    TResult? Function()? notStarted,
     TResult? Function(String message)? error,
   }) {
     return loading?.call();
@@ -809,6 +823,7 @@ class _$LoadingImpl implements _Loading {
       String? milestone,
     )?
     loaded,
+    TResult Function()? notStarted,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -824,6 +839,7 @@ class _$LoadingImpl implements _Loading {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
     required TResult Function(_Loaded value) loaded,
+    required TResult Function(_NotStarted value) notStarted,
     required TResult Function(_Error value) error,
   }) {
     return loading(this);
@@ -835,6 +851,7 @@ class _$LoadingImpl implements _Loading {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Loaded value)? loaded,
+    TResult? Function(_NotStarted value)? notStarted,
     TResult? Function(_Error value)? error,
   }) {
     return loading?.call(this);
@@ -846,6 +863,7 @@ class _$LoadingImpl implements _Loading {
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
     TResult Function(_Loaded value)? loaded,
+    TResult Function(_NotStarted value)? notStarted,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -1020,6 +1038,7 @@ class _$LoadedImpl implements _Loaded {
       String? milestone,
     )
     loaded,
+    required TResult Function() notStarted,
     required TResult Function(String message) error,
   }) {
     return loaded(profile, prediction, recentLogs, milestone);
@@ -1037,6 +1056,7 @@ class _$LoadedImpl implements _Loaded {
       String? milestone,
     )?
     loaded,
+    TResult? Function()? notStarted,
     TResult? Function(String message)? error,
   }) {
     return loaded?.call(profile, prediction, recentLogs, milestone);
@@ -1054,6 +1074,7 @@ class _$LoadedImpl implements _Loaded {
       String? milestone,
     )?
     loaded,
+    TResult Function()? notStarted,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1069,6 +1090,7 @@ class _$LoadedImpl implements _Loaded {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
     required TResult Function(_Loaded value) loaded,
+    required TResult Function(_NotStarted value) notStarted,
     required TResult Function(_Error value) error,
   }) {
     return loaded(this);
@@ -1080,6 +1102,7 @@ class _$LoadedImpl implements _Loaded {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Loaded value)? loaded,
+    TResult? Function(_NotStarted value)? notStarted,
     TResult? Function(_Error value)? error,
   }) {
     return loaded?.call(this);
@@ -1091,6 +1114,7 @@ class _$LoadedImpl implements _Loaded {
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
     TResult Function(_Loaded value)? loaded,
+    TResult Function(_NotStarted value)? notStarted,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {
@@ -1119,6 +1143,149 @@ abstract class _Loaded implements TrackerState {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$LoadedImplCopyWith<_$LoadedImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$NotStartedImplCopyWith<$Res> {
+  factory _$$NotStartedImplCopyWith(
+    _$NotStartedImpl value,
+    $Res Function(_$NotStartedImpl) then,
+  ) = __$$NotStartedImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$NotStartedImplCopyWithImpl<$Res>
+    extends _$TrackerStateCopyWithImpl<$Res, _$NotStartedImpl>
+    implements _$$NotStartedImplCopyWith<$Res> {
+  __$$NotStartedImplCopyWithImpl(
+    _$NotStartedImpl _value,
+    $Res Function(_$NotStartedImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of TrackerState
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$NotStartedImpl implements _NotStarted {
+  const _$NotStartedImpl();
+
+  @override
+  String toString() {
+    return 'TrackerState.notStarted()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$NotStartedImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function() loading,
+    required TResult Function(
+      CycleProfileModel profile,
+      PredictionResultModel? prediction,
+      List<CycleLogModel> recentLogs,
+      String? milestone,
+    )
+    loaded,
+    required TResult Function() notStarted,
+    required TResult Function(String message) error,
+  }) {
+    return notStarted();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function()? loading,
+    TResult? Function(
+      CycleProfileModel profile,
+      PredictionResultModel? prediction,
+      List<CycleLogModel> recentLogs,
+      String? milestone,
+    )?
+    loaded,
+    TResult? Function()? notStarted,
+    TResult? Function(String message)? error,
+  }) {
+    return notStarted?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function()? loading,
+    TResult Function(
+      CycleProfileModel profile,
+      PredictionResultModel? prediction,
+      List<CycleLogModel> recentLogs,
+      String? milestone,
+    )?
+    loaded,
+    TResult Function()? notStarted,
+    TResult Function(String message)? error,
+    required TResult orElse(),
+  }) {
+    if (notStarted != null) {
+      return notStarted();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Loading value) loading,
+    required TResult Function(_Loaded value) loaded,
+    required TResult Function(_NotStarted value) notStarted,
+    required TResult Function(_Error value) error,
+  }) {
+    return notStarted(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Loading value)? loading,
+    TResult? Function(_Loaded value)? loaded,
+    TResult? Function(_NotStarted value)? notStarted,
+    TResult? Function(_Error value)? error,
+  }) {
+    return notStarted?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Loading value)? loading,
+    TResult Function(_Loaded value)? loaded,
+    TResult Function(_NotStarted value)? notStarted,
+    TResult Function(_Error value)? error,
+    required TResult orElse(),
+  }) {
+    if (notStarted != null) {
+      return notStarted(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _NotStarted implements TrackerState {
+  const factory _NotStarted() = _$NotStartedImpl;
 }
 
 /// @nodoc
@@ -1200,6 +1367,7 @@ class _$ErrorImpl implements _Error {
       String? milestone,
     )
     loaded,
+    required TResult Function() notStarted,
     required TResult Function(String message) error,
   }) {
     return error(message);
@@ -1217,6 +1385,7 @@ class _$ErrorImpl implements _Error {
       String? milestone,
     )?
     loaded,
+    TResult? Function()? notStarted,
     TResult? Function(String message)? error,
   }) {
     return error?.call(message);
@@ -1234,6 +1403,7 @@ class _$ErrorImpl implements _Error {
       String? milestone,
     )?
     loaded,
+    TResult Function()? notStarted,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -1249,6 +1419,7 @@ class _$ErrorImpl implements _Error {
     required TResult Function(_Initial value) initial,
     required TResult Function(_Loading value) loading,
     required TResult Function(_Loaded value) loaded,
+    required TResult Function(_NotStarted value) notStarted,
     required TResult Function(_Error value) error,
   }) {
     return error(this);
@@ -1260,6 +1431,7 @@ class _$ErrorImpl implements _Error {
     TResult? Function(_Initial value)? initial,
     TResult? Function(_Loading value)? loading,
     TResult? Function(_Loaded value)? loaded,
+    TResult? Function(_NotStarted value)? notStarted,
     TResult? Function(_Error value)? error,
   }) {
     return error?.call(this);
@@ -1271,6 +1443,7 @@ class _$ErrorImpl implements _Error {
     TResult Function(_Initial value)? initial,
     TResult Function(_Loading value)? loading,
     TResult Function(_Loaded value)? loaded,
+    TResult Function(_NotStarted value)? notStarted,
     TResult Function(_Error value)? error,
     required TResult orElse(),
   }) {

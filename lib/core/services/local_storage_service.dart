@@ -7,7 +7,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _displayName    = 'ob_display_name';
   static const _pronouns       = 'ob_pronouns';
   static const _points         = 'ob_points';
-  static const _stageComplete  = 'ob_stage_complete';
+  static const _stepComplete   = 'ob_step_complete';
   static const _personalization = 'ob_personalization';
   static const _avatar         = 'ob_avatar';
   static const _journeyName    = 'ob_journey_name';
@@ -32,10 +32,10 @@ class LocalStorageService extends ChangeNotifier {
     return LocalStorageService(prefs);
   }
 
-  // ── Onboarding stage checkpoints ─────────────────────────────────────────
-  String? get stageComplete     => _prefs.getString(_stageComplete);
-  Future<void> setStageComplete(String stage) {
-    final result = _prefs.setString(_stageComplete, stage);
+  // ── Onboarding step checkpoints ──────────────────────────────────────────
+  String? get stepComplete      => _prefs.getString(_stepComplete);
+  Future<void> setStepComplete(String step) {
+    final result = _prefs.setString(_stepComplete, step);
     notifyListeners();
     return result;
   }

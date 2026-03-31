@@ -38,11 +38,11 @@ class _LandingScreenState extends State<LandingScreen> {
       try {
         // Sync stage from server to reflect any external resets (like the one just performed)
         final resp = await ApiService.instance.dio.get('/user/me');
-        final serverStage = resp.data['onboardingStage'] ?? 1;
+        final serverStep = resp.data['onboardingStep'] ?? 1;
         final isOnboarded = resp.data['isOnboardingCompleted'] as bool;
         final serverName = resp.data['profile']?['displayName'];
         
-        await storage.setStageComplete(serverStage.toString());
+        await storage.setStepComplete(serverStep.toString());
         await storage.setIsOnboarded(isOnboarded);
         if (serverName != null) await storage.setDisplayName(serverName);
         
@@ -66,10 +66,10 @@ class _LandingScreenState extends State<LandingScreen> {
           if (mounted) setState(() => _isResuming = false);
         } else {
           // Network error: Fallback to local storage
-          final stage = storage.stageComplete;
-          if (stage == '13') {
+          final step = storage.stepComplete;
+          if (step == '13') {
             context.go('/home');
-          } else if (stage != null && int.parse(stage) >= 1) {
+          } else if (step != null && int.parse(step) >= 1) {
             setState(() {
               _isResuming = true;
               _userName = storage.displayName;

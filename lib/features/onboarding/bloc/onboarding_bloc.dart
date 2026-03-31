@@ -139,6 +139,7 @@ class SubmitPersonalization extends OnboardingEvent { const SubmitPersonalizatio
 class SubmitAvatar          extends OnboardingEvent { const SubmitAvatar(); }
 class SubmitJourneyName     extends OnboardingEvent { const SubmitJourneyName(); }
 class SubmitTrackerSetup    extends OnboardingEvent { const SubmitTrackerSetup(); }
+class SkipTracker           extends OnboardingEvent { const SkipTracker(); }
 class SyncFromStorage       extends OnboardingEvent { const SyncFromStorage(); }
 
 // ─── BLoC ─────────────────────────────────────────────────────────────────────
@@ -168,20 +169,21 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<SubmitTrackerSetup>(_onSubmitTrackerSetup);
     on<SyncFromStorage>(_onSyncFromStorage);
     on<SetRegularity>(_onSetRegularity);
+    on<SkipTracker>(_onSkipTracker);
   }
 
   void _onSetUserType(SetUserType e, Emitter<OnboardingState> emit) {
     _storage.setUserType(e.t);
-    _storage.setStageComplete('1');
-    _repo.updateStage(1);
+    _storage.setStepComplete('1');
+    _repo.updateStep(1);
     emit(state.copyWith(userType: e.t));
   }
 
   void _onSetDisplayName(SetDisplayName e, Emitter<OnboardingState> emit) {
     _storage.setDisplayName(e.name);
     _storage.setPronouns(e.pronouns);
-    _storage.setStageComplete('2');
-    _repo.updateStage(2);
+    _storage.setStepComplete('2');
+    _repo.updateStep(2);
     emit(state.copyWith(displayName: e.name, pronouns: e.pronouns));
   }
 
@@ -199,51 +201,58 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(birthMonth: e.month, birthYear: e.year, age: age, contentTier: tier, coppaRequired: isUnder13));
     _storage.setBirthDate(e.month, e.year);
     
-    final nextStage = isUnder13 ? '3' : '4';
-    _storage.setStageComplete(nextStage);
-    _repo.updateStage(int.parse(nextStage));
+    final nextStep = isUnder13 ? '3' : '4';
+    _storage.setStepComplete(nextStep);
+    _repo.updateStep(int.parse(nextStep));
   }
 
   void _onSetConsent(SetConsent e, Emitter<OnboardingState> emit) {
     emit(state.copyWith(termsAccepted: e.terms, privacyAccepted: e.privacy, marketingOptIn: e.marketing));
     _storage.setConsents(terms: e.terms, privacy: e.privacy, marketing: e.marketing);
-    _storage.setStageComplete('4'); 
-    _repo.updateStage(4);
+    // If they are on the AssentTermsScreen (age >= 13 or caught up), they are at step 11
+    final currentStep = _storage.stepComplete;
+    if (currentStep != null && int.parse(currentStep) >= 10) {
+      _storage.setStepComplete('11');
+      _repo.updateStep(11);
+    } else {
+      _storage.setStepComplete('4'); 
+      _repo.updateStep(4);
+    }
   }
 
   void _onSetGoals(SetGoals e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('5');
-    _repo.updateStage(5);
+    _storage.setStepComplete('5');
+    _repo.updateStep(5);
     emit(state.copyWith(goals: e.goals));
   }
   void _onSetPeriodComfort(SetPeriodComfort e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('6');
-    _repo.updateStage(6);
+    _storage.setStepComplete('6');
+    _repo.updateStep(6);
     emit(state.copyWith(periodComfortScore: e.score));
   }
   void _onSetPeriodStatus(SetPeriodStatus e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('7');
-    _repo.updateStage(7);
+    _storage.setStepComplete('7');
+    _repo.updateStep(7);
     emit(state.copyWith(periodStatus: e.status));
   }
   void _onSetInterestTopics(SetInterestTopics e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('8');
-    _repo.updateStage(8);
+    _storage.setStepComplete('8');
+    _repo.updateStep(8);
     emit(state.copyWith(interestTopics: e.topics));
   }
   void _onSetAvatar(SetAvatar e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('9');
-    _repo.updateStage(9);
+    _storage.setStepComplete('9');
+    _repo.updateStep(9);
     emit(state.copyWith(avatarData: e.data));
   }
   void _onSetJourneyName(SetJourneyName e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('10');
-    _repo.updateStage(10);
+    _storage.setStepComplete('10');
+    _repo.updateStep(10);
     emit(state.copyWith(journeyName: e.name));
   }
   void _onSetTrackerDetails(SetTrackerDetails e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('12');
-    _repo.updateStage(12);
+    _storage.setStepComplete('12');
+    _repo.updateStep(12);
     emit(state.copyWith(periodLength: e.periodDays, cycleLength: e.cycleDays, lastPeriod: e.lastPeriod));
   }
   
@@ -277,8 +286,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       );
       
       await _storage.setUserId(result['userId']);
-      // Removing the line below as setupProfile response stage (legacy 2) conflicts with granular sequence
-      // await _storage.setStageComplete(result['onboardingStage'].toString());
+      // Removing the line below as setupProfile response step conflicts with granular sequence
+      // await _storage.setStepComplete(result['onboardingStep'].toString());
       
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
@@ -298,7 +307,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         interestTopics: state.interestTopics,
       );
       await _storage.setPoints(res['pointsTotal']);
-      // removed: await _storage.setStageComplete('3');
+      // removed: await _storage.setStepComplete('3');
       emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -310,7 +319,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(isLoading: true));
     try {
       await _repo.saveAvatar(state.avatarData);
-      // removed: await _storage.setStageComplete('4');
+      // removed: await _storage.setStepComplete('4');
       emit(state.copyWith(isLoading: false));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -323,7 +332,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       final res = await _repo.saveJourneyName(state.journeyName);
       await _storage.setPoints(res['pointsTotal']);
-      // removed: await _storage.setStageComplete('4.1');
+      // removed: await _storage.setStepComplete('4.1');
       emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -348,7 +357,19 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       );
       await _repo.completeOnboarding();
       await _storage.setIsOnboarded(true);
-      _repo.updateStage(13);
+      _repo.updateStep(13);
+      emit(state.copyWith(isLoading: false, errorMessage: null));
+    } catch (err) {
+      emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
+    }
+  }
+
+  Future<void> _onSkipTracker(SkipTracker e, Emitter<OnboardingState> emit) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      await _repo.completeOnboarding();
+      await _storage.setIsOnboarded(true);
+      _repo.updateStep(13);
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));

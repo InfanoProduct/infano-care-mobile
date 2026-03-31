@@ -38,7 +38,8 @@ class _ParentalConsentScreenState extends State<ParentalConsentScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 5,
+      currentStep: 4,
+      totalSteps: 13,
       bottomBar: GradientButton(label: 'Send the Note 💌', onPressed: _sendNote, enabled: _validEmail),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),

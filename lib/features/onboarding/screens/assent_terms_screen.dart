@@ -67,7 +67,8 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 10,
+      currentStep: 11,
+      totalSteps: 13,
       bottomBar: GradientButton(
         label: "Let's Bloom! 🌸",
         onPressed: _letsBloom,

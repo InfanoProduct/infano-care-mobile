@@ -45,7 +45,8 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 5,
+      currentStep: 6,
+      totalSteps: 13,
       bottomBar: _selected != null ? PointsBurst(points: 10, onComplete: () => setState(() => _showPoints = false)) : null,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
