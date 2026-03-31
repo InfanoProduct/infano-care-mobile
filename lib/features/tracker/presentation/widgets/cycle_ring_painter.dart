@@ -18,11 +18,9 @@ class CyclePhaseData {
 
 class CycleRingPainter extends CustomPainter {
   final List<CyclePhaseData> phases;
-  final double currentProgress; // 0.0 to 1.0 (current day in cycle)
-  final double dotPulseScale; // 1.0 to 1.2
-  final double fertileStart; // 0.0 to 1.0 (optional)
-  final double fertileEnd; // 0.0 to 1.0 (optional)
-  final double fertileOpacity; // 0.0 to 1.0
+  final double fertileStart;
+  final double fertileEnd;
+  final String confidenceLevel; // 'none', 'low', 'medium', 'high'
   final bool isIrregular;
 
   CycleRingPainter({
@@ -31,7 +29,7 @@ class CycleRingPainter extends CustomPainter {
     this.dotPulseScale = 1.0,
     this.fertileStart = 0.0,
     this.fertileEnd = 0.0,
-    this.fertileOpacity = 0.0,
+    this.confidenceLevel = 'medium',
     this.isIrregular = false,
   });
 
@@ -75,51 +73,55 @@ class CycleRingPainter extends CustomPainter {
     }
 
     // 3. Draw Fertile Window "Glow" (Outer Arc)
-    if (fertileOpacity > 0 && fertileEnd > fertileStart) {
-      final fRadius = ringRadius + (strokeWidth * 0.7);
-      
-      // Irregular Mode: Wider, more blurred arc
-      final fStrokeWidth = isIrregular ? strokeWidth * 0.6 : strokeWidth * 0.35;
-      final fBlur = isIrregular ? strokeWidth * 0.6 : strokeWidth * 0.3;
-      
-      final startAngle = -pi / 2 + (fertileStart * 2 * pi);
-      final sweepAngle = (fertileEnd - fertileStart) * 2 * pi;
+    if (fertileEnd > fertileStart) {
+      // Map confidence to opacity
+      final double configOpacity = switch (confidenceLevel.toLowerCase()) {
+        'high' => 1.0,
+        'medium' => 0.6,
+        'low' => 0.3,
+        _ => 0.0,
+      };
 
-      final fPaint = Paint()
-        ..color = const Color(0xFFFBBF24).withOpacity(fertileOpacity * 0.6)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = fStrokeWidth
-        ..strokeCap = StrokeCap.round
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, fBlur);
+      if (configOpacity > 0) {
+        final fRadius = ringRadius + (strokeWidth * 0.7);
+        
+        // Irregular Mode: Wider, more blurred arc
+        final fStrokeWidth = isIrregular ? strokeWidth * 0.6 : strokeWidth * 0.35;
+        final fBlur = isIrregular ? strokeWidth * 0.6 : strokeWidth * 0.3;
+        
+        final startAngle = -pi / 2 + (fertileStart * 2 * pi);
+        final sweepAngle = (fertileEnd - fertileStart) * 2 * pi;
 
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: fRadius),
-        startAngle,
-        sweepAngle,
-        false,
-        fPaint,
-      );
+        final fPaint = Paint()
+          ..color = const Color(0xFFFBBF24).withOpacity(configOpacity * 0.6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = fStrokeWidth
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, fBlur);
 
-      // Core of the fertile window
-      final fCorePaint = Paint()
-        ..color = const Color(0xFFFBBF24).withOpacity(fertileOpacity)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = isIrregular ? 1.5 : 2.5
-        ..strokeCap = StrokeCap.round;
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: fRadius),
+          startAngle,
+          sweepAngle,
+          false,
+          fPaint,
+        );
 
-      if (isIrregular) {
-        // Dotted appearance for irregular core to show "estimated"
-        fCorePaint.strokeWidth = 1.0;
-        // In a real app we'd use a PathDashEffect, here we just make it thinner/subtler
+        // Core of the fertile window
+        final fCorePaint = Paint()
+          ..color = const Color(0xFFFBBF24).withOpacity(configOpacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = isIrregular ? 1.5 : 2.5
+          ..strokeCap = StrokeCap.round;
+
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: fRadius),
+          startAngle,
+          sweepAngle,
+          false,
+          fCorePaint,
+        );
       }
-
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: fRadius),
-        startAngle,
-        sweepAngle,
-        false,
-        fCorePaint,
-      );
     }
 
     // 4. Draw Current Day Indicator (The Bubble)
@@ -163,7 +165,7 @@ class CycleRingPainter extends CustomPainter {
         oldDelegate.phases != phases ||
         oldDelegate.fertileStart != fertileStart ||
         oldDelegate.fertileEnd != fertileEnd ||
-        oldDelegate.fertileOpacity != fertileOpacity ||
+        oldDelegate.confidenceLevel != confidenceLevel ||
         oldDelegate.isIrregular != isIrregular;
   }
 }

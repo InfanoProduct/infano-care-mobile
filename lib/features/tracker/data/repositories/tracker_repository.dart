@@ -1,10 +1,14 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
+import 'package:infano_care_mobile/core/services/privacy_service.dart';
 
+@lazySingleton
 class TrackerRepository {
   final Dio _dio;
+  final PrivacyService _privacyService;
 
-  TrackerRepository(this._dio);
+  TrackerRepository(this._dio, this._privacyService);
 
   Future<CycleProfileModel?> getProfile() async {
     try {
@@ -32,6 +36,11 @@ class TrackerRepository {
 
   Future<Map<String, dynamic>> logDaily(Map<String, dynamic> data) async {
     try {
+      // Encrypt noteText before sending to API
+      if (data.containsKey('noteText') && data['noteText'] != null) {
+        data['noteText'] = await _privacyService.encrypt(data['noteText']);
+      }
+
       final response = await _dio.post('/tracker/log', data: data);
       return response.data;
     } on DioException catch (e) {
@@ -54,9 +63,19 @@ class TrackerRepository {
         if (from != null) 'from': from,
         if (to != null) 'to': to,
       });
-      return (response.data as List)
-          .map((json) => CycleLogModel.fromJson(json))
-          .toList();
+      
+      final rawLogs = (response.data as List).map((json) => CycleLogModel.fromJson(json)).toList();
+      
+      // Decrypt notes in all logs
+      final processedLogs = await Future.wait(rawLogs.map((log) async {
+        if (log.noteText != null) {
+          final decryptedNote = await _privacyService.decrypt(log.noteText);
+          return log.copyWith(noteText: decryptedNote);
+        }
+        return log;
+      }));
+
+      return processedLogs;
     } catch (e) {
       return [];
     }

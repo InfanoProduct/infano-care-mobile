@@ -41,7 +41,7 @@ class TrackScreen extends StatelessWidget {
               labelStyle: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 14),
               tabs: const [
                 Tab(text: 'Cycle', icon: Icon(Icons.donut_small_rounded)),
-                Tab(text: 'Calendar', icon: Icon(Icons.calendar_month_rounded)),
+                Tab(text: 'Log', icon: Icon(Icons.edit_note_rounded)),
                 Tab(text: 'Insights', icon: Icon(Icons.analytics_rounded)),
               ],
             ),
@@ -71,7 +71,7 @@ class TrackScreen extends StatelessWidget {
                       TabBarView(
                         children: [
                           _buildDashboardTab(context, profile, prediction, logs),
-                          _buildCalendarTab(context, profile, prediction, logs),
+                          _buildLogTab(context, profile, prediction, logs),
                           _buildInsightsTab(context, profile, prediction, logs),
                         ],
                       ),
@@ -124,20 +124,69 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCalendarTab(BuildContext context, profile, prediction, logs) {
+  Widget _buildLogTab(BuildContext context, profile, prediction, logs) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 32),
-          Text('Your Cycle Journey 📅', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textDark)),
+          Text('Daily Log & History 📝', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textDark)),
           const SizedBox(height: 8),
-          Text('View past flows and future predictions.', style: GoogleFonts.nunito(color: AppColors.textMedium)),
+          Text('Select a day to log your symptoms or view history.', style: GoogleFonts.nunito(color: AppColors.textMedium)),
           const SizedBox(height: 24),
+          _buildQuickLogToday(context),
+          const SizedBox(height: 32),
           TrackerCalendar(logs: logs, prediction: prediction),
           const SizedBox(height: 120),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickLogToday(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.purple.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          const Text('🌸', style: TextStyle(fontSize: 32)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Log Today', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.textDark)),
+                Text('Takes less than 60 seconds', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textMedium)),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => _openDailyLog(context, DateTime.now()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.purple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: const Text('Log'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openDailyLog(BuildContext context, DateTime date) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (routeContext) => BlocProvider.value(
+          value: BlocProvider.of<TrackerBloc>(context),
+          child: DailyLogScreen(date: date),
+        ),
       ),
     );
   }
@@ -202,10 +251,10 @@ class TrackScreen extends StatelessWidget {
               size: const Size(300, 300),
               painter: CycleRingPainter(
                 phases: [
-                  CyclePhaseData(name: 'Waiting', startPercent: 0.0, endPercent: 1.0, gradient: [Colors.teal.shade200, Colors.teal.shade400]),
+                  CyclePhaseData(name: 'Waiting', startPercent: 0.0, endPercent: 1.0, gradient: [const Color(0xFF11998E), const Color(0xFFDA22FF)]),
                 ],
                 currentProgress: 0.0,
-                fertileOpacity: 0.0,
+                confidenceLevel: 'high',
               ),
             ),
             Column(
@@ -314,11 +363,11 @@ class TrackScreen extends StatelessWidget {
     final mode = profile.trackerMode;
     final isIrregular = mode == 'irregular_support';
 
-    // Phase Gradients - Seasonally inspired
+    // Phase Gradients - Premium Palette
     final phases = [
-      CyclePhaseData(name: 'Menstrual', startPercent: 0.0, endPercent: 0.18, gradient: [const Color(0xFFF43F5E), const Color(0xFFFB7185)]),
-      CyclePhaseData(name: 'Follicular', startPercent: 0.18, endPercent: 0.45, gradient: [const Color(0xFF10B981), const Color(0xFF34D399)]),
-      CyclePhaseData(name: 'Ovulation', startPercent: 0.45, endPercent: 0.55, gradient: [const Color(0xFFFBBF24), const Color(0xFFFDE047)]),
+      CyclePhaseData(name: 'Menstrual', startPercent: 0.0, endPercent: 0.18, gradient: [const Color(0xFFFF4B2B), const Color(0xFFFF416C)]),
+      CyclePhaseData(name: 'Follicular', startPercent: 0.18, endPercent: 0.45, gradient: [const Color(0xFFDA22FF), const Color(0xFF9733EE)]),
+      CyclePhaseData(name: 'Ovulation', startPercent: 0.45, endPercent: 0.55, gradient: [const Color(0xFF11998E), const Color(0xFF38EF7D)]),
       CyclePhaseData(name: 'Luteal', startPercent: 0.55, endPercent: 1.0, gradient: [const Color(0xFF6366F1), const Color(0xFF818CF8)]),
     ];
 
@@ -356,7 +405,7 @@ class TrackScreen extends StatelessWidget {
                 dotPulseScale: 1.05,
                 fertileStart: fertileStart.clamp(0.0, 1.0),
                 fertileEnd: fertileEnd.clamp(0.0, 1.0),
-                fertileOpacity: profile.currentPhase == 'ovulation' ? 1.0 : (isIrregular ? 0.4 : 0.6),
+                confidenceLevel: (prediction as dynamic)?.confidenceLevel ?? 'medium',
                 isIrregular: isIrregular,
               ),
             ),
