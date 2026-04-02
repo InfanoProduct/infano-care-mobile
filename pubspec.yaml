@@ -41,6 +41,8 @@ dependencies:
 
   # OTP input
   pin_code_fields: ^8.0.1
+  sms_autofill: ^2.4.0
+  permission_handler: ^11.3.1
 
   # Date formatting
   intl: ^0.20.2

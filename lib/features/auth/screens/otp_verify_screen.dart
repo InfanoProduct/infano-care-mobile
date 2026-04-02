@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
@@ -24,19 +25,47 @@ class OtpVerifyScreen extends StatefulWidget {
   State<OtpVerifyScreen> createState() => _OtpVerifyScreenState();
 }
 
-class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
+class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
   String _otp = '';
   bool _loading = false;
   String? _error;
   int _countdown = 60;
 
   late final AuthRepository _repo;
+  late final TextEditingController _pinController;
 
   @override
   void initState() {
     super.initState();
+    _pinController = TextEditingController();
     _repo = AuthRepository(widget.storage);
     _startCooldown();
+    listenForCode(); // Start listening for SMS
+    _printSignature();
+  }
+
+  Future<void> _printSignature() async {
+    final signature = await SmsAutoFill().getAppSignature;
+    debugPrint("🚀 App Signature for SMS Retriever: $signature");
+  }
+
+  @override
+  void codeUpdated() {
+    // This is called when an SMS with the OTP is detected
+    if (code != null) {
+      _pinController.text = code!;
+      setState(() => _otp = code!);
+      if (_otp.length == 4) {
+        _verify(); // Auto-verify!
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    cancel(); // Stop listening
+    _pinController.dispose();
+    super.dispose();
   }
 
   void _startCooldown() {
@@ -143,6 +172,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                 ),
                 enableActiveFill: true,
                 keyboardType: TextInputType.number,
+                controller: _pinController, // Use the persistent controller
                 onChanged: (v) => setState(() => _otp = v),
                 onCompleted: (_) => _verify(),
               ),

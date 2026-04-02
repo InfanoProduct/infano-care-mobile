@@ -5,6 +5,10 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
+import 'package:infano_care_mobile/shared/widgets/permissions_onboarding_sheet.dart';
+import 'package:infano_care_mobile/core/services/permission_service.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 
 class PhoneEntryScreen extends StatefulWidget {
   PhoneEntryScreen({super.key, required this.storage, this.fromOnboarding = false});
@@ -27,6 +31,42 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   void initState() {
     super.initState();
     _repo = AuthRepository(widget.storage);
+    _checkPermissions();
+  }
+
+  Future<void> _showPhoneHint() async {
+    try {
+      final String? result = await SmsAutoFill().hint;
+      if (result != null && mounted) {
+        // Hint returns full number with code, e.g. +919000000000
+        // We extract the digits (last 10) and the rest as country code.
+        final cleaned = result.replaceAll(' ', '').replaceAll('-', '');
+        if (cleaned.length >= 10) {
+          setState(() {
+            _controller.text = cleaned.substring(cleaned.length - 10);
+            _countryCode     = cleaned.substring(0, cleaned.length - 10);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Phone hint error: $e');
+    }
+  }
+
+  Future<void> _checkPermissions() async {
+    // Info only: Show the sheet to explain the feature, but DON'T request system permissions.
+    // The SMS User Consent API will handle the request properly when the SMS arrives.
+    if (mounted) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          PermissionsOnboardingSheet.show(
+            context,
+            onAllow: () => _showPhoneHint(), // Trigger native hint picker
+            onDeny: () => {},  // Manual fallback
+          );
+        }
+      });
+    }
   }
 
   bool get _valid => _controller.text.length >= 10;
