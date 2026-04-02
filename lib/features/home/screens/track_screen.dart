@@ -31,65 +31,38 @@ class TrackScreen extends StatelessWidget {
         ),
       )..add(const TrackerEvent.load()),
 
-      child: DefaultTabController(
-        length: 3,
-        child: Scaffold(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
           backgroundColor: AppColors.background,
-          appBar: AppBar(
-            backgroundColor: AppColors.background,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            title: Text('Period Tracker', style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.textDark, fontSize: 20)),
-            centerTitle: true,
-            bottom: TabBar(
-              indicatorColor: AppColors.purple,
-              indicatorWeight: 4,
-              indicatorSize: TabBarIndicatorSize.label,
-              labelColor: AppColors.purple,
-              unselectedLabelColor: AppColors.textLight,
-              labelStyle: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 14),
-              tabs: const [
-                Tab(text: 'Cycle', icon: Icon(Icons.donut_small_rounded)),
-                Tab(text: 'Log', icon: Icon(Icons.edit_note_rounded)),
-                Tab(text: 'Insights', icon: Icon(Icons.analytics_rounded)),
-              ],
-            ),
-          ),
-          body: BlocListener<TrackerBloc, TrackerState>(
-            listener: (context, state) {
-              state.maybeWhen(
-                loaded: (profile, prediction, logs, milestone) {
-                  if (milestone == 'first_period') {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const FirstPeriodCelebrationScreen()),
-                    );
-                  }
-                },
-                orElse: () {},
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: Text('TRACKER ENTRY', style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.textDark, fontSize: 18, letterSpacing: 1.2)),
+          centerTitle: true,
+        ),
+        body: BlocListener<TrackerBloc, TrackerState>(
+          listener: (context, state) {
+            state.maybeWhen(
+              loaded: (profile, prediction, logs, milestone) {
+                if (milestone == 'first_period') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const FirstPeriodCelebrationScreen()),
+                  );
+                }
+              },
+              orElse: () {},
+            );
+          },
+          child: BlocBuilder<TrackerBloc, TrackerState>(
+            builder: (context, state) {
+              return state.when(
+                initial: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (msg) => _buildErrorState(context, msg),
+                notStarted: () => _buildNotStartedState(context),
+                loaded: (profile, prediction, logs, milestone) => _buildDashboardTab(context, profile, prediction, logs),
               );
             },
-            child: BlocBuilder<TrackerBloc, TrackerState>(
-              builder: (context, state) {
-                return state.when(
-                  initial: () => const Center(child: CircularProgressIndicator()),
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (msg) => _buildErrorState(context, msg),
-                  notStarted: () => _buildNotStartedState(context),
-                  loaded: (profile, prediction, logs, milestone) => Stack(
-                    children: [
-                      TabBarView(
-                        children: [
-                          _buildDashboardTab(context, profile, prediction, logs),
-                          _buildLogTab(context, profile, prediction, logs),
-                          _buildInsightsTab(context, profile, prediction, logs),
-                        ],
-                      ),
-                      _buildLogButton(context),
-                    ],
-                  ),
-                );
-              },
-            ),
           ),
         ),
       ),
@@ -107,16 +80,18 @@ class TrackScreen extends StatelessWidget {
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
+            _buildDayBadge(profile, prediction),
+            const SizedBox(height: 24),
             _buildGigiGreeting(profile, prediction),
             const SizedBox(height: 32),
             _buildCycleRing(context, profile, prediction),
-            if (mode == 'irregular_support') ...[
-              const SizedBox(height: 16),
-              _buildConfidenceMeter(context, profile.confidenceLevel),
-            ],
+            const SizedBox(height: 48),
+            _buildPrimaryActions(context, profile, logs),
+            const SizedBox(height: 24),
+            _buildStreakInfo(),
             const SizedBox(height: 40),
             if (prediction != null && (prediction as dynamic).insights.isNotEmpty)
               InsightCard(
@@ -124,8 +99,6 @@ class TrackScreen extends StatelessWidget {
                 message: (prediction as dynamic).insights.first,
                 accentColor: mode == 'irregular_support' ? Colors.orange : AppColors.purple,
               ),
-            const SizedBox(height: 24),
-            _buildPredictionBanner(context, prediction, isIrregular: mode == 'irregular_support'),
             const SizedBox(height: 120),
           ],
         ),
@@ -133,25 +106,86 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLogTab(BuildContext context, profile, prediction, logs) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 32),
-          Text('Daily Log & History 📝', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textDark)),
-          const SizedBox(height: 8),
-          Text('Select a day to log your symptoms or view history.', style: GoogleFonts.nunito(color: AppColors.textMedium)),
-          const SizedBox(height: 24),
-          _buildQuickLogToday(context),
-          const SizedBox(height: 32),
-          TrackerCalendar(logs: logs, prediction: prediction),
-          const SizedBox(height: 120),
-        ],
+  Widget _buildDayBadge(profile, prediction) {
+    String dayText = profile.currentCycleDay != null ? 'Day ${profile.currentCycleDay}' : '';
+    String phaseText = profile.currentPhase != null ? ' · ${profile.currentPhase[0].toUpperCase()}${profile.currentPhase.substring(1)}' : '';
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.pink.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        '$dayText$phaseText',
+        style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: AppColors.pink, fontSize: 13),
       ),
     );
   }
+
+  Widget _buildPrimaryActions(BuildContext context, profile, logs) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: LinearGradient(
+                colors: [AppColors.purple, AppColors.purple.withOpacity(0.8)],
+              ),
+              boxShadow: [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+            ),
+            child: ElevatedButton(
+              onPressed: () => _openDailyLog(context, DateTime.now()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              ),
+              child: Text(
+                'Log Today\'s Day ✦',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 16),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+            child: OutlinedButton(
+              onPressed: () => context.push('/tracker/insights', extra: {'profile': profile, 'logs': logs}),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.purple.withOpacity(0.2), width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              ),
+              child: Text(
+                'View Cycle Insights →',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppColors.textMedium, fontSize: 15),
+              ),
+            ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStreakInfo() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text('🔥', style: TextStyle(fontSize: 16)),
+        const SizedBox(width: 8),
+        Text(
+          '12-day streak',
+          style: GoogleFonts.nunito(color: AppColors.textMedium, fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+      ],
+    );
+  }
+
+
 
   Widget _buildQuickLogToday(BuildContext context) {
     return Container(
@@ -200,23 +234,7 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInsightsTab(BuildContext context, profile, prediction, logs) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 32),
-          Text('Menstrual Intelligence 📊', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textDark)),
-          const SizedBox(height: 8),
-          Text('Uncovering patterns in your unique cycle.', style: GoogleFonts.nunito(color: AppColors.textMedium)),
-          const SizedBox(height: 32),
-          TrackerInsights(profile: profile, logs: logs),
-          const SizedBox(height: 120),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildWatchingWaitingDashboard(BuildContext context, profile) {
     return SafeArea(
@@ -496,34 +514,7 @@ class TrackScreen extends StatelessWidget {
     ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0);
   }
 
-  Widget _buildLogButton(BuildContext context) {
-    return Positioned(
-      bottom: 40, right: 24,
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (routeContext) => BlocProvider.value(
-              value: BlocProvider.of<TrackerBloc>(context),
-              child: DailyLogScreen(date: DateTime.now()),
-            ),
-          ),
-        ),
-        child: Container(
-          width: 56, height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.purple,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5)),
-            ],
-          ),
-          child: const Center(
-            child: Icon(Icons.add_rounded, color: Colors.white, size: 32),
-          ),
-        ),
-      ).animate().fadeIn(delay: 1000.ms).scale(begin: const Offset(0.9, 0.9)),
-    );
-  }
+
 
   Widget _buildErrorState(BuildContext context, String msg) {
     return Center(

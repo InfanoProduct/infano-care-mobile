@@ -72,6 +72,47 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     });
   }
 
+  Widget _buildPeriodStartedToggle(bool isWw) {
+    if (!isWw) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      sliver: SliverToBoxAdapter(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.pink.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.pink.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              const Text('🌸', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text('My period has started!', 
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: AppColors.pink, fontSize: 16),
+                ),
+              ),
+              Switch(
+                value: _flow != null && _flow != 'none',
+                activeColor: AppColors.pink,
+                onChanged: (val) {
+                  setState(() {
+                    if (val) {
+                      _flow = 'light'; // Default to light when switched
+                    } else {
+                      _flow = 'none';
+                    }
+                  });
+                },
+              ),
+            ],
+          ),
+        ).animate().fadeIn(delay: 50.ms),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,26 +131,44 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         ),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              _buildHeading().animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0),
-              _buildFlowSection().animate().fadeIn(delay: 100.ms, duration: 400.ms).slideX(begin: 0.1, end: 0),
-              _buildSymptomsSection().animate().fadeIn(delay: 200.ms, duration: 400.ms).slideX(begin: 0.1, end: 0),
-              _buildMoodSection().animate().fadeIn(delay: 300.ms, duration: 400.ms).slideX(begin: 0.1, end: 0),
-              _buildAdvancedToggle().animate().fadeIn(delay: 400.ms),
-              if (_showAdvanced) ...[
-                _buildEnergySection().animate().fadeIn(duration: 300.ms),
-                _buildSleepSection().animate().fadeIn(delay: 100.ms, duration: 300.ms),
-                _buildNoteSection().animate().fadeIn(delay: 200.ms, duration: 300.ms),
-              ],
-              const SliverToBoxAdapter(child: SizedBox(height: 120)),
+      body: BlocBuilder<TrackerBloc, TrackerState>(
+        builder: (context, state) {
+          bool isWw = false;
+          state.maybeWhen(
+            loaded: (profile, _, _, _) {
+              if (profile.trackerMode == 'watching_waiting') {
+                isWw = true;
+              }
+            },
+            orElse: () {},
+          );
+
+          // If WW mode and period has started, we show everything else
+          bool hideMenses = isWw && (_flow == null || _flow == 'none');
+
+          return Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  _buildHeading(),
+                  _buildPeriodStartedToggle(isWw),
+                  if (!hideMenses) _buildFlowSection(),
+                  if (!hideMenses) _buildSymptomsSection(),
+                  _buildMoodSection(),
+                  _buildAdvancedToggle(),
+                  if (_showAdvanced) ...[
+                    _buildEnergySection(),
+                    _buildSleepSection(),
+                    _buildNoteSection(),
+                  ],
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                ],
+              ),
+              if (!_showSuccessOverlay) _buildSaveButton(),
+              if (_showSuccessOverlay) _buildSuccessOverlay(),
             ],
-          ),
-          if (!_showSuccessOverlay) _buildSaveButton(),
-          if (_showSuccessOverlay) _buildSuccessOverlay(),
-        ],
+          );
+        },
       ),
     );
   }
@@ -124,7 +183,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             Text('How are you today?', style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.textDark)),
             Text('Your body has its own language. Let\'s record it 💜', style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 14)),
           ],
-        ),
+        ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0),
       ),
     );
   }
@@ -192,7 +251,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             ),
             const SizedBox(height: 32),
           ],
-        ),
+        ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideX(begin: 0.1, end: 0),
       ),
     );
   }
@@ -269,7 +328,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             ],
             const SizedBox(height: 32),
           ],
-        ),
+        ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideX(begin: 0.1, end: 0),
       ),
     );
   }
@@ -294,7 +353,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             ),
             const SizedBox(height: 32),
           ],
-        ),
+        ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideX(begin: 0.1, end: 0),
       ),
     );
   }
@@ -309,14 +368,13 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             icon: Icon(_showAdvanced ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
             label: Text(_showAdvanced ? 'Show less' : 'More health details (Energy, Sleep, Note)'),
             style: TextButton.styleFrom(foregroundColor: AppColors.purple),
-          ),
+          ).animate().fadeIn(delay: 400.ms),
         ),
       ),
     );
   }
 
   Widget _buildEnergySection() {
-    final energyIcons = ['🥱', '😑', '🙂', '😊', '⚡'];
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       sliver: SliverToBoxAdapter(
@@ -342,7 +400,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             ),
             const SizedBox(height: 32),
           ],
-        ),
+        ).animate().fadeIn(duration: 300.ms),
       ),
     );
   }
@@ -372,7 +430,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             ),
             const SizedBox(height: 32),
           ],
-        ),
+        ).animate().fadeIn(delay: 100.ms, duration: 300.ms),
       ),
     );
   }

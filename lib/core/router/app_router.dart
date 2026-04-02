@@ -5,6 +5,8 @@ import 'package:infano_care_mobile/features/auth/screens/phone_entry_screen.dart
 import 'package:infano_care_mobile/features/auth/screens/otp_verify_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/landing_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/account_screen.dart';
+import 'package:infano_care_mobile/features/account/screens/notification_preferences_screen.dart';
+import 'package:infano_care_mobile/features/account/screens/data_rights_privacy_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/path_selector_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/name_pronouns_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/birthday_input_screen.dart';
@@ -22,6 +24,9 @@ import 'package:infano_care_mobile/features/onboarding/screens/last_period_date_
 import 'package:infano_care_mobile/features/onboarding/screens/cycle_details_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/tracker_activated_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/dashboard_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/doctor_summary_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_insights_screen.dart';
+import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 
 // Learning Journey Imports
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -102,6 +107,8 @@ GoRouter createRouter(LocalStorageService storage) {
     routes: [
       GoRoute(path: '/splash',   builder: (_, __) => const LandingScreen()),
       GoRoute(path: '/account',  builder: (_, __) => AccountScreen(storage: storage)),
+      GoRoute(path: '/account/notifications', builder: (_, __) => const NotificationPreferencesScreen()),
+      GoRoute(path: '/account/data-rights', builder: (_, __) => const DataRightsPrivacyScreen()),
 
       // Auth (Phone + OTP)
       GoRoute(
@@ -137,6 +144,19 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(path: '/onboarding/tracker/date',    builder: (_, __) => const LastPeriodDateScreen()),
       GoRoute(path: '/onboarding/tracker/details', builder: (_, __) => const CycleDetailsScreen()),
       GoRoute(path: '/onboarding/tracker/done',    builder: (_, __) => const TrackerActivatedScreen()),
+
+      // Tracker Reporting
+      GoRoute(path: '/tracker/doctor-summary', builder: (_, __) => const DoctorSummaryScreen()),
+      GoRoute(
+        path: '/tracker/insights', 
+        builder: (_, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return CycleInsightsScreen(
+            profile: extra['profile'] as CycleProfileModel,
+            logs: extra['logs'] as List<DailyLogModel>,
+          );
+        }
+      ),
 
       // Home
       GoRoute(path: '/home', builder: (_, __) => DashboardScreen(storage: storage)),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 
 class TrackerInsights extends StatelessWidget {
   final CycleProfileModel profile;
@@ -17,6 +18,8 @@ class TrackerInsights extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildDoctorBanner(context),
+        const SizedBox(height: 24),
         _buildCycleStats(hasEnoughData),
         const SizedBox(height: 24),
         _buildMoodTrends(hasEnoughData),
@@ -95,6 +98,54 @@ class TrackerInsights extends StatelessWidget {
             ),
           )
         : const Center(child: Text('Recording patterns...', style: TextStyle(color: Colors.grey))),
+    );
+  }
+
+  Widget _buildDoctorBanner(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.purple,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🩺', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Share with your doctor?',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 16),
+                ),
+              ),
+              const Icon(Icons.star, color: Colors.amber, size: 18),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Generate a clinical summary of your last 3 cycles for your next appointment.',
+            style: GoogleFonts.nunito(color: Colors.white.withOpacity(0.9), fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => context.push('/tracker/doctor-summary'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.purple,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Preview Report ✨'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
