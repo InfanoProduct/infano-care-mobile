@@ -28,9 +28,12 @@ class AuthRepository {
   AuthRepository(this._storage) : _dio = ApiService.instance.dio;
 
   // ── Send OTP ────────────────────────────────────────────────────────────────
-  Future<void> sendOtp(String phone) async {
+  Future<void> sendOtp(String phone, {String? appHash}) async {
     try {
-      await _dio.post('/auth/otp/send', data: {'phone': phone});
+      await _dio.post('/auth/otp/send', data: {
+        'phone': phone,
+        if (appHash != null) 'appHash': appHash,
+      });
     } on DioException catch (e) {
       throw _extractError(e, 'Failed to send OTP.');
     }

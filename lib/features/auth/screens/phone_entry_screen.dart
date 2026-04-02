@@ -75,7 +75,9 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       final phone = '$_countryCode${_controller.text.trim()}';
-      await _repo.sendOtp(phone);
+      final signature = await SmsAutoFill().getAppSignature;
+      debugPrint("📤 Sending OTP for $phone with signature $signature");
+      await _repo.sendOtp(phone, appHash: signature);
       if (mounted) {
         context.go('/auth/otp?phone=${Uri.encodeComponent(phone)}&fromOnboarding=${widget.fromOnboarding}');
       }

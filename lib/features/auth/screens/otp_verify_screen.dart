@@ -51,13 +51,18 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
 
   @override
   void codeUpdated() {
+    debugPrint("📬 SMS Received! Raw code property: $code");
     // This is called when an SMS with the OTP is detected
     if (code != null) {
+      debugPrint("✨ Filling OTP: $code");
       _pinController.text = code!;
       setState(() => _otp = code!);
       if (_otp.length == 4) {
-        _verify(); // Auto-verify!
+        debugPrint("🚀 Auto-verifying...");
+        _verify(); 
       }
+    } else {
+      debugPrint("⚠️ SMS detected but 'code' is null. Check message format.");
     }
   }
 
