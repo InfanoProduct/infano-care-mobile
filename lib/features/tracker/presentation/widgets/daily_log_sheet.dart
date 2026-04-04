@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -5,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/mood_wheel.dart';
+import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 
 class DailyLogScreen extends StatefulWidget {
   final DateTime date;
@@ -15,7 +17,9 @@ class DailyLogScreen extends StatefulWidget {
 }
 
 class _DailyLogScreenState extends State<DailyLogScreen> {
-  // ... (all state variables remain the same)
+  late DateTime _selectedDate;
+  late List<DateTime> _selectableDates;
+
   String? _flow;
   final Set<String> _symptoms = {};
   int _crampIntensity = 1;
@@ -29,6 +33,68 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
   bool _showAdvanced = false;
   bool _isSaving = false;
+
+  void _loadLogForDate(DateTime date, List<CycleLogModel> logs) {
+    // Reset to defaults first
+    _flow = null;
+    _symptoms.clear();
+    _crampIntensity = 1;
+    _selectedMood = null;
+    _energy = 3;
+    _sleepDuration = 8.0;
+    _sleepQuality = 3;
+    _nutrition.clear();
+    _activity.clear();
+    _noteController.clear();
+    _showAdvanced = false;
+
+    final log = logs.firstWhereOrNull((l) {
+      // Comparison: We want to match the CALENDAR DAY.
+      // Since our backend stores logs at 00:00:00 UTC for the target day,
+      // we check if the UTC year/month/day components match the device's selected year/month/day.
+      final logUtc = l.date.toUtc();
+      return logUtc.year == date.year && logUtc.month == date.month && logUtc.day == date.day;
+    });
+
+    if (log != null) {
+      _flow = log.flow;
+      _symptoms.addAll(log.symptoms);
+      _crampIntensity = log.crampIntensity ?? 1;
+      _energy = log.energyLevel ?? 3;
+      _sleepDuration = log.sleepHours ?? 8.0;
+      _sleepQuality = log.sleepQuality ?? 3;
+      _nutrition.addAll(log.nutritionTags);
+      _activity.addAll(log.activityTags);
+      _noteController.text = log.noteText ?? '';
+      
+      if (log.moodPrimary != null) {
+        // Find the full MoodState from the definition list to ensure symbols/colors are correct
+        _selectedMood = MoodWheel.moods.firstWhereOrNull((m) => m.id == log.moodPrimary);
+      }
+
+      if ((log.energyLevel != null && log.energyLevel != 3) || 
+          (log.sleepHours != null && log.sleepHours != 8.0) || 
+          (log.noteText?.isNotEmpty ?? false) ||
+          _nutrition.isNotEmpty ||
+          _activity.isNotEmpty) {
+        _showAdvanced = true;
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.date;
+    _selectableDates = List.generate(7, (i) => DateTime.now().subtract(Duration(days: i))).reversed.toList();
+    
+    // Initial load from Bloc state using current state
+    final state = context.read<TrackerBloc>().state;
+    state.maybeWhen(
+      loaded: (_, __, logs, ___) => _loadLogForDate(_selectedDate, logs),
+      orElse: () {},
+    );
+  }
 
   final List<Map<String, String>> _symptomList = [
     {'id': 'cramps', 'name': 'Cramps', 'emoji': '😣'},
@@ -51,17 +117,19 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       _showSuccessOverlay = true;
     });
     
+    final dateToSend = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, 12, 0, 0);
+    
     final data = {
-      'date': widget.date.toIso8601String(),
+      'date': dateToSend.toUtc().toIso8601String(),
       if (_flow != null) 'flow': _flow,
       'symptoms': _symptoms.toList(),
       if (_symptoms.contains('cramps')) 'crampIntensity': _crampIntensity,
-      if (_selectedMood != null) 'mood': _selectedMood!.id,
-      'energy': _energy,
-      'sleepDuration': _sleepDuration,
+      if (_selectedMood != null) 'moodPrimary': _selectedMood!.id,
+      'energyLevel': _energy,
+      'sleepHours': _sleepDuration,
       'sleepQuality': _sleepQuality,
-      'nutrition': _nutrition,
-      'activity': _activity,
+      'nutritionTags': _nutrition,
+      'activityTags': _activity,
       if (_noteController.text.isNotEmpty) 'noteText': _noteController.text,
     };
 
@@ -126,12 +194,23 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Daily Log - ${widget.date.day}/${widget.date.month}',
-          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textDark),
+          'Bloom Daily Log',
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textDark),
         ),
         centerTitle: true,
       ),
-      body: BlocBuilder<TrackerBloc, TrackerState>(
+      body: BlocConsumer<TrackerBloc, TrackerState>(
+        listener: (context, state) {
+          state.maybeWhen(
+            loaded: (_, __, logs, ___) {
+              // We only update if we are not currently saving to avoid jumpy UI
+              if (!_isSaving) {
+                setState(() => _loadLogForDate(_selectedDate, logs));
+              }
+            },
+            orElse: () {},
+          );
+        },
         builder: (context, state) {
           bool isWw = false;
           state.maybeWhen(
@@ -150,6 +229,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             children: [
               CustomScrollView(
                 slivers: [
+                  _buildDateSelector(),
                   _buildHeading(),
                   _buildPeriodStartedToggle(isWw),
                   if (!hideMenses) _buildFlowSection(),
@@ -348,7 +428,10 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
               child: SizedBox(
                 width: 240,
                 height: 240,
-                child: MoodWheel(onMoodSelected: (mood) => setState(() => _selectedMood = mood)),
+                child: MoodWheel(
+                  initialMood: _selectedMood,
+                  onMoodSelected: (mood) => setState(() => _selectedMood = mood),
+                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -612,6 +695,73 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
           child: _isSaving 
             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
             : Text('Save My Log 🌸', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 16)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateSelector() {
+    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      sliver: SliverToBoxAdapter(
+        child: SizedBox(
+          height: 80,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _selectableDates.length,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemBuilder: (context, index) {
+              final date = _selectableDates[index];
+              final isSelected = date.year == _selectedDate.year && date.month == _selectedDate.month && date.day == _selectedDate.day;
+              
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedDate = date;
+                    final state = context.read<TrackerBloc>().state;
+                    state.maybeWhen(
+                      loaded: (_, __, logs, ___) => _loadLogForDate(_selectedDate, logs),
+                      orElse: () {},
+                    );
+                  });
+                },
+                child: Container(
+                  width: 56,
+                  margin: const EdgeInsets.only(right: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.purple : Colors.grey[50],
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: isSelected ? AppColors.purple : Colors.grey[200]!),
+                    boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : null,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        weekdays[date.weekday - 1][0],
+                        style: GoogleFonts.nunito(
+                          color: isSelected ? Colors.white70 : AppColors.textMedium,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        date.day.toString(),
+                        style: GoogleFonts.nunito(
+                          color: isSelected ? Colors.white : AppColors.textDark,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

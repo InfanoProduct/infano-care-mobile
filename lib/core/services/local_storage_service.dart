@@ -98,8 +98,15 @@ class LocalStorageService extends ChangeNotifier {
     return result;
   }
   
-  Future<void> setRefreshToken(String t) => _prefs.setString(_refreshToken, t);
-  Future<void> setUserId(String id)      => _prefs.setString(_userId, id);
+  Future<void> setRefreshToken(String t) async {
+    await _prefs.setString(_refreshToken, t);
+    notifyListeners();
+  }
+
+  Future<void> setUserId(String id) async {
+    await _prefs.setString(_userId, id);
+    notifyListeners();
+  }
 
   String? get tempToken                  => _prefs.getString(_tempToken);
   Future<void> setTempToken(String t)    => _prefs.setString(_tempToken, t);

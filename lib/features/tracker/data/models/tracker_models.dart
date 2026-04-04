@@ -33,14 +33,16 @@ class CycleLogModel with _$CycleLogModel {
     required DateTime date,
     String? flow, // 'none', 'light', 'medium', 'heavy', 'spotting', 'ended'
     @Default([]) List<String> symptoms,
-    String? mood,
-    int? energy,
-    double? sleepDuration,
+    int? crampIntensity,
+    String? moodPrimary,
+    @Default([]) List<String> moodSecondary,
+    int? energyLevel,
+    double? sleepHours,
     int? sleepQuality,
     String? noteText,
-    int? stressLevel,
-    @Default([]) List<String> nutrition,
-    @Default([]) List<String> activity,
+    @Default([]) List<String> nutritionTags,
+    @Default([]) List<String> activityTags,
+    bool? isRetroactive,
   }) = _CycleLogModel;
 
   factory CycleLogModel.fromJson(Map<String, dynamic> json) =>

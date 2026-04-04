@@ -73,7 +73,7 @@ class _TrackerCalendarState extends State<TrackerCalendar> {
                       _buildMarker(AppColors.pink),
                     if (_isPredictedPeriod(date))
                       _buildMarker(AppColors.purple.withOpacity(0.3)),
-                    if (log?.mood != null)
+                    if (log?.moodPrimary != null)
                       const Text('•', style: TextStyle(color: Colors.blue, fontSize: 12)),
                   ],
                 ),

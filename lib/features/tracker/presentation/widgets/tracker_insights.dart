@@ -13,7 +13,7 @@ class TrackerInsights extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasEnoughData = logs.length >= 5; // Simplified for MVP
+    final hasEnoughData = logs.length >= 3; // Reduced for testing
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,9 +38,9 @@ class TrackerInsights extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _statItem('Avg Cycle', '${profile.avgCycleLength} d'),
+          _statItem('Avg Cycle', '${profile.avgCycleLength.toInt()} d'),
           _statItem('Variation', hasData ? '±2 d' : '--'),
-          _statItem('Avg Period', '${profile.avgPeriodDuration} d'),
+          _statItem('Avg Period', '${profile.avgPeriodDuration.toInt()} d'),
         ],
       ),
     );
@@ -51,7 +51,11 @@ class TrackerInsights extends StatelessWidget {
 
     // Simple Mood Count Logic
     Map<String, int> counts = {};
-    for (var l in logs) { if (l.mood != null) counts[l.mood!] = (counts[l.mood!] ?? 0) + 1; }
+    for (var l in logs) { 
+      if (l.moodPrimary != null) {
+        counts[l.moodPrimary!] = (counts[l.moodPrimary!] ?? 0) + 1;
+      } 
+    }
     
     return _buildInsightCard(
       title: 'Common Emotions 🎭',

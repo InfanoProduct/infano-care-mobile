@@ -54,28 +54,39 @@ Map<String, dynamic> _$$CycleProfileModelImplToJson(
   'confidenceLevel': instance.confidenceLevel,
 };
 
-_$CycleLogModelImpl _$$CycleLogModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$CycleLogModelImpl(
-  id: json['id'] as String,
-  date: DateTime.parse(json['date'] as String),
-  flow: json['flow'] as String?,
-  symptoms:
-      (json['symptoms'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      const [],
-  mood: json['mood'] as String?,
-  energy: (json['energy'] as num?)?.toInt(),
-  sleepDuration: (json['sleepDuration'] as num?)?.toDouble(),
-  sleepQuality: (json['sleepQuality'] as num?)?.toInt(),
-  noteText: json['noteText'] as String?,
-  stressLevel: (json['stressLevel'] as num?)?.toInt(),
-  nutrition:
-      (json['nutrition'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      const [],
-  activity:
-      (json['activity'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      const [],
-);
+_$CycleLogModelImpl _$$CycleLogModelImplFromJson(Map<String, dynamic> json) =>
+    _$CycleLogModelImpl(
+      id: json['id'] as String,
+      date: DateTime.parse(json['date'] as String),
+      flow: json['flow'] as String?,
+      symptoms:
+          (json['symptoms'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      crampIntensity: (json['crampIntensity'] as num?)?.toInt(),
+      moodPrimary: json['moodPrimary'] as String?,
+      moodSecondary:
+          (json['moodSecondary'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      energyLevel: (json['energyLevel'] as num?)?.toInt(),
+      sleepHours: (json['sleepHours'] as num?)?.toDouble(),
+      sleepQuality: (json['sleepQuality'] as num?)?.toInt(),
+      noteText: json['noteText'] as String?,
+      nutritionTags:
+          (json['nutritionTags'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      activityTags:
+          (json['activityTags'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      isRetroactive: json['isRetroactive'] as bool?,
+    );
 
 Map<String, dynamic> _$$CycleLogModelImplToJson(_$CycleLogModelImpl instance) =>
     <String, dynamic>{
@@ -83,14 +94,16 @@ Map<String, dynamic> _$$CycleLogModelImplToJson(_$CycleLogModelImpl instance) =>
       'date': instance.date.toIso8601String(),
       'flow': instance.flow,
       'symptoms': instance.symptoms,
-      'mood': instance.mood,
-      'energy': instance.energy,
-      'sleepDuration': instance.sleepDuration,
+      'crampIntensity': instance.crampIntensity,
+      'moodPrimary': instance.moodPrimary,
+      'moodSecondary': instance.moodSecondary,
+      'energyLevel': instance.energyLevel,
+      'sleepHours': instance.sleepHours,
       'sleepQuality': instance.sleepQuality,
       'noteText': instance.noteText,
-      'stressLevel': instance.stressLevel,
-      'nutrition': instance.nutrition,
-      'activity': instance.activity,
+      'nutritionTags': instance.nutritionTags,
+      'activityTags': instance.activityTags,
+      'isRetroactive': instance.isRetroactive,
     };
 
 _$PredictionResultModelImpl _$$PredictionResultModelImplFromJson(

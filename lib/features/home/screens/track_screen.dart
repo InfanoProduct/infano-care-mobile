@@ -81,7 +81,7 @@ class TrackScreen extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              _buildTopBar(context),
+              _buildTopBar(context, profile.trackerMode),
               const SizedBox(height: 12),
               _buildPhasePill(profile),
               const SizedBox(height: 24),
@@ -92,8 +92,10 @@ class TrackScreen extends StatelessWidget {
               _buildCycleRing(context, profile, prediction),
               const SizedBox(height: 56),
               _buildPrimaryActions(context, profile, logs, hasLoggedToday),
-              const SizedBox(height: 24),
-              _buildStreakInfo(prediction?.currentLogStreak ?? 0),
+              if (mode != 'watching_waiting') ...[
+                const SizedBox(height: 24),
+                _buildStreakInfo(prediction?.currentLogStreak ?? 0),
+              ],
               const SizedBox(height: 40),
             ],
           ),
@@ -102,19 +104,22 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildTopBar(BuildContext context, String? mode) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        IconButton(
-          icon: const Icon(Icons.settings_outlined, color: Colors.white54, size: 28),
-          onPressed: () async {
-            final updated = await context.push('/tracker/settings');
-            if (updated == true && context.mounted) {
-              context.read<TrackerBloc>().add(const TrackerEvent.load());
-            }
-          },
-        ),
+        if (mode != 'watching_waiting')
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: Colors.white54, size: 28),
+            onPressed: () async {
+              final updated = await context.push('/tracker/settings');
+              if (updated == true && context.mounted) {
+                context.read<TrackerBloc>().add(const TrackerEvent.load());
+              }
+            },
+          )
+        else
+          const SizedBox(height: 48), // Maintain spacing without showing the gear
       ],
     );
   }
@@ -240,6 +245,7 @@ class TrackScreen extends StatelessWidget {
   }
 
   Widget _buildPrimaryActions(BuildContext context, profile, logs, bool alreadyLogged) {
+    final mode = profile.trackerMode;
     return Column(
       children: [
         SizedBox(
@@ -273,23 +279,25 @@ class TrackScreen extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: OutlinedButton(
-            onPressed: () => context.push('/tracker/insights', extra: {'profile': profile, 'logs': logs}),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFF312E81), width: 1),
-              backgroundColor: const Color(0xFF1E1B4B).withOpacity(0.4),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            child: Text(
-              'View Cycle Insights →',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white70, fontSize: 15),
+        if (mode != 'watching_waiting') ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: OutlinedButton(
+              onPressed: () => context.push('/tracker/insights', extra: {'profile': profile, 'logs': logs}),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF312E81), width: 1),
+                backgroundColor: const Color(0xFF1E1B4B).withOpacity(0.4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                'View Cycle Insights →',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white70, fontSize: 15),
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

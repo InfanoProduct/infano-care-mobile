@@ -483,14 +483,16 @@ mixin _$CycleLogModel {
   String? get flow =>
       throw _privateConstructorUsedError; // 'none', 'light', 'medium', 'heavy', 'spotting', 'ended'
   List<String> get symptoms => throw _privateConstructorUsedError;
-  String? get mood => throw _privateConstructorUsedError;
-  int? get energy => throw _privateConstructorUsedError;
-  double? get sleepDuration => throw _privateConstructorUsedError;
+  int? get crampIntensity => throw _privateConstructorUsedError;
+  String? get moodPrimary => throw _privateConstructorUsedError;
+  List<String> get moodSecondary => throw _privateConstructorUsedError;
+  int? get energyLevel => throw _privateConstructorUsedError;
+  double? get sleepHours => throw _privateConstructorUsedError;
   int? get sleepQuality => throw _privateConstructorUsedError;
   String? get noteText => throw _privateConstructorUsedError;
-  int? get stressLevel => throw _privateConstructorUsedError;
-  List<String> get nutrition => throw _privateConstructorUsedError;
-  List<String> get activity => throw _privateConstructorUsedError;
+  List<String> get nutritionTags => throw _privateConstructorUsedError;
+  List<String> get activityTags => throw _privateConstructorUsedError;
+  bool? get isRetroactive => throw _privateConstructorUsedError;
 
   /// Serializes this CycleLogModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -514,14 +516,16 @@ abstract class $CycleLogModelCopyWith<$Res> {
     DateTime date,
     String? flow,
     List<String> symptoms,
-    String? mood,
-    int? energy,
-    double? sleepDuration,
+    int? crampIntensity,
+    String? moodPrimary,
+    List<String> moodSecondary,
+    int? energyLevel,
+    double? sleepHours,
     int? sleepQuality,
     String? noteText,
-    int? stressLevel,
-    List<String> nutrition,
-    List<String> activity,
+    List<String> nutritionTags,
+    List<String> activityTags,
+    bool? isRetroactive,
   });
 }
 
@@ -544,14 +548,16 @@ class _$CycleLogModelCopyWithImpl<$Res, $Val extends CycleLogModel>
     Object? date = null,
     Object? flow = freezed,
     Object? symptoms = null,
-    Object? mood = freezed,
-    Object? energy = freezed,
-    Object? sleepDuration = freezed,
+    Object? crampIntensity = freezed,
+    Object? moodPrimary = freezed,
+    Object? moodSecondary = null,
+    Object? energyLevel = freezed,
+    Object? sleepHours = freezed,
     Object? sleepQuality = freezed,
     Object? noteText = freezed,
-    Object? stressLevel = freezed,
-    Object? nutrition = null,
-    Object? activity = null,
+    Object? nutritionTags = null,
+    Object? activityTags = null,
+    Object? isRetroactive = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -571,17 +577,25 @@ class _$CycleLogModelCopyWithImpl<$Res, $Val extends CycleLogModel>
                 ? _value.symptoms
                 : symptoms // ignore: cast_nullable_to_non_nullable
                       as List<String>,
-            mood: freezed == mood
-                ? _value.mood
-                : mood // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            energy: freezed == energy
-                ? _value.energy
-                : energy // ignore: cast_nullable_to_non_nullable
+            crampIntensity: freezed == crampIntensity
+                ? _value.crampIntensity
+                : crampIntensity // ignore: cast_nullable_to_non_nullable
                       as int?,
-            sleepDuration: freezed == sleepDuration
-                ? _value.sleepDuration
-                : sleepDuration // ignore: cast_nullable_to_non_nullable
+            moodPrimary: freezed == moodPrimary
+                ? _value.moodPrimary
+                : moodPrimary // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            moodSecondary: null == moodSecondary
+                ? _value.moodSecondary
+                : moodSecondary // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            energyLevel: freezed == energyLevel
+                ? _value.energyLevel
+                : energyLevel // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            sleepHours: freezed == sleepHours
+                ? _value.sleepHours
+                : sleepHours // ignore: cast_nullable_to_non_nullable
                       as double?,
             sleepQuality: freezed == sleepQuality
                 ? _value.sleepQuality
@@ -591,18 +605,18 @@ class _$CycleLogModelCopyWithImpl<$Res, $Val extends CycleLogModel>
                 ? _value.noteText
                 : noteText // ignore: cast_nullable_to_non_nullable
                       as String?,
-            stressLevel: freezed == stressLevel
-                ? _value.stressLevel
-                : stressLevel // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            nutrition: null == nutrition
-                ? _value.nutrition
-                : nutrition // ignore: cast_nullable_to_non_nullable
+            nutritionTags: null == nutritionTags
+                ? _value.nutritionTags
+                : nutritionTags // ignore: cast_nullable_to_non_nullable
                       as List<String>,
-            activity: null == activity
-                ? _value.activity
-                : activity // ignore: cast_nullable_to_non_nullable
+            activityTags: null == activityTags
+                ? _value.activityTags
+                : activityTags // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            isRetroactive: freezed == isRetroactive
+                ? _value.isRetroactive
+                : isRetroactive // ignore: cast_nullable_to_non_nullable
+                      as bool?,
           )
           as $Val,
     );
@@ -623,14 +637,16 @@ abstract class _$$CycleLogModelImplCopyWith<$Res>
     DateTime date,
     String? flow,
     List<String> symptoms,
-    String? mood,
-    int? energy,
-    double? sleepDuration,
+    int? crampIntensity,
+    String? moodPrimary,
+    List<String> moodSecondary,
+    int? energyLevel,
+    double? sleepHours,
     int? sleepQuality,
     String? noteText,
-    int? stressLevel,
-    List<String> nutrition,
-    List<String> activity,
+    List<String> nutritionTags,
+    List<String> activityTags,
+    bool? isRetroactive,
   });
 }
 
@@ -652,14 +668,16 @@ class __$$CycleLogModelImplCopyWithImpl<$Res>
     Object? date = null,
     Object? flow = freezed,
     Object? symptoms = null,
-    Object? mood = freezed,
-    Object? energy = freezed,
-    Object? sleepDuration = freezed,
+    Object? crampIntensity = freezed,
+    Object? moodPrimary = freezed,
+    Object? moodSecondary = null,
+    Object? energyLevel = freezed,
+    Object? sleepHours = freezed,
     Object? sleepQuality = freezed,
     Object? noteText = freezed,
-    Object? stressLevel = freezed,
-    Object? nutrition = null,
-    Object? activity = null,
+    Object? nutritionTags = null,
+    Object? activityTags = null,
+    Object? isRetroactive = freezed,
   }) {
     return _then(
       _$CycleLogModelImpl(
@@ -679,17 +697,25 @@ class __$$CycleLogModelImplCopyWithImpl<$Res>
             ? _value._symptoms
             : symptoms // ignore: cast_nullable_to_non_nullable
                   as List<String>,
-        mood: freezed == mood
-            ? _value.mood
-            : mood // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        energy: freezed == energy
-            ? _value.energy
-            : energy // ignore: cast_nullable_to_non_nullable
+        crampIntensity: freezed == crampIntensity
+            ? _value.crampIntensity
+            : crampIntensity // ignore: cast_nullable_to_non_nullable
                   as int?,
-        sleepDuration: freezed == sleepDuration
-            ? _value.sleepDuration
-            : sleepDuration // ignore: cast_nullable_to_non_nullable
+        moodPrimary: freezed == moodPrimary
+            ? _value.moodPrimary
+            : moodPrimary // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        moodSecondary: null == moodSecondary
+            ? _value._moodSecondary
+            : moodSecondary // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        energyLevel: freezed == energyLevel
+            ? _value.energyLevel
+            : energyLevel // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        sleepHours: freezed == sleepHours
+            ? _value.sleepHours
+            : sleepHours // ignore: cast_nullable_to_non_nullable
                   as double?,
         sleepQuality: freezed == sleepQuality
             ? _value.sleepQuality
@@ -699,18 +725,18 @@ class __$$CycleLogModelImplCopyWithImpl<$Res>
             ? _value.noteText
             : noteText // ignore: cast_nullable_to_non_nullable
                   as String?,
-        stressLevel: freezed == stressLevel
-            ? _value.stressLevel
-            : stressLevel // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        nutrition: null == nutrition
-            ? _value._nutrition
-            : nutrition // ignore: cast_nullable_to_non_nullable
+        nutritionTags: null == nutritionTags
+            ? _value._nutritionTags
+            : nutritionTags // ignore: cast_nullable_to_non_nullable
                   as List<String>,
-        activity: null == activity
-            ? _value._activity
-            : activity // ignore: cast_nullable_to_non_nullable
+        activityTags: null == activityTags
+            ? _value._activityTags
+            : activityTags // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        isRetroactive: freezed == isRetroactive
+            ? _value.isRetroactive
+            : isRetroactive // ignore: cast_nullable_to_non_nullable
+                  as bool?,
       ),
     );
   }
@@ -724,17 +750,20 @@ class _$CycleLogModelImpl implements _CycleLogModel {
     required this.date,
     this.flow,
     final List<String> symptoms = const [],
-    this.mood,
-    this.energy,
-    this.sleepDuration,
+    this.crampIntensity,
+    this.moodPrimary,
+    final List<String> moodSecondary = const [],
+    this.energyLevel,
+    this.sleepHours,
     this.sleepQuality,
     this.noteText,
-    this.stressLevel,
-    final List<String> nutrition = const [],
-    final List<String> activity = const [],
+    final List<String> nutritionTags = const [],
+    final List<String> activityTags = const [],
+    this.isRetroactive,
   }) : _symptoms = symptoms,
-       _nutrition = nutrition,
-       _activity = activity;
+       _moodSecondary = moodSecondary,
+       _nutritionTags = nutritionTags,
+       _activityTags = activityTags;
 
   factory _$CycleLogModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$CycleLogModelImplFromJson(json);
@@ -757,38 +786,50 @@ class _$CycleLogModelImpl implements _CycleLogModel {
   }
 
   @override
-  final String? mood;
+  final int? crampIntensity;
   @override
-  final int? energy;
+  final String? moodPrimary;
+  final List<String> _moodSecondary;
   @override
-  final double? sleepDuration;
+  @JsonKey()
+  List<String> get moodSecondary {
+    if (_moodSecondary is EqualUnmodifiableListView) return _moodSecondary;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_moodSecondary);
+  }
+
+  @override
+  final int? energyLevel;
+  @override
+  final double? sleepHours;
   @override
   final int? sleepQuality;
   @override
   final String? noteText;
-  @override
-  final int? stressLevel;
-  final List<String> _nutrition;
+  final List<String> _nutritionTags;
   @override
   @JsonKey()
-  List<String> get nutrition {
-    if (_nutrition is EqualUnmodifiableListView) return _nutrition;
+  List<String> get nutritionTags {
+    if (_nutritionTags is EqualUnmodifiableListView) return _nutritionTags;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_nutrition);
+    return EqualUnmodifiableListView(_nutritionTags);
   }
 
-  final List<String> _activity;
+  final List<String> _activityTags;
   @override
   @JsonKey()
-  List<String> get activity {
-    if (_activity is EqualUnmodifiableListView) return _activity;
+  List<String> get activityTags {
+    if (_activityTags is EqualUnmodifiableListView) return _activityTags;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_activity);
+    return EqualUnmodifiableListView(_activityTags);
   }
+
+  @override
+  final bool? isRetroactive;
 
   @override
   String toString() {
-    return 'CycleLogModel(id: $id, date: $date, flow: $flow, symptoms: $symptoms, mood: $mood, energy: $energy, sleepDuration: $sleepDuration, sleepQuality: $sleepQuality, noteText: $noteText, stressLevel: $stressLevel, nutrition: $nutrition, activity: $activity)';
+    return 'CycleLogModel(id: $id, date: $date, flow: $flow, symptoms: $symptoms, crampIntensity: $crampIntensity, moodPrimary: $moodPrimary, moodSecondary: $moodSecondary, energyLevel: $energyLevel, sleepHours: $sleepHours, sleepQuality: $sleepQuality, noteText: $noteText, nutritionTags: $nutritionTags, activityTags: $activityTags, isRetroactive: $isRetroactive)';
   }
 
   @override
@@ -800,21 +841,32 @@ class _$CycleLogModelImpl implements _CycleLogModel {
             (identical(other.date, date) || other.date == date) &&
             (identical(other.flow, flow) || other.flow == flow) &&
             const DeepCollectionEquality().equals(other._symptoms, _symptoms) &&
-            (identical(other.mood, mood) || other.mood == mood) &&
-            (identical(other.energy, energy) || other.energy == energy) &&
-            (identical(other.sleepDuration, sleepDuration) ||
-                other.sleepDuration == sleepDuration) &&
+            (identical(other.crampIntensity, crampIntensity) ||
+                other.crampIntensity == crampIntensity) &&
+            (identical(other.moodPrimary, moodPrimary) ||
+                other.moodPrimary == moodPrimary) &&
+            const DeepCollectionEquality().equals(
+              other._moodSecondary,
+              _moodSecondary,
+            ) &&
+            (identical(other.energyLevel, energyLevel) ||
+                other.energyLevel == energyLevel) &&
+            (identical(other.sleepHours, sleepHours) ||
+                other.sleepHours == sleepHours) &&
             (identical(other.sleepQuality, sleepQuality) ||
                 other.sleepQuality == sleepQuality) &&
             (identical(other.noteText, noteText) ||
                 other.noteText == noteText) &&
-            (identical(other.stressLevel, stressLevel) ||
-                other.stressLevel == stressLevel) &&
             const DeepCollectionEquality().equals(
-              other._nutrition,
-              _nutrition,
+              other._nutritionTags,
+              _nutritionTags,
             ) &&
-            const DeepCollectionEquality().equals(other._activity, _activity));
+            const DeepCollectionEquality().equals(
+              other._activityTags,
+              _activityTags,
+            ) &&
+            (identical(other.isRetroactive, isRetroactive) ||
+                other.isRetroactive == isRetroactive));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -825,14 +877,16 @@ class _$CycleLogModelImpl implements _CycleLogModel {
     date,
     flow,
     const DeepCollectionEquality().hash(_symptoms),
-    mood,
-    energy,
-    sleepDuration,
+    crampIntensity,
+    moodPrimary,
+    const DeepCollectionEquality().hash(_moodSecondary),
+    energyLevel,
+    sleepHours,
     sleepQuality,
     noteText,
-    stressLevel,
-    const DeepCollectionEquality().hash(_nutrition),
-    const DeepCollectionEquality().hash(_activity),
+    const DeepCollectionEquality().hash(_nutritionTags),
+    const DeepCollectionEquality().hash(_activityTags),
+    isRetroactive,
   );
 
   /// Create a copy of CycleLogModel
@@ -855,14 +909,16 @@ abstract class _CycleLogModel implements CycleLogModel {
     required final DateTime date,
     final String? flow,
     final List<String> symptoms,
-    final String? mood,
-    final int? energy,
-    final double? sleepDuration,
+    final int? crampIntensity,
+    final String? moodPrimary,
+    final List<String> moodSecondary,
+    final int? energyLevel,
+    final double? sleepHours,
     final int? sleepQuality,
     final String? noteText,
-    final int? stressLevel,
-    final List<String> nutrition,
-    final List<String> activity,
+    final List<String> nutritionTags,
+    final List<String> activityTags,
+    final bool? isRetroactive,
   }) = _$CycleLogModelImpl;
 
   factory _CycleLogModel.fromJson(Map<String, dynamic> json) =
@@ -877,21 +933,25 @@ abstract class _CycleLogModel implements CycleLogModel {
   @override
   List<String> get symptoms;
   @override
-  String? get mood;
+  int? get crampIntensity;
   @override
-  int? get energy;
+  String? get moodPrimary;
   @override
-  double? get sleepDuration;
+  List<String> get moodSecondary;
+  @override
+  int? get energyLevel;
+  @override
+  double? get sleepHours;
   @override
   int? get sleepQuality;
   @override
   String? get noteText;
   @override
-  int? get stressLevel;
+  List<String> get nutritionTags;
   @override
-  List<String> get nutrition;
+  List<String> get activityTags;
   @override
-  List<String> get activity;
+  bool? get isRetroactive;
 
   /// Create a copy of CycleLogModel
   /// with the given fields replaced by the non-null parameter values.

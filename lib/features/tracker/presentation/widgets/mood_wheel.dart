@@ -9,7 +9,7 @@ class MoodState {
   final String arousal; // High/Low
   final String valence; // Positive/Negative
 
-  MoodState({
+  const MoodState({
     required this.id,
     required this.emoji,
     required this.color,
@@ -22,6 +22,25 @@ class MoodWheel extends StatefulWidget {
   final Function(MoodState) onMoodSelected;
   final MoodState? initialMood;
 
+  static const List<MoodState> moods = [
+    MoodState(id: 'joyful', emoji: '😄', color: Color(0xFFFBBF24), arousal: 'High', valence: 'Positive'),
+    MoodState(id: 'excited', emoji: '🤩', color: Color(0xFFF97316), arousal: 'High', valence: 'Positive'),
+    MoodState(id: 'energized', emoji: '⚡', color: Color(0xFFEF4444), arousal: 'High', valence: 'Positive'),
+    MoodState(id: 'motivated', emoji: '💪', color: Color(0xFFEC4899), arousal: 'High', valence: 'Positive'),
+    MoodState(id: 'content', emoji: '🙂', color: Color(0xFFA855F7), arousal: 'Low', valence: 'Positive'),
+    MoodState(id: 'calm', emoji: '😌', color: Color(0xFF8B5CF6), arousal: 'Low', valence: 'Positive'),
+    MoodState(id: 'grateful', emoji: '🥹', color: Color(0xFF6366F1), arousal: 'Low', valence: 'Positive'),
+    MoodState(id: 'hopeful', emoji: '🌱', color: Color(0xFF3B82F6), arousal: 'Low', valence: 'Positive'),
+    MoodState(id: 'anxious', emoji: '😰', color: Color(0xFF0EA5E9), arousal: 'High', valence: 'Negative'),
+    MoodState(id: 'irritable', emoji: '😠', color: Color(0xFF0D9488), arousal: 'High', valence: 'Negative'),
+    MoodState(id: 'restless', emoji: '😤', color: Color(0xFF15803D), arousal: 'High', valence: 'Negative'),
+    MoodState(id: 'overwhelmed', emoji: '😵', color: Color(0xFF65A30D), arousal: 'High', valence: 'Negative'),
+    MoodState(id: 'sad', emoji: '😔', color: Color(0xFFCA8A04), arousal: 'Low', valence: 'Negative'),
+    MoodState(id: 'tired', emoji: '😴', color: Color(0xFFB45309), arousal: 'Low', valence: 'Negative'),
+    MoodState(id: 'numb', emoji: '😶', color: Color(0xFF92400E), arousal: 'Low', valence: 'Negative'),
+    MoodState(id: 'withdrawn', emoji: '🫥', color: Color(0xFF7C2D12), arousal: 'Low', valence: 'Negative'),
+  ];
+
   const MoodWheel({
     super.key,
     required this.onMoodSelected,
@@ -33,7 +52,6 @@ class MoodWheel extends StatefulWidget {
 }
 
 class _MoodWheelState extends State<MoodWheel> with SingleTickerProviderStateMixin {
-  late List<MoodState> _moods;
   MoodState? _selectedMood;
   late AnimationController _controller;
 
@@ -41,28 +59,18 @@ class _MoodWheelState extends State<MoodWheel> with SingleTickerProviderStateMix
   void initState() {
     super.initState();
     _selectedMood = widget.initialMood;
-    _moods = [
-      MoodState(id: 'joyful', emoji: '😄', color: const Color(0xFFFBBF24), arousal: 'High', valence: 'Positive'),
-      MoodState(id: 'excited', emoji: '🤩', color: const Color(0xFFF97316), arousal: 'High', valence: 'Positive'),
-      MoodState(id: 'energized', emoji: '⚡', color: const Color(0xFFEF4444), arousal: 'High', valence: 'Positive'),
-      MoodState(id: 'motivated', emoji: '💪', color: const Color(0xFFEC4899), arousal: 'High', valence: 'Positive'),
-      MoodState(id: 'content', emoji: '🙂', color: const Color(0xFFA855F7), arousal: 'Low', valence: 'Positive'),
-      MoodState(id: 'calm', emoji: '😌', color: const Color(0xFF8B5CF6), arousal: 'Low', valence: 'Positive'),
-      MoodState(id: 'grateful', emoji: '🥹', color: const Color(0xFF6366F1), arousal: 'Low', valence: 'Positive'),
-      MoodState(id: 'hopeful', emoji: '🌱', color: const Color(0xFF3B82F6), arousal: 'Low', valence: 'Positive'),
-      MoodState(id: 'anxious', emoji: '😰', color: const Color(0xFF0EA5E9), arousal: 'High', valence: 'Negative'),
-      MoodState(id: 'irritable', emoji: '😠', color: const Color(0xFF0D9488), arousal: 'High', valence: 'Negative'),
-      MoodState(id: 'restless', emoji: '😤', color: const Color(0xFF15803D), arousal: 'High', valence: 'Negative'),
-      MoodState(id: 'overwhelmed', emoji: '😵', color: const Color(0xFF65A30D), arousal: 'High', valence: 'Negative'),
-      MoodState(id: 'sad', emoji: '😔', color: const Color(0xFFCA8A04), arousal: 'Low', valence: 'Negative'),
-      MoodState(id: 'tired', emoji: '😴', color: const Color(0xFFB45309), arousal: 'Low', valence: 'Negative'),
-      MoodState(id: 'numb', emoji: '😶', color: const Color(0xFF92400E), arousal: 'Low', valence: 'Negative'),
-      MoodState(id: 'withdrawn', emoji: '🫥', color: const Color(0xFF7C2D12), arousal: 'Low', valence: 'Negative'),
-    ];
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+  }
+
+  @override
+  void didUpdateWidget(MoodWheel oldWidget) {
+    if (widget.initialMood?.id != oldWidget.initialMood?.id) {
+      setState(() => _selectedMood = widget.initialMood);
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -87,11 +95,11 @@ class _MoodWheelState extends State<MoodWheel> with SingleTickerProviderStateMix
     var angle = atan2(dy, dx) + (pi / 2);
     if (angle < 0) angle += 2 * pi;
 
-    final segmentAngle = (2 * pi) / _moods.length;
-    final index = (angle / segmentAngle).floor() % _moods.length;
+    final segmentAngle = (2 * pi) / MoodWheel.moods.length;
+    final index = (angle / segmentAngle).floor() % MoodWheel.moods.length;
 
     setState(() {
-      _selectedMood = _moods[index];
+      _selectedMood = MoodWheel.moods[index];
       widget.onMoodSelected(_selectedMood!);
       _controller.forward(from: 0);
     });
@@ -113,7 +121,7 @@ class _MoodWheelState extends State<MoodWheel> with SingleTickerProviderStateMix
                 CustomPaint(
                   size: Size(size, size),
                   painter: MoodWheelPainter(
-                    moods: _moods,
+                    moods: MoodWheel.moods,
                     selectedMoodId: _selectedMood?.id,
                     animationValue: _controller.value,
                   ),

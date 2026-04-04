@@ -36,11 +36,6 @@ class TrackerRepository {
 
   Future<Map<String, dynamic>> logDaily(Map<String, dynamic> data) async {
     try {
-      // Encrypt noteText before sending to API
-      if (data.containsKey('noteText') && data['noteText'] != null) {
-        data['noteText'] = await _privacyService.encrypt(data['noteText']);
-      }
-
       final response = await _dio.post('/tracker/log', data: data);
       return response.data;
     } on DioException catch (e) {
@@ -65,17 +60,7 @@ class TrackerRepository {
       });
       
       final rawLogs = (response.data as List).map((json) => CycleLogModel.fromJson(json)).toList();
-      
-      // Decrypt notes in all logs
-      final processedLogs = await Future.wait(rawLogs.map((log) async {
-        if (log.noteText != null) {
-          final decryptedNote = await _privacyService.decrypt(log.noteText);
-          return log.copyWith(noteText: decryptedNote);
-        }
-        return log;
-      }));
-
-      return processedLogs;
+      return rawLogs;
     } catch (e) {
       return [];
     }

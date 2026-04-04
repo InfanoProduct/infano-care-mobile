@@ -47,16 +47,19 @@ class _LandingScreenState extends State<LandingScreen> {
         if (serverName != null) await storage.setDisplayName(serverName);
         
         if (isOnboarded) {
-          // Fully complete: go home
-          context.go('/home');
+          // Both checks passed: Authenticated + Onboarded -> Direct to Dashboard
+          if (mounted) context.go('/home');
         } else {
-          // Stage 1 or above: Treat as "Resuming" so they don't see "Start My Journey" -> "Login"
+          // Authenticated but NOT Onboarded -> Auto-route to next step
+          // We set _isResuming = true just in case the navigation takes a moment
           setState(() {
             _isResuming = true;
             _userName = serverName;
           });
-          // Optional: Auto-redirect if they've already given their name etc.
-          // For now, showing "Resume" is better for Stage 1.
+          
+          // Trigger the router's redirect logic by going to /home
+          // The router will automatically see !isOnboarded and send them to the correct step
+          if (mounted) context.go('/home');
         }
       } catch (e) {
         // Token might be invalid or network error

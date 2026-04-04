@@ -51,10 +51,15 @@ class ApiService {
         if (error.response?.statusCode == 401 && storage.refreshToken != null) {
           // 1. If a refresh is already in progress, wait for it
           if (_refreshCompleter != null) {
-            await _refreshCompleter!.future;
-            // Retry the original request with the new token
-            error.requestOptions.headers['Authorization'] = 'Bearer ${storage.authToken}';
-            return handler.resolve(await _dio.fetch(error.requestOptions));
+            try {
+              await _refreshCompleter!.future;
+              // Retry the original request with the new token
+              final opts = error.requestOptions;
+              opts.headers['Authorization'] = 'Bearer ${storage.authToken}';
+              return handler.resolve(await _dio.fetch(opts));
+            } catch (e) {
+              return handler.next(error);
+            }
           }
 
           // 2. Start a new refresh operation
@@ -68,19 +73,25 @@ class ApiService {
             final newAccess = resp.data['accessToken'];
             final newRefresh = resp.data['refreshToken'];
 
-            await storage.setAuthToken(newAccess);
-            await storage.setRefreshToken(newRefresh);
+            if (newAccess != null) {
+              await storage.setAuthToken(newAccess);
+              if (newRefresh != null) await storage.setRefreshToken(newRefresh);
 
-            _refreshCompleter!.complete();
-            _refreshCompleter = null;
+              _refreshCompleter!.complete();
+              _refreshCompleter = null;
 
-            // Retry the original request
-            error.requestOptions.headers['Authorization'] = 'Bearer $newAccess';
-            return handler.resolve(await _dio.fetch(error.requestOptions));
+              // Retry the original request
+              final opts = error.requestOptions;
+              opts.headers['Authorization'] = 'Bearer $newAccess';
+              return handler.resolve(await _dio.fetch(opts));
+            } else {
+              throw Exception('Refresh token failed - no access token returned');
+            }
           } catch (e) {
             _refreshCompleter!.completeError(e);
             _refreshCompleter = null;
             await storage.clearAuthTokens();
+            return handler.next(error);
           }
         }
         return handler.next(error);
