@@ -51,6 +51,7 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
     return OnboardingScaffold(
       currentStep: 8,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/period-status'),
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [

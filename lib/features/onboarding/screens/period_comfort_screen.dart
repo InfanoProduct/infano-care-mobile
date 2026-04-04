@@ -47,6 +47,7 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
     return OnboardingScaffold(
       currentStep: 6,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/goals'),
       bottomBar: _selected != null ? PointsBurst(points: 10, onComplete: () => setState(() => _showPoints = false)) : null,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),

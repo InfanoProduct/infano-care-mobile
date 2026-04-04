@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,7 +22,23 @@ class _WelcomeWorldScreenState extends State<WelcomeWorldScreen> {
   Future<void> _autoRoute() async {
     await Future.delayed(const Duration(seconds: 4));
     if (!mounted) return;
-    context.go('/onboarding/tracker/date');
+
+    final bloc = context.read<OnboardingBloc>();
+    final status = bloc.state.periodStatus;
+
+    if (status == 'active') {
+      context.go('/onboarding/tracker/date');
+    } else {
+      // Auto-submit tracker setup with defaults for watching_waiting mode
+      bloc.add(const SubmitTrackerSetup());
+      
+      // Wait for submission to complete before going home
+      await bloc.stream.firstWhere((state) => !state.isLoading);
+      
+      if (mounted) {
+        context.go('/home');
+      }
+    }
   }
 
   @override

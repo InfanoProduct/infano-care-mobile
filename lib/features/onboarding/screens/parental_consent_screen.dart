@@ -40,6 +40,7 @@ class _ParentalConsentScreenState extends State<ParentalConsentScreen> {
     return OnboardingScaffold(
       currentStep: 4,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/birthday'),
       bottomBar: GradientButton(label: 'Send the Note 💌', onPressed: _sendNote, enabled: _validEmail),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),

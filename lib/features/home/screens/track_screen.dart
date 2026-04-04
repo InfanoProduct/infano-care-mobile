@@ -15,8 +15,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/services/privacy_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
-
 import 'package:go_router/go_router.dart';
+import 'package:infano_care_mobile/features/tracker/application/character_greeting_service.dart';
 
 class TrackScreen extends StatelessWidget {
   const TrackScreen({super.key});
@@ -32,14 +32,7 @@ class TrackScreen extends StatelessWidget {
       )..add(const TrackerEvent.load()),
 
       child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: AppColors.background,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          title: Text('TRACKER ENTRY', style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.textDark, fontSize: 18, letterSpacing: 1.2)),
-          centerTitle: true,
-        ),
+        backgroundColor: const Color(0xFF130F26), // Premium Dark Background
         body: BlocListener<TrackerBloc, TrackerState>(
           listener: (context, state) {
             state.maybeWhen(
@@ -56,11 +49,11 @@ class TrackScreen extends StatelessWidget {
           child: BlocBuilder<TrackerBloc, TrackerState>(
             builder: (context, state) {
               return state.when(
-                initial: () => const Center(child: CircularProgressIndicator()),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                initial: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
+                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
                 error: (msg) => _buildErrorState(context, msg),
                 notStarted: () => _buildNotStartedState(context),
-                loaded: (profile, prediction, logs, milestone) => _buildDashboardTab(context, profile, prediction, logs),
+                loaded: (profile, prediction, logs, milestone) => _buildRedesignedDashboard(context, profile, prediction, logs),
               );
             },
           ),
@@ -69,61 +62,184 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboardTab(BuildContext context, profile, prediction, logs) {
+  Widget _buildRedesignedDashboard(BuildContext context, profile, prediction, logs) {
     final mode = profile.trackerMode;
+    final char = CharacterGreetingService.getCharacter(mode);
+    final hasLoggedToday = prediction?.hasLoggedToday ?? false;
 
-    if (mode == 'watching_waiting') {
-      return _buildWatchingWaitingDashboard(context, profile);
-    }
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            _buildDayBadge(profile, prediction),
-            const SizedBox(height: 24),
-            _buildGigiGreeting(profile, prediction),
-            const SizedBox(height: 32),
-            _buildCycleRing(context, profile, prediction),
-            const SizedBox(height: 48),
-            _buildPrimaryActions(context, profile, logs),
-            const SizedBox(height: 24),
-            _buildStreakInfo(),
-            const SizedBox(height: 40),
-            if (prediction != null && (prediction as dynamic).insights.isNotEmpty)
-              InsightCard(
-                title: mode == 'irregular_support' ? 'Irregularity Insight 🔮' : 'Gigi\'s AI Insight 🔮',
-                message: (prediction as dynamic).insights.first,
-                accentColor: mode == 'irregular_support' ? Colors.orange : AppColors.purple,
-              ),
-            const SizedBox(height: 120),
-          ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF1A132C), Color(0xFF130F26)],
+        ),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              _buildTopBar(context),
+              const SizedBox(height: 12),
+              _buildPhasePill(profile),
+              const SizedBox(height: 24),
+              _buildGigiHeader(char),
+              const SizedBox(height: 16),
+              _buildGreetingBubble(profile, prediction, char),
+              const SizedBox(height: 48),
+              _buildCycleRing(context, profile, prediction),
+              const SizedBox(height: 56),
+              _buildPrimaryActions(context, profile, logs, hasLoggedToday),
+              const SizedBox(height: 24),
+              _buildStreakInfo(prediction?.currentLogStreak ?? 0),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDayBadge(profile, prediction) {
+  Widget _buildTopBar(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.settings_outlined, color: Colors.white54, size: 28),
+          onPressed: () async {
+            final updated = await context.push('/tracker/settings');
+            if (updated == true && context.mounted) {
+              context.read<TrackerBloc>().add(const TrackerEvent.load());
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhasePill(profile) {
     String dayText = profile.currentCycleDay != null ? 'Day ${profile.currentCycleDay}' : '';
     String phaseText = profile.currentPhase != null ? ' · ${profile.currentPhase[0].toUpperCase()}${profile.currentPhase.substring(1)}' : '';
     
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.pink.withOpacity(0.15),
+        color: const Color(0xFFD946EF).withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFD946EF).withOpacity(0.3)),
       ),
       child: Text(
         '$dayText$phaseText',
-        style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: AppColors.pink, fontSize: 13),
+        style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: const Color(0xFFF472B6), fontSize: 13),
       ),
+    ).animate().fadeIn().scale();
+  }
+
+  Widget _buildGigiHeader(TrackerCharacter char) {
+    return Row(
+      children: [
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFFD946EF).withOpacity(0.2),
+          ),
+          child: Center(child: Text(char.emoji, style: const TextStyle(fontSize: 20))),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          char.name,
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: const Color(0xFFD946EF), fontSize: 18),
+        ),
+      ],
     );
   }
 
-  Widget _buildPrimaryActions(BuildContext context, profile, logs) {
+  Widget _buildGreetingBubble(profile, prediction, TrackerCharacter char) {
+    final greeting = CharacterGreetingService.getGreeting(
+      mode: profile.trackerMode,
+      phase: profile.currentPhase ?? 'menstrual',
+      streak: prediction?.currentLogStreak ?? 0,
+      hasLoggedToday: prediction?.hasLoggedToday ?? false,
+      hour: DateTime.now().hour,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1B4B).withOpacity(0.6),
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(24),
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Text(
+        '"$greeting"',
+        style: GoogleFonts.nunito(
+          color: Colors.white.withOpacity(0.9),
+          fontSize: 15,
+          fontStyle: FontStyle.italic,
+          height: 1.5,
+        ),
+      ),
+    ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0);
+  }
+
+  Widget _buildCycleRing(BuildContext context, profile, prediction) {
+    final mode = profile.trackerMode;
+    final isWatching = mode == 'watching_waiting';
+
+    final phases = isWatching ? [
+       CyclePhaseData(name: 'Waiting', startPercent: 0.0, endPercent: 1.0, gradient: [const Color(0xFF11998E), const Color(0xFF38EF7D)]),
+    ] : [
+      CyclePhaseData(name: 'Menstrual', startPercent: 0.0, endPercent: 0.20, gradient: [const Color(0xFF3B82F6), const Color(0xFF2563EB)]),
+      CyclePhaseData(name: 'Follicular', startPercent: 0.20, endPercent: 0.45, gradient: [const Color(0xFFD946EF), const Color(0xFFC026D3)]),
+      CyclePhaseData(name: 'Ovulation', startPercent: 0.45, endPercent: 0.55, gradient: [const Color(0xFFFBBF24), const Color(0xFFF59E0B)]),
+      CyclePhaseData(name: 'Luteal', startPercent: 0.55, endPercent: 1.0, gradient: [const Color(0xFF6366F1), const Color(0xFF4F46E5)]),
+    ];
+
+    final avgLength = profile.avgCycleLength > 0 ? profile.avgCycleLength : 28;
+    final currentProgress = (profile.currentCycleDay ?? 1) / avgLength;
+
+    return Center(
+      child: Container(
+        width: 280, height: 280,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFD946EF).withOpacity(0.05),
+              blurRadius: 40,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            CustomPaint(
+              size: const Size(280, 280),
+              painter: CycleRingPainter(
+                phases: phases,
+                currentProgress: isWatching ? 0.0 : currentProgress.clamp(0.0, 1.0),
+                currentPhase: isWatching ? 'Preparing' : (profile.currentPhase ?? 'Tracking'),
+                currentDay: profile.currentCycleDay ?? 1,
+                dotPulseScale: 1.0,
+                isIrregular: mode == 'irregular_support',
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).animate().scale(duration: 800.ms, curve: Curves.easeOutBack);
+  }
+
+  Widget _buildPrimaryActions(BuildContext context, profile, logs, bool alreadyLogged) {
     return Column(
       children: [
         SizedBox(
@@ -131,95 +247,64 @@ class TrackScreen extends StatelessWidget {
           height: 56,
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              gradient: LinearGradient(
-                colors: [AppColors.purple, AppColors.purple.withOpacity(0.8)],
+              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE84393), Color(0xFFA855F7)],
               ),
-              boxShadow: [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFA855F7).withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                )
+              ],
             ),
             child: ElevatedButton(
               onPressed: () => _openDailyLog(context, DateTime.now()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               child: Text(
-                'Log Today\'s Day ✦',
-                style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 16),
+                alreadyLogged ? 'Edit Today\'s Log ✦' : 'Log Today\'s Day ✦',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           height: 56,
-            child: OutlinedButton(
-              onPressed: () => context.push('/tracker/insights', extra: {'profile': profile, 'logs': logs}),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.purple.withOpacity(0.2), width: 1.5),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-              ),
-              child: Text(
-                'View Cycle Insights →',
-                style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: AppColors.textMedium, fontSize: 15),
-              ),
+          child: OutlinedButton(
+            onPressed: () => context.push('/tracker/insights', extra: {'profile': profile, 'logs': logs}),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFF312E81), width: 1),
+              backgroundColor: const Color(0xFF1E1B4B).withOpacity(0.4),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
+            child: Text(
+              'View Cycle Insights →',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white70, fontSize: 15),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildStreakInfo() {
+  Widget _buildStreakInfo(int streak) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('🔥', style: TextStyle(fontSize: 16)),
+        const Text('🔥', style: TextStyle(fontSize: 18)),
         const SizedBox(width: 8),
         Text(
-          '12-day streak',
-          style: GoogleFonts.nunito(color: AppColors.textMedium, fontWeight: FontWeight.w600, fontSize: 14),
+          '$streak-day streak',
+          style: GoogleFonts.nunito(color: Colors.white54, fontWeight: FontWeight.w600, fontSize: 14),
         ),
       ],
-    );
-  }
-
-
-
-  Widget _buildQuickLogToday(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.purple.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.purple.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          const Text('🌸', style: TextStyle(fontSize: 32)),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Log Today', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.textDark)),
-                Text('Takes less than 60 seconds', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textMedium)),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => _openDailyLog(context, DateTime.now()),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.purple,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-            child: const Text('Log'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -234,351 +319,88 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-
-
-  Widget _buildWatchingWaitingDashboard(BuildContext context, profile) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            _buildGigiGreeting(profile, null),
-            const SizedBox(height: 40),
-            _buildEducationalRing(context),
-            const SizedBox(height: 40),
-            InsightCard(
-              title: 'Preparing for your first period 🌱',
-              message: 'Your body is doing amazing work! Changes like breast tenderness or skin shifts are signs your first cycle is approaching. We\'re here to help you understand every step.',
-              icon: Icons.spa,
-              accentColor: Colors.teal,
-            ),
-            const SizedBox(height: 16),
-            _buildActionCard(context, '📚 Learning', 'What to expect', Colors.teal),
-            const SizedBox(height: 120),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEducationalRing(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 300, height: 300,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: Colors.teal.withOpacity(0.05), blurRadius: 40)],
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            CustomPaint(
-              size: const Size(300, 300),
-              painter: CycleRingPainter(
-                phases: [
-                  CyclePhaseData(name: 'Waiting', startPercent: 0.0, endPercent: 1.0, gradient: [const Color(0xFF11998E), const Color(0xFFDA22FF)]),
-                ],
-                currentProgress: 0.0,
-                confidenceLevel: 'high',
-              ),
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('🌱', style: TextStyle(fontSize: 50)),
-                const SizedBox(height: 12),
-                Text('GETTING READY', style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.teal.shade700, letterSpacing: 1.5)),
-                Text('Your journey starts soon', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textLight)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ).animate().scale(duration: 1000.ms);
-  }
-
-  Widget _buildGigiGreeting(profile, prediction) {
-    final mode = profile.trackerMode;
-    final now = DateTime.now();
-    final hour = now.hour;
-    
-    String greeting;
-    if (hour < 12) greeting = 'Good morning! ☀️';
-    else if (hour < 17) greeting = 'Good afternoon! 🌤️';
-    else greeting = 'Good evening! 🌙';
-
-    String subtext;
-    if (profile.lastLogDate != null && 
-        profile.lastLogDate!.year == now.year && 
-        profile.lastLogDate!.month == now.month && 
-        profile.lastLogDate!.day == now.day) {
-      subtext = 'Your day is logged. You\'re doing great! ✨';
-    } else {
-      subtext = 'Haven\'t logged yet — takes 60 seconds 💜';
-    }
-
-    String charEmoji = '🌸'; // Gigi
-    String charName = 'Gigi';
-    if (mode == 'watching_waiting') {
-      charEmoji = '🌱'; // Lily
-      charName = 'Lily';
-    } else if (mode == 'irregular_support') {
-      charEmoji = '🌪️'; // Maya
-      charName = 'Maya';
-    }
-
-    return Row(
-      children: [
-        Container(
-          width: 64, height: 64,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.purple.withOpacity(0.1)),
-          child: Center(child: Text(charEmoji, style: const TextStyle(fontSize: 32))),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(greeting, style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.purple)),
-              Text(
-                'I\'m $charName, and $subtext',
-                style: const TextStyle(color: AppColors.textMedium, fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.1, end: 0);
-  }
-
-  Widget _buildConfidenceMeter(BuildContext context, String confidence) {
-    final colors = {
-      'high': Colors.green,
-      'confident': Colors.greenAccent,
-      'building': Colors.orange,
-      'irregular': Colors.orangeAccent,
-      'none': Colors.grey,
-    };
-    final color = colors[confidence] ?? Colors.orange;
-
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.2)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.analytics_outlined, size: 14, color: color),
-            const SizedBox(width: 6),
-            Text(
-              'Prediction Confidence: ${confidence.toUpperCase()}',
-              style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.5),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCycleRing(BuildContext context, profile, prediction) {
-    final mode = profile.trackerMode;
-    final isIrregular = mode == 'irregular_support';
-
-    // Phase Gradients - Premium Palette
-    final phases = [
-      CyclePhaseData(name: 'Menstrual', startPercent: 0.0, endPercent: 0.18, gradient: [const Color(0xFFFF4B2B), const Color(0xFFFF416C)]),
-      CyclePhaseData(name: 'Follicular', startPercent: 0.18, endPercent: 0.45, gradient: [const Color(0xFFDA22FF), const Color(0xFF9733EE)]),
-      CyclePhaseData(name: 'Ovulation', startPercent: 0.45, endPercent: 0.55, gradient: [const Color(0xFF11998E), const Color(0xFF38EF7D)]),
-      CyclePhaseData(name: 'Luteal', startPercent: 0.55, endPercent: 1.0, gradient: [const Color(0xFF6366F1), const Color(0xFF818CF8)]),
-    ];
-
-    final avgLength = profile.avgCycleLength > 0 ? profile.avgCycleLength : 28;
-    final currentProgress = (profile.currentCycleDay ?? 1) / avgLength;
-
-    // Fertility window calculation for the ring
-    double fertileStart = 0.0;
-    double fertileEnd = 0.0;
-    if (prediction != null) {
-      final lastStart = profile.lastPeriodStart ?? DateTime.now();
-      final fStart = (prediction as dynamic).fertilityStart as DateTime;
-      final fEnd = (prediction as dynamic).fertilityEnd as DateTime;
-      fertileStart = fStart.difference(lastStart).inDays / avgLength;
-      fertileEnd = fEnd.difference(lastStart).inDays / avgLength;
-    }
-
-    return Center(
-      child: Container(
-        width: 300, height: 300,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(color: isIrregular ? Colors.orange.withOpacity(0.05) : AppColors.purple.withOpacity(0.05), blurRadius: 40, spreadRadius: 5),
-          ],
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            CustomPaint(
-              size: const Size(300, 300),
-              painter: CycleRingPainter(
-                phases: phases,
-                currentProgress: currentProgress.clamp(0.0, 1.0),
-                dotPulseScale: 1.05,
-                fertileStart: fertileStart.clamp(0.0, 1.0),
-                fertileEnd: fertileEnd.clamp(0.0, 1.0),
-                confidenceLevel: (prediction as dynamic)?.confidenceLevel ?? 'medium',
-                isIrregular: isIrregular,
-              ),
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(isIrregular ? '🌪️' : '🌸', style: const TextStyle(fontSize: 44)),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: () => showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => PhaseInfoSheet(phase: profile.currentPhase ?? 'menstrual'),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        isIrregular ? 'IRREGULAR' : (profile.currentPhase?.toUpperCase() ?? 'TRACKING'), 
-                        style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.textDark, letterSpacing: 1.5)
-                      ),
-                      Text(
-                        'DAY ${profile.currentCycleDay ?? 1} ⓘ', 
-                        style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textLight, fontWeight: FontWeight.w600)
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ).animate().scale(duration: 1000.ms, curve: Curves.easeOutBack);
-  }
-
-  Widget _buildPredictionBanner(BuildContext context, prediction, {bool isIrregular = false}) {
-    if (prediction == null) return const SizedBox();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: isIrregular ? Colors.orange.withOpacity(0.1) : AppColors.purple.withOpacity(0.1)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: (isIrregular ? Colors.orange : AppColors.pink).withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
-            child: Icon(isIrregular ? Icons.help_outline : Icons.calendar_today, color: isIrregular ? Colors.orange : AppColors.pink, size: 24),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isIrregular ? 'Estimated next period' : 'Next period: ${prediction.daysUntilPrediction} days', 
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.textDark)
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isIrregular 
-                    ? 'Window might shift while we learn your rhythm 🌪️'
-                    : 'Predictions get better as you log! 💜',
-                  style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textMedium, fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0);
-  }
-
-
-
   Widget _buildErrorState(BuildContext context, String msg) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('📅', style: TextStyle(fontSize: 60)),
-          const SizedBox(height: 24),
-          Text('Hmm, something went wrong', style: Theme.of(context).textTheme.headlineMedium),
-          Text(msg, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 24),
-          ElevatedButton(onPressed: () => context.read<TrackerBloc>().add(const TrackerEvent.load()), child: const Text('Retry')),
-        ],
+    return Container(
+      color: const Color(0xFF130F26),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('📅', style: TextStyle(fontSize: 60)),
+            const SizedBox(height: 24),
+            Text('Hmm, something went wrong', style: GoogleFonts.nunito(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(msg, style: GoogleFonts.nunito(color: Colors.white70, fontSize: 14), textAlign: TextAlign.center),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.read<TrackerBloc>().add(const TrackerEvent.load()),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.purple),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildNotStartedState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('🌸', style: TextStyle(fontSize: 80)).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
-            const SizedBox(height: 24),
-            Text(
-              'Your Bloom Tracker awaits! ✨',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontWeight: FontWeight.w900,
-                fontSize: 24,
-                color: AppColors.purple,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Track your cycle, predict your next period, and understand your unique body patterns with Gigi\'s help.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                color: AppColors.textMedium,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => context.push('/onboarding/tracker/date'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.purple,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Set Up My Tracker 🌸',
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18),
+    return Container(
+      color: const Color(0xFF130F26),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('🌸', style: TextStyle(fontSize: 80)).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+              const SizedBox(height: 24),
+              Text(
+                'Your Bloom Tracker awaits! ✨',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 24,
+                  color: Colors.white,
                 ),
               ),
-            ).animate().slideY(begin: 0.2, duration: 600.ms),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Track your cycle, predict your next period, and understand your unique body patterns with Gigi\'s help.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  color: Colors.white70,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: const LinearGradient(colors: [Color(0xFFE84393), Color(0xFFA855F7)]),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/onboarding/tracker/date'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Set Up My Tracker 🌸',
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ).animate().slideY(begin: 0.2, duration: 600.ms),
+            ],
+          ),
         ),
       ),
     );
@@ -605,8 +427,8 @@ class TrackScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.textDark)),
-                Text(subtitle, style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textMedium)),
+                Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white)),
+                Text(subtitle, style: GoogleFonts.nunito(fontSize: 13, color: Colors.white70)),
               ],
             ),
           ),

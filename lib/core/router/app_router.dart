@@ -26,6 +26,7 @@ import 'package:infano_care_mobile/features/onboarding/screens/tracker_activated
 import 'package:infano_care_mobile/features/home/screens/dashboard_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/doctor_summary_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_insights_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_settings_screen.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 
 // Learning Journey Imports
@@ -90,7 +91,16 @@ GoRouter createRouter(LocalStorageService storage) {
           '11': '/onboarding/tracker/date',
           '12': '/onboarding/tracker/details',
         };
-        final target = routes[step ?? '0'] ?? '/onboarding/path';
+        final currentStep = step ?? '0';
+        String target = routes[currentStep] ?? '/onboarding/path';
+
+        // Conditional skip: If period status is not active, skip tracker setup (11, 12)
+        final periodStatus = storage.periodStatus;
+        if (periodStatus != null && periodStatus != 'active') {
+          if (currentStep == '11' || currentStep == '12') {
+            target = '/home'; // Or a completion screen
+          }
+        }
         
         if (path != target && !path.contains('tracker') && path != '/onboarding/welcome') {
           if (!onOnboarding) return target;
@@ -147,13 +157,14 @@ GoRouter createRouter(LocalStorageService storage) {
 
       // Tracker Reporting
       GoRoute(path: '/tracker/doctor-summary', builder: (_, __) => const DoctorSummaryScreen()),
+      GoRoute(path: '/tracker/settings', builder: (_, __) => const CycleSettingsScreen()),
       GoRoute(
         path: '/tracker/insights', 
         builder: (_, state) {
           final extra = state.extra as Map<String, dynamic>;
           return CycleInsightsScreen(
             profile: extra['profile'] as CycleProfileModel,
-            logs: extra['logs'] as List<DailyLogModel>,
+            logs: extra['logs'] as List<CycleLogModel>,
           );
         }
       ),

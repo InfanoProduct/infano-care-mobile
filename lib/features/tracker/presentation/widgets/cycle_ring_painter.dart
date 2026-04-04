@@ -20,14 +20,18 @@ class CycleRingPainter extends CustomPainter {
   final List<CyclePhaseData> phases;
   final double fertileStart;
   final double fertileEnd;
-  final String confidenceLevel; // 'none', 'low', 'medium', 'high'
+  final String confidenceLevel;
   final bool isIrregular;
   final double currentProgress;
   final double dotPulseScale;
+  final String currentPhase;
+  final int currentDay;
 
   CycleRingPainter({
     required this.phases,
     required this.currentProgress,
+    required this.currentPhase,
+    required this.currentDay,
     this.dotPulseScale = 1.0,
     this.fertileStart = 0.0,
     this.fertileEnd = 0.0,
@@ -39,25 +43,25 @@ class CycleRingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width, size.height) / 2;
-    final strokeWidth = radius * 0.18; // Slightly thinner for more elegance
-    final ringRadius = radius - (strokeWidth / 2) - 10;
+    final strokeWidth = radius * 0.22; 
+    final ringRadius = radius - (strokeWidth / 2);
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.butt; // Butt for seamless segments
 
-    // 1. Draw Background Ring (Subtle Track)
+    // 1. Draw Background Ring (Very Dark)
     canvas.drawCircle(
       center,
       ringRadius,
       Paint()
-        ..color = AppColors.purple.withOpacity(0.08)
+        ..color = const Color(0xFF1E1B4B).withOpacity(0.5)
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth,
     );
 
-    // 2. Draw Phase Arcs with Premium Gradients
+    // 2. Draw Phase Arcs
     for (var phase in phases) {
       final startAngle = -pi / 2 + (phase.startPercent * 2 * pi);
       final sweepAngle = (phase.endPercent - phase.startPercent) * 2 * pi;
@@ -70,63 +74,16 @@ class CycleRingPainter extends CustomPainter {
         transform: GradientRotation(startAngle),
       ).createShader(rect);
 
-      // Add a slight shadow under the phase arc for depth
       canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
     }
 
-    // 3. Draw Fertile Window "Glow" (Outer Arc)
-    if (fertileEnd > fertileStart) {
-      // Map confidence to opacity
-      final double configOpacity = switch (confidenceLevel.toLowerCase()) {
-        'high' => 1.0,
-        'medium' => 0.6,
-        'low' => 0.3,
-        _ => 0.0,
-      };
+    // 3. Draw Stars in Center
+    _drawStars(canvas, center, radius * 0.4);
 
-      if (configOpacity > 0) {
-        final fRadius = ringRadius + (strokeWidth * 0.7);
-        
-        // Irregular Mode: Wider, more blurred arc
-        final fStrokeWidth = isIrregular ? strokeWidth * 0.6 : strokeWidth * 0.35;
-        final fBlur = isIrregular ? strokeWidth * 0.6 : strokeWidth * 0.3;
-        
-        final startAngle = -pi / 2 + (fertileStart * 2 * pi);
-        final sweepAngle = (fertileEnd - fertileStart) * 2 * pi;
+    // 4. Center Text
+    _drawCenterText(canvas, center, radius);
 
-        final fPaint = Paint()
-          ..color = const Color(0xFFFBBF24).withOpacity(configOpacity * 0.6)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = fStrokeWidth
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, fBlur);
-
-        canvas.drawArc(
-          Rect.fromCircle(center: center, radius: fRadius),
-          startAngle,
-          sweepAngle,
-          false,
-          fPaint,
-        );
-
-        // Core of the fertile window
-        final fCorePaint = Paint()
-          ..color = const Color(0xFFFBBF24).withOpacity(configOpacity)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = isIrregular ? 1.5 : 2.5
-          ..strokeCap = StrokeCap.round;
-
-        canvas.drawArc(
-          Rect.fromCircle(center: center, radius: fRadius),
-          startAngle,
-          sweepAngle,
-          false,
-          fCorePaint,
-        );
-      }
-    }
-
-    // 4. Draw Current Day Indicator (The Bubble)
+    // 5. Draw Progress Indicator (White Glowy Dot)
     final dotAngle = -pi / 2 + (currentProgress * 2 * pi);
     final dotPosition = Offset(
       center.dx + ringRadius * cos(dotAngle),
@@ -136,38 +93,72 @@ class CycleRingPainter extends CustomPainter {
     // Outer Glow
     canvas.drawCircle(
       dotPosition,
-      (strokeWidth * 0.7) * dotPulseScale,
+      (strokeWidth * 0.75) * dotPulseScale,
       Paint()
-        ..color = Colors.white.withOpacity(0.5)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+        ..color = Colors.white.withOpacity(0.4)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
     );
 
-    // White Core
-    canvas.drawCircle(
-      dotPosition,
-      (strokeWidth * 0.45),
-      Paint()..color = Colors.white,
-    );
+    // Core
+    canvas.drawCircle(dotPosition, (strokeWidth * 0.4), Paint()..color = Colors.white);
     
-    // Border for definition
+    // Border
     canvas.drawCircle(
       dotPosition,
-      (strokeWidth * 0.45),
+      (strokeWidth * 0.4),
       Paint()
-        ..color = AppColors.purple.withOpacity(0.3)
+        ..color = Colors.orange.withOpacity(0.5)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5,
+        ..strokeWidth = 2,
     );
+  }
+
+  void _drawStars(Canvas canvas, Offset center, double offsetY) {
+    const starEmoji = '✨';
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: starEmoji,
+        style: TextStyle(fontSize: offsetY * 0.6),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, center - Offset(textPainter.width / 2, offsetY + 20));
+  }
+
+  void _drawCenterText(Canvas canvas, Offset center, double radius) {
+    // Day Text
+    final dayPainter = TextPainter(
+      text: TextSpan(
+        text: 'Day $currentDay',
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    dayPainter.paint(canvas, center - Offset(dayPainter.width / 2, 10));
+
+    // Phase Text
+    final phasePainter = TextPainter(
+      text: TextSpan(
+        text: currentPhase.toUpperCase(),
+        style: const TextStyle(
+          color: Color(0xFFFBBF24), // Golden
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.5,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    phasePainter.paint(canvas, center - Offset(phasePainter.width / 2, -20));
   }
 
   @override
   bool shouldRepaint(covariant CycleRingPainter oldDelegate) {
-    return oldDelegate.currentProgress != currentProgress ||
-        oldDelegate.dotPulseScale != dotPulseScale ||
-        oldDelegate.phases != phases ||
-        oldDelegate.fertileStart != fertileStart ||
-        oldDelegate.fertileEnd != fertileEnd ||
-        oldDelegate.confidenceLevel != confidenceLevel ||
-        oldDelegate.isIrregular != isIrregular;
+    return true;
   }
 }

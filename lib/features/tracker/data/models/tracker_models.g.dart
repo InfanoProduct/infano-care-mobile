@@ -106,6 +106,9 @@ _$PredictionResultModelImpl _$$PredictionResultModelImplFromJson(
   daysUntilPrediction: (json['daysUntilPrediction'] as num).toInt(),
   currentPhase: json['currentPhase'] as String,
   cycleDay: (json['cycleDay'] as num).toInt(),
+  cyclesLogged: (json['cyclesLogged'] as num?)?.toInt() ?? 0,
+  currentLogStreak: (json['currentLogStreak'] as num?)?.toInt() ?? 0,
+  hasLoggedToday: json['hasLoggedToday'] as bool? ?? false,
   insights:
       (json['insights'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
@@ -124,5 +127,8 @@ Map<String, dynamic> _$$PredictionResultModelImplToJson(
   'daysUntilPrediction': instance.daysUntilPrediction,
   'currentPhase': instance.currentPhase,
   'cycleDay': instance.cycleDay,
+  'cyclesLogged': instance.cyclesLogged,
+  'currentLogStreak': instance.currentLogStreak,
+  'hasLoggedToday': instance.hasLoggedToday,
   'insights': instance.insights,
 };

@@ -69,6 +69,7 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
     return OnboardingScaffold(
       currentStep: 11,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/journey-name'),
       bottomBar: GradientButton(
         label: "Let's Bloom! 🌸",
         onPressed: _letsBloom,

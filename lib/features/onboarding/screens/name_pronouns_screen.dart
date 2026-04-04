@@ -45,6 +45,7 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
     return OnboardingScaffold(
       currentStep: 2,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/path'),
       bottomBar: GradientButton(
         label: 'Continue',
         onPressed: _continue,

@@ -60,6 +60,9 @@ class PredictionResultModel with _$PredictionResultModel {
     required int daysUntilPrediction,
     required String currentPhase,
     required int cycleDay,
+    @Default(0) int cyclesLogged,
+    @Default(0) int currentLogStreak,
+    @Default(false) bool hasLoggedToday,
     @Default([]) List<String> insights,
   }) = _PredictionResultModel;
 

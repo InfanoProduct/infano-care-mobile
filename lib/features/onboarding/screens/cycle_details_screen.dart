@@ -23,6 +23,7 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
     return OnboardingScaffold(
       currentStep: 13,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/tracker/date'),
       bottomBar: BlocBuilder<OnboardingBloc, OnboardingState>(
         builder: (context, state) {
           return GradientButton(

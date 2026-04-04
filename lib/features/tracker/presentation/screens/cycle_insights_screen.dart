@@ -6,7 +6,7 @@ import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.d
 
 class CycleInsightsScreen extends StatelessWidget {
   final CycleProfileModel profile;
-  final List<DailyLogModel> logs;
+  final List<CycleLogModel> logs;
 
   const CycleInsightsScreen({
     super.key, 

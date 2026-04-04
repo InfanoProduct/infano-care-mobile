@@ -23,6 +23,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _privacyAccepted = 'ob_privacy_accepted';
   static const _marketingOptIn  = 'ob_marketing_opt_in';
   static const _isOnboarded     = 'ob_is_onboarded';
+  static const _periodStatus    = 'ob_period_status';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -70,6 +71,13 @@ class LocalStorageService extends ChangeNotifier {
   }
   Future<void> setPhone(String p) {
     final result = _prefs.setString(_phone, p);
+    notifyListeners();
+    return result;
+  }
+
+  String? get periodStatus      => _prefs.getString(_periodStatus);
+  Future<void> setPeriodStatus(String s) {
+    final result = _prefs.setString(_periodStatus, s);
     notifyListeners();
     return result;
   }

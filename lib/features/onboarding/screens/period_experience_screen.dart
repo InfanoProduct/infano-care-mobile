@@ -36,6 +36,7 @@ class _PeriodExperienceScreenState extends State<PeriodExperienceScreen> {
     return OnboardingScaffold(
       currentStep: 7,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/period-comfort'),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(

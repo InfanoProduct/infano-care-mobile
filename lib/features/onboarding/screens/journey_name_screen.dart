@@ -26,6 +26,7 @@ class _JourneyNameScreenState extends State<JourneyNameScreen> {
     return OnboardingScaffold(
       currentStep: 10,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/avatar'),
       bottomBar: GradientButton(
         label: 'Name My Journey ✨',
         onPressed: () async {

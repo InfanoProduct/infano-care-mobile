@@ -919,6 +919,9 @@ mixin _$PredictionResultModel {
   int get daysUntilPrediction => throw _privateConstructorUsedError;
   String get currentPhase => throw _privateConstructorUsedError;
   int get cycleDay => throw _privateConstructorUsedError;
+  int get cyclesLogged => throw _privateConstructorUsedError;
+  int get currentLogStreak => throw _privateConstructorUsedError;
+  bool get hasLoggedToday => throw _privateConstructorUsedError;
   List<String> get insights => throw _privateConstructorUsedError;
 
   /// Serializes this PredictionResultModel to a JSON map.
@@ -949,6 +952,9 @@ abstract class $PredictionResultModelCopyWith<$Res> {
     int daysUntilPrediction,
     String currentPhase,
     int cycleDay,
+    int cyclesLogged,
+    int currentLogStreak,
+    bool hasLoggedToday,
     List<String> insights,
   });
 }
@@ -981,6 +987,9 @@ class _$PredictionResultModelCopyWithImpl<
     Object? daysUntilPrediction = null,
     Object? currentPhase = null,
     Object? cycleDay = null,
+    Object? cyclesLogged = null,
+    Object? currentLogStreak = null,
+    Object? hasLoggedToday = null,
     Object? insights = null,
   }) {
     return _then(
@@ -1025,6 +1034,18 @@ class _$PredictionResultModelCopyWithImpl<
                 ? _value.cycleDay
                 : cycleDay // ignore: cast_nullable_to_non_nullable
                       as int,
+            cyclesLogged: null == cyclesLogged
+                ? _value.cyclesLogged
+                : cyclesLogged // ignore: cast_nullable_to_non_nullable
+                      as int,
+            currentLogStreak: null == currentLogStreak
+                ? _value.currentLogStreak
+                : currentLogStreak // ignore: cast_nullable_to_non_nullable
+                      as int,
+            hasLoggedToday: null == hasLoggedToday
+                ? _value.hasLoggedToday
+                : hasLoggedToday // ignore: cast_nullable_to_non_nullable
+                      as bool,
             insights: null == insights
                 ? _value.insights
                 : insights // ignore: cast_nullable_to_non_nullable
@@ -1055,6 +1076,9 @@ abstract class _$$PredictionResultModelImplCopyWith<$Res>
     int daysUntilPrediction,
     String currentPhase,
     int cycleDay,
+    int cyclesLogged,
+    int currentLogStreak,
+    bool hasLoggedToday,
     List<String> insights,
   });
 }
@@ -1084,6 +1108,9 @@ class __$$PredictionResultModelImplCopyWithImpl<$Res>
     Object? daysUntilPrediction = null,
     Object? currentPhase = null,
     Object? cycleDay = null,
+    Object? cyclesLogged = null,
+    Object? currentLogStreak = null,
+    Object? hasLoggedToday = null,
     Object? insights = null,
   }) {
     return _then(
@@ -1128,6 +1155,18 @@ class __$$PredictionResultModelImplCopyWithImpl<$Res>
             ? _value.cycleDay
             : cycleDay // ignore: cast_nullable_to_non_nullable
                   as int,
+        cyclesLogged: null == cyclesLogged
+            ? _value.cyclesLogged
+            : cyclesLogged // ignore: cast_nullable_to_non_nullable
+                  as int,
+        currentLogStreak: null == currentLogStreak
+            ? _value.currentLogStreak
+            : currentLogStreak // ignore: cast_nullable_to_non_nullable
+                  as int,
+        hasLoggedToday: null == hasLoggedToday
+            ? _value.hasLoggedToday
+            : hasLoggedToday // ignore: cast_nullable_to_non_nullable
+                  as bool,
         insights: null == insights
             ? _value._insights
             : insights // ignore: cast_nullable_to_non_nullable
@@ -1151,6 +1190,9 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
     required this.daysUntilPrediction,
     required this.currentPhase,
     required this.cycleDay,
+    this.cyclesLogged = 0,
+    this.currentLogStreak = 0,
+    this.hasLoggedToday = false,
     final List<String> insights = const [],
   }) : _insights = insights;
 
@@ -1177,6 +1219,15 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
   final String currentPhase;
   @override
   final int cycleDay;
+  @override
+  @JsonKey()
+  final int cyclesLogged;
+  @override
+  @JsonKey()
+  final int currentLogStreak;
+  @override
+  @JsonKey()
+  final bool hasLoggedToday;
   final List<String> _insights;
   @override
   @JsonKey()
@@ -1188,7 +1239,7 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
 
   @override
   String toString() {
-    return 'PredictionResultModel(predictedStart: $predictedStart, windowEarly: $windowEarly, windowLate: $windowLate, ovulationDate: $ovulationDate, fertilityStart: $fertilityStart, fertilityEnd: $fertilityEnd, confidenceLevel: $confidenceLevel, daysUntilPrediction: $daysUntilPrediction, currentPhase: $currentPhase, cycleDay: $cycleDay, insights: $insights)';
+    return 'PredictionResultModel(predictedStart: $predictedStart, windowEarly: $windowEarly, windowLate: $windowLate, ovulationDate: $ovulationDate, fertilityStart: $fertilityStart, fertilityEnd: $fertilityEnd, confidenceLevel: $confidenceLevel, daysUntilPrediction: $daysUntilPrediction, currentPhase: $currentPhase, cycleDay: $cycleDay, cyclesLogged: $cyclesLogged, currentLogStreak: $currentLogStreak, hasLoggedToday: $hasLoggedToday, insights: $insights)';
   }
 
   @override
@@ -1216,6 +1267,12 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
                 other.currentPhase == currentPhase) &&
             (identical(other.cycleDay, cycleDay) ||
                 other.cycleDay == cycleDay) &&
+            (identical(other.cyclesLogged, cyclesLogged) ||
+                other.cyclesLogged == cyclesLogged) &&
+            (identical(other.currentLogStreak, currentLogStreak) ||
+                other.currentLogStreak == currentLogStreak) &&
+            (identical(other.hasLoggedToday, hasLoggedToday) ||
+                other.hasLoggedToday == hasLoggedToday) &&
             const DeepCollectionEquality().equals(other._insights, _insights));
   }
 
@@ -1233,6 +1290,9 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
     daysUntilPrediction,
     currentPhase,
     cycleDay,
+    cyclesLogged,
+    currentLogStreak,
+    hasLoggedToday,
     const DeepCollectionEquality().hash(_insights),
   );
 
@@ -1266,6 +1326,9 @@ abstract class _PredictionResultModel implements PredictionResultModel {
     required final int daysUntilPrediction,
     required final String currentPhase,
     required final int cycleDay,
+    final int cyclesLogged,
+    final int currentLogStreak,
+    final bool hasLoggedToday,
     final List<String> insights,
   }) = _$PredictionResultModelImpl;
 
@@ -1292,6 +1355,12 @@ abstract class _PredictionResultModel implements PredictionResultModel {
   String get currentPhase;
   @override
   int get cycleDay;
+  @override
+  int get cyclesLogged;
+  @override
+  int get currentLogStreak;
+  @override
+  bool get hasLoggedToday;
   @override
   List<String> get insights;
 

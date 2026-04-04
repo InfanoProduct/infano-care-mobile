@@ -23,6 +23,7 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
     return OnboardingScaffold(
       currentStep: 12,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/terms'),
       bottomBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

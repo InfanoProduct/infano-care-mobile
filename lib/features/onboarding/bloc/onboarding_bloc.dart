@@ -231,6 +231,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(periodComfortScore: e.score));
   }
   void _onSetPeriodStatus(SetPeriodStatus e, Emitter<OnboardingState> emit) {
+    _storage.setPeriodStatus(e.status);
     _storage.setStepComplete('7');
     _repo.updateStep(7);
     emit(state.copyWith(periodStatus: e.status));
@@ -384,6 +385,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       phone:       _storage.phone ?? state.phone,
       birthMonth:  _storage.birthMonth ?? state.birthMonth,
       birthYear:   _storage.birthYear ?? state.birthYear,
+      periodStatus: _storage.periodStatus ?? state.periodStatus,
       termsAccepted: _storage.termsAccepted,
       privacyAccepted: _storage.privacyAccepted,
       marketingOptIn: _storage.marketingOptIn,

@@ -59,6 +59,7 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
     return OnboardingScaffold(
       currentStep: 9,
       totalSteps: 13,
+      onBack: () => context.go('/onboarding/interests'),
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [
