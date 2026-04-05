@@ -17,6 +17,7 @@ class LandingScreen extends StatefulWidget {
 
 class _LandingScreenState extends State<LandingScreen> {
   bool _isResuming = false;
+  bool _isChecking = true;
   String? _userName;
 
   @override
@@ -26,17 +27,13 @@ class _LandingScreenState extends State<LandingScreen> {
   }
 
   Future<void> _checkAndRoute() async {
-    FlutterNativeSplash.remove();
-
     final storage = await LocalStorageService.create();
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
     
     final token = storage.authToken;
     
     if (token != null) {
       try {
-        // Sync stage from server to reflect any external resets (like the one just performed)
+        // Sync stage from server to reflect any external resets
         final resp = await ApiService.instance.dio.get('/user/me');
         final serverStep = resp.data['onboardingStep'] ?? 1;
         final isOnboarded = resp.data['isOnboardingCompleted'] as bool;
@@ -47,48 +44,71 @@ class _LandingScreenState extends State<LandingScreen> {
         if (serverName != null) await storage.setDisplayName(serverName);
         
         if (isOnboarded) {
-          // Both checks passed: Authenticated + Onboarded -> Direct to Dashboard
-          if (mounted) context.go('/home');
+          if (mounted) {
+            context.go('/home');
+            FlutterNativeSplash.remove();
+          }
+          return;
         } else {
-          // Authenticated but NOT Onboarded -> Auto-route to next step
-          // We set _isResuming = true just in case the navigation takes a moment
-          setState(() {
-            _isResuming = true;
-            _userName = serverName;
-          });
-          
-          // Trigger the router's redirect logic by going to /home
-          // The router will automatically see !isOnboarded and send them to the correct step
-          if (mounted) context.go('/home');
+          if (mounted) {
+            setState(() {
+              _isResuming = true;
+              _isChecking = false;
+              _userName = serverName;
+            });
+            FlutterNativeSplash.remove();
+          }
         }
       } catch (e) {
-        // Token might be invalid or network error
         if (e is DioException && e.response?.statusCode == 401) {
-          // Dead session: force them to "Start Fresh" (Login)
           await storage.clearAuthTokens();
-          if (mounted) setState(() => _isResuming = false);
+          if (mounted) {
+            setState(() {
+              _isResuming = false;
+              _isChecking = false;
+            });
+            FlutterNativeSplash.remove();
+          }
         } else {
           // Network error: Fallback to local storage
           final step = storage.stepComplete;
-          if (step == '13') {
-            context.go('/home');
-          } else if (step != null && int.parse(step) >= 1) {
-            setState(() {
-              _isResuming = true;
-              _userName = storage.displayName;
-            });
+          final isOnboarded = storage.isOnboarded;
+          
+          if (mounted) {
+            if (isOnboarded || step == '13') {
+              context.go('/home');
+              FlutterNativeSplash.remove();
+            } else {
+              setState(() {
+                _isResuming = (step != null && int.parse(step) >= 1);
+                _isChecking = false;
+                _userName = storage.displayName;
+              });
+              FlutterNativeSplash.remove();
+            }
           }
         }
       }
     } else {
-      // No token, ensure UI is in Start mode
-      if (mounted) setState(() => _isResuming = false);
+      if (mounted) {
+        setState(() {
+          _isResuming = false;
+          _isChecking = false;
+        });
+        FlutterNativeSplash.remove();
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Access storage to check token in onPressed
+    if (_isChecking) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF6D28D9), // Match splash color from pubspec
+        body: SizedBox.expand(),
+      );
+    }
+
     return FutureBuilder<LocalStorageService>(
       future: LocalStorageService.create(),
       builder: (context, snapshot) {
@@ -138,9 +158,8 @@ class _LandingScreenState extends State<LandingScreen> {
                       label: _isResuming ? 'Resume My Journey' : 'Start My Journey',
                       icon: '✨',
                       onPressed: () {
-                        // Crux Fix: If already authenticated, never send back to Login (/auth/phone)
                         if (_isResuming || (storage?.authToken != null)) {
-                          context.go('/home'); // Router will redirect to the correct onboarding stage
+                          context.go('/home');
                         } else {
                           context.go('/auth/phone');
                         }

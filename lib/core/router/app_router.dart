@@ -45,7 +45,7 @@ import 'package:infano_care_mobile/features/learning/models/learning_models.dart
 
 GoRouter createRouter(LocalStorageService storage) {
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: '/home',
     refreshListenable: storage,
     redirect: (context, state) {
       final token = storage.authToken;
@@ -62,7 +62,7 @@ GoRouter createRouter(LocalStorageService storage) {
           if (path.startsWith('/onboarding') || onAuth) return null;
           return '/onboarding/path';
         }
-        // No tokens: allow auth/splash, otherwise force splash
+        // No tokens: allow auth/splash, otherwise force splash (Landing Page)
         if (onAuth) return null;
         return '/splash';
       }
@@ -70,10 +70,10 @@ GoRouter createRouter(LocalStorageService storage) {
       // 2. Authenticated (token != null)
       final bool onOnboarding = path.startsWith('/onboarding');
 
-      // Always allow splash screen to load so it can remove the native splash
-      // and perform the initial API synchronization.
+      // If we are on splash but have a token, we should move towards home or onboarding
       if (path == '/splash') {
-        return null;
+        if (storage.isOnboarded) return '/home';
+        // If not onboarded, let LandingScreen handle the sync/routing or fall through to step check
       }
 
       if (!storage.isOnboarded) {
@@ -100,7 +100,7 @@ GoRouter createRouter(LocalStorageService storage) {
         final periodStatus = storage.periodStatus;
         if (periodStatus != null && periodStatus != 'active') {
           if (currentStep == '11' || currentStep == '12') {
-            target = '/home'; // Or a completion screen
+            target = '/home'; 
           }
         }
         
@@ -109,8 +109,7 @@ GoRouter createRouter(LocalStorageService storage) {
           if (path == '/home' || path == '/account') return target;
         }
       } else {
-        // Step 13 (Complete) - Send to home if on auth/onboarding
-        // Allow tracker setup screens even if already onboarded
+        // Authenticated + Onboarded -> Send to home if on guest/onboarding paths
         if (onAuth || (onOnboarding && !path.contains('tracker'))) return '/home';
       }
 

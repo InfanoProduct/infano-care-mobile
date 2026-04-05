@@ -90,7 +90,16 @@ class ApiService {
           } catch (e) {
             _refreshCompleter!.completeError(e);
             _refreshCompleter = null;
-            await storage.clearAuthTokens();
+            
+            // CRITICAL FIX: Only clear tokens if the refresh itself is rejected (401/403)
+            // If it's a network error, we keep the tokens and let the original request fail naturally.
+            if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
+              debugPrint('[API] ⚠️ Refresh token rejected. Clearing session.');
+              await storage.clearAuthTokens();
+            } else {
+              debugPrint('[API] 📡 Network error during refresh. Retaining session for retry.');
+            }
+            
             return handler.next(error);
           }
         }
