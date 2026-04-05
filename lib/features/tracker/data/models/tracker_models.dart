@@ -62,6 +62,7 @@ class PredictionResultModel with _$PredictionResultModel {
     required int daysUntilPrediction,
     required String currentPhase,
     required int cycleDay,
+    @Default(0.0) double coefficientOfVar,
     @Default(0) int cyclesLogged,
     @Default(0) int currentLogStreak,
     @Default(false) bool hasLoggedToday,
@@ -70,4 +71,22 @@ class PredictionResultModel with _$PredictionResultModel {
 
   factory PredictionResultModel.fromJson(Map<String, dynamic> json) =>
       _$PredictionResultModelFromJson(json);
+}
+
+@freezed
+class CycleRecordModel with _$CycleRecordModel {
+  const factory CycleRecordModel({
+    required String id,
+    required int cycleNumber,
+    required DateTime startDate,
+    required DateTime periodStartDate,
+    DateTime? endDate,
+    DateTime? periodEndDate,
+    int? cycleLengthDays,
+    int? periodDurationDays,
+    @Default(false) bool isComplete,
+  }) = _CycleRecordModel;
+
+  factory CycleRecordModel.fromJson(Map<String, dynamic> json) =>
+      _$CycleRecordModelFromJson(json);
 }

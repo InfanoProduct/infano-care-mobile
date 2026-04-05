@@ -508,6 +508,7 @@ mixin _$TrackerState {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )
     loaded,
@@ -522,6 +523,7 @@ mixin _$TrackerState {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -536,6 +538,7 @@ mixin _$TrackerState {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -641,6 +644,7 @@ class _$InitialImpl implements _Initial {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )
     loaded,
@@ -659,6 +663,7 @@ class _$InitialImpl implements _Initial {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -677,6 +682,7 @@ class _$InitialImpl implements _Initial {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -784,6 +790,7 @@ class _$LoadingImpl implements _Loading {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )
     loaded,
@@ -802,6 +809,7 @@ class _$LoadingImpl implements _Loading {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -820,6 +828,7 @@ class _$LoadingImpl implements _Loading {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -889,6 +898,7 @@ abstract class _$$LoadedImplCopyWith<$Res> {
     CycleProfileModel profile,
     PredictionResultModel? prediction,
     List<CycleLogModel> recentLogs,
+    List<CycleRecordModel> history,
     String? milestone,
   });
 
@@ -913,6 +923,7 @@ class __$$LoadedImplCopyWithImpl<$Res>
     Object? profile = null,
     Object? prediction = freezed,
     Object? recentLogs = null,
+    Object? history = null,
     Object? milestone = freezed,
   }) {
     return _then(
@@ -929,6 +940,10 @@ class __$$LoadedImplCopyWithImpl<$Res>
             ? _value._recentLogs
             : recentLogs // ignore: cast_nullable_to_non_nullable
                   as List<CycleLogModel>,
+        history: null == history
+            ? _value._history
+            : history // ignore: cast_nullable_to_non_nullable
+                  as List<CycleRecordModel>,
         milestone: freezed == milestone
             ? _value.milestone
             : milestone // ignore: cast_nullable_to_non_nullable
@@ -969,8 +984,10 @@ class _$LoadedImpl implements _Loaded {
     required this.profile,
     this.prediction,
     final List<CycleLogModel> recentLogs = const [],
+    final List<CycleRecordModel> history = const [],
     this.milestone,
-  }) : _recentLogs = recentLogs;
+  }) : _recentLogs = recentLogs,
+       _history = history;
 
   @override
   final CycleProfileModel profile;
@@ -985,12 +1002,21 @@ class _$LoadedImpl implements _Loaded {
     return EqualUnmodifiableListView(_recentLogs);
   }
 
+  final List<CycleRecordModel> _history;
+  @override
+  @JsonKey()
+  List<CycleRecordModel> get history {
+    if (_history is EqualUnmodifiableListView) return _history;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_history);
+  }
+
   @override
   final String? milestone;
 
   @override
   String toString() {
-    return 'TrackerState.loaded(profile: $profile, prediction: $prediction, recentLogs: $recentLogs, milestone: $milestone)';
+    return 'TrackerState.loaded(profile: $profile, prediction: $prediction, recentLogs: $recentLogs, history: $history, milestone: $milestone)';
   }
 
   @override
@@ -1005,6 +1031,7 @@ class _$LoadedImpl implements _Loaded {
               other._recentLogs,
               _recentLogs,
             ) &&
+            const DeepCollectionEquality().equals(other._history, _history) &&
             (identical(other.milestone, milestone) ||
                 other.milestone == milestone));
   }
@@ -1015,6 +1042,7 @@ class _$LoadedImpl implements _Loaded {
     profile,
     prediction,
     const DeepCollectionEquality().hash(_recentLogs),
+    const DeepCollectionEquality().hash(_history),
     milestone,
   );
 
@@ -1035,13 +1063,14 @@ class _$LoadedImpl implements _Loaded {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )
     loaded,
     required TResult Function() notStarted,
     required TResult Function(String message) error,
   }) {
-    return loaded(profile, prediction, recentLogs, milestone);
+    return loaded(profile, prediction, recentLogs, history, milestone);
   }
 
   @override
@@ -1053,13 +1082,14 @@ class _$LoadedImpl implements _Loaded {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
     TResult? Function()? notStarted,
     TResult? Function(String message)? error,
   }) {
-    return loaded?.call(profile, prediction, recentLogs, milestone);
+    return loaded?.call(profile, prediction, recentLogs, history, milestone);
   }
 
   @override
@@ -1071,6 +1101,7 @@ class _$LoadedImpl implements _Loaded {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -1079,7 +1110,7 @@ class _$LoadedImpl implements _Loaded {
     required TResult orElse(),
   }) {
     if (loaded != null) {
-      return loaded(profile, prediction, recentLogs, milestone);
+      return loaded(profile, prediction, recentLogs, history, milestone);
     }
     return orElse();
   }
@@ -1130,12 +1161,14 @@ abstract class _Loaded implements TrackerState {
     required final CycleProfileModel profile,
     final PredictionResultModel? prediction,
     final List<CycleLogModel> recentLogs,
+    final List<CycleRecordModel> history,
     final String? milestone,
   }) = _$LoadedImpl;
 
   CycleProfileModel get profile;
   PredictionResultModel? get prediction;
   List<CycleLogModel> get recentLogs;
+  List<CycleRecordModel> get history;
   String? get milestone;
 
   /// Create a copy of TrackerState
@@ -1194,6 +1227,7 @@ class _$NotStartedImpl implements _NotStarted {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )
     loaded,
@@ -1212,6 +1246,7 @@ class _$NotStartedImpl implements _NotStarted {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -1230,6 +1265,7 @@ class _$NotStartedImpl implements _NotStarted {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -1364,6 +1400,7 @@ class _$ErrorImpl implements _Error {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )
     loaded,
@@ -1382,6 +1419,7 @@ class _$ErrorImpl implements _Error {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,
@@ -1400,6 +1438,7 @@ class _$ErrorImpl implements _Error {
       CycleProfileModel profile,
       PredictionResultModel? prediction,
       List<CycleLogModel> recentLogs,
+      List<CycleRecordModel> history,
       String? milestone,
     )?
     loaded,

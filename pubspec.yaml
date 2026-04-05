@@ -54,6 +54,7 @@ dependencies:
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
   encrypt: ^5.0.3
+  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:
@@ -79,3 +80,5 @@ flutter:
   assets:
     - assets/logo.png
     - assets/logo_padded.png
+    - assets/images/gigi.png
+    - assets/images/maya.png

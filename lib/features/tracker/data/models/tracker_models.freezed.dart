@@ -979,6 +979,7 @@ mixin _$PredictionResultModel {
   int get daysUntilPrediction => throw _privateConstructorUsedError;
   String get currentPhase => throw _privateConstructorUsedError;
   int get cycleDay => throw _privateConstructorUsedError;
+  double get coefficientOfVar => throw _privateConstructorUsedError;
   int get cyclesLogged => throw _privateConstructorUsedError;
   int get currentLogStreak => throw _privateConstructorUsedError;
   bool get hasLoggedToday => throw _privateConstructorUsedError;
@@ -1012,6 +1013,7 @@ abstract class $PredictionResultModelCopyWith<$Res> {
     int daysUntilPrediction,
     String currentPhase,
     int cycleDay,
+    double coefficientOfVar,
     int cyclesLogged,
     int currentLogStreak,
     bool hasLoggedToday,
@@ -1047,6 +1049,7 @@ class _$PredictionResultModelCopyWithImpl<
     Object? daysUntilPrediction = null,
     Object? currentPhase = null,
     Object? cycleDay = null,
+    Object? coefficientOfVar = null,
     Object? cyclesLogged = null,
     Object? currentLogStreak = null,
     Object? hasLoggedToday = null,
@@ -1094,6 +1097,10 @@ class _$PredictionResultModelCopyWithImpl<
                 ? _value.cycleDay
                 : cycleDay // ignore: cast_nullable_to_non_nullable
                       as int,
+            coefficientOfVar: null == coefficientOfVar
+                ? _value.coefficientOfVar
+                : coefficientOfVar // ignore: cast_nullable_to_non_nullable
+                      as double,
             cyclesLogged: null == cyclesLogged
                 ? _value.cyclesLogged
                 : cyclesLogged // ignore: cast_nullable_to_non_nullable
@@ -1136,6 +1143,7 @@ abstract class _$$PredictionResultModelImplCopyWith<$Res>
     int daysUntilPrediction,
     String currentPhase,
     int cycleDay,
+    double coefficientOfVar,
     int cyclesLogged,
     int currentLogStreak,
     bool hasLoggedToday,
@@ -1168,6 +1176,7 @@ class __$$PredictionResultModelImplCopyWithImpl<$Res>
     Object? daysUntilPrediction = null,
     Object? currentPhase = null,
     Object? cycleDay = null,
+    Object? coefficientOfVar = null,
     Object? cyclesLogged = null,
     Object? currentLogStreak = null,
     Object? hasLoggedToday = null,
@@ -1215,6 +1224,10 @@ class __$$PredictionResultModelImplCopyWithImpl<$Res>
             ? _value.cycleDay
             : cycleDay // ignore: cast_nullable_to_non_nullable
                   as int,
+        coefficientOfVar: null == coefficientOfVar
+            ? _value.coefficientOfVar
+            : coefficientOfVar // ignore: cast_nullable_to_non_nullable
+                  as double,
         cyclesLogged: null == cyclesLogged
             ? _value.cyclesLogged
             : cyclesLogged // ignore: cast_nullable_to_non_nullable
@@ -1250,6 +1263,7 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
     required this.daysUntilPrediction,
     required this.currentPhase,
     required this.cycleDay,
+    this.coefficientOfVar = 0.0,
     this.cyclesLogged = 0,
     this.currentLogStreak = 0,
     this.hasLoggedToday = false,
@@ -1281,6 +1295,9 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
   final int cycleDay;
   @override
   @JsonKey()
+  final double coefficientOfVar;
+  @override
+  @JsonKey()
   final int cyclesLogged;
   @override
   @JsonKey()
@@ -1299,7 +1316,7 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
 
   @override
   String toString() {
-    return 'PredictionResultModel(predictedStart: $predictedStart, windowEarly: $windowEarly, windowLate: $windowLate, ovulationDate: $ovulationDate, fertilityStart: $fertilityStart, fertilityEnd: $fertilityEnd, confidenceLevel: $confidenceLevel, daysUntilPrediction: $daysUntilPrediction, currentPhase: $currentPhase, cycleDay: $cycleDay, cyclesLogged: $cyclesLogged, currentLogStreak: $currentLogStreak, hasLoggedToday: $hasLoggedToday, insights: $insights)';
+    return 'PredictionResultModel(predictedStart: $predictedStart, windowEarly: $windowEarly, windowLate: $windowLate, ovulationDate: $ovulationDate, fertilityStart: $fertilityStart, fertilityEnd: $fertilityEnd, confidenceLevel: $confidenceLevel, daysUntilPrediction: $daysUntilPrediction, currentPhase: $currentPhase, cycleDay: $cycleDay, coefficientOfVar: $coefficientOfVar, cyclesLogged: $cyclesLogged, currentLogStreak: $currentLogStreak, hasLoggedToday: $hasLoggedToday, insights: $insights)';
   }
 
   @override
@@ -1327,6 +1344,8 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
                 other.currentPhase == currentPhase) &&
             (identical(other.cycleDay, cycleDay) ||
                 other.cycleDay == cycleDay) &&
+            (identical(other.coefficientOfVar, coefficientOfVar) ||
+                other.coefficientOfVar == coefficientOfVar) &&
             (identical(other.cyclesLogged, cyclesLogged) ||
                 other.cyclesLogged == cyclesLogged) &&
             (identical(other.currentLogStreak, currentLogStreak) ||
@@ -1350,6 +1369,7 @@ class _$PredictionResultModelImpl implements _PredictionResultModel {
     daysUntilPrediction,
     currentPhase,
     cycleDay,
+    coefficientOfVar,
     cyclesLogged,
     currentLogStreak,
     hasLoggedToday,
@@ -1386,6 +1406,7 @@ abstract class _PredictionResultModel implements PredictionResultModel {
     required final int daysUntilPrediction,
     required final String currentPhase,
     required final int cycleDay,
+    final double coefficientOfVar,
     final int cyclesLogged,
     final int currentLogStreak,
     final bool hasLoggedToday,
@@ -1416,6 +1437,8 @@ abstract class _PredictionResultModel implements PredictionResultModel {
   @override
   int get cycleDay;
   @override
+  double get coefficientOfVar;
+  @override
   int get cyclesLogged;
   @override
   int get currentLogStreak;
@@ -1430,4 +1453,349 @@ abstract class _PredictionResultModel implements PredictionResultModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PredictionResultModelImplCopyWith<_$PredictionResultModelImpl>
   get copyWith => throw _privateConstructorUsedError;
+}
+
+CycleRecordModel _$CycleRecordModelFromJson(Map<String, dynamic> json) {
+  return _CycleRecordModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CycleRecordModel {
+  String get id => throw _privateConstructorUsedError;
+  int get cycleNumber => throw _privateConstructorUsedError;
+  DateTime get startDate => throw _privateConstructorUsedError;
+  DateTime get periodStartDate => throw _privateConstructorUsedError;
+  DateTime? get endDate => throw _privateConstructorUsedError;
+  DateTime? get periodEndDate => throw _privateConstructorUsedError;
+  int? get cycleLengthDays => throw _privateConstructorUsedError;
+  int? get periodDurationDays => throw _privateConstructorUsedError;
+  bool get isComplete => throw _privateConstructorUsedError;
+
+  /// Serializes this CycleRecordModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of CycleRecordModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CycleRecordModelCopyWith<CycleRecordModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CycleRecordModelCopyWith<$Res> {
+  factory $CycleRecordModelCopyWith(
+    CycleRecordModel value,
+    $Res Function(CycleRecordModel) then,
+  ) = _$CycleRecordModelCopyWithImpl<$Res, CycleRecordModel>;
+  @useResult
+  $Res call({
+    String id,
+    int cycleNumber,
+    DateTime startDate,
+    DateTime periodStartDate,
+    DateTime? endDate,
+    DateTime? periodEndDate,
+    int? cycleLengthDays,
+    int? periodDurationDays,
+    bool isComplete,
+  });
+}
+
+/// @nodoc
+class _$CycleRecordModelCopyWithImpl<$Res, $Val extends CycleRecordModel>
+    implements $CycleRecordModelCopyWith<$Res> {
+  _$CycleRecordModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CycleRecordModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? cycleNumber = null,
+    Object? startDate = null,
+    Object? periodStartDate = null,
+    Object? endDate = freezed,
+    Object? periodEndDate = freezed,
+    Object? cycleLengthDays = freezed,
+    Object? periodDurationDays = freezed,
+    Object? isComplete = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            cycleNumber: null == cycleNumber
+                ? _value.cycleNumber
+                : cycleNumber // ignore: cast_nullable_to_non_nullable
+                      as int,
+            startDate: null == startDate
+                ? _value.startDate
+                : startDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            periodStartDate: null == periodStartDate
+                ? _value.periodStartDate
+                : periodStartDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            endDate: freezed == endDate
+                ? _value.endDate
+                : endDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            periodEndDate: freezed == periodEndDate
+                ? _value.periodEndDate
+                : periodEndDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            cycleLengthDays: freezed == cycleLengthDays
+                ? _value.cycleLengthDays
+                : cycleLengthDays // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            periodDurationDays: freezed == periodDurationDays
+                ? _value.periodDurationDays
+                : periodDurationDays // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            isComplete: null == isComplete
+                ? _value.isComplete
+                : isComplete // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$CycleRecordModelImplCopyWith<$Res>
+    implements $CycleRecordModelCopyWith<$Res> {
+  factory _$$CycleRecordModelImplCopyWith(
+    _$CycleRecordModelImpl value,
+    $Res Function(_$CycleRecordModelImpl) then,
+  ) = __$$CycleRecordModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    int cycleNumber,
+    DateTime startDate,
+    DateTime periodStartDate,
+    DateTime? endDate,
+    DateTime? periodEndDate,
+    int? cycleLengthDays,
+    int? periodDurationDays,
+    bool isComplete,
+  });
+}
+
+/// @nodoc
+class __$$CycleRecordModelImplCopyWithImpl<$Res>
+    extends _$CycleRecordModelCopyWithImpl<$Res, _$CycleRecordModelImpl>
+    implements _$$CycleRecordModelImplCopyWith<$Res> {
+  __$$CycleRecordModelImplCopyWithImpl(
+    _$CycleRecordModelImpl _value,
+    $Res Function(_$CycleRecordModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of CycleRecordModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? cycleNumber = null,
+    Object? startDate = null,
+    Object? periodStartDate = null,
+    Object? endDate = freezed,
+    Object? periodEndDate = freezed,
+    Object? cycleLengthDays = freezed,
+    Object? periodDurationDays = freezed,
+    Object? isComplete = null,
+  }) {
+    return _then(
+      _$CycleRecordModelImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        cycleNumber: null == cycleNumber
+            ? _value.cycleNumber
+            : cycleNumber // ignore: cast_nullable_to_non_nullable
+                  as int,
+        startDate: null == startDate
+            ? _value.startDate
+            : startDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        periodStartDate: null == periodStartDate
+            ? _value.periodStartDate
+            : periodStartDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        endDate: freezed == endDate
+            ? _value.endDate
+            : endDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        periodEndDate: freezed == periodEndDate
+            ? _value.periodEndDate
+            : periodEndDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        cycleLengthDays: freezed == cycleLengthDays
+            ? _value.cycleLengthDays
+            : cycleLengthDays // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        periodDurationDays: freezed == periodDurationDays
+            ? _value.periodDurationDays
+            : periodDurationDays // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        isComplete: null == isComplete
+            ? _value.isComplete
+            : isComplete // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$CycleRecordModelImpl implements _CycleRecordModel {
+  const _$CycleRecordModelImpl({
+    required this.id,
+    required this.cycleNumber,
+    required this.startDate,
+    required this.periodStartDate,
+    this.endDate,
+    this.periodEndDate,
+    this.cycleLengthDays,
+    this.periodDurationDays,
+    this.isComplete = false,
+  });
+
+  factory _$CycleRecordModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CycleRecordModelImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final int cycleNumber;
+  @override
+  final DateTime startDate;
+  @override
+  final DateTime periodStartDate;
+  @override
+  final DateTime? endDate;
+  @override
+  final DateTime? periodEndDate;
+  @override
+  final int? cycleLengthDays;
+  @override
+  final int? periodDurationDays;
+  @override
+  @JsonKey()
+  final bool isComplete;
+
+  @override
+  String toString() {
+    return 'CycleRecordModel(id: $id, cycleNumber: $cycleNumber, startDate: $startDate, periodStartDate: $periodStartDate, endDate: $endDate, periodEndDate: $periodEndDate, cycleLengthDays: $cycleLengthDays, periodDurationDays: $periodDurationDays, isComplete: $isComplete)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CycleRecordModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.cycleNumber, cycleNumber) ||
+                other.cycleNumber == cycleNumber) &&
+            (identical(other.startDate, startDate) ||
+                other.startDate == startDate) &&
+            (identical(other.periodStartDate, periodStartDate) ||
+                other.periodStartDate == periodStartDate) &&
+            (identical(other.endDate, endDate) || other.endDate == endDate) &&
+            (identical(other.periodEndDate, periodEndDate) ||
+                other.periodEndDate == periodEndDate) &&
+            (identical(other.cycleLengthDays, cycleLengthDays) ||
+                other.cycleLengthDays == cycleLengthDays) &&
+            (identical(other.periodDurationDays, periodDurationDays) ||
+                other.periodDurationDays == periodDurationDays) &&
+            (identical(other.isComplete, isComplete) ||
+                other.isComplete == isComplete));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    cycleNumber,
+    startDate,
+    periodStartDate,
+    endDate,
+    periodEndDate,
+    cycleLengthDays,
+    periodDurationDays,
+    isComplete,
+  );
+
+  /// Create a copy of CycleRecordModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CycleRecordModelImplCopyWith<_$CycleRecordModelImpl> get copyWith =>
+      __$$CycleRecordModelImplCopyWithImpl<_$CycleRecordModelImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CycleRecordModelImplToJson(this);
+  }
+}
+
+abstract class _CycleRecordModel implements CycleRecordModel {
+  const factory _CycleRecordModel({
+    required final String id,
+    required final int cycleNumber,
+    required final DateTime startDate,
+    required final DateTime periodStartDate,
+    final DateTime? endDate,
+    final DateTime? periodEndDate,
+    final int? cycleLengthDays,
+    final int? periodDurationDays,
+    final bool isComplete,
+  }) = _$CycleRecordModelImpl;
+
+  factory _CycleRecordModel.fromJson(Map<String, dynamic> json) =
+      _$CycleRecordModelImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  int get cycleNumber;
+  @override
+  DateTime get startDate;
+  @override
+  DateTime get periodStartDate;
+  @override
+  DateTime? get endDate;
+  @override
+  DateTime? get periodEndDate;
+  @override
+  int? get cycleLengthDays;
+  @override
+  int? get periodDurationDays;
+  @override
+  bool get isComplete;
+
+  /// Create a copy of CycleRecordModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CycleRecordModelImplCopyWith<_$CycleRecordModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

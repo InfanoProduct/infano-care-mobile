@@ -62,9 +62,12 @@ class _CycleSettingsScreenState extends State<CycleSettingsScreen> {
         'lastPeriodStart': _lastPeriodStart!.toIso8601String(),
         'cycleLengthDays': _avgCycleLength,
         'periodLengthDays': _avgPeriodDuration,
-        'trackerMode': 'active', // Default to active for this screen
+        'trackerMode': 'active', 
       });
-      if (mounted) context.pop(true); // Return true to indicate success
+      if (mounted) {
+        // If we came from the milestone screen or setup, go back to home dashboard
+        context.go('/home');
+      }
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {

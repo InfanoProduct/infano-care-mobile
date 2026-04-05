@@ -65,4 +65,16 @@ class TrackerRepository {
       return [];
     }
   }
+
+  Future<List<CycleRecordModel>> getHistory() async {
+    try {
+      final response = await _dio.get('/tracker/history');
+      if (response.statusCode == 200 && response.data != null) {
+        return (response.data as List).map((json) => CycleRecordModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
 }

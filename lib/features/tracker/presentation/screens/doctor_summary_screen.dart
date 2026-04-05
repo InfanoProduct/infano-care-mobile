@@ -14,7 +14,7 @@ class DoctorSummaryScreen extends StatelessWidget {
     return BlocBuilder<TrackerBloc, TrackerState>(
       builder: (context, state) {
         return state.maybeWhen(
-          loaded: (profile, prediction, logs, _) {
+          loaded: (profile, prediction, logs, history, milestone) {
             final avgCycle = profile.avgCycleLength;
             final avgPeriod = profile.avgPeriodDuration;
             

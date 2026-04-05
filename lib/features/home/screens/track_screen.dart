@@ -16,7 +16,9 @@ import 'package:infano_care_mobile/core/services/privacy_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/widgets/cycle_ring.dart';
 import 'package:infano_care_mobile/features/tracker/application/character_greeting_service.dart';
+import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 
 class TrackScreen extends StatelessWidget {
   const TrackScreen({super.key});
@@ -36,8 +38,10 @@ class TrackScreen extends StatelessWidget {
         body: BlocListener<TrackerBloc, TrackerState>(
           listener: (context, state) {
             state.maybeWhen(
-              loaded: (profile, prediction, logs, milestone) {
+              loaded: (profile, prediction, logs, history, milestone) {
+                debugPrint('[TrackScreen] Listener receivedLoaded. Milestone: $milestone');
                 if (milestone == 'first_period') {
+                  debugPrint('[TrackScreen] Milestone detected. Navigating with Navigator.push...');
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const FirstPeriodCelebrationScreen()),
                   );
@@ -53,7 +57,8 @@ class TrackScreen extends StatelessWidget {
                 loading: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
                 error: (msg) => _buildErrorState(context, msg),
                 notStarted: () => _buildNotStartedState(context),
-                loaded: (profile, prediction, logs, milestone) => _buildRedesignedDashboard(context, profile, prediction, logs),
+                loaded: (profile, prediction, logs, history, milestone) => 
+                    _buildRedesignedDashboard(context, profile, prediction, logs, history),
               );
             },
           ),
@@ -62,7 +67,7 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRedesignedDashboard(BuildContext context, profile, prediction, logs) {
+  Widget _buildRedesignedDashboard(BuildContext context, CycleProfileModel profile, PredictionResultModel? prediction, List<CycleLogModel> logs, List<CycleRecordModel> history) {
     final mode = profile.trackerMode;
     final char = CharacterGreetingService.getCharacter(mode);
     final hasLoggedToday = prediction?.hasLoggedToday ?? false;
@@ -89,8 +94,10 @@ class TrackScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _buildGreetingBubble(profile, prediction, char),
               const SizedBox(height: 48),
-              _buildCycleRing(context, profile, prediction),
-              const SizedBox(height: 56),
+              _buildCycleRing(context, profile, prediction, history),
+              const SizedBox(height: 12),
+              _buildRingContextCTA(context),
+              const SizedBox(height: 48),
               _buildPrimaryActions(context, profile, logs, hasLoggedToday),
               if (mode != 'watching_waiting') ...[
                 const SizedBox(height: 24),
@@ -195,50 +202,31 @@ class TrackScreen extends StatelessWidget {
     ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0);
   }
 
-  Widget _buildCycleRing(BuildContext context, profile, prediction) {
-    final mode = profile.trackerMode;
-    final isWatching = mode == 'watching_waiting';
-
-    final phases = isWatching ? [
-       CyclePhaseData(name: 'Waiting', startPercent: 0.0, endPercent: 1.0, gradient: [const Color(0xFF11998E), const Color(0xFF38EF7D)]),
-    ] : [
-      CyclePhaseData(name: 'Menstrual', startPercent: 0.0, endPercent: 0.20, gradient: [const Color(0xFF3B82F6), const Color(0xFF2563EB)]),
-      CyclePhaseData(name: 'Follicular', startPercent: 0.20, endPercent: 0.45, gradient: [const Color(0xFFD946EF), const Color(0xFFC026D3)]),
-      CyclePhaseData(name: 'Ovulation', startPercent: 0.45, endPercent: 0.55, gradient: [const Color(0xFFFBBF24), const Color(0xFFF59E0B)]),
-      CyclePhaseData(name: 'Luteal', startPercent: 0.55, endPercent: 1.0, gradient: [const Color(0xFF6366F1), const Color(0xFF4F46E5)]),
-    ];
-
-    final avgLength = profile.avgCycleLength > 0 ? profile.avgCycleLength : 28;
-    final currentProgress = (profile.currentCycleDay ?? 1) / avgLength;
-
+  Widget _buildCycleRing(BuildContext context, CycleProfileModel profile, PredictionResultModel? prediction, List<CycleRecordModel> history) {
     return Center(
       child: Container(
-        width: 280, height: 280,
+        width: 320, height: 320, // Increased size for the new technical specs
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
               color: const Color(0xFFD946EF).withOpacity(0.05),
               blurRadius: 40,
-              spreadRadius: 5,
+              spreadRadius: 10,
             ),
           ],
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            CustomPaint(
-              size: const Size(280, 280),
-              painter: CycleRingPainter(
-                phases: phases,
-                currentProgress: isWatching ? 0.0 : currentProgress.clamp(0.0, 1.0),
-                currentPhase: isWatching ? 'Preparing' : (profile.currentPhase ?? 'Tracking'),
-                currentDay: profile.currentCycleDay ?? 1,
-                dotPulseScale: 1.0,
-                isIrregular: mode == 'irregular_support',
-              ),
-            ),
-          ],
+        child: CycleRing(
+          profile: profile,
+          prediction: prediction,
+          history: history,
+          onCenterTap: () => _openDailyLog(context, DateTime.now()),
+          onSegmentTap: (phaseId) => showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => PhaseInfoSheet(phase: phaseId),
+          ),
         ),
       ),
     ).animate().scale(duration: 800.ms, curve: Curves.easeOutBack);
@@ -444,5 +432,28 @@ class TrackScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildRingContextCTA(BuildContext context) {
+    return Center(
+      child: TextButton.icon(
+        onPressed: () => context.push('/tracker/ring'),
+        icon: const Icon(Icons.center_focus_strong_outlined, color: Colors.white70, size: 20),
+        label: Text(
+          'View Cycle Signature', 
+          style: GoogleFonts.nunito(
+            color: Colors.white70, 
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+            letterSpacing: 0.5
+          )
+        ),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          backgroundColor: Colors.white.withOpacity(0.03),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+      ),
+    ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0);
   }
 }

@@ -27,6 +27,8 @@ import 'package:infano_care_mobile/features/home/screens/dashboard_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/doctor_summary_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_insights_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_settings_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/first_period_celebration_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_ring_screen.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 
 // Learning Journey Imports
@@ -156,8 +158,10 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(path: '/onboarding/tracker/done',    builder: (_, __) => const TrackerActivatedScreen()),
 
       // Tracker Reporting
+      GoRoute(path: '/tracker/ring', builder: (_, __) => const CycleRingScreen()),
       GoRoute(path: '/tracker/doctor-summary', builder: (_, __) => const DoctorSummaryScreen()),
       GoRoute(path: '/tracker/settings', builder: (_, __) => const CycleSettingsScreen()),
+      GoRoute(path: '/tracker/milestone/first-period', builder: (_, __) => const FirstPeriodCelebrationScreen()),
       GoRoute(
         path: '/tracker/insights', 
         builder: (_, state) {

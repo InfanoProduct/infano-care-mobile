@@ -119,6 +119,7 @@ _$PredictionResultModelImpl _$$PredictionResultModelImplFromJson(
   daysUntilPrediction: (json['daysUntilPrediction'] as num).toInt(),
   currentPhase: json['currentPhase'] as String,
   cycleDay: (json['cycleDay'] as num).toInt(),
+  coefficientOfVar: (json['coefficientOfVar'] as num?)?.toDouble() ?? 0.0,
   cyclesLogged: (json['cyclesLogged'] as num?)?.toInt() ?? 0,
   currentLogStreak: (json['currentLogStreak'] as num?)?.toInt() ?? 0,
   hasLoggedToday: json['hasLoggedToday'] as bool? ?? false,
@@ -140,8 +141,41 @@ Map<String, dynamic> _$$PredictionResultModelImplToJson(
   'daysUntilPrediction': instance.daysUntilPrediction,
   'currentPhase': instance.currentPhase,
   'cycleDay': instance.cycleDay,
+  'coefficientOfVar': instance.coefficientOfVar,
   'cyclesLogged': instance.cyclesLogged,
   'currentLogStreak': instance.currentLogStreak,
   'hasLoggedToday': instance.hasLoggedToday,
   'insights': instance.insights,
+};
+
+_$CycleRecordModelImpl _$$CycleRecordModelImplFromJson(
+  Map<String, dynamic> json,
+) => _$CycleRecordModelImpl(
+  id: json['id'] as String,
+  cycleNumber: (json['cycleNumber'] as num).toInt(),
+  startDate: DateTime.parse(json['startDate'] as String),
+  periodStartDate: DateTime.parse(json['periodStartDate'] as String),
+  endDate: json['endDate'] == null
+      ? null
+      : DateTime.parse(json['endDate'] as String),
+  periodEndDate: json['periodEndDate'] == null
+      ? null
+      : DateTime.parse(json['periodEndDate'] as String),
+  cycleLengthDays: (json['cycleLengthDays'] as num?)?.toInt(),
+  periodDurationDays: (json['periodDurationDays'] as num?)?.toInt(),
+  isComplete: json['isComplete'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$$CycleRecordModelImplToJson(
+  _$CycleRecordModelImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'cycleNumber': instance.cycleNumber,
+  'startDate': instance.startDate.toIso8601String(),
+  'periodStartDate': instance.periodStartDate.toIso8601String(),
+  'endDate': instance.endDate?.toIso8601String(),
+  'periodEndDate': instance.periodEndDate?.toIso8601String(),
+  'cycleLengthDays': instance.cycleLengthDays,
+  'periodDurationDays': instance.periodDurationDays,
+  'isComplete': instance.isComplete,
 };

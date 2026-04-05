@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/mood_wheel.dart';
@@ -91,7 +92,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     // Initial load from Bloc state using current state
     final state = context.read<TrackerBloc>().state;
     state.maybeWhen(
-      loaded: (_, __, logs, ___) => _loadLogForDate(_selectedDate, logs),
+      loaded: (_, __, logs, ____, ___) => _loadLogForDate(_selectedDate, logs),
       orElse: () {},
     );
   }
@@ -135,8 +136,26 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
     context.read<TrackerBloc>().add(TrackerEvent.logDaily(data));
     
+    // Check if we should pop or wait for milestone navigation
     Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        final state = context.read<TrackerBloc>().state;
+        bool hasMilestone = false;
+        state.maybeWhen(
+          loaded: (_, __, ___, ____, milestone) {
+            debugPrint('[DailyLog] Save check. Milestone: $milestone');
+            hasMilestone = (milestone == 'first_period');
+          },
+          orElse: () => debugPrint('[DailyLog] Save check. State is not loaded.'),
+        );
+        
+        if (!hasMilestone) {
+          debugPrint('[DailyLog] No milestone detected, popping screen.');
+          Navigator.pop(context);
+        } else {
+          debugPrint('[DailyLog] Milestone detected, NOT popping. Letting listener handle it.');
+        }
+      }
     });
   }
 
@@ -165,6 +184,12 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                 value: _flow != null && _flow != 'none',
                 activeColor: AppColors.pink,
                 onChanged: (val) {
+                  if (val && isWw) {
+                    // Immediate navigation to milestone screen for First Period entry
+                    debugPrint('[DailyLog] First period toggle enabled. Navigating to milestone...');
+                    context.go('/tracker/milestone/first-period');
+                    return;
+                  }
                   setState(() {
                     if (val) {
                       _flow = 'light'; // Default to light when switched
@@ -202,7 +227,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       body: BlocConsumer<TrackerBloc, TrackerState>(
         listener: (context, state) {
           state.maybeWhen(
-            loaded: (_, __, logs, ___) {
+            loaded: (profile, _, logs, ____, milestone) {
               // We only update if we are not currently saving to avoid jumpy UI
               if (!_isSaving) {
                 setState(() => _loadLogForDate(_selectedDate, logs));
@@ -214,7 +239,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         builder: (context, state) {
           bool isWw = false;
           state.maybeWhen(
-            loaded: (profile, _, _, _) {
+            loaded: (profile, _, _, ____, ___) {
               if (profile.trackerMode == 'watching_waiting') {
                 isWw = true;
               }
@@ -722,7 +747,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                     _selectedDate = date;
                     final state = context.read<TrackerBloc>().state;
                     state.maybeWhen(
-                      loaded: (_, __, logs, ___) => _loadLogForDate(_selectedDate, logs),
+                      loaded: (_, __, logs, ____, ___) => _loadLogForDate(_selectedDate, logs),
                       orElse: () {},
                     );
                   });
