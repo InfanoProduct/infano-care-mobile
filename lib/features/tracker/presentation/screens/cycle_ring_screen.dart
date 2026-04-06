@@ -18,15 +18,7 @@ class CycleRingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => TrackerBloc(
-        TrackerRepository(
-          ApiService.instance.dio,
-          PrivacyService(const FlutterSecureStorage()),
-        ),
-      )..add(const TrackerEvent.load()),
-      child: const CycleRingView(),
-    );
+    return const CycleRingView();
   }
 }
 
@@ -49,6 +41,13 @@ class CycleRingView extends StatelessWidget {
           style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 18),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month, color: Colors.white),
+            onPressed: () => context.push('/tracker/calendar'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: BlocBuilder<TrackerBloc, TrackerState>(
         builder: (context, state) {

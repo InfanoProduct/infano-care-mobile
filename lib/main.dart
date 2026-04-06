@@ -7,6 +7,10 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/features/onboarding/data/onboarding_repository.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
+import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
+import 'package:infano_care_mobile/core/services/privacy_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
@@ -42,8 +46,21 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => OnboardingBloc(_repo, widget.storage)..add(const SyncFromStorage()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => OnboardingBloc(_repo, widget.storage)..add(const SyncFromStorage()),
+        ),
+        BlocProvider(
+          create: (_) {
+            final repo = TrackerRepository(
+              ApiService.instance.dio,
+              PrivacyService(const FlutterSecureStorage()),
+            );
+            return TrackerBloc(repo)..add(const TrackerEvent.load());
+          },
+        ),
+      ],
       child: MaterialApp.router(
         title: 'Infano.Care',
         debugShowCheckedModeBanner: false,

@@ -22,18 +22,21 @@ mixin _$TrackerEvent {
     required TResult Function() load,
     required TResult Function(Map<String, dynamic> data) logDaily,
     required TResult Function(Map<String, dynamic> data) setup,
+    required TResult Function(DateTime start, DateTime end) updatePeriodRange,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? load,
     TResult? Function(Map<String, dynamic> data)? logDaily,
     TResult? Function(Map<String, dynamic> data)? setup,
+    TResult? Function(DateTime start, DateTime end)? updatePeriodRange,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? load,
     TResult Function(Map<String, dynamic> data)? logDaily,
     TResult Function(Map<String, dynamic> data)? setup,
+    TResult Function(DateTime start, DateTime end)? updatePeriodRange,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -41,18 +44,21 @@ mixin _$TrackerEvent {
     required TResult Function(_Load value) load,
     required TResult Function(_LogDaily value) logDaily,
     required TResult Function(_Setup value) setup,
+    required TResult Function(_UpdatePeriodRange value) updatePeriodRange,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Load value)? load,
     TResult? Function(_LogDaily value)? logDaily,
     TResult? Function(_Setup value)? setup,
+    TResult? Function(_UpdatePeriodRange value)? updatePeriodRange,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Load value)? load,
     TResult Function(_LogDaily value)? logDaily,
     TResult Function(_Setup value)? setup,
+    TResult Function(_UpdatePeriodRange value)? updatePeriodRange,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
 }
@@ -123,6 +129,7 @@ class _$LoadImpl implements _Load {
     required TResult Function() load,
     required TResult Function(Map<String, dynamic> data) logDaily,
     required TResult Function(Map<String, dynamic> data) setup,
+    required TResult Function(DateTime start, DateTime end) updatePeriodRange,
   }) {
     return load();
   }
@@ -133,6 +140,7 @@ class _$LoadImpl implements _Load {
     TResult? Function()? load,
     TResult? Function(Map<String, dynamic> data)? logDaily,
     TResult? Function(Map<String, dynamic> data)? setup,
+    TResult? Function(DateTime start, DateTime end)? updatePeriodRange,
   }) {
     return load?.call();
   }
@@ -143,6 +151,7 @@ class _$LoadImpl implements _Load {
     TResult Function()? load,
     TResult Function(Map<String, dynamic> data)? logDaily,
     TResult Function(Map<String, dynamic> data)? setup,
+    TResult Function(DateTime start, DateTime end)? updatePeriodRange,
     required TResult orElse(),
   }) {
     if (load != null) {
@@ -157,6 +166,7 @@ class _$LoadImpl implements _Load {
     required TResult Function(_Load value) load,
     required TResult Function(_LogDaily value) logDaily,
     required TResult Function(_Setup value) setup,
+    required TResult Function(_UpdatePeriodRange value) updatePeriodRange,
   }) {
     return load(this);
   }
@@ -167,6 +177,7 @@ class _$LoadImpl implements _Load {
     TResult? Function(_Load value)? load,
     TResult? Function(_LogDaily value)? logDaily,
     TResult? Function(_Setup value)? setup,
+    TResult? Function(_UpdatePeriodRange value)? updatePeriodRange,
   }) {
     return load?.call(this);
   }
@@ -177,6 +188,7 @@ class _$LoadImpl implements _Load {
     TResult Function(_Load value)? load,
     TResult Function(_LogDaily value)? logDaily,
     TResult Function(_Setup value)? setup,
+    TResult Function(_UpdatePeriodRange value)? updatePeriodRange,
     required TResult orElse(),
   }) {
     if (load != null) {
@@ -269,6 +281,7 @@ class _$LogDailyImpl implements _LogDaily {
     required TResult Function() load,
     required TResult Function(Map<String, dynamic> data) logDaily,
     required TResult Function(Map<String, dynamic> data) setup,
+    required TResult Function(DateTime start, DateTime end) updatePeriodRange,
   }) {
     return logDaily(data);
   }
@@ -279,6 +292,7 @@ class _$LogDailyImpl implements _LogDaily {
     TResult? Function()? load,
     TResult? Function(Map<String, dynamic> data)? logDaily,
     TResult? Function(Map<String, dynamic> data)? setup,
+    TResult? Function(DateTime start, DateTime end)? updatePeriodRange,
   }) {
     return logDaily?.call(data);
   }
@@ -289,6 +303,7 @@ class _$LogDailyImpl implements _LogDaily {
     TResult Function()? load,
     TResult Function(Map<String, dynamic> data)? logDaily,
     TResult Function(Map<String, dynamic> data)? setup,
+    TResult Function(DateTime start, DateTime end)? updatePeriodRange,
     required TResult orElse(),
   }) {
     if (logDaily != null) {
@@ -303,6 +318,7 @@ class _$LogDailyImpl implements _LogDaily {
     required TResult Function(_Load value) load,
     required TResult Function(_LogDaily value) logDaily,
     required TResult Function(_Setup value) setup,
+    required TResult Function(_UpdatePeriodRange value) updatePeriodRange,
   }) {
     return logDaily(this);
   }
@@ -313,6 +329,7 @@ class _$LogDailyImpl implements _LogDaily {
     TResult? Function(_Load value)? load,
     TResult? Function(_LogDaily value)? logDaily,
     TResult? Function(_Setup value)? setup,
+    TResult? Function(_UpdatePeriodRange value)? updatePeriodRange,
   }) {
     return logDaily?.call(this);
   }
@@ -323,6 +340,7 @@ class _$LogDailyImpl implements _LogDaily {
     TResult Function(_Load value)? load,
     TResult Function(_LogDaily value)? logDaily,
     TResult Function(_Setup value)? setup,
+    TResult Function(_UpdatePeriodRange value)? updatePeriodRange,
     required TResult orElse(),
   }) {
     if (logDaily != null) {
@@ -423,6 +441,7 @@ class _$SetupImpl implements _Setup {
     required TResult Function() load,
     required TResult Function(Map<String, dynamic> data) logDaily,
     required TResult Function(Map<String, dynamic> data) setup,
+    required TResult Function(DateTime start, DateTime end) updatePeriodRange,
   }) {
     return setup(data);
   }
@@ -433,6 +452,7 @@ class _$SetupImpl implements _Setup {
     TResult? Function()? load,
     TResult? Function(Map<String, dynamic> data)? logDaily,
     TResult? Function(Map<String, dynamic> data)? setup,
+    TResult? Function(DateTime start, DateTime end)? updatePeriodRange,
   }) {
     return setup?.call(data);
   }
@@ -443,6 +463,7 @@ class _$SetupImpl implements _Setup {
     TResult Function()? load,
     TResult Function(Map<String, dynamic> data)? logDaily,
     TResult Function(Map<String, dynamic> data)? setup,
+    TResult Function(DateTime start, DateTime end)? updatePeriodRange,
     required TResult orElse(),
   }) {
     if (setup != null) {
@@ -457,6 +478,7 @@ class _$SetupImpl implements _Setup {
     required TResult Function(_Load value) load,
     required TResult Function(_LogDaily value) logDaily,
     required TResult Function(_Setup value) setup,
+    required TResult Function(_UpdatePeriodRange value) updatePeriodRange,
   }) {
     return setup(this);
   }
@@ -467,6 +489,7 @@ class _$SetupImpl implements _Setup {
     TResult? Function(_Load value)? load,
     TResult? Function(_LogDaily value)? logDaily,
     TResult? Function(_Setup value)? setup,
+    TResult? Function(_UpdatePeriodRange value)? updatePeriodRange,
   }) {
     return setup?.call(this);
   }
@@ -477,6 +500,7 @@ class _$SetupImpl implements _Setup {
     TResult Function(_Load value)? load,
     TResult Function(_LogDaily value)? logDaily,
     TResult Function(_Setup value)? setup,
+    TResult Function(_UpdatePeriodRange value)? updatePeriodRange,
     required TResult orElse(),
   }) {
     if (setup != null) {
@@ -495,6 +519,172 @@ abstract class _Setup implements TrackerEvent {
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SetupImplCopyWith<_$SetupImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$UpdatePeriodRangeImplCopyWith<$Res> {
+  factory _$$UpdatePeriodRangeImplCopyWith(
+    _$UpdatePeriodRangeImpl value,
+    $Res Function(_$UpdatePeriodRangeImpl) then,
+  ) = __$$UpdatePeriodRangeImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({DateTime start, DateTime end});
+}
+
+/// @nodoc
+class __$$UpdatePeriodRangeImplCopyWithImpl<$Res>
+    extends _$TrackerEventCopyWithImpl<$Res, _$UpdatePeriodRangeImpl>
+    implements _$$UpdatePeriodRangeImplCopyWith<$Res> {
+  __$$UpdatePeriodRangeImplCopyWithImpl(
+    _$UpdatePeriodRangeImpl _value,
+    $Res Function(_$UpdatePeriodRangeImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of TrackerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? start = null, Object? end = null}) {
+    return _then(
+      _$UpdatePeriodRangeImpl(
+        null == start
+            ? _value.start
+            : start // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        null == end
+            ? _value.end
+            : end // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+class _$UpdatePeriodRangeImpl implements _UpdatePeriodRange {
+  const _$UpdatePeriodRangeImpl(this.start, this.end);
+
+  @override
+  final DateTime start;
+  @override
+  final DateTime end;
+
+  @override
+  String toString() {
+    return 'TrackerEvent.updatePeriodRange(start: $start, end: $end)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UpdatePeriodRangeImpl &&
+            (identical(other.start, start) || other.start == start) &&
+            (identical(other.end, end) || other.end == end));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, start, end);
+
+  /// Create a copy of TrackerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UpdatePeriodRangeImplCopyWith<_$UpdatePeriodRangeImpl> get copyWith =>
+      __$$UpdatePeriodRangeImplCopyWithImpl<_$UpdatePeriodRangeImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() load,
+    required TResult Function(Map<String, dynamic> data) logDaily,
+    required TResult Function(Map<String, dynamic> data) setup,
+    required TResult Function(DateTime start, DateTime end) updatePeriodRange,
+  }) {
+    return updatePeriodRange(start, end);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? load,
+    TResult? Function(Map<String, dynamic> data)? logDaily,
+    TResult? Function(Map<String, dynamic> data)? setup,
+    TResult? Function(DateTime start, DateTime end)? updatePeriodRange,
+  }) {
+    return updatePeriodRange?.call(start, end);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? load,
+    TResult Function(Map<String, dynamic> data)? logDaily,
+    TResult Function(Map<String, dynamic> data)? setup,
+    TResult Function(DateTime start, DateTime end)? updatePeriodRange,
+    required TResult orElse(),
+  }) {
+    if (updatePeriodRange != null) {
+      return updatePeriodRange(start, end);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Load value) load,
+    required TResult Function(_LogDaily value) logDaily,
+    required TResult Function(_Setup value) setup,
+    required TResult Function(_UpdatePeriodRange value) updatePeriodRange,
+  }) {
+    return updatePeriodRange(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Load value)? load,
+    TResult? Function(_LogDaily value)? logDaily,
+    TResult? Function(_Setup value)? setup,
+    TResult? Function(_UpdatePeriodRange value)? updatePeriodRange,
+  }) {
+    return updatePeriodRange?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Load value)? load,
+    TResult Function(_LogDaily value)? logDaily,
+    TResult Function(_Setup value)? setup,
+    TResult Function(_UpdatePeriodRange value)? updatePeriodRange,
+    required TResult orElse(),
+  }) {
+    if (updatePeriodRange != null) {
+      return updatePeriodRange(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _UpdatePeriodRange implements TrackerEvent {
+  const factory _UpdatePeriodRange(final DateTime start, final DateTime end) =
+      _$UpdatePeriodRangeImpl;
+
+  DateTime get start;
+  DateTime get end;
+
+  /// Create a copy of TrackerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$UpdatePeriodRangeImplCopyWith<_$UpdatePeriodRangeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

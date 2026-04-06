@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/tracker_insights.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
@@ -40,6 +41,17 @@ class CycleInsightsScreen extends StatelessWidget {
             Text('Uncovering patterns in your unique body.', style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 14)),
             const SizedBox(height: 32),
             TrackerInsights(profile: profile, logs: logs),
+            const SizedBox(height: 32),
+            Center(
+              child: TextButton.icon(
+                onPressed: () => GoRouter.of(context).push('/tracker/calendar'),
+                icon: const Icon(Icons.calendar_month, color: AppColors.purple),
+                label: Text(
+                  'View Full Cycle Calendar 📅',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: AppColors.purple, fontSize: 16),
+                ),
+              ),
+            ),
             const SizedBox(height: 48),
           ],
         ),

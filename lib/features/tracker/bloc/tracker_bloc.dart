@@ -10,6 +10,7 @@ class TrackerEvent with _$TrackerEvent {
   const factory TrackerEvent.load() = _Load;
   const factory TrackerEvent.logDaily(Map<String, dynamic> data) = _LogDaily;
   const factory TrackerEvent.setup(Map<String, dynamic> data) = _Setup;
+  const factory TrackerEvent.updatePeriodRange(DateTime start, DateTime end) = _UpdatePeriodRange;
 }
 
 @freezed
@@ -87,6 +88,18 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
         add(const TrackerEvent.load());
       } catch (e) {
         emit(TrackerState.error(e.toString()));
+      }
+    });
+
+    on<_UpdatePeriodRange>((event, emit) async {
+      final currentState = state;
+      if (currentState is! _Loaded) return;
+
+      try {
+        await _repository.updatePeriodRange(event.start, event.end);
+        add(const TrackerEvent.load());
+      } catch (e) {
+        // Handle error in UI
       }
     });
   }

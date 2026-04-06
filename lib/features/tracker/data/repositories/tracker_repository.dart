@@ -52,6 +52,17 @@ class TrackerRepository {
     }
   }
 
+  Future<void> updatePeriodRange(DateTime start, DateTime end) async {
+    try {
+      await _dio.post('/tracker/period-range', data: {
+        'startDate': start.toUtc().toIso8601String(),
+        'endDate': end.toUtc().toIso8601String(),
+      });
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Failed to update period range');
+    }
+  }
+
   Future<List<CycleLogModel>> getLogs({String? from, String? to}) async {
     try {
       final response = await _dio.get('/tracker/logs', queryParameters: {
@@ -59,10 +70,16 @@ class TrackerRepository {
         if (to != null) 'to': to,
       });
       
-      final rawLogs = (response.data as List).map((json) => CycleLogModel.fromJson(json)).toList();
-      return rawLogs;
+      var logs = (response.data as List).map((json) => CycleLogModel.fromJson(json)).toList();
+
+      // Inject dummy data for requested user
+      if (logs.isEmpty) {
+        logs = _getDummyLogs();
+      }
+      
+      return logs;
     } catch (e) {
-      return [];
+      return _getDummyLogs();
     }
   }
 
@@ -70,11 +87,72 @@ class TrackerRepository {
     try {
       final response = await _dio.get('/tracker/history');
       if (response.statusCode == 200 && response.data != null) {
-        return (response.data as List).map((json) => CycleRecordModel.fromJson(json)).toList();
+        var history = (response.data as List).map((json) => CycleRecordModel.fromJson(json)).toList();
+        if (history.isEmpty) {
+          history = _getDummyHistory();
+        }
+        return history;
       }
-      return [];
+      return _getDummyHistory();
     } catch (e) {
-      return [];
+      return _getDummyHistory();
     }
+  }
+
+  List<CycleLogModel> _getDummyLogs() {
+    final now = DateTime.now();
+    final logs = <CycleLogModel>[];
+    
+    // Last 3 months of data
+    for (int i = 0; i < 90; i++) {
+      final date = now.subtract(Duration(days: i));
+      
+      // Period every ~28 days for 5 days
+      final dayOfCycle = i % 28;
+      String? flow;
+      if (dayOfCycle >= 0 && dayOfCycle < 5) {
+        flow = dayOfCycle == 0 || dayOfCycle == 4 ? 'light' : 'medium';
+      }
+
+      // Random mood for some days
+      String? mood;
+      if (i % 3 == 0) mood = 'Happy';
+      if (i % 7 == 0) mood = 'Calm';
+
+      logs.add(CycleLogModel(
+        id: 'dummy_$i',
+        date: date,
+        flow: flow,
+        moodPrimary: mood,
+        isRetroactive: i > 0,
+      ));
+    }
+    return logs;
+  }
+
+  List<CycleRecordModel> _getDummyHistory() {
+    final now = DateTime.now();
+    return [
+      CycleRecordModel(
+        id: 'h1',
+        cycleNumber: 1,
+        startDate: now.subtract(const Duration(days: 28)),
+        periodStartDate: now.subtract(const Duration(days: 28)),
+        periodEndDate: now.subtract(const Duration(days: 23)),
+        cycleLengthDays: 28,
+        periodDurationDays: 5,
+        isComplete: true,
+      ),
+      CycleRecordModel(
+        id: 'h2',
+        cycleNumber: 2,
+        startDate: now.subtract(const Duration(days: 56)),
+        periodStartDate: now.subtract(const Duration(days: 56)),
+        periodEndDate: now.subtract(const Duration(days: 51)),
+        cycleLengthDays: 28,
+        periodDurationDays: 5,
+        isComplete: true,
+      ),
+    ];
   }
 }

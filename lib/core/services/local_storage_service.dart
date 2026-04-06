@@ -24,6 +24,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _marketingOptIn  = 'ob_marketing_opt_in';
   static const _isOnboarded     = 'ob_is_onboarded';
   static const _periodStatus    = 'ob_period_status';
+  static const _calendarVisited = 'ob_calendar_visited';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -137,4 +138,11 @@ class LocalStorageService extends ChangeNotifier {
 
   // ── Clear all onboarding state ────────────────────────────────────────────
   Future<void> clearAll() => _prefs.clear();
+
+  // ── Calendar ──────────────────────────────────────────────────────────────
+  bool get hasCalendarVisited => _prefs.getBool(_calendarVisited) ?? false;
+  Future<void> setCalendarVisited(bool value) async {
+    await _prefs.setBool(_calendarVisited, value);
+    notifyListeners();
+  }
 }

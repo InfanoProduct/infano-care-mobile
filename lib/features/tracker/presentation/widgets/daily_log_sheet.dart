@@ -87,7 +87,19 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   void initState() {
     super.initState();
     _selectedDate = widget.date;
-    _selectableDates = List.generate(7, (i) => DateTime.now().subtract(Duration(days: i))).reversed.toList();
+    
+    // Generate 7 days centered around the selected date (or ending at it if it's today)
+    final now = DateTime.now();
+    final isToday = DateUtils.isSameDay(_selectedDate, now);
+    
+    if (isToday) {
+      _selectableDates = List.generate(7, (i) => now.subtract(Duration(days: i))).reversed.toList();
+    } else {
+      // Center around the selected date
+      _selectableDates = List.generate(7, (i) => _selectedDate.add(Duration(days: i - 3))).toList();
+      // Ensure we don't show future dates beyond today
+      _selectableDates = _selectableDates.where((d) => d.isBefore(now.add(const Duration(days: 1)))).toList();
+    }
     
     // Initial load from Bloc state using current state
     final state = context.read<TrackerBloc>().state;
