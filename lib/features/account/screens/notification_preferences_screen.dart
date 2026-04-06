@@ -19,6 +19,10 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
   bool _latePeriod = true;
   bool _streakAtRisk = true;
   bool _monthlyInsights = false;
+  bool _phaseChange = false;
+  bool _doctorConnect = true;
+  bool _cycleMilestones = true;
+  bool _globalEnabled = true;
 
   @override
   void initState() {
@@ -39,6 +43,10 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
           _latePeriod = data['latePeriod'] ?? true;
           _streakAtRisk = data['streakAtRisk'] ?? true;
           _monthlyInsights = data['monthlyInsights'] ?? false;
+          _phaseChange = data['phaseChange'] ?? false;
+          _doctorConnect = data['doctorConnect'] ?? true;
+          _cycleMilestones = data['cycleMilestones'] ?? true;
+          _globalEnabled = data['globalEnabled'] ?? true;
           _isLoading = false;
         });
       }
@@ -62,6 +70,10 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         'latePeriod': _latePeriod,
         'streakAtRisk': _streakAtRisk,
         'monthlyInsights': _monthlyInsights,
+        'phaseChange': _phaseChange,
+        'doctorConnect': _doctorConnect,
+        'cycleMilestones': _cycleMilestones,
+        'globalEnabled': _globalEnabled,
         key: value,
       };
       
@@ -74,6 +86,10 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         if (key == 'latePeriod') _latePeriod = value;
         if (key == 'streakAtRisk') _streakAtRisk = value;
         if (key == 'monthlyInsights') _monthlyInsights = value;
+        if (key == 'phaseChange') _phaseChange = value;
+        if (key == 'doctorConnect') _doctorConnect = value;
+        if (key == 'cycleMilestones') _cycleMilestones = value;
+        if (key == 'globalEnabled') _globalEnabled = value;
       });
 
       await ApiService.instance.dio.put('/api/v1/tracker/notification-preferences', data: dataStr);
@@ -134,6 +150,14 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         : ListView(
             padding: const EdgeInsets.symmetric(vertical: 16),
             children: [
+              _buildToggleRow(
+                title: 'Enable All Notifications',
+                subtitle: 'Master toggle for all cycle reminders.',
+                value: _globalEnabled,
+                onChanged: (val) => _updatePreference('globalEnabled', val),
+                isCritical: true,
+              ),
+
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 padding: const EdgeInsets.all(16),
@@ -214,6 +238,26 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
                 value: _monthlyInsights,
                 onChanged: (val) => _updatePreference('monthlyInsights', val),
               ),
+
+              _buildSectionHeader('Smart Alerts'),
+              _buildToggleRow(
+                title: 'Phase Change Reminders',
+                subtitle: 'Learn about your energy and mood as your phase shifts.',
+                value: _phaseChange,
+                onChanged: (val) => _updatePreference('phaseChange', val),
+              ),
+              _buildToggleRow(
+                title: 'Cycle Celebrations',
+                subtitle: 'Celebrate your tracking milestones and anniversaries.',
+                value: _cycleMilestones,
+                onChanged: (val) => _updatePreference('cycleMilestones', val),
+              ),
+              _buildToggleRow(
+                title: 'Healthcare Provider Prompts',
+                subtitle: 'Gentle alerts for patterns worth sharing with a doctor.',
+                value: _doctorConnect,
+                onChanged: (val) => _updatePreference('doctorConnect', val),
+              ),
               
               const SizedBox(height: 48),
             ],
@@ -241,14 +285,19 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
     required String subtitle,
     required bool value,
     required Function(bool) onChanged,
+    bool isCritical = false,
   }) {
     return SwitchListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-      title: Text(title, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+      title: Text(title, style: GoogleFonts.nunito(
+        fontSize: 16, 
+        fontWeight: isCritical ? FontWeight.w800 : FontWeight.w600, 
+        color: isCritical ? AppColors.purple : AppColors.textDark
+      )),
       subtitle: Text(subtitle, style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textMedium)),
       value: value,
       activeColor: AppColors.purple,
-      onChanged: onChanged,
+      onChanged: _globalEnabled || isCritical ? onChanged : null,
     );
   }
 }

@@ -13,12 +13,17 @@ import 'package:infano_care_mobile/core/services/privacy_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:infano_care_mobile/core/services/notification_service.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Bootstrap services
+  // 1. Initialize Firebase
+  await Firebase.initializeApp();
+
+  // 2. Bootstrap services
   final storage = await LocalStorageService.create();
   ApiService.init(storage);
 
@@ -34,6 +39,7 @@ class InfanoCareApp extends StatefulWidget {
 }
 
 class _InfanoCareAppState extends State<InfanoCareApp> {
+  final _navigatorKey = GlobalKey<NavigatorState>();
   late final GoRouter _router;
   late final OnboardingRepository _repo;
 
@@ -42,6 +48,9 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
     super.initState();
     _repo = OnboardingRepository(ApiService.instance);
     _router = createRouter(widget.storage);
+    
+    // Initialize notifications
+    NotificationService().initialize(_navigatorKey);
   }
 
   @override
@@ -62,6 +71,7 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
         ),
       ],
       child: MaterialApp.router(
+        key: _navigatorKey,
         title: 'Infano.Care',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,

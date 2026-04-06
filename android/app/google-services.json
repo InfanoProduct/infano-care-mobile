@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "137771651799",
+    "project_id": "infano-care",
+    "storage_bucket": "infano-care.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:137771651799:android:a75d724dd7e4983a9d1692",
+        "android_client_info": {
+          "package_name": "com.infanocare.infano_care"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXIqDeIAyeJjhxIn3J5mQz6l2OpmDabYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

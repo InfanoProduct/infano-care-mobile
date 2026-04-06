@@ -157,6 +157,12 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(path: '/onboarding/tracker/details', builder: (_, __) => const CycleDetailsScreen()),
       GoRoute(path: '/onboarding/tracker/done',    builder: (_, __) => const TrackerActivatedScreen()),
 
+      // Deep Link Routes for Notifications
+      GoRoute(path: '/tracker/log', builder: (_, __) => const CycleRingScreen()), // Placeholder for direct log sheet
+      GoRoute(path: '/tracker/prediction', builder: (_, __) => const CycleRingScreen()),
+      GoRoute(path: '/tracker/phase', builder: (_, __) => const CycleRingScreen()), // Placeholder
+      GoRoute(path: '/tracker/doctor-connect', builder: (_, __) => const DoctorSummaryScreen()),
+
       // Tracker Reporting
       GoRoute(path: '/tracker/ring', builder: (_, __) => const CycleRingScreen()),
       GoRoute(path: '/tracker/doctor-summary', builder: (_, __) => const DoctorSummaryScreen()),
