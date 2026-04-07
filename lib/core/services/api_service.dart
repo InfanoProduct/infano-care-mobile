@@ -56,7 +56,8 @@ class ApiService {
               // Retry the original request with the new token
               final opts = error.requestOptions;
               opts.headers['Authorization'] = 'Bearer ${storage.authToken}';
-              return handler.resolve(await _dio.fetch(opts));
+              final response = await _dio.fetch(opts);
+              return handler.resolve(response);
             } catch (e) {
               return handler.next(error);
             }
@@ -65,6 +66,7 @@ class ApiService {
           // 2. Start a new refresh operation
           _refreshCompleter = Completer<void>();
           try {
+            debugPrint('[API] 🔄 Token expired. Attempting refresh...');
             final resp = await Dio().post(
               '$_baseUrl/auth/refresh',
               data: {'refreshToken': storage.refreshToken},
@@ -83,7 +85,8 @@ class ApiService {
               // Retry the original request
               final opts = error.requestOptions;
               opts.headers['Authorization'] = 'Bearer $newAccess';
-              return handler.resolve(await _dio.fetch(opts));
+              final response = await _dio.fetch(opts);
+              return handler.resolve(response);
             } else {
               throw Exception('Refresh token failed - no access token returned');
             }
@@ -95,7 +98,8 @@ class ApiService {
             // If it's a network error, we keep the tokens and let the original request fail naturally.
             if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
               debugPrint('[API] ⚠️ Refresh token rejected. Clearing session.');
-              await storage.clearAuthTokens();
+              await storage.clearSession();
+              // The GoRouter refreshListenable (storage) will handle the redirect to splash/login.
             } else {
               debugPrint('[API] 📡 Network error during refresh. Retaining session for retry.');
             }

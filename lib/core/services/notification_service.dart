@@ -7,13 +7,14 @@ import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/router/app_router.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  FirebaseMessaging get _fcm => FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
@@ -29,11 +30,15 @@ class NotificationService {
     if (_isInitialized) return;
     _navigatorKey = navigatorKey;
 
-    // 1. Initialize Firebase if not already
-    // (Actual call is usually in main.dart)
+    try {
+      // 1. Check if Firebase is available
+      if (Firebase.apps.isEmpty) {
+        debugPrint('[Notifications] Firebase not initialized. Skipping FCM setup.');
+        return;
+      }
 
-    // 2. Request Permissions
-    await _fcm.requestPermission(
+      // 2. Request Permissions
+      await _fcm.requestPermission(
       alert: true,
       badge: true,
       provisional: false,
@@ -49,7 +54,7 @@ class NotificationService {
     );
 
     await _localNotifications.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: (details) {
         final payload = details.payload;
         if (payload != null) {
@@ -59,7 +64,7 @@ class NotificationService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificAction<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_channel);
 
     // 4. Handle Foreground Messages
@@ -69,10 +74,10 @@ class NotificationService {
 
       if (notification != null && android != null) {
         _localNotifications.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          NotificationDetails(
+          id: notification.hashCode,
+          title: notification.title,
+          body: notification.body,
+          notificationDetails: NotificationDetails(
             android: AndroidNotificationDetails(
               _channel.id,
               _channel.name,
@@ -92,6 +97,9 @@ class NotificationService {
 
     _isInitialized = true;
     _syncToken();
+    } catch (e) {
+      debugPrint('[Notifications] Setup failed ❌: $e');
+    }
   }
 
   Future<void> _syncToken() async {
@@ -99,7 +107,7 @@ class NotificationService {
       final token = await _fcm.getToken();
       if (token != null) {
         debugPrint("FCM Token: $token");
-        await ApiService.instance.dio.post('/api/user/register-fcm-token', data: {
+        await ApiService.instance.dio.post('/user/register-fcm-token', data: {
           'fcmToken': token,
         });
       }

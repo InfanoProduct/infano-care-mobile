@@ -71,15 +71,30 @@ class AuthRepository {
     }
   }
 
-  // ── Extract readable error message ──────────────────────────────────────────
+  // ── 3. Extract readable error message ───────────────────────────────────────
   String _extractError(DioException e, String fallback) {
+    // 1. Connection/Timeout errors
+    if (e.type == DioExceptionType.connectionTimeout || 
+        e.type == DioExceptionType.receiveTimeout) {
+      return 'Connection timed out. Please check your internet.';
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      return 'No internet connection. Please try again.';
+    }
+
+    // 2. Response errors from API
     final data = e.response?.data;
-    if (data is Map && data['error'] != null) {
-      return data['error'].toString();
+    if (data is Map) {
+      final String? error = data['error']?.toString() ?? data['message']?.toString();
+      if (error != null) {
+        // Map specific API error strings to user-friendly ones if needed
+        if (error.contains('Invalid OTP')) return 'Invalid code. Please check and try again.';
+        if (error.contains('expired')) return 'The code has expired. Please request a new one.';
+        if (error.contains('Too many')) return 'Too many attempts. Please try again later.';
+        return error;
+      }
     }
-    if (data is Map && data['message'] != null) {
-      return data['message'].toString();
-    }
+
     return fallback;
   }
 }

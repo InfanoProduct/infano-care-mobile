@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/onboarding/data/onboarding_repository.dart';
+import 'package:dio/dio.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -31,9 +33,11 @@ class OnboardingState extends Equatable {
   final bool isLoading;
   final String? errorMessage;
   final bool sessionExpired;
+  final bool isBootstrapping;
   final bool isIrregular;
 
   const OnboardingState({
+    this.isBootstrapping    = false,
     this.userType           = 'teen',
     this.displayName        = '',
     this.pronouns,
@@ -71,9 +75,10 @@ class OnboardingState extends Equatable {
     Map<String, dynamic>? avatarData, String? journeyName,
     int? totalPoints, DateTime? lastPeriod, int? periodLength, int? cycleLength,
     bool? isLoading, String? errorMessage, bool? sessionExpired,
-    bool? isIrregular,
+    bool? isIrregular, bool? isBootstrapping,
   }) {
     return OnboardingState(
+      isBootstrapping:    isBootstrapping   ?? this.isBootstrapping,
       userType:           userType          ?? this.userType,
       displayName:        displayName       ?? this.displayName,
       pronouns:           pronouns          ?? this.pronouns,
@@ -109,7 +114,7 @@ class OnboardingState extends Equatable {
     contentTier, coppaRequired, termsAccepted, privacyAccepted, marketingOptIn,
     goals, periodComfortScore, periodStatus, interestTopics, avatarData,
     journeyName, totalPoints, lastPeriod, periodLength, cycleLength,
-    isLoading, errorMessage, sessionExpired,
+    isLoading, errorMessage, sessionExpired, isBootstrapping,
   ];
 }
 
@@ -141,6 +146,7 @@ class SubmitJourneyName     extends OnboardingEvent { const SubmitJourneyName();
 class SubmitTrackerSetup    extends OnboardingEvent { const SubmitTrackerSetup(); }
 class SkipTracker           extends OnboardingEvent { const SkipTracker(); }
 class SyncFromStorage       extends OnboardingEvent { const SyncFromStorage(); }
+class BootstrapApp         extends OnboardingEvent { const BootstrapApp(); }
 
 // ─── BLoC ─────────────────────────────────────────────────────────────────────
 
@@ -170,6 +176,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<SyncFromStorage>(_onSyncFromStorage);
     on<SetRegularity>(_onSetRegularity);
     on<SkipTracker>(_onSkipTracker);
+    on<BootstrapApp>(_onBootstrapApp);
   }
 
   void _onSetUserType(SetUserType e, Emitter<OnboardingState> emit) {
@@ -391,5 +398,41 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       marketingOptIn: _storage.marketingOptIn,
       totalPoints: _storage.points,
     ));
+  }
+
+  Future<void> _onBootstrapApp(BootstrapApp e, Emitter<OnboardingState> emit) async {
+    final token = _storage.authToken;
+    if (token == null) {
+      emit(state.copyWith(isBootstrapping: false));
+      return;
+    }
+
+    emit(state.copyWith(isBootstrapping: true));
+    try {
+      final profile = await _repo.getProfile();
+      
+      final serverStep    = profile['onboardingStep'] ?? 1;
+      final isOnboarded   = profile['isOnboardingCompleted'] as bool? ?? false;
+      final serverName    = profile['profile']?['displayName'];
+      final serverPoints  = profile['profile']?['pointsTotal'] ?? 0;
+      
+      await _storage.setStepComplete(serverStep.toString());
+      await _storage.setIsOnboarded(isOnboarded);
+      if (serverName != null) await _storage.setDisplayName(serverName);
+      await _storage.setPoints(serverPoints);
+      
+      emit(state.copyWith(
+        displayName: serverName ?? state.displayName,
+        totalPoints: serverPoints,
+        isBootstrapping: false,
+      ));
+      debugPrint('[Bootstrap] Successfully synced server state ✅');
+    } catch (err) {
+      debugPrint('[Bootstrap] Sync failed ❌: $err');
+      if (err is DioException && err.response?.statusCode == 401) {
+        await _storage.clearSession();
+      }
+      emit(state.copyWith(isBootstrapping: false));
+    }
   }
 }

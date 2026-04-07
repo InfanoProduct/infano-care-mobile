@@ -44,10 +44,38 @@ import 'package:infano_care_mobile/features/learning/screens/journey_detail_scre
 import 'package:infano_care_mobile/features/learning/screens/episode_player_screen.dart';
 import 'package:infano_care_mobile/features/learning/models/learning_models.dart';
 
+String getRouteForStep(String step, {String? periodStatus}) {
+  final routes = {
+    '0':  '/onboarding/path',
+    '1':  '/onboarding/name',
+    '2':  '/onboarding/birthday',
+    '3':  '/onboarding/consent/send',
+    '4':  '/onboarding/goals',
+    '5':  '/onboarding/period-comfort',
+    '6':  '/onboarding/period-status',
+    '7':  '/onboarding/interests',
+    '8':  '/onboarding/avatar',
+    '9':  '/onboarding/journey-name',
+    '10': '/onboarding/terms',
+    '11': '/onboarding/tracker/date',
+    '12': '/onboarding/tracker/details',
+  };
+
+  // Conditional skip: If period status is not active, skip tracker setup (11, 12)
+  if (periodStatus != null && periodStatus != 'active') {
+    if (step == '11' || step == '12') {
+      return '/home';
+    }
+  }
+
+  return routes[step] ?? '/onboarding/path';
+}
+
 GoRouter createRouter(LocalStorageService storage) {
   return GoRouter(
     initialLocation: '/home',
     refreshListenable: storage,
+    debugLogDiagnostics: true, // Enable logs for easier debugging of redirects
     redirect: (context, state) {
       final token = storage.authToken;
       final tempToken = storage.tempToken;
@@ -71,47 +99,26 @@ GoRouter createRouter(LocalStorageService storage) {
       // 2. Authenticated (token != null)
       final bool onOnboarding = path.startsWith('/onboarding');
 
-      // If we are on splash but have a token, we should move towards home or onboarding
-      if (path == '/splash') {
-        if (storage.isOnboarded) return '/home';
-        // If not onboarded, let LandingScreen handle the sync/routing or fall through to step check
+      // OPTIMIZATION: If fully onboarded, jump to home immediately
+      if (storage.isOnboarded) {
+        if (onAuth || (onOnboarding && !path.contains('tracker'))) return '/home';
+        return null;
+      }
+
+      // 3. Authenticated but NOT Onboarded
+      if (path == '/splash' || path == '/auth/otp' || path == '/auth/phone') {
+        // After login, send them to their next step
+        return getRouteForStep(step ?? '0', periodStatus: storage.periodStatus);
       }
 
       if (!storage.isOnboarded) {
         // Enforce onboarding flow
-        final routes = {
-          '0':  '/onboarding/path',
-          '1':  '/onboarding/name',
-          '2':  '/onboarding/birthday',
-          '3':  '/onboarding/consent/send',
-          '4':  '/onboarding/goals',
-          '5':  '/onboarding/period-comfort',
-          '6':  '/onboarding/period-status',
-          '7':  '/onboarding/interests',
-          '8':  '/onboarding/avatar',
-          '9':  '/onboarding/journey-name',
-          '10': '/onboarding/terms',
-          '11': '/onboarding/tracker/date',
-          '12': '/onboarding/tracker/details',
-        };
-        final currentStep = step ?? '0';
-        String target = routes[currentStep] ?? '/onboarding/path';
-
-        // Conditional skip: If period status is not active, skip tracker setup (11, 12)
-        final periodStatus = storage.periodStatus;
-        if (periodStatus != null && periodStatus != 'active') {
-          if (currentStep == '11' || currentStep == '12') {
-            target = '/home'; 
-          }
-        }
+        final target = getRouteForStep(step ?? '0', periodStatus: storage.periodStatus);
         
         if (path != target && !path.contains('tracker') && path != '/onboarding/welcome') {
           if (!onOnboarding) return target;
           if (path == '/home' || path == '/account') return target;
         }
-      } else {
-        // Authenticated + Onboarded -> Send to home if on guest/onboarding paths
-        if (onAuth || (onOnboarding && !path.contains('tracker'))) return '/home';
       }
 
       return null;

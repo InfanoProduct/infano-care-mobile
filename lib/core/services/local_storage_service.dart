@@ -136,8 +136,21 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears tokens and resets progress flags to force a fresh login/sync
+  Future<void> clearSession() async {
+    await clearAuthTokens();
+    await _prefs.remove(_stepComplete);
+    await _prefs.remove(_isOnboarded);
+    // Note: We keep displayName/phone for 'Welcome Back' UI, 
+    // but the app will force login because tokens are gone.
+    notifyListeners();
+  }
+
   // ── Clear all onboarding state ────────────────────────────────────────────
-  Future<void> clearAll() => _prefs.clear();
+  Future<void> clearAll() async {
+    await _prefs.clear();
+    notifyListeners();
+  }
 
   // ── Calendar ──────────────────────────────────────────────────────────────
   bool get hasCalendarVisited => _prefs.getBool(_calendarVisited) ?? false;

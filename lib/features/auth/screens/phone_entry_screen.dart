@@ -31,20 +31,41 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   void initState() {
     super.initState();
     _repo = AuthRepository(widget.storage);
+    _controller.addListener(_formatPhoneNumber);
     _checkPermissions();
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_formatPhoneNumber);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Auto-formats the phone number with spaces for better readability (98765 43210)
+  void _formatPhoneNumber() {
+    String text = _controller.text.replaceAll(' ', '');
+    if (text.length > 5) {
+      text = '${text.substring(0, 5)} ${text.substring(5)}';
+      if (_controller.text != text) {
+        _controller.value = _controller.value.copyWith(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+        );
+      }
+    }
   }
 
   Future<void> _showPhoneHint() async {
     try {
       final String? result = await SmsAutoFill().hint;
       if (result != null && mounted) {
-        // Hint returns full number with code, e.g. +919000000000
-        // We extract the digits (last 10) and the rest as country code.
-        final cleaned = result.replaceAll(' ', '').replaceAll('-', '');
+        final cleaned = result.replaceAll(' ', '').replaceAll('-', '').replaceAll('+', '');
         if (cleaned.length >= 10) {
           setState(() {
             _controller.text = cleaned.substring(cleaned.length - 10);
-            _countryCode     = cleaned.substring(0, cleaned.length - 10);
+            _countryCode = '+${cleaned.substring(0, cleaned.length - 10)}';
+            if (_countryCode == '+') _countryCode = '+91'; // Fallback
           });
         }
       }
@@ -54,29 +75,36 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   }
 
   Future<void> _checkPermissions() async {
-    // Info only: Show the sheet to explain the feature, but DON'T request system permissions.
-    // The SMS User Consent API will handle the request properly when the SMS arrives.
+    // Info only: Show the sheet to explain why we need permissions.
     if (mounted) {
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) {
           PermissionsOnboardingSheet.show(
             context,
-            onAllow: () => _showPhoneHint(), // Trigger native hint picker
-            onDeny: () => {},  // Manual fallback
+            onAllow: () async {
+              // Production Grade: Request both Notifications and SMS
+              await PermissionService.instance.requestNotifications(context);
+              await PermissionService.instance.requestSms(context);
+              _showPhoneHint();
+            },
+            onDeny: () => {}, 
           );
         }
       });
     }
   }
 
-  bool get _valid => _controller.text.length >= 10;
+  bool get _valid => _controller.text.replaceAll(' ', '').length >= 10;
 
   Future<void> _sendOtp() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final phone = '$_countryCode${_controller.text.trim()}';
-      final signature = await SmsAutoFill().getAppSignature;
-      debugPrint("📤 Sending OTP for $phone with signature $signature");
+      final rawNumber = _controller.text.replaceAll(' ', '').trim();
+      final phone = '$_countryCode$rawNumber';
+      
+      final signature = await PermissionService.instance.getAppSignature();
+      debugPrint("📤 Sending OTP for $phone (App Hash: $signature)");
+      
       await _repo.sendOtp(phone, appHash: signature);
       if (mounted) {
         context.go('/auth/otp?phone=${Uri.encodeComponent(phone)}&fromOnboarding=${widget.fromOnboarding}');

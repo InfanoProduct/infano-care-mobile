@@ -6,6 +6,8 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 
 class LandingScreen extends StatefulWidget {
@@ -16,104 +18,44 @@ class LandingScreen extends StatefulWidget {
 }
 
 class _LandingScreenState extends State<LandingScreen> {
-  bool _isResuming = false;
-  bool _isChecking = true;
-  String? _userName;
-
   @override
   void initState() {
     super.initState();
-    _checkAndRoute();
-  }
-
-  Future<void> _checkAndRoute() async {
-    final storage = await LocalStorageService.create();
+    debugPrint('[LandingScreen] initState reached ✅');
     
-    final token = storage.authToken;
+    // 1. Remove native splash as soon as we start our own loading
+    FlutterNativeSplash.remove();
     
-    if (token != null) {
-      try {
-        // Sync stage from server to reflect any external resets
-        final resp = await ApiService.instance.dio.get('/user/me');
-        final serverStep = resp.data['onboardingStep'] ?? 1;
-        final isOnboarded = resp.data['isOnboardingCompleted'] as bool;
-        final serverName = resp.data['profile']?['displayName'];
-        
-        await storage.setStepComplete(serverStep.toString());
-        await storage.setIsOnboarded(isOnboarded);
-        if (serverName != null) await storage.setDisplayName(serverName);
-        
-        if (isOnboarded) {
-          if (mounted) {
-            context.go('/home');
-            FlutterNativeSplash.remove();
-          }
-          return;
-        } else {
-          if (mounted) {
-            setState(() {
-              _isResuming = true;
-              _isChecking = false;
-              _userName = serverName;
-            });
-            FlutterNativeSplash.remove();
-          }
-        }
-      } catch (e) {
-        if (e is DioException && e.response?.statusCode == 401) {
-          await storage.clearAuthTokens();
-          if (mounted) {
-            setState(() {
-              _isResuming = false;
-              _isChecking = false;
-            });
-            FlutterNativeSplash.remove();
-          }
-        } else {
-          // Network error: Fallback to local storage
-          final step = storage.stepComplete;
-          final isOnboarded = storage.isOnboarded;
-          
-          if (mounted) {
-            if (isOnboarded || step == '13') {
-              context.go('/home');
-              FlutterNativeSplash.remove();
-            } else {
-              setState(() {
-                _isResuming = (step != null && int.parse(step) >= 1);
-                _isChecking = false;
-                _userName = storage.displayName;
-              });
-              FlutterNativeSplash.remove();
-            }
-          }
-        }
-      }
+    // 2. Start bootstrapping ONLY if necessary.
+    // If we're already authenticated and onboarded, the router will soon move us to /home.
+    // We can skip the blocking bootstrap and let Dashboard handle background sync.
+    final storage = context.read<LocalStorageService>();
+    if (storage.authToken != null && storage.isOnboarded) {
+      debugPrint('[LandingScreen] Fast-track: Skipper server bootstrap for onboarded user.');
     } else {
-      if (mounted) {
-        setState(() {
-          _isResuming = false;
-          _isChecking = false;
-        });
-        FlutterNativeSplash.remove();
-      }
+      context.read<OnboardingBloc>().add(const BootstrapApp());
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isChecking) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF6D28D9), // Match splash color from pubspec
-        body: SizedBox.expand(),
-      );
-    }
+    return BlocBuilder<OnboardingBloc, OnboardingState>(
+      builder: (context, state) {
+        // If we are currently fetching user data from server
+        if (state.isBootstrapping) {
+          return const Scaffold(
+            backgroundColor: Color(0xFF6D28D9),
+            body: Center(
+              child: CircularProgressIndicator(color: Colors.white70),
+            ),
+          );
+        }
 
-    return FutureBuilder<LocalStorageService>(
-      future: LocalStorageService.create(),
-      builder: (context, snapshot) {
-        final storage = snapshot.data;
-        
+        final storage = context.read<LocalStorageService>();
+        final step = storage.stepComplete;
+        final isResuming = (step != null && int.parse(step) >= 1) || storage.authToken != null;
+        final userName = state.displayName.isNotEmpty ? state.displayName : storage.displayName;
+
         return Scaffold(
           body: Container(
             decoration: const BoxDecoration(gradient: AppGradients.brandDiagonal),
@@ -125,25 +67,16 @@ class _LandingScreenState extends State<LandingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Spacer(flex: 2),
-                    Container(
-                      width: 120, height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Text('🌸', style: TextStyle(fontSize: 56)),
-                      ),
-                    ).animate().scale(begin: const Offset(0.3, 0.3), duration: 600.ms, curve: Curves.elasticOut),
+                    _LogoWheel(),
                     const SizedBox(height: 32),
                     Text(
                       'Infano.Care',
                       style: Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white),
                     ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
                     const SizedBox(height: 16),
-                    if (_isResuming) ...[
+                    if (isResuming) ...[
                       Text(
-                        'Welcome back${_userName != null ? ', $_userName' : ''}! ✨',
+                        'Welcome back${userName != null ? ', $userName' : ''}! ✨',
                         style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
                       ).animate().fadeIn(delay: 600.ms),
                       const SizedBox(height: 8),
@@ -155,12 +88,14 @@ class _LandingScreenState extends State<LandingScreen> {
                       _TaglineReveal(),
                     const Spacer(flex: 2),
                     GradientButton(
-                      label: _isResuming ? 'Resume My Journey' : 'Start My Journey',
+                      label: isResuming ? (storage.authToken != null ? 'Resume My Journey' : 'Log In to Continue') : 'Start My Journey',
                       icon: '✨',
                       onPressed: () {
-                        if (_isResuming || (storage?.authToken != null)) {
+                        if (isResuming && storage.authToken != null) {
+                          // Already have a session: go home (and let router handle the step)
                           context.go('/home');
                         } else {
+                          // No session: must go to phone login
                           context.go('/auth/phone');
                         }
                       },
@@ -172,8 +107,24 @@ class _LandingScreenState extends State<LandingScreen> {
             ),
           ),
         );
-      }
+      },
     );
+  }
+}
+
+class _LogoWheel extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 120, height: 120,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        shape: BoxShape.circle,
+      ),
+      child: const Center(
+        child: Text('🌸', style: TextStyle(fontSize: 56)),
+      ),
+    ).animate().scale(begin: const Offset(0.3, 0.3), duration: 600.ms, curve: Curves.elasticOut);
   }
 }
 

@@ -98,11 +98,17 @@ class OnboardingRepository {
     return Map<String, dynamic>.from(res.data);
   }
 
-  Future<void> updateStep(int step) async {
+  Future<void> updateStep(int? step) async {
+    if (step == null) return;
     try {
       await _api.dio.patch('/user/onboarding-step', data: {'step': step});
     } catch (_) {
       // Ignore errors for now; mostly needed for compilation
     }
+  }
+
+  Future<Map<String, dynamic>> getProfile() async {
+    final res = await _api.dio.get('/user/me');
+    return Map<String, dynamic>.from(res.data);
   }
 }
