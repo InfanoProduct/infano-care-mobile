@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 
-enum CyclePhase { menstrual, follicular, ovulation, luteal, unknown }
+enum CyclePhase { menstrual, follicular, fertile, ovulation, luteal, unknown }
 
 class CalendarUtils {
   static CyclePhase getPhaseForDate(DateTime date, CycleProfileModel profile, List<CycleLogModel> logs) {
+    final d = DateUtils.dateOnly(date);
     // Check if it's a logged period day
     final log = logs.firstWhere(
-      (l) => DateUtils.isSameDay(l.date, date),
-      orElse: () => CycleLogModel(id: '', date: date),
+      (l) => DateUtils.isSameDay(l.date, d),
+      orElse: () => CycleLogModel(id: '', date: d),
     );
     
     if (log.flow != null && log.flow != 'none' && log.flow != 'ended') {
@@ -17,15 +18,14 @@ class CalendarUtils {
 
     if (profile.lastPeriodStart == null) return CyclePhase.unknown;
 
-    final diff = date.difference(profile.lastPeriodStart!).inDays;
+    final lastStart = DateUtils.dateOnly(profile.lastPeriodStart!);
+    final diff = d.difference(lastStart).inDays;
     final cycleDay = (diff % (profile.avgCycleLength > 0 ? profile.avgCycleLength : 28)) + 1;
 
     if (cycleDay <= profile.avgPeriodDuration) {
       return CyclePhase.menstrual;
-    } else if (cycleDay <= (profile.avgCycleLength / 2) - 2) {
+    } else if (cycleDay < profile.avgCycleLength / 2) {
       return CyclePhase.follicular;
-    } else if (cycleDay <= (profile.avgCycleLength / 2) + 2) {
-      return CyclePhase.ovulation;
     } else {
       return CyclePhase.luteal;
     }
@@ -37,6 +37,8 @@ class CalendarUtils {
         return const Color(0xFFFCE4F3);
       case CyclePhase.follicular:
         return const Color(0xFFEDE9FE);
+      case CyclePhase.fertile:
+        return const Color(0xFFFEF3C7);
       case CyclePhase.ovulation:
         return const Color(0xFFFEF3C7);
       case CyclePhase.luteal:

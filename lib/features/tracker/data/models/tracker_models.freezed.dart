@@ -1470,6 +1470,7 @@ mixin _$CycleRecordModel {
   int? get cycleLengthDays => throw _privateConstructorUsedError;
   int? get periodDurationDays => throw _privateConstructorUsedError;
   bool get isComplete => throw _privateConstructorUsedError;
+  int? get predictionErrorDays => throw _privateConstructorUsedError;
 
   /// Serializes this CycleRecordModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1498,6 +1499,7 @@ abstract class $CycleRecordModelCopyWith<$Res> {
     int? cycleLengthDays,
     int? periodDurationDays,
     bool isComplete,
+    int? predictionErrorDays,
   });
 }
 
@@ -1525,6 +1527,7 @@ class _$CycleRecordModelCopyWithImpl<$Res, $Val extends CycleRecordModel>
     Object? cycleLengthDays = freezed,
     Object? periodDurationDays = freezed,
     Object? isComplete = null,
+    Object? predictionErrorDays = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1564,6 +1567,10 @@ class _$CycleRecordModelCopyWithImpl<$Res, $Val extends CycleRecordModel>
                 ? _value.isComplete
                 : isComplete // ignore: cast_nullable_to_non_nullable
                       as bool,
+            predictionErrorDays: freezed == predictionErrorDays
+                ? _value.predictionErrorDays
+                : predictionErrorDays // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -1589,6 +1596,7 @@ abstract class _$$CycleRecordModelImplCopyWith<$Res>
     int? cycleLengthDays,
     int? periodDurationDays,
     bool isComplete,
+    int? predictionErrorDays,
   });
 }
 
@@ -1615,6 +1623,7 @@ class __$$CycleRecordModelImplCopyWithImpl<$Res>
     Object? cycleLengthDays = freezed,
     Object? periodDurationDays = freezed,
     Object? isComplete = null,
+    Object? predictionErrorDays = freezed,
   }) {
     return _then(
       _$CycleRecordModelImpl(
@@ -1654,6 +1663,10 @@ class __$$CycleRecordModelImplCopyWithImpl<$Res>
             ? _value.isComplete
             : isComplete // ignore: cast_nullable_to_non_nullable
                   as bool,
+        predictionErrorDays: freezed == predictionErrorDays
+            ? _value.predictionErrorDays
+            : predictionErrorDays // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -1672,6 +1685,7 @@ class _$CycleRecordModelImpl implements _CycleRecordModel {
     this.cycleLengthDays,
     this.periodDurationDays,
     this.isComplete = false,
+    this.predictionErrorDays,
   });
 
   factory _$CycleRecordModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -1696,10 +1710,12 @@ class _$CycleRecordModelImpl implements _CycleRecordModel {
   @override
   @JsonKey()
   final bool isComplete;
+  @override
+  final int? predictionErrorDays;
 
   @override
   String toString() {
-    return 'CycleRecordModel(id: $id, cycleNumber: $cycleNumber, startDate: $startDate, periodStartDate: $periodStartDate, endDate: $endDate, periodEndDate: $periodEndDate, cycleLengthDays: $cycleLengthDays, periodDurationDays: $periodDurationDays, isComplete: $isComplete)';
+    return 'CycleRecordModel(id: $id, cycleNumber: $cycleNumber, startDate: $startDate, periodStartDate: $periodStartDate, endDate: $endDate, periodEndDate: $periodEndDate, cycleLengthDays: $cycleLengthDays, periodDurationDays: $periodDurationDays, isComplete: $isComplete, predictionErrorDays: $predictionErrorDays)';
   }
 
   @override
@@ -1722,7 +1738,9 @@ class _$CycleRecordModelImpl implements _CycleRecordModel {
             (identical(other.periodDurationDays, periodDurationDays) ||
                 other.periodDurationDays == periodDurationDays) &&
             (identical(other.isComplete, isComplete) ||
-                other.isComplete == isComplete));
+                other.isComplete == isComplete) &&
+            (identical(other.predictionErrorDays, predictionErrorDays) ||
+                other.predictionErrorDays == predictionErrorDays));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1738,6 +1756,7 @@ class _$CycleRecordModelImpl implements _CycleRecordModel {
     cycleLengthDays,
     periodDurationDays,
     isComplete,
+    predictionErrorDays,
   );
 
   /// Create a copy of CycleRecordModel
@@ -1768,6 +1787,7 @@ abstract class _CycleRecordModel implements CycleRecordModel {
     final int? cycleLengthDays,
     final int? periodDurationDays,
     final bool isComplete,
+    final int? predictionErrorDays,
   }) = _$CycleRecordModelImpl;
 
   factory _CycleRecordModel.fromJson(Map<String, dynamic> json) =
@@ -1791,6 +1811,8 @@ abstract class _CycleRecordModel implements CycleRecordModel {
   int? get periodDurationDays;
   @override
   bool get isComplete;
+  @override
+  int? get predictionErrorDays;
 
   /// Create a copy of CycleRecordModel
   /// with the given fields replaced by the non-null parameter values.

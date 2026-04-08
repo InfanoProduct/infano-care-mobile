@@ -72,31 +72,36 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Build the shared TrackerRepository once
+    final trackerRepo = TrackerRepository(
+      ApiService.instance.dio,
+      PrivacyService(const FlutterSecureStorage()),
+    );
+
     return ChangeNotifierProvider.value(
       value: widget.storage,
-      child: MultiBlocProvider(
-        providers: [
-        BlocProvider(
-          create: (_) => OnboardingBloc(_repo, widget.storage)..add(const SyncFromStorage()),
+      child: Provider<TrackerRepository>.value(
+        value: trackerRepo,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => OnboardingBloc(_repo, widget.storage)
+                ..add(const SyncFromStorage()),
+            ),
+            BlocProvider(
+              create: (_) =>
+                  TrackerBloc(trackerRepo)..add(const TrackerEvent.load()),
+            ),
+          ],
+          child: MaterialApp.router(
+            key: _navigatorKey,
+            title: 'Infano.Care',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            routerConfig: _router,
+          ),
         ),
-        BlocProvider(
-          create: (_) {
-            final repo = TrackerRepository(
-              ApiService.instance.dio,
-              PrivacyService(const FlutterSecureStorage()),
-            );
-            return TrackerBloc(repo)..add(const TrackerEvent.load());
-          },
-        ),
-      ],
-      child: MaterialApp.router(
-        key: _navigatorKey,
-        title: 'Infano.Care',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        routerConfig: _router,
       ),
-    ),
-   );
+    );
   }
 }

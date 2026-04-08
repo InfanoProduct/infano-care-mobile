@@ -158,4 +158,17 @@ class LocalStorageService extends ChangeNotifier {
     await _prefs.setBool(_calendarVisited, value);
     notifyListeners();
   }
+
+  // ── Streak Animation Persistence ──────────────────────────────────────────
+
+  /// Check if a 7-day streak row has already played its animation.
+  /// [weekKey] should be in the format `streak_row_animated_YYYY-MM-DD`.
+  bool isWeekStreakAnimated(String weekKey) =>
+      _prefs.getBool('streak_animated_$weekKey') ?? false;
+
+  /// Mark a 7-day streak row as animated.
+  Future<void> setWeekStreakAnimated(String weekKey) async {
+    await _prefs.setBool('streak_animated_$weekKey', true);
+    notifyListeners();
+  }
 }

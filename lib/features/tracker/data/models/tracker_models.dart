@@ -85,6 +85,7 @@ class CycleRecordModel with _$CycleRecordModel {
     int? cycleLengthDays,
     int? periodDurationDays,
     @Default(false) bool isComplete,
+    int? predictionErrorDays,
   }) = _CycleRecordModel;
 
   factory CycleRecordModel.fromJson(Map<String, dynamic> json) =>

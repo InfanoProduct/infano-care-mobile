@@ -164,6 +164,7 @@ _$CycleRecordModelImpl _$$CycleRecordModelImplFromJson(
   cycleLengthDays: (json['cycleLengthDays'] as num?)?.toInt(),
   periodDurationDays: (json['periodDurationDays'] as num?)?.toInt(),
   isComplete: json['isComplete'] as bool? ?? false,
+  predictionErrorDays: (json['predictionErrorDays'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$$CycleRecordModelImplToJson(
@@ -178,4 +179,5 @@ Map<String, dynamic> _$$CycleRecordModelImplToJson(
   'cycleLengthDays': instance.cycleLengthDays,
   'periodDurationDays': instance.periodDurationDays,
   'isComplete': instance.isComplete,
+  'predictionErrorDays': instance.predictionErrorDays,
 };

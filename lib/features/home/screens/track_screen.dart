@@ -115,7 +115,12 @@ class TrackScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        if (mode != 'watching_waiting')
+        if (mode != 'watching_waiting') ...[
+          IconButton(
+            icon: const Icon(Icons.calendar_today_outlined, color: Colors.white54, size: 24),
+            onPressed: () => context.push('/tracker/calendar'),
+            tooltip: 'View Full Calendar',
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: Colors.white54, size: 28),
             onPressed: () async {
@@ -124,7 +129,9 @@ class TrackScreen extends StatelessWidget {
                 context.read<TrackerBloc>().add(const TrackerEvent.load());
               }
             },
-          )
+            tooltip: 'Tracker Settings',
+          ),
+        ]
         else
           const SizedBox(height: 48), // Maintain spacing without showing the gear
       ],
