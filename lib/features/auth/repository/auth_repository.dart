@@ -8,12 +8,20 @@ class OtpVerifyResult {
   final bool isNewUser;
   final int onboardingStage;
   final String accountStatus;
+  final String? accessToken;
+  final String? refreshToken;
+  final String? role;
+  final String? userId;
 
   OtpVerifyResult({
     required this.tempToken,
     required this.isNewUser,
     required this.onboardingStage,
     required this.accountStatus,
+    this.accessToken,
+    this.refreshToken,
+    this.role,
+    this.userId,
   });
 }
 
@@ -23,12 +31,14 @@ class LoginResult {
   final String refreshToken;
   final String userId;
   final int onboardingStage;
+  final String? role;
 
   LoginResult({
     required this.accessToken,
     required this.refreshToken,
     required this.userId,
     required this.onboardingStage,
+    this.role,
   });
 }
 
@@ -60,8 +70,18 @@ class AuthRepository {
         isNewUser:       data['isNewUser']       as bool,
         onboardingStage: data['onboardingStage'] as int,
         accountStatus:   data['accountStatus']   as String,
+        accessToken:     data['accessToken']     as String?,
+        refreshToken:    data['refreshToken']    as String?,
+        role:            data['role']            as String?,
+        userId:          data['userId']          as String?,
       );
-      // Persist tempToken for the onboarding register step
+      
+      // Persist tokens if this is a returning user login
+      if (result.accessToken != null) await _storage.setAuthToken(result.accessToken!);
+      if (result.refreshToken != null) await _storage.setRefreshToken(result.refreshToken!);
+      if (result.role != null) await _storage.setRole(result.role!);
+      if (result.userId != null) await _storage.setUserId(result.userId!);
+      
       await _storage.setTempToken(result.tempToken);
       await _storage.setPhone(phone);
       return result;
@@ -80,11 +100,13 @@ class AuthRepository {
         refreshToken:    data['refreshToken']    as String,
         userId:          data['userId']          as String,
         onboardingStage: data['onboardingStage'] as int,
+        role:            data['role']            as String?,
       );
       await _storage.setAuthToken(result.accessToken);
       await _storage.setRefreshToken(result.refreshToken);
       await _storage.setUserId(result.userId);
       await _storage.setStageComplete(result.onboardingStage.toString());
+      if (result.role != null) await _storage.setRole(result.role!);
       return result;
     } on DioException catch (e) {
       throw _extractError(e, 'Login failed.');

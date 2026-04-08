@@ -72,10 +72,16 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
         
         if (mounted) context.go('/onboarding/path');
       } else {
-        // Returning User: Login to get authToken, then let router decide
-        await _repo.login(result.tempToken);
+        // Returning User: If we already got tokens from verifyOtp, just continue
+        if (result.accessToken == null) {
+          await _repo.login(result.tempToken);
+        } else {
+          // Tokens are already saved by repository, just update the stage for the router
+          await widget.storage.setStageComplete(result.onboardingStage.toString());
+        }
+        
         if (mounted) {
-          // Go to home; router will redirect to correct onboarding stage if stage < 5
+          // Go to home; router will redirect to correct onboarding stage if stage < 13
           context.go('/home');
         }
       }

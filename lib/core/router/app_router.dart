@@ -23,11 +23,27 @@ import 'package:infano_care_mobile/features/onboarding/screens/cycle_details_scr
 import 'package:infano_care_mobile/features/onboarding/screens/tracker_activated_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/dashboard_screen.dart';
 
+// Gigi Imports
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
+import 'package:infano_care_mobile/features/chat/data/chat_repository.dart';
+import 'package:infano_care_mobile/features/chat/bloc/chat_bloc.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/features/expert/screens/expert_dashboard_screen.dart';
+
+// Expert Imports
+import 'package:infano_care_mobile/features/expert/screens/expert_list_screen.dart';
+import 'package:infano_care_mobile/features/expert/screens/expert_chat_screen.dart';
+
 GoRouter createRouter(LocalStorageService storage) {
+  final chatRepo = ChatRepository(ApiService.instance);
+
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: storage,
     redirect: (context, state) {
       final token = storage.authToken;
+      final role = storage.role;
       final tempToken = storage.tempToken;
       final stage = storage.stageComplete;
       final path = state.uri.path;
@@ -37,13 +53,19 @@ GoRouter createRouter(LocalStorageService storage) {
 
       // 2. Not Authenticated (no access token)
       if (token == null) {
-        // If they have a tempToken, they can continue early onboarding
         if (tempToken != null) {
           if (path.startsWith('/onboarding')) return null;
           return '/onboarding/path';
         }
-        // No tokens: force to splash
         return '/splash';
+      }
+
+      // Expert Redirect
+      if (role == 'EXPERT') {
+        if (path == '/home' || path == '/splash' || path.startsWith('/onboarding')) {
+          return '/expert/dashboard';
+        }
+        return null;
       }
 
       // 3. Authenticated (token != null)
@@ -51,12 +73,11 @@ GoRouter createRouter(LocalStorageService storage) {
       final bool onAuth = path.startsWith('/auth') || path == '/splash';
 
       if (stage != '13') {
-        // Enforce onboarding flow
         final routes = {
           '0':  '/onboarding/path',
           '1':  '/onboarding/name',
           '2':  '/onboarding/birthday',
-          '3':  '/onboarding/consent/send', // Or terms if not needed
+          '3':  '/onboarding/consent/send',
           '4':  '/onboarding/goals',
           '5':  '/onboarding/period-comfort',
           '6':  '/onboarding/period-status',
@@ -69,12 +90,11 @@ GoRouter createRouter(LocalStorageService storage) {
         };
         final target = routes[stage ?? '0'] ?? '/onboarding/path';
         
-        if (path != target && !path.contains('tracker') && path != '/onboarding/welcome') {
+        if (path != target && !path.contains('tracker') && !path.contains('expert') && path != '/onboarding/welcome' && path != '/chat') {
           if (!onOnboarding) return target;
           if (path == '/home' || path == '/account') return target;
         }
       } else {
-        // Stage 13 (Complete) - Send to home if on auth/onboarding
         if (onAuth || onOnboarding) return '/home';
       }
 
@@ -83,6 +103,32 @@ GoRouter createRouter(LocalStorageService storage) {
     routes: [
       GoRoute(path: '/splash',   builder: (_, __) => const LandingScreen()),
       GoRoute(path: '/account',  builder: (_, __) => AccountScreen(storage: storage)),
+      
+      // Expert Dashboard
+      GoRoute(path: '/expert/dashboard', builder: (_, __) => ExpertDashboardScreen(storage: storage)),
+      
+      // Expert Chat
+      GoRoute(path: '/expert/list', builder: (_, __) => ExpertListScreen(storage: storage)),
+      GoRoute(
+        path: '/expert/chat/:sessionId', 
+        builder: (_, state) {
+          final expertName = (state.extra as Map?)?['expertName'] ?? 'Expert';
+          return ExpertChatScreen(
+            sessionId: state.pathParameters['sessionId']!,
+            expertName: expertName,
+            storage: storage,
+          );
+        },
+      ),
+
+      // Gigi assistant
+      GoRoute(
+        path: '/chat',
+        builder: (_, __) => BlocProvider(
+          create: (context) => ChatBloc(chatRepo)..add(LoadSessions()),
+          child: const ChatScreen(),
+        ),
+      ),
 
       // Auth (Phone + OTP)
       GoRoute(

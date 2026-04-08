@@ -109,6 +109,12 @@ class DashboardScreen extends StatelessWidget {
                 ],
               ),
             ),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => context.push('/chat'),
+              backgroundColor: AppColors.purple,
+              icon: const Icon(Icons.auto_awesome, color: Colors.white),
+              label: const Text('Talk to Gigi', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
           );
         },
       ),

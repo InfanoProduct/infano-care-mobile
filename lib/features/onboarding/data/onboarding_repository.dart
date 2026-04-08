@@ -50,6 +50,10 @@ class OnboardingRepository {
   }
 
   // ── Onboarding ────────────────────────────────────────────────────────────────
+  Future<void> updateStage(int stage) async {
+    await _api.dio.patch('/user/onboarding-step', data: {'step': stage});
+  }
+
   Future<Map<String, dynamic>> savePersonalization({
     required List<String> goals,
     required int periodComfortScore,
