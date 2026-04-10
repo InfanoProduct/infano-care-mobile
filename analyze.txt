@@ -1,0 +1,18 @@
+Analyzing episode_player_screen.dart...                         
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\learning\screens\episode_player_screen.dart:194:69 - deprecated_member_use
+   info - The local variable '_e' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:313:50 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_i' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:313:54 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_a' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:313:61 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_m' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:313:65 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_c' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:313:69 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_cm' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:313:73 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_e' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:314:51 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_i' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:314:55 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_c' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:314:59 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_m' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:314:66 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_c2' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:314:70 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_cm' starts with an underscore - lib\features\learning\screens\episode_player_screen.dart:314:75 - no_leading_underscores_for_local_identifiers
+   info - Don't use 'BuildContext's across async gaps - lib\features\learning\screens\episode_player_screen.dart:349:55 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\learning\screens\episode_player_screen.dart:355:68 - deprecated_member_use
+

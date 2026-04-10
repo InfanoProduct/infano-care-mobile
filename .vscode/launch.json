@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run (VPS Backend)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define",
+        "API_URL=http://109.199.120.104:8084/api"
+      ]
+    },
+    {
+      "name": "Run (Local Backend - Physical Device)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define",
+        "API_URL=http://192.168.1.7:4000/api"
+      ]
+    }
+  ]
+}

@@ -5,6 +5,10 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
+import 'package:infano_care_mobile/shared/widgets/permissions_onboarding_sheet.dart';
+import 'package:infano_care_mobile/core/services/permission_service.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 
 class PhoneEntryScreen extends StatefulWidget {
   PhoneEntryScreen({super.key, required this.storage, this.fromOnboarding = false});
@@ -27,15 +31,81 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   void initState() {
     super.initState();
     _repo = AuthRepository(widget.storage);
+    _controller.addListener(_formatPhoneNumber);
+    _checkPermissions();
   }
 
-  bool get _valid => _controller.text.length >= 10;
+  @override
+  void dispose() {
+    _controller.removeListener(_formatPhoneNumber);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Auto-formats the phone number with spaces for better readability (98765 43210)
+  void _formatPhoneNumber() {
+    String text = _controller.text.replaceAll(' ', '');
+    if (text.length > 5) {
+      text = '${text.substring(0, 5)} ${text.substring(5)}';
+      if (_controller.text != text) {
+        _controller.value = _controller.value.copyWith(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+        );
+      }
+    }
+  }
+
+  Future<void> _showPhoneHint() async {
+    try {
+      final String? result = await SmsAutoFill().hint;
+      if (result != null && mounted) {
+        final cleaned = result.replaceAll(' ', '').replaceAll('-', '').replaceAll('+', '');
+        if (cleaned.length >= 10) {
+          setState(() {
+            _controller.text = cleaned.substring(cleaned.length - 10);
+            _countryCode = '+${cleaned.substring(0, cleaned.length - 10)}';
+            if (_countryCode == '+') _countryCode = '+91'; // Fallback
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Phone hint error: $e');
+    }
+  }
+
+  Future<void> _checkPermissions() async {
+    // Info only: Show the sheet to explain why we need permissions.
+    if (mounted) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          PermissionsOnboardingSheet.show(
+            context,
+            onAllow: () async {
+              // Production Grade: Request both Notifications and SMS
+              await PermissionService.instance.requestNotifications(context);
+              await PermissionService.instance.requestSms(context);
+              _showPhoneHint();
+            },
+            onDeny: () => {}, 
+          );
+        }
+      });
+    }
+  }
+
+  bool get _valid => _controller.text.replaceAll(' ', '').length >= 10;
 
   Future<void> _sendOtp() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final phone = '$_countryCode${_controller.text.trim()}';
-      await _repo.sendOtp(phone);
+      final rawNumber = _controller.text.replaceAll(' ', '').trim();
+      final phone = '$_countryCode$rawNumber';
+      
+      final signature = await PermissionService.instance.getAppSignature();
+      debugPrint("📤 Sending OTP for $phone (App Hash: $signature)");
+      
+      await _repo.sendOtp(phone, appHash: signature);
       if (mounted) {
         context.go('/auth/otp?phone=${Uri.encodeComponent(phone)}&fromOnboarding=${widget.fromOnboarding}');
       }

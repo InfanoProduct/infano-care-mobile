@@ -14,8 +14,7 @@ class OnboardingRepository {
     return Map<String, dynamic>.from(res.data);
   }
 
-  Future<Map<String, dynamic>> register({
-    required String tempToken,
+  Future<Map<String, dynamic>> setupProfile({
     required String displayName,
     required int birthMonth,
     required int birthYear,
@@ -25,8 +24,7 @@ class OnboardingRepository {
     String locale = 'en-IN',
     String timezone = 'Asia/Kolkata',
   }) async {
-    final res = await _api.dio.post('/auth/register', data: {
-      'tempToken':      tempToken,
+    final res = await _api.dio.post('/onboarding/profile', data: {
       'displayName':    displayName,
       'birthMonth':     birthMonth,
       'birthYear':      birthYear,
@@ -88,6 +86,7 @@ class OnboardingRepository {
     String? lastPeriodEnd,
     required int periodLengthDays,
     required int cycleLengthDays,
+    required String trackerMode,
     bool periodLengthEstimated = false,
     bool cycleLengthEstimated  = false,
   }) async {
@@ -96,9 +95,24 @@ class OnboardingRepository {
       'lastPeriodEnd':         lastPeriodEnd,
       'periodLengthDays':      periodLengthDays,
       'cycleLengthDays':       cycleLengthDays,
+      'trackerMode':           trackerMode,
       'periodLengthEstimated': periodLengthEstimated,
       'cycleLengthEstimated':  cycleLengthEstimated,
     });
+    return Map<String, dynamic>.from(res.data);
+  }
+
+  Future<void> updateStep(int? step) async {
+    if (step == null) return;
+    try {
+      await _api.dio.patch('/user/onboarding-step', data: {'step': step});
+    } catch (_) {
+      // Ignore errors for now; mostly needed for compilation
+    }
+  }
+
+  Future<Map<String, dynamic>> getProfile() async {
+    final res = await _api.dio.get('/user/me');
     return Map<String, dynamic>.from(res.data);
   }
 }

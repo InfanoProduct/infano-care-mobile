@@ -60,8 +60,13 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<OnboardingBloc>().state;
+    final isUnder13 = state.age < 13;
+
     return OnboardingScaffold(
-      currentStep: 4,
+      currentStep: 5,
+      totalSteps: 13,
+      onBack: () => context.go(isUnder13 ? '/onboarding/consent/send' : '/onboarding/birthday'),
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [

@@ -24,7 +24,9 @@ class _JourneyNameScreenState extends State<JourneyNameScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 9,
+      currentStep: 10,
+      totalSteps: 13,
+      onBack: () => context.go('/onboarding/avatar'),
       bottomBar: GradientButton(
         label: 'Name My Journey ✨',
         onPressed: () async {

@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/onboarding/data/onboarding_repository.dart';
+import 'package:dio/dio.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -31,8 +33,11 @@ class OnboardingState extends Equatable {
   final bool isLoading;
   final String? errorMessage;
   final bool sessionExpired;
+  final bool isBootstrapping;
+  final bool isIrregular;
 
   const OnboardingState({
+    this.isBootstrapping    = false,
     this.userType           = 'teen',
     this.displayName        = '',
     this.pronouns,
@@ -58,6 +63,7 @@ class OnboardingState extends Equatable {
     this.isLoading          = false,
     this.errorMessage,
     this.sessionExpired     = false,
+    this.isIrregular        = false,
   });
 
   OnboardingState copyWith({
@@ -69,8 +75,10 @@ class OnboardingState extends Equatable {
     Map<String, dynamic>? avatarData, String? journeyName,
     int? totalPoints, DateTime? lastPeriod, int? periodLength, int? cycleLength,
     bool? isLoading, String? errorMessage, bool? sessionExpired,
+    bool? isIrregular, bool? isBootstrapping,
   }) {
     return OnboardingState(
+      isBootstrapping:    isBootstrapping   ?? this.isBootstrapping,
       userType:           userType          ?? this.userType,
       displayName:        displayName       ?? this.displayName,
       pronouns:           pronouns          ?? this.pronouns,
@@ -96,6 +104,7 @@ class OnboardingState extends Equatable {
       isLoading:          isLoading         ?? this.isLoading,
       errorMessage:       errorMessage,
       sessionExpired:     sessionExpired    ?? this.sessionExpired,
+      isIrregular:        isIrregular       ?? this.isIrregular,
     );
   }
 
@@ -105,7 +114,7 @@ class OnboardingState extends Equatable {
     contentTier, coppaRequired, termsAccepted, privacyAccepted, marketingOptIn,
     goals, periodComfortScore, periodStatus, interestTopics, avatarData,
     journeyName, totalPoints, lastPeriod, periodLength, cycleLength,
-    isLoading, errorMessage, sessionExpired,
+    isLoading, errorMessage, sessionExpired, isBootstrapping,
   ];
 }
 
@@ -129,12 +138,15 @@ class SetAvatar            extends OnboardingEvent { final Map<String, dynamic> 
 class SetJourneyName       extends OnboardingEvent { final String name; const SetJourneyName(this.name); @override List<Object?> get props => [name]; }
 class SetTrackerDetails    extends OnboardingEvent { final int periodDays; final int cycleDays; final DateTime? lastPeriod; const SetTrackerDetails(this.periodDays, this.cycleDays, this.lastPeriod); @override List<Object?> get props => [periodDays, cycleDays, lastPeriod]; }
 class AddPoints            extends OnboardingEvent { final int points; const AddPoints(this.points); @override List<Object?> get props => [points]; }
-class SubmitRegistration   extends OnboardingEvent { final String tempToken; const SubmitRegistration(this.tempToken); @override List<Object?> get props => [tempToken]; }
+class SetRegularity         extends OnboardingEvent { final bool isIrregular; const SetRegularity(this.isIrregular); @override List<Object?> get props => [isIrregular]; }
+class SubmitProfile        extends OnboardingEvent { const SubmitProfile(); }
 class SubmitPersonalization extends OnboardingEvent { const SubmitPersonalization(); }
 class SubmitAvatar          extends OnboardingEvent { const SubmitAvatar(); }
 class SubmitJourneyName     extends OnboardingEvent { const SubmitJourneyName(); }
 class SubmitTrackerSetup    extends OnboardingEvent { const SubmitTrackerSetup(); }
+class SkipTracker           extends OnboardingEvent { const SkipTracker(); }
 class SyncFromStorage       extends OnboardingEvent { const SyncFromStorage(); }
+class BootstrapApp         extends OnboardingEvent { const BootstrapApp(); }
 
 // ─── BLoC ─────────────────────────────────────────────────────────────────────
 
@@ -156,26 +168,29 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<SetJourneyName>(_onSetJourneyName);
     on<SetTrackerDetails>(_onSetTrackerDetails);
     on<AddPoints>(_onAddPoints);
-    on<SubmitRegistration>(_onSubmitRegistration);
+    on<SubmitProfile>(_onSubmitProfile);
     on<SubmitPersonalization>(_onSubmitPersonalization);
     on<SubmitAvatar>(_onSubmitAvatar);
     on<SubmitJourneyName>(_onSubmitJourneyName);
     on<SubmitTrackerSetup>(_onSubmitTrackerSetup);
     on<SyncFromStorage>(_onSyncFromStorage);
+    on<SetRegularity>(_onSetRegularity);
+    on<SkipTracker>(_onSkipTracker);
+    on<BootstrapApp>(_onBootstrapApp);
   }
 
   void _onSetUserType(SetUserType e, Emitter<OnboardingState> emit) {
     _storage.setUserType(e.t);
-    _storage.setStageComplete('1');
-    _repo.updateStage(1);
+    _storage.setStepComplete('1');
+    _repo.updateStep(1);
     emit(state.copyWith(userType: e.t));
   }
 
   void _onSetDisplayName(SetDisplayName e, Emitter<OnboardingState> emit) {
     _storage.setDisplayName(e.name);
     _storage.setPronouns(e.pronouns);
-    _storage.setStageComplete('2');
-    _repo.updateStage(2);
+    _storage.setStepComplete('2');
+    _repo.updateStep(2);
     emit(state.copyWith(displayName: e.name, pronouns: e.pronouns));
   }
 
@@ -189,53 +204,68 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     int age = now.year - e.year;
     if (now.month < e.month) age--;
     final tier = age < 13 ? 'JUNIOR' : age < 16 ? 'TEEN_EARLY' : age < 18 ? 'TEEN_LATE' : 'ADULT';
-    emit(state.copyWith(birthMonth: e.month, birthYear: e.year, age: age, contentTier: tier, coppaRequired: age < 13));
+    final isUnder13 = age < 13;
+    emit(state.copyWith(birthMonth: e.month, birthYear: e.year, age: age, contentTier: tier, coppaRequired: isUnder13));
     _storage.setBirthDate(e.month, e.year);
-    _storage.setStageComplete('3');
-    _repo.updateStage(3);
+    
+    final nextStep = isUnder13 ? '3' : '4';
+    _storage.setStepComplete(nextStep);
+    _repo.updateStep(int.parse(nextStep));
   }
 
   void _onSetConsent(SetConsent e, Emitter<OnboardingState> emit) {
     emit(state.copyWith(termsAccepted: e.terms, privacyAccepted: e.privacy, marketingOptIn: e.marketing));
     _storage.setConsents(terms: e.terms, privacy: e.privacy, marketing: e.marketing);
-    _storage.setStageComplete('4'); 
-    _repo.updateStage(4);
+    // If they are on the AssentTermsScreen (age >= 13 or caught up), they are at step 11
+    final currentStep = _storage.stepComplete;
+    if (currentStep != null && int.parse(currentStep) >= 10) {
+      _storage.setStepComplete('11');
+      _repo.updateStep(11);
+    } else {
+      _storage.setStepComplete('4'); 
+      _repo.updateStep(4);
+    }
   }
 
   void _onSetGoals(SetGoals e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('5');
-    _repo.updateStage(5);
+    _storage.setStepComplete('5');
+    _repo.updateStep(5);
     emit(state.copyWith(goals: e.goals));
   }
   void _onSetPeriodComfort(SetPeriodComfort e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('6');
-    _repo.updateStage(6);
+    _storage.setStepComplete('6');
+    _repo.updateStep(6);
     emit(state.copyWith(periodComfortScore: e.score));
   }
   void _onSetPeriodStatus(SetPeriodStatus e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('7');
-    _repo.updateStage(7);
+    _storage.setPeriodStatus(e.status);
+    _storage.setStepComplete('7');
+    _repo.updateStep(7);
     emit(state.copyWith(periodStatus: e.status));
   }
   void _onSetInterestTopics(SetInterestTopics e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('8');
-    _repo.updateStage(8);
+    _storage.setStepComplete('8');
+    _repo.updateStep(8);
     emit(state.copyWith(interestTopics: e.topics));
   }
   void _onSetAvatar(SetAvatar e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('9');
-    _repo.updateStage(9);
+    _storage.setStepComplete('9');
+    _repo.updateStep(9);
     emit(state.copyWith(avatarData: e.data));
   }
   void _onSetJourneyName(SetJourneyName e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('10');
-    _repo.updateStage(10);
+    _storage.setStepComplete('10');
+    _repo.updateStep(10);
     emit(state.copyWith(journeyName: e.name));
   }
   void _onSetTrackerDetails(SetTrackerDetails e, Emitter<OnboardingState> emit) {
-    _storage.setStageComplete('12');
-    _repo.updateStage(12);
+    _storage.setStepComplete('12');
+    _repo.updateStep(12);
     emit(state.copyWith(periodLength: e.periodDays, cycleLength: e.cycleDays, lastPeriod: e.lastPeriod));
+  }
+  
+  void _onSetRegularity(SetRegularity e, Emitter<OnboardingState> emit) {
+    emit(state.copyWith(isIrregular: e.isIrregular));
   }
   
   void _onAddPoints(AddPoints e, Emitter<OnboardingState> emit) {
@@ -244,29 +274,33 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(totalPoints: newTotal));
   }
 
-  Future<void> _onSubmitRegistration(SubmitRegistration e, Emitter<OnboardingState> emit) async {
+  Future<void> _onSubmitProfile(SubmitProfile e, Emitter<OnboardingState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
-      final result = await _repo.register(
-        tempToken:       e.tempToken,
-        displayName:     state.displayName,
-        birthMonth:      state.birthMonth,
-        birthYear:       state.birthYear,
-        termsAccepted:   state.termsAccepted,
-        privacyAccepted: state.privacyAccepted,
-        marketingOptIn:  state.marketingOptIn,
+      final name  = _storage.displayName ?? state.displayName;
+      final month = _storage.birthMonth ?? state.birthMonth;
+      final year  = _storage.birthYear ?? state.birthYear;
+      final terms = _storage.termsAccepted;
+      final priv  = _storage.privacyAccepted;
+      final mkt   = _storage.marketingOptIn;
+
+      final result = await _repo.setupProfile(
+        displayName:     name,
+        birthMonth:      month,
+        birthYear:       year,
+        termsAccepted:   terms,
+        privacyAccepted: priv,
+        marketingOptIn:  mkt,
       );
       
-      await _storage.setAuthToken(result['accessToken']);
-      await _storage.setRefreshToken(result['refreshToken']);
       await _storage.setUserId(result['userId']);
-      await _storage.setStageComplete(result['onboardingStage'].toString());
+      // Removing the line below as setupProfile response step conflicts with granular sequence
+      // await _storage.setStepComplete(result['onboardingStep'].toString());
       
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
       final errorStr = err.toString();
       final isExpired = errorStr.contains('Session expired');
-      if (isExpired) await _storage.clearTempToken();
       emit(state.copyWith(isLoading: false, errorMessage: errorStr, sessionExpired: isExpired));
     }
   }
@@ -281,7 +315,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         interestTopics: state.interestTopics,
       );
       await _storage.setPoints(res['pointsTotal']);
-      await _storage.setStageComplete('3');
+      // removed: await _storage.setStepComplete('3');
       emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -293,7 +327,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(isLoading: true));
     try {
       await _repo.saveAvatar(state.avatarData);
-      await _storage.setStageComplete('4');
+      // removed: await _storage.setStepComplete('4');
       emit(state.copyWith(isLoading: false));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -306,7 +340,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       final res = await _repo.saveJourneyName(state.journeyName);
       await _storage.setPoints(res['pointsTotal']);
-      await _storage.setStageComplete('4.1');
+      // removed: await _storage.setStepComplete('4.1');
       emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -316,14 +350,34 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   Future<void> _onSubmitTrackerSetup(SubmitTrackerSetup e, Emitter<OnboardingState> emit) async {
     emit(state.copyWith(isLoading: true));
     try {
+      String trackerMode = 'active';
+      if (state.periodStatus == 'waiting' || state.periodStatus == 'unsure') {
+        trackerMode = 'watching_waiting';
+      } else if (state.isIrregular) {
+        trackerMode = 'irregular_support';
+      }
+
       await _repo.trackerSetup(
         lastPeriodStart:  state.lastPeriod?.toIso8601String(),
         periodLengthDays: state.periodLength,
         cycleLengthDays:  state.cycleLength,
+        trackerMode:      trackerMode,
       );
       await _repo.completeOnboarding();
-      await _storage.setStageComplete('13');
-      _repo.updateStage(13);
+      await _storage.setIsOnboarded(true);
+      _repo.updateStep(13);
+      emit(state.copyWith(isLoading: false, errorMessage: null));
+    } catch (err) {
+      emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
+    }
+  }
+
+  Future<void> _onSkipTracker(SkipTracker e, Emitter<OnboardingState> emit) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      await _repo.completeOnboarding();
+      await _storage.setIsOnboarded(true);
+      _repo.updateStep(13);
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -338,10 +392,47 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       phone:       _storage.phone ?? state.phone,
       birthMonth:  _storage.birthMonth ?? state.birthMonth,
       birthYear:   _storage.birthYear ?? state.birthYear,
+      periodStatus: _storage.periodStatus ?? state.periodStatus,
       termsAccepted: _storage.termsAccepted,
       privacyAccepted: _storage.privacyAccepted,
       marketingOptIn: _storage.marketingOptIn,
       totalPoints: _storage.points,
     ));
+  }
+
+  Future<void> _onBootstrapApp(BootstrapApp e, Emitter<OnboardingState> emit) async {
+    final token = _storage.authToken;
+    if (token == null) {
+      emit(state.copyWith(isBootstrapping: false));
+      return;
+    }
+
+    emit(state.copyWith(isBootstrapping: true));
+    try {
+      final profile = await _repo.getProfile();
+      
+      final serverStep    = profile['onboardingStep'] ?? 1;
+      final isOnboarded   = profile['isOnboardingCompleted'] as bool? ?? false;
+      final serverName    = profile['profile']?['displayName'];
+      final serverPoints  = profile['profile']?['pointsTotal'] ?? 0;
+      
+      await _storage.setStepComplete(serverStep.toString());
+      await _storage.setIsOnboarded(isOnboarded);
+      if (serverName != null) await _storage.setDisplayName(serverName);
+      await _storage.setPoints(serverPoints);
+      
+      emit(state.copyWith(
+        displayName: serverName ?? state.displayName,
+        totalPoints: serverPoints,
+        isBootstrapping: false,
+      ));
+      debugPrint('[Bootstrap] Successfully synced server state ✅');
+    } catch (err) {
+      debugPrint('[Bootstrap] Sync failed ❌: $err');
+      if (err is DioException && err.response?.statusCode == 401) {
+        await _storage.clearSession();
+      }
+      emit(state.copyWith(isBootstrapping: false));
+    }
   }
 }
