@@ -55,6 +55,7 @@ class UserProgress with _$UserProgress {
     @Default(false) bool completed,
     String? lastViewedItemId,
     required dynamic completedItems,
+    dynamic history,
     required DateTime updatedAt,
     Episode? episode,
   }) = _UserProgress;

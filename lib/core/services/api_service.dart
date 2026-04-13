@@ -15,9 +15,7 @@ class ApiService {
 
   static Completer<void>? _refreshCompleter;
 
-  /// Override at build/run time:
-  ///   flutter run --dart-define=API_URL=http://192.168.1.105:4000/api
-  static const _defaultBaseUrl = 'http://109.199.120.104:8084/api'; // VPS fallback (was 10.0.2.2:4000)
+  static const _defaultBaseUrl = 'http://192.168.1.8:4005/api';
   static const _baseUrl = String.fromEnvironment('API_URL', defaultValue: _defaultBaseUrl);
 
   static void init(LocalStorageService storage) {
@@ -94,14 +92,13 @@ class ApiService {
             _refreshCompleter!.completeError(e);
             _refreshCompleter = null;
             
-            // CRITICAL FIX: Only clear tokens if the refresh itself is rejected (401/403)
-            // If it's a network error, we keep the tokens and let the original request fail naturally.
-            if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
-              debugPrint('[API] ⚠️ Refresh token rejected. Clearing session.');
+            // CRITICAL FIX: Only clear tokens if the refresh itself is rejected (401/403) or not found (404).
+            // If it's a 404, it likely means the backend route changed or is missing, or the session is completely gone.
+            if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 403 || e.response?.statusCode == 404)) {
+              debugPrint('[API] ⚠️ Session invalid (${e.response?.statusCode}). Clearing storage.');
               await storage.clearSession();
-              // The GoRouter refreshListenable (storage) will handle the redirect to splash/login.
             } else {
-              debugPrint('[API] 📡 Network error during refresh. Retaining session for retry.');
+              debugPrint('[API] 📡 Network error during refresh. Retaining session.');
             }
             
             return handler.next(error);

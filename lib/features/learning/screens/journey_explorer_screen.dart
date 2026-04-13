@@ -29,7 +29,7 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
             initial: () => const Center(child: CircularProgressIndicator()),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (message) => Center(child: Text('Error: $message')),
-            loaded: (journeys) {
+            loaded: (journeys, userProgress) {
               if (journeys.isEmpty) {
                 return const Center(child: Text('No learning journeys available right now.'));
               }
@@ -38,6 +38,15 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
                 itemCount: journeys.length,
                 itemBuilder: (context, index) {
                   final journey = journeys[index];
+                  
+                  // Calculate progress for this journey
+                  final journeyEpisodeIds = journey.episodes.map((e) => e.id).toSet();
+                  final completedInJourney = userProgress
+                      .where((p) => journeyEpisodeIds.contains(p.episodeId) && p.completed)
+                      .length;
+                  final totalInJourney = journey.episodes.length;
+                  final isComplete = totalInJourney > 0 && completedInJourney == totalInJourney;
+
                   return Card(
                     elevation: 2,
                     margin: const EdgeInsets.only(bottom: 16),
@@ -45,21 +54,45 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     child: InkWell(
                       onTap: () {
-                        // Navigate to detail
                         context.push('/journey/${journey.id}');
                       },
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (journey.thumbnailUrl != null)
-                            Image.network(
-                              journey.thumbnailUrl!,
-                              height: 160,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                            )
-                          else
-                            _buildPlaceholder(),
+                          Stack(
+                            children: [
+                              if (journey.thumbnailUrl != null)
+                                Image.network(
+                                  journey.thumbnailUrl!,
+                                  height: 160,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                                )
+                              else
+                                _buildPlaceholder(),
+                              if (isComplete)
+                                Positioned(
+                                  top: 12,
+                                  right: 12,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withOpacity(0.9),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.check_circle, color: Colors.white, size: 16),
+                                        SizedBox(width: 4),
+                                        Text('Mastered', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                           Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
@@ -82,9 +115,33 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
                                     const Icon(Icons.star, color: Colors.amber, size: 20),
                                     const SizedBox(width: 4),
                                     Text('${journey.totalXP} XP', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 16),
+                                    if (totalInJourney > 0) ...[
+                                      Icon(Icons.menu_book, color: Colors.deepPurple.shade300, size: 20),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '$completedInJourney / $totalInJourney Episodes',
+                                        style: TextStyle(
+                                          color: Colors.deepPurple.shade700,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
                                     const Spacer(),
                                     if (journey.category != null)
-                                      Chip(label: Text(journey.category!, style: const TextStyle(fontSize: 12))),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.deepPurple.shade50,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: Colors.deepPurple.shade100),
+                                        ),
+                                        child: Text(
+                                          journey.category!,
+                                          style: TextStyle(color: Colors.deepPurple.shade700, fontSize: 11, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ],

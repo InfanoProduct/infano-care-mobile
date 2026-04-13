@@ -14,12 +14,16 @@ class EpisodePlayerEvent with _$EpisodePlayerEvent {
   /// Navigate only to already-unlocked segments (index <= currentSegmentIndex).
   const factory EpisodePlayerEvent.jumpToSegment(int index) = _JumpToSegment;
 
-  const factory EpisodePlayerEvent.answerQuestion({required bool isCorrect}) =
-      _AnswerQuestion;
+  const factory EpisodePlayerEvent.answerQuestion({
+    required bool isCorrect,
+    required int questionIndex,
+    required int answerIndex,
+  }) = _AnswerQuestion;
   const factory EpisodePlayerEvent.updateReflection(
       {required String mode, String? content}) = _UpdateReflection;
   const factory EpisodePlayerEvent.completeEpisode(
       {@Default(false) bool isBingeBonus}) = _CompleteEpisode;
+  const factory EpisodePlayerEvent.syncHistory(Map<String, dynamic> history) = _SyncHistory;
 }
 
 @freezed
@@ -37,9 +41,10 @@ class EpisodePlayerState with _$EpisodePlayerState {
 
     /// Backend-reported completed segment indices (0-4).
     @Default([]) List<int> completedSegmentIndices,
+    @Default({}) Map<String, dynamic> history,
 
     /// Points breakdown from backend episode content, e.g.
-    /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'quest': 15}
+    /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'summary': 25}
     @Default({}) Map<String, int> segmentPoints,
   }) = _EpisodePlayerLoaded;
   const factory EpisodePlayerState.completed({
@@ -65,6 +70,12 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
         int resumeIndex = 0;
         List<int> completedIndices = [];
 
+        Map<String, dynamic> history = {};
+        int correctAnswers = 0;
+        int questionsAnswered = 0;
+        String reflectionMode = 'private';
+        String? reflectionContent;
+
         try {
           final progress =
               progressList.firstWhere((p) => p.episodeId == event.episodeId);
@@ -75,14 +86,37 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
               .where((i) => i >= 0 && i <= 4)
               .toList();
 
-          // If episode was already fully completed, restart from Hook (index 0)
-          // so the user can replay freely. Otherwise resume where they left off.
-          if (progress.completed) {
-            resumeIndex = 0;
-          } else if (progress.lastViewedItemId != null &&
-              progress.lastViewedItemId!.startsWith('segment_')) {
-            resumeIndex =
-                int.tryParse(progress.lastViewedItemId!.split('_').last) ?? 0;
+          // Restore History
+          if (progress.history != null && progress.history is Map) {
+            history = Map<String, dynamic>.from(progress.history);
+            
+            // Restore Quiz Stats from history
+            if (history.containsKey('quiz')) {
+              final quizHistory = history['quiz'] as Map<String, dynamic>;
+              correctAnswers = quizHistory['correctAnswers'] ?? 0;
+              questionsAnswered = quizHistory['questionsAnswered'] ?? 0;
+            }
+
+            // Restore Reflection from history
+            if (history.containsKey('reflection')) {
+              final refHistory = history['reflection'] as Map<String, dynamic>;
+              reflectionMode = refHistory['mode'] ?? 'private';
+              reflectionContent = refHistory['content'];
+            }
+          }
+
+          // Enhanced resume logic: Prioritize lastViewedItemId even if completed is true,
+          // so users aren't jarringly sent to the start on hot reload.
+          if (progress.lastViewedItemId != null && progress.lastViewedItemId!.startsWith('segment_')) {
+            final parts = progress.lastViewedItemId!.split('_');
+            if (parts.length >= 2) {
+              resumeIndex = int.tryParse(parts[1]) ?? 0;
+            }
+          }
+          
+          // If no lastViewedItemId but completed, then we can default to 0 for replaying.
+          if (resumeIndex == 0 && progress.completed == true) {
+             resumeIndex = 0; 
           }
         } catch (_) {
           // No prior progress – start from beginning.
@@ -96,6 +130,11 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
           currentSegmentIndex: resumeIndex,
           completedSegmentIndices: completedIndices,
           segmentPoints: segmentPoints,
+          history: history,
+          correctAnswers: correctAnswers,
+          questionsAnswered: questionsAnswered,
+          reflectionMode: reflectionMode,
+          reflectionContent: reflectionContent,
         ));
       } catch (e) {
         emit(EpisodePlayerState.error(e.toString()));
@@ -120,11 +159,12 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
         completedSegmentIndices: updatedCompleted,
       ));
 
-      // Sync to backend – never compute completion locally.
+      // Sync to backend – include history.
       _repository.updateEpisodeProgress(
         episodeId: s.episode.id,
         completedSegments: updatedCompleted,
         lastViewedItemId: 'segment_$nextIndex',
+        history: s.history,
       );
     });
 
@@ -141,14 +181,17 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
     on<_JumpToSegment>((event, emit) {
       final s = state;
       if (s is! _EpisodePlayerLoaded) return;
-      // Only allow jumping to already-reached segments.
-      if (event.index < 0 || event.index > s.currentSegmentIndex) return;
+      
+      // A segment is unlocked if it's the first one OR if its predecessor is completed.
+      final isUnlocked = event.index == 0 || s.completedSegmentIndices.contains(event.index - 1);
+      if (event.index < 0 || !isUnlocked) return;
 
       emit(s.copyWith(currentSegmentIndex: event.index));
       _repository.updateEpisodeProgress(
         episodeId: s.episode.id,
         completedSegments: s.completedSegmentIndices,
         lastViewedItemId: 'segment_${event.index}',
+        history: s.history,
       );
     });
 
@@ -156,20 +199,61 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
     on<_AnswerQuestion>((event, emit) {
       final s = state;
       if (s is! _EpisodePlayerLoaded) return;
+      
+      final correctCount = s.correctAnswers + (event.isCorrect ? 1 : 0);
+      final totalCount = s.questionsAnswered + 1;
+      
+      final updatedHistory = Map<String, dynamic>.from(s.history);
+      
+      // 1. Update granular answers
+      final currentAnswers = Map<String, dynamic>.from(updatedHistory['quiz_answers'] ?? {});
+      currentAnswers[event.questionIndex.toString()] = event.answerIndex;
+      updatedHistory['quiz_answers'] = currentAnswers;
+      
+      // 2. Update scoring metadata
+      updatedHistory['quiz'] = {
+        'correctAnswers': correctCount,
+        'questionsAnswered': totalCount,
+      };
+
       emit(s.copyWith(
-        correctAnswers: s.correctAnswers + (event.isCorrect ? 1 : 0),
-        questionsAnswered: s.questionsAnswered + 1,
+        correctAnswers: correctCount,
+        questionsAnswered: totalCount,
+        history: updatedHistory,
       ));
+      
+      // Update progress immediately so quiz state survives exit
+      _repository.updateEpisodeProgress(
+        episodeId: s.episode.id,
+        completedSegments: s.completedSegmentIndices,
+        lastViewedItemId: 'segment_${s.currentSegmentIndex}',
+        history: updatedHistory,
+      );
     });
 
     // ── Update Reflection ─────────────────────────────────────────────────────
     on<_UpdateReflection>((event, emit) {
       final s = state;
       if (s is! _EpisodePlayerLoaded) return;
+      
+      final updatedHistory = Map<String, dynamic>.from(s.history);
+      updatedHistory['reflection'] = {
+        'mode': event.mode,
+        'content': event.content,
+      };
+
       emit(s.copyWith(
         reflectionMode: event.mode,
         reflectionContent: event.content,
+        history: updatedHistory,
       ));
+      
+      _repository.updateEpisodeProgress(
+        episodeId: s.episode.id,
+        completedSegments: s.completedSegmentIndices,
+        lastViewedItemId: 'segment_${s.currentSegmentIndex}',
+        history: updatedHistory,
+      );
     });
 
     // ── Complete Episode ──────────────────────────────────────────────────────
@@ -202,6 +286,23 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
         emit(EpisodePlayerState.error(e.toString()));
       }
     });
+    
+    // ── Sync History ─────────────────────────────────────────────────────────
+    on<_SyncHistory>((event, emit) {
+      final s = state;
+      if (s is! _EpisodePlayerLoaded) return;
+      
+      final updatedHistory = Map<String, dynamic>.from(s.history)..addAll(event.history);
+      
+      emit(s.copyWith(history: updatedHistory));
+      
+      _repository.updateEpisodeProgress(
+        episodeId: s.episode.id,
+        completedSegments: s.completedSegmentIndices,
+        lastViewedItemId: 'segment_${s.currentSegmentIndex}',
+        history: updatedHistory,
+      );
+    });
   }
 
   /// Extracts per-segment XP values from `episode.content['points']` map.
@@ -219,7 +320,7 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
       'story': 30,
       'knowledgeCheck': 20,
       'reflection': 10,
-      'quest': 15,
+      'summary': 25,
     };
   }
 }

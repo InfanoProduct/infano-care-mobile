@@ -15,10 +15,10 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-flutter run --dart-define=API_URL=http://192.168.1.4:4000/api  
 
-
-flutter run --dart-define=API_URL=http://109.199.120.104:8084/api
-
-flutter run --dart-define=API_URL=http://192.168.1.102:4000/api
+### Development Run
+To run the app connected to your local backend:
+```powershell
+flutter run --dart-define=API_URL=http://192.168.1.8:4005/api
+```
 

@@ -92,6 +92,7 @@ _$UserProgressImpl _$$UserProgressImplFromJson(Map<String, dynamic> json) =>
       completed: json['completed'] as bool? ?? false,
       lastViewedItemId: json['lastViewedItemId'] as String?,
       completedItems: json['completedItems'],
+      history: json['history'],
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       episode: json['episode'] == null
           ? null
@@ -106,6 +107,7 @@ Map<String, dynamic> _$$UserProgressImplToJson(_$UserProgressImpl instance) =>
       'completed': instance.completed,
       'lastViewedItemId': instance.lastViewedItemId,
       'completedItems': instance.completedItems,
+      'history': instance.history,
       'updatedAt': instance.updatedAt.toIso8601String(),
       'episode': instance.episode,
     };

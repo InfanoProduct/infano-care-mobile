@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/onboarding/data/onboarding_repository.dart';
+import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:dio/dio.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────

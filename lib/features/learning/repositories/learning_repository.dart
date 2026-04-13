@@ -41,12 +41,14 @@ class LearningRepository {
     required String episodeId,
     List<int> completedSegments = const [],
     String? lastViewedItemId,
+    dynamic history,
   }) async {
     await _dio.post(
       '/learning/episodes/$episodeId/progress',
       data: {
         'completedItems': completedSegments,
         if (lastViewedItemId != null) 'lastViewedItemId': lastViewedItemId,
+        if (history != null) 'history': history,
       },
     );
   }

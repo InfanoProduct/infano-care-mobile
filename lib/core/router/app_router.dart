@@ -262,7 +262,21 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(
         path: '/journey/:id/episode/:episodeId',
         builder: (_, state) {
-          final episode = state.extra as Episode;
+          // DEFENSIVE PARSING: Handle both Episode objects and raw JSON maps
+          final extra = state.extra;
+          final Episode episode;
+          
+          if (extra is Episode) {
+            episode = extra;
+          } else if (extra is Map<String, dynamic>) {
+            episode = Episode.fromJson(extra);
+          } else {
+            // Fallback: If no extra is provided, we should ideally fetch it, 
+            // but for now we'll throw a more descriptive error or use a dummy.
+            // This prevents the 'subtype' crash in the UI.
+            throw Exception('Episode data missing from route. Expected Episode or Map.');
+          }
+
           final repo = LearningRepository(ApiService.instance.dio);
           return BlocProvider(
             create: (context) => EpisodePlayerBloc(repo),

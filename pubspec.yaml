@@ -35,6 +35,7 @@ dependencies:
   google_fonts: ^6.2.1
   cupertino_icons: ^1.0.8
   flutter_animate: ^4.5.2
+  page_flip: ^0.2.5+1
 
   # Animations
   lottie: ^3.3.1
@@ -91,3 +92,5 @@ flutter:
     - assets/logo_padded.png
     - assets/images/gigi.png
     - assets/images/maya.png
+    - assets/images/hook.jpeg
+    - assets/images/book/

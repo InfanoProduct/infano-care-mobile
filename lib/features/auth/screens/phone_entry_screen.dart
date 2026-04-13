@@ -5,7 +5,6 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
-import 'package:infano_care_mobile/shared/widgets/permissions_onboarding_sheet.dart';
 import 'package:infano_care_mobile/core/services/permission_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sms_autofill/sms_autofill.dart';
@@ -32,7 +31,6 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
     super.initState();
     _repo = AuthRepository(widget.storage);
     _controller.addListener(_formatPhoneNumber);
-    _checkPermissions();
   }
 
   @override
@@ -71,26 +69,6 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
       }
     } catch (e) {
       debugPrint('Phone hint error: $e');
-    }
-  }
-
-  Future<void> _checkPermissions() async {
-    // Info only: Show the sheet to explain why we need permissions.
-    if (mounted) {
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (mounted) {
-          PermissionsOnboardingSheet.show(
-            context,
-            onAllow: () async {
-              // Production Grade: Request both Notifications and SMS
-              await PermissionService.instance.requestNotifications(context);
-              await PermissionService.instance.requestSms(context);
-              _showPhoneHint();
-            },
-            onDeny: () => {}, 
-          );
-        }
-      });
     }
   }
 

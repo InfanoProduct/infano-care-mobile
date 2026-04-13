@@ -235,21 +235,33 @@ mixin _$JourneyListState {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(List<LearningJourney> journeys) loaded,
+    required TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )
+    loaded,
     required TResult Function(String message) error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(List<LearningJourney> journeys)? loaded,
+    TResult? Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult? Function(String message)? error,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(List<LearningJourney> journeys)? loaded,
+    TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
@@ -344,7 +356,11 @@ class _$InitialImpl implements _Initial {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(List<LearningJourney> journeys) loaded,
+    required TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )
+    loaded,
     required TResult Function(String message) error,
   }) {
     return initial();
@@ -355,7 +371,11 @@ class _$InitialImpl implements _Initial {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(List<LearningJourney> journeys)? loaded,
+    TResult? Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult? Function(String message)? error,
   }) {
     return initial?.call();
@@ -366,7 +386,11 @@ class _$InitialImpl implements _Initial {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(List<LearningJourney> journeys)? loaded,
+    TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -463,7 +487,11 @@ class _$LoadingImpl implements _Loading {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(List<LearningJourney> journeys) loaded,
+    required TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )
+    loaded,
     required TResult Function(String message) error,
   }) {
     return loading();
@@ -474,7 +502,11 @@ class _$LoadingImpl implements _Loading {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(List<LearningJourney> journeys)? loaded,
+    TResult? Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult? Function(String message)? error,
   }) {
     return loading?.call();
@@ -485,7 +517,11 @@ class _$LoadingImpl implements _Loading {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(List<LearningJourney> journeys)? loaded,
+    TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
@@ -544,7 +580,7 @@ abstract class _$$JourneyListLoadedImplCopyWith<$Res> {
     $Res Function(_$JourneyListLoadedImpl) then,
   ) = __$$JourneyListLoadedImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({List<LearningJourney> journeys});
+  $Res call({List<LearningJourney> journeys, List<UserProgress> userProgress});
 }
 
 /// @nodoc
@@ -560,13 +596,17 @@ class __$$JourneyListLoadedImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? journeys = null}) {
+  $Res call({Object? journeys = null, Object? userProgress = null}) {
     return _then(
       _$JourneyListLoadedImpl(
         null == journeys
             ? _value._journeys
             : journeys // ignore: cast_nullable_to_non_nullable
                   as List<LearningJourney>,
+        null == userProgress
+            ? _value._userProgress
+            : userProgress // ignore: cast_nullable_to_non_nullable
+                  as List<UserProgress>,
       ),
     );
   }
@@ -575,8 +615,11 @@ class __$$JourneyListLoadedImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$JourneyListLoadedImpl implements _JourneyListLoaded {
-  const _$JourneyListLoadedImpl(final List<LearningJourney> journeys)
-    : _journeys = journeys;
+  const _$JourneyListLoadedImpl(
+    final List<LearningJourney> journeys,
+    final List<UserProgress> userProgress,
+  ) : _journeys = journeys,
+      _userProgress = userProgress;
 
   final List<LearningJourney> _journeys;
   @override
@@ -586,9 +629,17 @@ class _$JourneyListLoadedImpl implements _JourneyListLoaded {
     return EqualUnmodifiableListView(_journeys);
   }
 
+  final List<UserProgress> _userProgress;
+  @override
+  List<UserProgress> get userProgress {
+    if (_userProgress is EqualUnmodifiableListView) return _userProgress;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_userProgress);
+  }
+
   @override
   String toString() {
-    return 'JourneyListState.loaded(journeys: $journeys)';
+    return 'JourneyListState.loaded(journeys: $journeys, userProgress: $userProgress)';
   }
 
   @override
@@ -596,12 +647,19 @@ class _$JourneyListLoadedImpl implements _JourneyListLoaded {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$JourneyListLoadedImpl &&
-            const DeepCollectionEquality().equals(other._journeys, _journeys));
+            const DeepCollectionEquality().equals(other._journeys, _journeys) &&
+            const DeepCollectionEquality().equals(
+              other._userProgress,
+              _userProgress,
+            ));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(_journeys));
+  int get hashCode => Object.hash(
+    runtimeType,
+    const DeepCollectionEquality().hash(_journeys),
+    const DeepCollectionEquality().hash(_userProgress),
+  );
 
   /// Create a copy of JourneyListState
   /// with the given fields replaced by the non-null parameter values.
@@ -619,10 +677,14 @@ class _$JourneyListLoadedImpl implements _JourneyListLoaded {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(List<LearningJourney> journeys) loaded,
+    required TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )
+    loaded,
     required TResult Function(String message) error,
   }) {
-    return loaded(journeys);
+    return loaded(journeys, userProgress);
   }
 
   @override
@@ -630,10 +692,14 @@ class _$JourneyListLoadedImpl implements _JourneyListLoaded {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(List<LearningJourney> journeys)? loaded,
+    TResult? Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult? Function(String message)? error,
   }) {
-    return loaded?.call(journeys);
+    return loaded?.call(journeys, userProgress);
   }
 
   @override
@@ -641,12 +707,16 @@ class _$JourneyListLoadedImpl implements _JourneyListLoaded {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(List<LearningJourney> journeys)? loaded,
+    TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {
     if (loaded != null) {
-      return loaded(journeys);
+      return loaded(journeys, userProgress);
     }
     return orElse();
   }
@@ -690,10 +760,13 @@ class _$JourneyListLoadedImpl implements _JourneyListLoaded {
 }
 
 abstract class _JourneyListLoaded implements JourneyListState {
-  const factory _JourneyListLoaded(final List<LearningJourney> journeys) =
-      _$JourneyListLoadedImpl;
+  const factory _JourneyListLoaded(
+    final List<LearningJourney> journeys,
+    final List<UserProgress> userProgress,
+  ) = _$JourneyListLoadedImpl;
 
   List<LearningJourney> get journeys;
+  List<UserProgress> get userProgress;
 
   /// Create a copy of JourneyListState
   /// with the given fields replaced by the non-null parameter values.
@@ -774,7 +847,11 @@ class _$ErrorImpl implements _Error {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(List<LearningJourney> journeys) loaded,
+    required TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )
+    loaded,
     required TResult Function(String message) error,
   }) {
     return error(message);
@@ -785,7 +862,11 @@ class _$ErrorImpl implements _Error {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(List<LearningJourney> journeys)? loaded,
+    TResult? Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult? Function(String message)? error,
   }) {
     return error?.call(message);
@@ -796,7 +877,11 @@ class _$ErrorImpl implements _Error {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(List<LearningJourney> journeys)? loaded,
+    TResult Function(
+      List<LearningJourney> journeys,
+      List<UserProgress> userProgress,
+    )?
+    loaded,
     TResult Function(String message)? error,
     required TResult orElse(),
   }) {

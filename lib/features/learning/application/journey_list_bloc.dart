@@ -14,7 +14,7 @@ class JourneyListEvent with _$JourneyListEvent {
 class JourneyListState with _$JourneyListState {
   const factory JourneyListState.initial() = _Initial;
   const factory JourneyListState.loading() = _Loading;
-  const factory JourneyListState.loaded(List<LearningJourney> journeys) = _JourneyListLoaded;
+  const factory JourneyListState.loaded(List<LearningJourney> journeys, List<UserProgress> userProgress) = _JourneyListLoaded;
   const factory JourneyListState.error(String message) = _Error;
 }
 
@@ -26,7 +26,8 @@ class JourneyListBloc extends Bloc<JourneyListEvent, JourneyListState> {
       emit(const JourneyListState.loading());
       try {
         final journeys = await _repository.listJourneys(ageBand: event.ageBand);
-        emit(JourneyListState.loaded(journeys));
+        final progress = await _repository.getMyProgress();
+        emit(JourneyListState.loaded(journeys, progress));
       } catch (e) {
         emit(JourneyListState.error(e.toString()));
       }

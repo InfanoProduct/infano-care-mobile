@@ -25,10 +25,12 @@ class NotificationService {
   );
 
   bool _isInitialized = false;
+  LocalStorageService? _storage;
 
-  Future<void> initialize(GlobalKey<NavigatorState> navigatorKey) async {
+  Future<void> initialize(GlobalKey<NavigatorState> navigatorKey, {LocalStorageService? storage}) async {
     if (_isInitialized) return;
     _navigatorKey = navigatorKey;
+    _storage = storage;
 
     try {
       // 1. Check if Firebase is available
@@ -96,23 +98,40 @@ class NotificationService {
     });
 
     _isInitialized = true;
-    _syncToken();
+
+    // 6. Reactive Sync: Listen for token changes
+    _storage?.addListener(_onStorageChanged);
+    
+    // Initial sync attempt
+    _onStorageChanged();
     } catch (e) {
       debugPrint('[Notifications] Setup failed ❌: $e');
     }
   }
 
-  Future<void> _syncToken() async {
+  void _onStorageChanged() {
+    final token = _storage?.authToken;
+    if (token != null) {
+      syncToken();
+    }
+  }
+
+  Future<void> syncToken() async {
+    final authToken = _storage?.authToken;
+    if (authToken == null) return;
+
     try {
-      final token = await _fcm.getToken();
-      if (token != null) {
-        debugPrint("FCM Token: $token");
+      final fcmToken = await _fcm.getToken();
+      if (fcmToken != null) {
+        debugPrint("[Notifications] Syncing FCM token...");
         await ApiService.instance.dio.post('/user/register-fcm-token', data: {
-          'fcmToken': token,
+          'fcmToken': fcmToken,
         });
+        debugPrint("[Notifications] FCM token registered ✅");
       }
     } catch (e) {
-      debugPrint("Failed to sync FCM token: $e");
+      // If it's a 401, we just ignore it here because ApiService interceptor will handle it
+      debugPrint("[Notifications] FCM sync failed (likely session expired).");
     }
   }
 

@@ -11,6 +11,7 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
 import 'package:infano_care_mobile/core/router/app_router.dart';
+import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 
 class OtpVerifyScreen extends StatefulWidget {
@@ -129,6 +130,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
           periodStatus: widget.storage.periodStatus,
         );
         debugPrint('🚀 OTP Verified. Navigating to: $target');
+        
         if (mounted) context.go(target);
       }
     } catch (e) {

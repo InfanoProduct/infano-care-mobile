@@ -67,7 +67,7 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
     _router = createRouter(widget.storage);
     
     // Initialize notifications
-    NotificationService().initialize(_navigatorKey);
+    NotificationService().initialize(_navigatorKey, storage: widget.storage);
   }
 
   @override

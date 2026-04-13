@@ -23,9 +23,15 @@ mixin _$EpisodePlayerEvent {
     required TResult Function() nextSegment,
     required TResult Function() previousSegment,
     required TResult Function(int index) jumpToSegment,
-    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
     required TResult Function(String mode, String? content) updateReflection,
     required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
@@ -33,9 +39,11 @@ mixin _$EpisodePlayerEvent {
     TResult? Function()? nextSegment,
     TResult? Function()? previousSegment,
     TResult? Function(int index)? jumpToSegment,
-    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult? Function(String mode, String? content)? updateReflection,
     TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
@@ -43,9 +51,11 @@ mixin _$EpisodePlayerEvent {
     TResult Function()? nextSegment,
     TResult Function()? previousSegment,
     TResult Function(int index)? jumpToSegment,
-    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult Function(String mode, String? content)? updateReflection,
     TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -57,6 +67,7 @@ mixin _$EpisodePlayerEvent {
     required TResult Function(_AnswerQuestion value) answerQuestion,
     required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
@@ -67,6 +78,7 @@ mixin _$EpisodePlayerEvent {
     TResult? Function(_AnswerQuestion value)? answerQuestion,
     TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
@@ -77,6 +89,7 @@ mixin _$EpisodePlayerEvent {
     TResult Function(_AnswerQuestion value)? answerQuestion,
     TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
     required TResult orElse(),
   }) => throw _privateConstructorUsedError;
 }
@@ -178,9 +191,15 @@ class _$LoadEpisodeImpl implements _LoadEpisode {
     required TResult Function() nextSegment,
     required TResult Function() previousSegment,
     required TResult Function(int index) jumpToSegment,
-    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
     required TResult Function(String mode, String? content) updateReflection,
     required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
   }) {
     return loadEpisode(episodeId);
   }
@@ -192,9 +211,11 @@ class _$LoadEpisodeImpl implements _LoadEpisode {
     TResult? Function()? nextSegment,
     TResult? Function()? previousSegment,
     TResult? Function(int index)? jumpToSegment,
-    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult? Function(String mode, String? content)? updateReflection,
     TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
   }) {
     return loadEpisode?.call(episodeId);
   }
@@ -206,9 +227,11 @@ class _$LoadEpisodeImpl implements _LoadEpisode {
     TResult Function()? nextSegment,
     TResult Function()? previousSegment,
     TResult Function(int index)? jumpToSegment,
-    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult Function(String mode, String? content)? updateReflection,
     TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
     required TResult orElse(),
   }) {
     if (loadEpisode != null) {
@@ -227,6 +250,7 @@ class _$LoadEpisodeImpl implements _LoadEpisode {
     required TResult Function(_AnswerQuestion value) answerQuestion,
     required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
   }) {
     return loadEpisode(this);
   }
@@ -241,6 +265,7 @@ class _$LoadEpisodeImpl implements _LoadEpisode {
     TResult? Function(_AnswerQuestion value)? answerQuestion,
     TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
   }) {
     return loadEpisode?.call(this);
   }
@@ -255,6 +280,7 @@ class _$LoadEpisodeImpl implements _LoadEpisode {
     TResult Function(_AnswerQuestion value)? answerQuestion,
     TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
     required TResult orElse(),
   }) {
     if (loadEpisode != null) {
@@ -323,9 +349,15 @@ class _$NextSegmentImpl implements _NextSegment {
     required TResult Function() nextSegment,
     required TResult Function() previousSegment,
     required TResult Function(int index) jumpToSegment,
-    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
     required TResult Function(String mode, String? content) updateReflection,
     required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
   }) {
     return nextSegment();
   }
@@ -337,9 +369,11 @@ class _$NextSegmentImpl implements _NextSegment {
     TResult? Function()? nextSegment,
     TResult? Function()? previousSegment,
     TResult? Function(int index)? jumpToSegment,
-    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult? Function(String mode, String? content)? updateReflection,
     TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
   }) {
     return nextSegment?.call();
   }
@@ -351,9 +385,11 @@ class _$NextSegmentImpl implements _NextSegment {
     TResult Function()? nextSegment,
     TResult Function()? previousSegment,
     TResult Function(int index)? jumpToSegment,
-    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult Function(String mode, String? content)? updateReflection,
     TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
     required TResult orElse(),
   }) {
     if (nextSegment != null) {
@@ -372,6 +408,7 @@ class _$NextSegmentImpl implements _NextSegment {
     required TResult Function(_AnswerQuestion value) answerQuestion,
     required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
   }) {
     return nextSegment(this);
   }
@@ -386,6 +423,7 @@ class _$NextSegmentImpl implements _NextSegment {
     TResult? Function(_AnswerQuestion value)? answerQuestion,
     TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
   }) {
     return nextSegment?.call(this);
   }
@@ -400,6 +438,7 @@ class _$NextSegmentImpl implements _NextSegment {
     TResult Function(_AnswerQuestion value)? answerQuestion,
     TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
     required TResult orElse(),
   }) {
     if (nextSegment != null) {
@@ -460,9 +499,15 @@ class _$PreviousSegmentImpl implements _PreviousSegment {
     required TResult Function() nextSegment,
     required TResult Function() previousSegment,
     required TResult Function(int index) jumpToSegment,
-    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
     required TResult Function(String mode, String? content) updateReflection,
     required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
   }) {
     return previousSegment();
   }
@@ -474,9 +519,11 @@ class _$PreviousSegmentImpl implements _PreviousSegment {
     TResult? Function()? nextSegment,
     TResult? Function()? previousSegment,
     TResult? Function(int index)? jumpToSegment,
-    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult? Function(String mode, String? content)? updateReflection,
     TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
   }) {
     return previousSegment?.call();
   }
@@ -488,9 +535,11 @@ class _$PreviousSegmentImpl implements _PreviousSegment {
     TResult Function()? nextSegment,
     TResult Function()? previousSegment,
     TResult Function(int index)? jumpToSegment,
-    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult Function(String mode, String? content)? updateReflection,
     TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
     required TResult orElse(),
   }) {
     if (previousSegment != null) {
@@ -509,6 +558,7 @@ class _$PreviousSegmentImpl implements _PreviousSegment {
     required TResult Function(_AnswerQuestion value) answerQuestion,
     required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
   }) {
     return previousSegment(this);
   }
@@ -523,6 +573,7 @@ class _$PreviousSegmentImpl implements _PreviousSegment {
     TResult? Function(_AnswerQuestion value)? answerQuestion,
     TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
   }) {
     return previousSegment?.call(this);
   }
@@ -537,6 +588,7 @@ class _$PreviousSegmentImpl implements _PreviousSegment {
     TResult Function(_AnswerQuestion value)? answerQuestion,
     TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
     required TResult orElse(),
   }) {
     if (previousSegment != null) {
@@ -624,9 +676,15 @@ class _$JumpToSegmentImpl implements _JumpToSegment {
     required TResult Function() nextSegment,
     required TResult Function() previousSegment,
     required TResult Function(int index) jumpToSegment,
-    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
     required TResult Function(String mode, String? content) updateReflection,
     required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
   }) {
     return jumpToSegment(index);
   }
@@ -638,9 +696,11 @@ class _$JumpToSegmentImpl implements _JumpToSegment {
     TResult? Function()? nextSegment,
     TResult? Function()? previousSegment,
     TResult? Function(int index)? jumpToSegment,
-    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult? Function(String mode, String? content)? updateReflection,
     TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
   }) {
     return jumpToSegment?.call(index);
   }
@@ -652,9 +712,11 @@ class _$JumpToSegmentImpl implements _JumpToSegment {
     TResult Function()? nextSegment,
     TResult Function()? previousSegment,
     TResult Function(int index)? jumpToSegment,
-    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult Function(String mode, String? content)? updateReflection,
     TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
     required TResult orElse(),
   }) {
     if (jumpToSegment != null) {
@@ -673,6 +735,7 @@ class _$JumpToSegmentImpl implements _JumpToSegment {
     required TResult Function(_AnswerQuestion value) answerQuestion,
     required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
   }) {
     return jumpToSegment(this);
   }
@@ -687,6 +750,7 @@ class _$JumpToSegmentImpl implements _JumpToSegment {
     TResult? Function(_AnswerQuestion value)? answerQuestion,
     TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
   }) {
     return jumpToSegment?.call(this);
   }
@@ -701,6 +765,7 @@ class _$JumpToSegmentImpl implements _JumpToSegment {
     TResult Function(_AnswerQuestion value)? answerQuestion,
     TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
     required TResult orElse(),
   }) {
     if (jumpToSegment != null) {
@@ -729,7 +794,7 @@ abstract class _$$AnswerQuestionImplCopyWith<$Res> {
     $Res Function(_$AnswerQuestionImpl) then,
   ) = __$$AnswerQuestionImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({bool isCorrect});
+  $Res call({bool isCorrect, int questionIndex, int answerIndex});
 }
 
 /// @nodoc
@@ -745,13 +810,25 @@ class __$$AnswerQuestionImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? isCorrect = null}) {
+  $Res call({
+    Object? isCorrect = null,
+    Object? questionIndex = null,
+    Object? answerIndex = null,
+  }) {
     return _then(
       _$AnswerQuestionImpl(
         isCorrect: null == isCorrect
             ? _value.isCorrect
             : isCorrect // ignore: cast_nullable_to_non_nullable
                   as bool,
+        questionIndex: null == questionIndex
+            ? _value.questionIndex
+            : questionIndex // ignore: cast_nullable_to_non_nullable
+                  as int,
+        answerIndex: null == answerIndex
+            ? _value.answerIndex
+            : answerIndex // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -760,14 +837,22 @@ class __$$AnswerQuestionImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$AnswerQuestionImpl implements _AnswerQuestion {
-  const _$AnswerQuestionImpl({required this.isCorrect});
+  const _$AnswerQuestionImpl({
+    required this.isCorrect,
+    required this.questionIndex,
+    required this.answerIndex,
+  });
 
   @override
   final bool isCorrect;
+  @override
+  final int questionIndex;
+  @override
+  final int answerIndex;
 
   @override
   String toString() {
-    return 'EpisodePlayerEvent.answerQuestion(isCorrect: $isCorrect)';
+    return 'EpisodePlayerEvent.answerQuestion(isCorrect: $isCorrect, questionIndex: $questionIndex, answerIndex: $answerIndex)';
   }
 
   @override
@@ -776,11 +861,16 @@ class _$AnswerQuestionImpl implements _AnswerQuestion {
         (other.runtimeType == runtimeType &&
             other is _$AnswerQuestionImpl &&
             (identical(other.isCorrect, isCorrect) ||
-                other.isCorrect == isCorrect));
+                other.isCorrect == isCorrect) &&
+            (identical(other.questionIndex, questionIndex) ||
+                other.questionIndex == questionIndex) &&
+            (identical(other.answerIndex, answerIndex) ||
+                other.answerIndex == answerIndex));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, isCorrect);
+  int get hashCode =>
+      Object.hash(runtimeType, isCorrect, questionIndex, answerIndex);
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -800,11 +890,17 @@ class _$AnswerQuestionImpl implements _AnswerQuestion {
     required TResult Function() nextSegment,
     required TResult Function() previousSegment,
     required TResult Function(int index) jumpToSegment,
-    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
     required TResult Function(String mode, String? content) updateReflection,
     required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
   }) {
-    return answerQuestion(isCorrect);
+    return answerQuestion(isCorrect, questionIndex, answerIndex);
   }
 
   @override
@@ -814,11 +910,13 @@ class _$AnswerQuestionImpl implements _AnswerQuestion {
     TResult? Function()? nextSegment,
     TResult? Function()? previousSegment,
     TResult? Function(int index)? jumpToSegment,
-    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult? Function(String mode, String? content)? updateReflection,
     TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
   }) {
-    return answerQuestion?.call(isCorrect);
+    return answerQuestion?.call(isCorrect, questionIndex, answerIndex);
   }
 
   @override
@@ -828,13 +926,15 @@ class _$AnswerQuestionImpl implements _AnswerQuestion {
     TResult Function()? nextSegment,
     TResult Function()? previousSegment,
     TResult Function(int index)? jumpToSegment,
-    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult Function(String mode, String? content)? updateReflection,
     TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
     required TResult orElse(),
   }) {
     if (answerQuestion != null) {
-      return answerQuestion(isCorrect);
+      return answerQuestion(isCorrect, questionIndex, answerIndex);
     }
     return orElse();
   }
@@ -849,6 +949,7 @@ class _$AnswerQuestionImpl implements _AnswerQuestion {
     required TResult Function(_AnswerQuestion value) answerQuestion,
     required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
   }) {
     return answerQuestion(this);
   }
@@ -863,6 +964,7 @@ class _$AnswerQuestionImpl implements _AnswerQuestion {
     TResult? Function(_AnswerQuestion value)? answerQuestion,
     TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
   }) {
     return answerQuestion?.call(this);
   }
@@ -877,6 +979,7 @@ class _$AnswerQuestionImpl implements _AnswerQuestion {
     TResult Function(_AnswerQuestion value)? answerQuestion,
     TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
     required TResult orElse(),
   }) {
     if (answerQuestion != null) {
@@ -887,10 +990,15 @@ class _$AnswerQuestionImpl implements _AnswerQuestion {
 }
 
 abstract class _AnswerQuestion implements EpisodePlayerEvent {
-  const factory _AnswerQuestion({required final bool isCorrect}) =
-      _$AnswerQuestionImpl;
+  const factory _AnswerQuestion({
+    required final bool isCorrect,
+    required final int questionIndex,
+    required final int answerIndex,
+  }) = _$AnswerQuestionImpl;
 
   bool get isCorrect;
+  int get questionIndex;
+  int get answerIndex;
 
   /// Create a copy of EpisodePlayerEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -983,9 +1091,15 @@ class _$UpdateReflectionImpl implements _UpdateReflection {
     required TResult Function() nextSegment,
     required TResult Function() previousSegment,
     required TResult Function(int index) jumpToSegment,
-    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
     required TResult Function(String mode, String? content) updateReflection,
     required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
   }) {
     return updateReflection(mode, content);
   }
@@ -997,9 +1111,11 @@ class _$UpdateReflectionImpl implements _UpdateReflection {
     TResult? Function()? nextSegment,
     TResult? Function()? previousSegment,
     TResult? Function(int index)? jumpToSegment,
-    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult? Function(String mode, String? content)? updateReflection,
     TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
   }) {
     return updateReflection?.call(mode, content);
   }
@@ -1011,9 +1127,11 @@ class _$UpdateReflectionImpl implements _UpdateReflection {
     TResult Function()? nextSegment,
     TResult Function()? previousSegment,
     TResult Function(int index)? jumpToSegment,
-    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult Function(String mode, String? content)? updateReflection,
     TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
     required TResult orElse(),
   }) {
     if (updateReflection != null) {
@@ -1032,6 +1150,7 @@ class _$UpdateReflectionImpl implements _UpdateReflection {
     required TResult Function(_AnswerQuestion value) answerQuestion,
     required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
   }) {
     return updateReflection(this);
   }
@@ -1046,6 +1165,7 @@ class _$UpdateReflectionImpl implements _UpdateReflection {
     TResult? Function(_AnswerQuestion value)? answerQuestion,
     TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
   }) {
     return updateReflection?.call(this);
   }
@@ -1060,6 +1180,7 @@ class _$UpdateReflectionImpl implements _UpdateReflection {
     TResult Function(_AnswerQuestion value)? answerQuestion,
     TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
     required TResult orElse(),
   }) {
     if (updateReflection != null) {
@@ -1164,9 +1285,15 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
     required TResult Function() nextSegment,
     required TResult Function() previousSegment,
     required TResult Function(int index) jumpToSegment,
-    required TResult Function(bool isCorrect) answerQuestion,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
     required TResult Function(String mode, String? content) updateReflection,
     required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
   }) {
     return completeEpisode(isBingeBonus);
   }
@@ -1178,9 +1305,11 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
     TResult? Function()? nextSegment,
     TResult? Function()? previousSegment,
     TResult? Function(int index)? jumpToSegment,
-    TResult? Function(bool isCorrect)? answerQuestion,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult? Function(String mode, String? content)? updateReflection,
     TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
   }) {
     return completeEpisode?.call(isBingeBonus);
   }
@@ -1192,9 +1321,11 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
     TResult Function()? nextSegment,
     TResult Function()? previousSegment,
     TResult Function(int index)? jumpToSegment,
-    TResult Function(bool isCorrect)? answerQuestion,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
     TResult Function(String mode, String? content)? updateReflection,
     TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
     required TResult orElse(),
   }) {
     if (completeEpisode != null) {
@@ -1213,6 +1344,7 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
     required TResult Function(_AnswerQuestion value) answerQuestion,
     required TResult Function(_UpdateReflection value) updateReflection,
     required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
   }) {
     return completeEpisode(this);
   }
@@ -1227,6 +1359,7 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
     TResult? Function(_AnswerQuestion value)? answerQuestion,
     TResult? Function(_UpdateReflection value)? updateReflection,
     TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
   }) {
     return completeEpisode?.call(this);
   }
@@ -1241,6 +1374,7 @@ class _$CompleteEpisodeImpl implements _CompleteEpisode {
     TResult Function(_AnswerQuestion value)? answerQuestion,
     TResult Function(_UpdateReflection value)? updateReflection,
     TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
     required TResult orElse(),
   }) {
     if (completeEpisode != null) {
@@ -1264,6 +1398,199 @@ abstract class _CompleteEpisode implements EpisodePlayerEvent {
 }
 
 /// @nodoc
+abstract class _$$SyncHistoryImplCopyWith<$Res> {
+  factory _$$SyncHistoryImplCopyWith(
+    _$SyncHistoryImpl value,
+    $Res Function(_$SyncHistoryImpl) then,
+  ) = __$$SyncHistoryImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({Map<String, dynamic> history});
+}
+
+/// @nodoc
+class __$$SyncHistoryImplCopyWithImpl<$Res>
+    extends _$EpisodePlayerEventCopyWithImpl<$Res, _$SyncHistoryImpl>
+    implements _$$SyncHistoryImplCopyWith<$Res> {
+  __$$SyncHistoryImplCopyWithImpl(
+    _$SyncHistoryImpl _value,
+    $Res Function(_$SyncHistoryImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? history = null}) {
+    return _then(
+      _$SyncHistoryImpl(
+        null == history
+            ? _value._history
+            : history // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+class _$SyncHistoryImpl implements _SyncHistory {
+  const _$SyncHistoryImpl(final Map<String, dynamic> history)
+    : _history = history;
+
+  final Map<String, dynamic> _history;
+  @override
+  Map<String, dynamic> get history {
+    if (_history is EqualUnmodifiableMapView) return _history;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_history);
+  }
+
+  @override
+  String toString() {
+    return 'EpisodePlayerEvent.syncHistory(history: $history)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SyncHistoryImpl &&
+            const DeepCollectionEquality().equals(other._history, _history));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(_history));
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SyncHistoryImplCopyWith<_$SyncHistoryImpl> get copyWith =>
+      __$$SyncHistoryImplCopyWithImpl<_$SyncHistoryImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String episodeId) loadEpisode,
+    required TResult Function() nextSegment,
+    required TResult Function() previousSegment,
+    required TResult Function(int index) jumpToSegment,
+    required TResult Function(
+      bool isCorrect,
+      int questionIndex,
+      int answerIndex,
+    )
+    answerQuestion,
+    required TResult Function(String mode, String? content) updateReflection,
+    required TResult Function(bool isBingeBonus) completeEpisode,
+    required TResult Function(Map<String, dynamic> history) syncHistory,
+  }) {
+    return syncHistory(history);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String episodeId)? loadEpisode,
+    TResult? Function()? nextSegment,
+    TResult? Function()? previousSegment,
+    TResult? Function(int index)? jumpToSegment,
+    TResult? Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
+    TResult? Function(String mode, String? content)? updateReflection,
+    TResult? Function(bool isBingeBonus)? completeEpisode,
+    TResult? Function(Map<String, dynamic> history)? syncHistory,
+  }) {
+    return syncHistory?.call(history);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String episodeId)? loadEpisode,
+    TResult Function()? nextSegment,
+    TResult Function()? previousSegment,
+    TResult Function(int index)? jumpToSegment,
+    TResult Function(bool isCorrect, int questionIndex, int answerIndex)?
+    answerQuestion,
+    TResult Function(String mode, String? content)? updateReflection,
+    TResult Function(bool isBingeBonus)? completeEpisode,
+    TResult Function(Map<String, dynamic> history)? syncHistory,
+    required TResult orElse(),
+  }) {
+    if (syncHistory != null) {
+      return syncHistory(history);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_LoadEpisode value) loadEpisode,
+    required TResult Function(_NextSegment value) nextSegment,
+    required TResult Function(_PreviousSegment value) previousSegment,
+    required TResult Function(_JumpToSegment value) jumpToSegment,
+    required TResult Function(_AnswerQuestion value) answerQuestion,
+    required TResult Function(_UpdateReflection value) updateReflection,
+    required TResult Function(_CompleteEpisode value) completeEpisode,
+    required TResult Function(_SyncHistory value) syncHistory,
+  }) {
+    return syncHistory(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_LoadEpisode value)? loadEpisode,
+    TResult? Function(_NextSegment value)? nextSegment,
+    TResult? Function(_PreviousSegment value)? previousSegment,
+    TResult? Function(_JumpToSegment value)? jumpToSegment,
+    TResult? Function(_AnswerQuestion value)? answerQuestion,
+    TResult? Function(_UpdateReflection value)? updateReflection,
+    TResult? Function(_CompleteEpisode value)? completeEpisode,
+    TResult? Function(_SyncHistory value)? syncHistory,
+  }) {
+    return syncHistory?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_LoadEpisode value)? loadEpisode,
+    TResult Function(_NextSegment value)? nextSegment,
+    TResult Function(_PreviousSegment value)? previousSegment,
+    TResult Function(_JumpToSegment value)? jumpToSegment,
+    TResult Function(_AnswerQuestion value)? answerQuestion,
+    TResult Function(_UpdateReflection value)? updateReflection,
+    TResult Function(_CompleteEpisode value)? completeEpisode,
+    TResult Function(_SyncHistory value)? syncHistory,
+    required TResult orElse(),
+  }) {
+    if (syncHistory != null) {
+      return syncHistory(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _SyncHistory implements EpisodePlayerEvent {
+  const factory _SyncHistory(final Map<String, dynamic> history) =
+      _$SyncHistoryImpl;
+
+  Map<String, dynamic> get history;
+
+  /// Create a copy of EpisodePlayerEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SyncHistoryImplCopyWith<_$SyncHistoryImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
 mixin _$EpisodePlayerState {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
@@ -1278,6 +1605,7 @@ mixin _$EpisodePlayerState {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )
     loaded,
@@ -1301,6 +1629,7 @@ mixin _$EpisodePlayerState {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -1321,6 +1650,7 @@ mixin _$EpisodePlayerState {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -1432,6 +1762,7 @@ class _$InitialImpl implements _Initial {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )
     loaded,
@@ -1459,6 +1790,7 @@ class _$InitialImpl implements _Initial {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -1483,6 +1815,7 @@ class _$InitialImpl implements _Initial {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -1596,6 +1929,7 @@ class _$LoadingImpl implements _Loading {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )
     loaded,
@@ -1623,6 +1957,7 @@ class _$LoadingImpl implements _Loading {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -1647,6 +1982,7 @@ class _$LoadingImpl implements _Loading {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -1722,6 +2058,7 @@ abstract class _$$EpisodePlayerLoadedImplCopyWith<$Res> {
     String? reflectionContent,
     bool isCompleting,
     List<int> completedSegmentIndices,
+    Map<String, dynamic> history,
     Map<String, int> segmentPoints,
   });
 
@@ -1750,6 +2087,7 @@ class __$$EpisodePlayerLoadedImplCopyWithImpl<$Res>
     Object? reflectionContent = freezed,
     Object? isCompleting = null,
     Object? completedSegmentIndices = null,
+    Object? history = null,
     Object? segmentPoints = null,
   }) {
     return _then(
@@ -1786,6 +2124,10 @@ class __$$EpisodePlayerLoadedImplCopyWithImpl<$Res>
             ? _value._completedSegmentIndices
             : completedSegmentIndices // ignore: cast_nullable_to_non_nullable
                   as List<int>,
+        history: null == history
+            ? _value._history
+            : history // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>,
         segmentPoints: null == segmentPoints
             ? _value._segmentPoints
             : segmentPoints // ignore: cast_nullable_to_non_nullable
@@ -1817,8 +2159,10 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
     this.reflectionContent,
     this.isCompleting = false,
     final List<int> completedSegmentIndices = const [],
+    final Map<String, dynamic> history = const {},
     final Map<String, int> segmentPoints = const {},
   }) : _completedSegmentIndices = completedSegmentIndices,
+       _history = history,
        _segmentPoints = segmentPoints;
 
   @override
@@ -1854,12 +2198,21 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
     return EqualUnmodifiableListView(_completedSegmentIndices);
   }
 
+  final Map<String, dynamic> _history;
+  @override
+  @JsonKey()
+  Map<String, dynamic> get history {
+    if (_history is EqualUnmodifiableMapView) return _history;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_history);
+  }
+
   /// Points breakdown from backend episode content, e.g.
-  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'quest': 15}
+  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'summary': 25}
   final Map<String, int> _segmentPoints;
 
   /// Points breakdown from backend episode content, e.g.
-  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'quest': 15}
+  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'summary': 25}
   @override
   @JsonKey()
   Map<String, int> get segmentPoints {
@@ -1870,7 +2223,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
 
   @override
   String toString() {
-    return 'EpisodePlayerState.loaded(episode: $episode, currentSegmentIndex: $currentSegmentIndex, correctAnswers: $correctAnswers, questionsAnswered: $questionsAnswered, reflectionMode: $reflectionMode, reflectionContent: $reflectionContent, isCompleting: $isCompleting, completedSegmentIndices: $completedSegmentIndices, segmentPoints: $segmentPoints)';
+    return 'EpisodePlayerState.loaded(episode: $episode, currentSegmentIndex: $currentSegmentIndex, correctAnswers: $correctAnswers, questionsAnswered: $questionsAnswered, reflectionMode: $reflectionMode, reflectionContent: $reflectionContent, isCompleting: $isCompleting, completedSegmentIndices: $completedSegmentIndices, history: $history, segmentPoints: $segmentPoints)';
   }
 
   @override
@@ -1895,6 +2248,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
               other._completedSegmentIndices,
               _completedSegmentIndices,
             ) &&
+            const DeepCollectionEquality().equals(other._history, _history) &&
             const DeepCollectionEquality().equals(
               other._segmentPoints,
               _segmentPoints,
@@ -1912,6 +2266,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
     reflectionContent,
     isCompleting,
     const DeepCollectionEquality().hash(_completedSegmentIndices),
+    const DeepCollectionEquality().hash(_history),
     const DeepCollectionEquality().hash(_segmentPoints),
   );
 
@@ -1940,6 +2295,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )
     loaded,
@@ -1959,6 +2315,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
       reflectionContent,
       isCompleting,
       completedSegmentIndices,
+      history,
       segmentPoints,
     );
   }
@@ -1977,6 +2334,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -1993,6 +2351,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
       reflectionContent,
       isCompleting,
       completedSegmentIndices,
+      history,
       segmentPoints,
     );
   }
@@ -2011,6 +2370,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -2029,6 +2389,7 @@ class _$EpisodePlayerLoadedImpl implements _EpisodePlayerLoaded {
         reflectionContent,
         isCompleting,
         completedSegmentIndices,
+        history,
         segmentPoints,
       );
     }
@@ -2086,6 +2447,7 @@ abstract class _EpisodePlayerLoaded implements EpisodePlayerState {
     final String? reflectionContent,
     final bool isCompleting,
     final List<int> completedSegmentIndices,
+    final Map<String, dynamic> history,
     final Map<String, int> segmentPoints,
   }) = _$EpisodePlayerLoadedImpl;
 
@@ -2099,9 +2461,10 @@ abstract class _EpisodePlayerLoaded implements EpisodePlayerState {
 
   /// Backend-reported completed segment indices (0-4).
   List<int> get completedSegmentIndices;
+  Map<String, dynamic> get history;
 
   /// Points breakdown from backend episode content, e.g.
-  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'quest': 15}
+  /// {'hook': 0, 'story': 30, 'knowledgeCheck': 20, 'reflection': 10, 'summary': 25}
   Map<String, int> get segmentPoints;
 
   /// Create a copy of EpisodePlayerState
@@ -2220,6 +2583,7 @@ class _$CompletedImpl implements _Completed {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )
     loaded,
@@ -2247,6 +2611,7 @@ class _$CompletedImpl implements _Completed {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -2271,6 +2636,7 @@ class _$CompletedImpl implements _Completed {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -2425,6 +2791,7 @@ class _$ErrorImpl implements _Error {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )
     loaded,
@@ -2452,6 +2819,7 @@ class _$ErrorImpl implements _Error {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,
@@ -2476,6 +2844,7 @@ class _$ErrorImpl implements _Error {
       String? reflectionContent,
       bool isCompleting,
       List<int> completedSegmentIndices,
+      Map<String, dynamic> history,
       Map<String, int> segmentPoints,
     )?
     loaded,

@@ -93,9 +93,6 @@ class AuthRepository {
       await _storage.setPhone(phone);
       await _storage.setStepComplete(result.onboardingStep.toString());
       await _storage.setIsOnboarded(result.isOnboardingCompleted);
-      await _storage.setPhone(phone);
-      await _storage.setStepComplete(result.onboardingStep.toString());
-      await _storage.setIsOnboarded(result.isOnboardingCompleted);
       
       // Clear legacy tempToken if present
       await _storage.clearTempToken();

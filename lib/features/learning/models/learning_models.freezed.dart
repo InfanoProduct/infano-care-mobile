@@ -889,6 +889,7 @@ mixin _$UserProgress {
   bool get completed => throw _privateConstructorUsedError;
   String? get lastViewedItemId => throw _privateConstructorUsedError;
   dynamic get completedItems => throw _privateConstructorUsedError;
+  dynamic get history => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   Episode? get episode => throw _privateConstructorUsedError;
 
@@ -916,6 +917,7 @@ abstract class $UserProgressCopyWith<$Res> {
     bool completed,
     String? lastViewedItemId,
     dynamic completedItems,
+    dynamic history,
     DateTime updatedAt,
     Episode? episode,
   });
@@ -944,6 +946,7 @@ class _$UserProgressCopyWithImpl<$Res, $Val extends UserProgress>
     Object? completed = null,
     Object? lastViewedItemId = freezed,
     Object? completedItems = freezed,
+    Object? history = freezed,
     Object? updatedAt = null,
     Object? episode = freezed,
   }) {
@@ -972,6 +975,10 @@ class _$UserProgressCopyWithImpl<$Res, $Val extends UserProgress>
             completedItems: freezed == completedItems
                 ? _value.completedItems
                 : completedItems // ignore: cast_nullable_to_non_nullable
+                      as dynamic,
+            history: freezed == history
+                ? _value.history
+                : history // ignore: cast_nullable_to_non_nullable
                       as dynamic,
             updatedAt: null == updatedAt
                 ? _value.updatedAt
@@ -1017,6 +1024,7 @@ abstract class _$$UserProgressImplCopyWith<$Res>
     bool completed,
     String? lastViewedItemId,
     dynamic completedItems,
+    dynamic history,
     DateTime updatedAt,
     Episode? episode,
   });
@@ -1045,6 +1053,7 @@ class __$$UserProgressImplCopyWithImpl<$Res>
     Object? completed = null,
     Object? lastViewedItemId = freezed,
     Object? completedItems = freezed,
+    Object? history = freezed,
     Object? updatedAt = null,
     Object? episode = freezed,
   }) {
@@ -1074,6 +1083,10 @@ class __$$UserProgressImplCopyWithImpl<$Res>
             ? _value.completedItems
             : completedItems // ignore: cast_nullable_to_non_nullable
                   as dynamic,
+        history: freezed == history
+            ? _value.history
+            : history // ignore: cast_nullable_to_non_nullable
+                  as dynamic,
         updatedAt: null == updatedAt
             ? _value.updatedAt
             : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -1097,6 +1110,7 @@ class _$UserProgressImpl implements _UserProgress {
     this.completed = false,
     this.lastViewedItemId,
     required this.completedItems,
+    this.history,
     required this.updatedAt,
     this.episode,
   });
@@ -1118,13 +1132,15 @@ class _$UserProgressImpl implements _UserProgress {
   @override
   final dynamic completedItems;
   @override
+  final dynamic history;
+  @override
   final DateTime updatedAt;
   @override
   final Episode? episode;
 
   @override
   String toString() {
-    return 'UserProgress(id: $id, userId: $userId, episodeId: $episodeId, completed: $completed, lastViewedItemId: $lastViewedItemId, completedItems: $completedItems, updatedAt: $updatedAt, episode: $episode)';
+    return 'UserProgress(id: $id, userId: $userId, episodeId: $episodeId, completed: $completed, lastViewedItemId: $lastViewedItemId, completedItems: $completedItems, history: $history, updatedAt: $updatedAt, episode: $episode)';
   }
 
   @override
@@ -1144,6 +1160,7 @@ class _$UserProgressImpl implements _UserProgress {
               other.completedItems,
               completedItems,
             ) &&
+            const DeepCollectionEquality().equals(other.history, history) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.episode, episode) || other.episode == episode));
@@ -1159,6 +1176,7 @@ class _$UserProgressImpl implements _UserProgress {
     completed,
     lastViewedItemId,
     const DeepCollectionEquality().hash(completedItems),
+    const DeepCollectionEquality().hash(history),
     updatedAt,
     episode,
   );
@@ -1185,6 +1203,7 @@ abstract class _UserProgress implements UserProgress {
     final bool completed,
     final String? lastViewedItemId,
     required final dynamic completedItems,
+    final dynamic history,
     required final DateTime updatedAt,
     final Episode? episode,
   }) = _$UserProgressImpl;
@@ -1204,6 +1223,8 @@ abstract class _UserProgress implements UserProgress {
   String? get lastViewedItemId;
   @override
   dynamic get completedItems;
+  @override
+  dynamic get history;
   @override
   DateTime get updatedAt;
   @override
