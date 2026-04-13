@@ -204,31 +204,36 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onDark = isHook;
-    final bgColor = onDark ? Colors.transparent : Colors.white;
-    final iconColor = onDark ? Colors.white : AppColors.textDark;
-    final titleColor = onDark ? Colors.white : AppColors.textDark;
-    final subtitleColor = onDark ? Colors.white70 : AppColors.purple;
+    final onDark = false; // Set to false to make it opaque and consistent like other activities
+    final bgColor = Colors.white;
+    final iconColor = AppColors.textDark;
+    final titleColor = AppColors.textDark;
+    final subtitleColor = AppColors.purple;
 
     return Positioned(
       top: 0,
       left: 0,
       right: 0,
-      height: 120, // Explicit height to prevent hit-test blocking
+      height: 85, // Reduced height for more compact feel
       child: Container(
         padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 6,
+          top: MediaQuery.of(context).padding.top + 2,
           left: 4,
           right: 12,
-          bottom: 10,
+          bottom: 2,
         ),
         decoration: BoxDecoration(
           color: bgColor,
-          boxShadow: onDark
-              ? []
-              : [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12)],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            )
+          ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center, // Center items vertically
           children: [
             IconButton(
               icon: Icon(Icons.arrow_back_ios_new, size: 20, color: iconColor),
@@ -237,6 +242,7 @@ class _TopBar extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center, // Center text vertically
                 children: [
                   Text(
                     episode.title,
@@ -248,6 +254,7 @@ class _TopBar extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     _kSegments[index].label,
                     style: TextStyle(
@@ -875,8 +882,12 @@ class _StorySegmentState extends State<_StorySegment> {
       ),
       child: Stack(
         children: [
-          // The Book
-          Center(
+          // The Book (Centered in available space between Header and Footer)
+          Positioned(
+            top: 100, // Clear the 85px TopBar + safe area
+            bottom: 120, // Clear the page indicators and continue button
+            left: 0,
+            right: 0,
             child: PageFlipWidget(
               key: _controller,
               backgroundColor: Colors.transparent,
@@ -889,7 +900,7 @@ class _StorySegmentState extends State<_StorySegment> {
           
           // Page Indicators
           Positioned(
-            bottom: 40,
+            bottom: 50, // Moved up slightly to be closer to the book
             left: 0,
             right: 0,
             child: Column(
@@ -977,33 +988,26 @@ class _StorySegmentState extends State<_StorySegment> {
 
   Widget _buildImagePage(String assetPath, double topPadding) {
     return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: Colors.transparent,
-      child: Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.4),
-                blurRadius: 30,
-                offset: const Offset(0, 15),
-              ),
-            ],
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 0), // Symmetric and centered horizontally
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.asset(
-              assetPath,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: Colors.grey[200],
-                child: const Center(child: Icon(Icons.broken_image, size: 50, color: Colors.grey)),
-              ),
-            ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          assetPath,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: Colors.black,
+            child: const Center(child: Icon(Icons.broken_image, size: 50, color: Colors.white24)),
           ),
         ),
       ),
@@ -1020,12 +1024,14 @@ class QuizQuestion {
   final List<String> options;
   final int correctIndex;
   final String feedback;
+  final List<String> optionFeedbacks;
 
   const QuizQuestion({
     required this.question,
     required this.options,
     required this.correctIndex,
     required this.feedback,
+    this.optionFeedbacks = const [],
   });
 }
 
@@ -1073,6 +1079,7 @@ class _QuizSegmentState extends State<_QuizSegment> {
           options: List<String>.from(q['options'] ?? []),
           correctIndex: q['correctIndex'] ?? 0,
           feedback: q['feedback'] ?? '',
+          optionFeedbacks: List<String>.from(q['optionFeedbacks'] ?? []),
         )).toList();
       }
     } catch (e) {
@@ -1091,6 +1098,12 @@ class _QuizSegmentState extends State<_QuizSegment> {
         ],
         correctIndex: 2,
         feedback: "Puberty is a range (8–16), not a fixed timeline.",
+        optionFeedbacks: [
+          "Actually, everyone's body has its own internal clock. Some start earlier, some later.",
+          "It can actually start as early as 8 for some people! There's no fixed starting age.",
+          "Puberty is a range (8–16), not a fixed timeline.",
+          "Lifestyle matters, but genetics and biology are the primary drivers of puberty."
+        ],
       ),
       QuizQuestion(
         question: "Meera starts noticing body changes at 12, while her friend hasn’t yet. What is the most accurate interpretation?",
@@ -1102,6 +1115,12 @@ class _QuizSegmentState extends State<_QuizSegment> {
         ],
         correctIndex: 3,
         feedback: "Different timelines = normal variation, not a problem.",
+        optionFeedbacks: [
+          "12 is actually a very common age for changes! Meera is right on track.",
+          "Not necessarily—some people just start a bit later, and that's perfectly normal.",
+          "While check-ups are good, this specific scenario is a classic example of healthy variation.",
+          "They are on different but normal timelines."
+        ],
       ),
       QuizQuestion(
         question: "Which thought pattern is most likely to create unnecessary stress during puberty?",
@@ -1113,11 +1132,18 @@ class _QuizSegmentState extends State<_QuizSegment> {
         ],
         correctIndex: 2,
         feedback: "Isolation thinking increases anxiety—even when things are normal.",
+        optionFeedbacks: [
+          "This is a healthy, realistic thought that usually reduces stress!",
+          "Curiosity is great—it shows you are paying attention to your growth.",
+          "Isolation thinking increases anxiety—even when things are normal.",
+          "Accepting change as part of life can actually help you feel more at ease."
+        ],
       ),
     ];
   }
 
   void _handleAnswer(int index, bool alreadyAnswered) {
+    debugPrint('[_QuizSegment] _handleAnswer: index=$index, alreadyAnswered=$alreadyAnswered');
     if (alreadyAnswered) return;
 
     final isCorrect = index == _questions[_currentQuestionIndex].correctIndex;
@@ -1128,6 +1154,118 @@ class _QuizSegmentState extends State<_QuizSegment> {
       questionIndex: _currentQuestionIndex,
       answerIndex: index,
     ));
+
+    // Show the custom feedback popup
+    debugPrint('[_QuizSegment] Showing feedback popup for index $index');
+    _showFeedbackPopup(index, isCorrect);
+  }
+
+  void _showFeedbackPopup(int selectedIndex, bool isCorrect) {
+    final question = _questions[_currentQuestionIndex];
+    debugPrint('[_QuizSegment] Popup question feedbacks: ${question.optionFeedbacks}');
+    // Use option-specific feedback if available, otherwise fallback to general feedback
+    final supportiveText = (question.optionFeedbacks.length > selectedIndex)
+        ? question.optionFeedbacks[selectedIndex]
+        : (isCorrect ? question.feedback : "Not quite, but don't give up!");
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Emoji Icon
+              if (isCorrect)
+                const Text('💚', style: TextStyle(fontSize: 60))
+              else
+                const Text('🌱', style: TextStyle(fontSize: 60)),
+              
+              const SizedBox(height: 20),
+              
+              // Title
+              Text(
+                isCorrect ? "You got it!" : "Not quite — here's the thing:",
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E1B4B),
+                ),
+              ),
+              
+              if (isCorrect) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                  ),
+                  child: const Text(
+                    "+5 XP earned",
+                    style: TextStyle(
+                      color: Color(0xFF166534),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+              
+              const SizedBox(height: 16),
+              
+              // Supportive Text
+              Text(
+                supportiveText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.black54,
+                  height: 1.5,
+                ),
+              ),
+              
+              const SizedBox(height: 28),
+              
+              // Continue Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.purple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _nextQuestion();
+                  },
+                  child: const Text(
+                    'CONTINUE',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).animate().scale(
+        begin: const Offset(0.7, 0.7), 
+        end: const Offset(1.0, 1.0), 
+        duration: 300.ms, 
+        curve: Curves.easeOutBack,
+      ),
+    );
   }
 
   void _nextQuestion() {
@@ -1249,7 +1387,7 @@ class _QuizSegmentState extends State<_QuizSegment> {
                     // Feedback Reveal
                     // Feedback Reveal (Reduced padding)
                     if (hasAnswered) 
-                      _buildFeedbackPanel(currentQuestion)
+                      _buildFeedbackPanel(currentQuestion, quizAnswers[_currentQuestionIndex] ?? -1)
                     else 
                       const SizedBox(height: 12),
 
@@ -1343,7 +1481,12 @@ class _QuizSegmentState extends State<_QuizSegment> {
     ).animate(delay: (index * 50).ms).fadeIn().slideX(begin: 0.1);
   }
 
-  Widget _buildFeedbackPanel(QuizQuestion question) {
+  Widget _buildFeedbackPanel(QuizQuestion question, int selectedIndex) {
+    final isCorrect = selectedIndex == question.correctIndex;
+    final text = (question.optionFeedbacks.length > selectedIndex && selectedIndex != -1)
+        ? question.optionFeedbacks[selectedIndex]
+        : (isCorrect ? question.feedback : "Not quite right — try reflecting on the session content!");
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -1359,7 +1502,7 @@ class _QuizSegmentState extends State<_QuizSegment> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Feedback: ${question.feedback}',
+              'Feedback: $text',
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark, height: 1.4),
             ),
           ),
