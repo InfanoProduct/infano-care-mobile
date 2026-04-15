@@ -7,9 +7,13 @@ import 'package:infano_care_mobile/features/home/screens/home_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/learn_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
-import 'package:infano_care_mobile/features/home/screens/connect_screen.dart';
+import 'package:infano_care_mobile/screens/connect/connect_screen.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/services/community_api.dart';
+import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key, required this.storage});
@@ -38,9 +42,8 @@ class DashboardScreen extends StatelessWidget {
               iconTheme: const IconThemeData(color: AppColors.purple),
             ),
             drawer: _buildDrawer(context),
-            body: IndexedStack(
-              index: state.selectedIndex,
-              children: screens,
+            body: SafeArea(
+              child: screens[state.selectedIndex],
             ),
             bottomNavigationBar: Container(
               decoration: BoxDecoration(
@@ -242,6 +245,17 @@ class DashboardScreen extends StatelessWidget {
     );
 
     if (confirmed == true) {
+      // If mentor, clear availability on server before clearing local storage
+      try {
+        final api = Provider.of<CommunityApi>(context, listen: false);
+        final status = await api.getMentorStatus();
+        if (status['is_certified'] == true) {
+          await api.updateMentorAvailability(false);
+        }
+      } catch (e) {
+        debugPrint('Logout: Could not clear availability: $e');
+      }
+
       await storage.clearAll();
       if (context.mounted) {
         context.go('/splash');

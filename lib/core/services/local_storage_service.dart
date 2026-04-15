@@ -23,6 +23,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _termsAccepted   = 'ob_terms_accepted';
   static const _privacyAccepted = 'ob_privacy_accepted';
   static const _marketingOptIn  = 'ob_marketing_opt_in';
+  static const _contentTier     = 'user_content_tier';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -45,6 +46,7 @@ class LocalStorageService extends ChangeNotifier {
   String? get pronouns          => _prefs.getString(_pronouns);
   String? get phone             => _prefs.getString(_phone);
   String? get role              => _prefs.getString(_role);
+  String? get contentTier       => _prefs.getString(_contentTier);
 
   Future<void> setUserType(String t)     => _prefs.setString(_userType, t);
   Future<void> setDisplayName(String n)  => _prefs.setString(_displayName, n);
@@ -52,6 +54,10 @@ class LocalStorageService extends ChangeNotifier {
   Future<void> setPhone(String p)        => _prefs.setString(_phone, p);
   Future<void> setRole(String r)         async {
     await _prefs.setString(_role, r);
+    notifyListeners();
+  }
+  Future<void> setContentTier(String tier) async {
+    await _prefs.setString(_contentTier, tier);
     notifyListeners();
   }
 

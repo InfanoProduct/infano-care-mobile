@@ -80,6 +80,9 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
           await widget.storage.setStageComplete(result.onboardingStage.toString());
         }
         
+        // Sync full profile data from server so local storage is populated (birthYear, contentTier, etc.)
+        await _repo.syncProfile();
+        
         if (mounted) {
           // Go to home; router will redirect to correct onboarding stage if stage < 13
           context.go('/home');

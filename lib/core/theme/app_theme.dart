@@ -22,6 +22,8 @@ class AppColors {
   static const Color bloom        = Color(0xFFFBBF24);  // gold bloom highlight
   static const Color success      = Color(0xFF10B981);
   static const Color error        = Color(0xFFEF4444);
+  static const Color softAmber    = Color(0xFFFFFBEB);
+  static const Color teal         = Color(0xFF0D9488);
 
   // Gradient stops
   static const List<Color> brandGradient = [purple, pink];

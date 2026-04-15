@@ -12,6 +12,8 @@ class OtpVerifyResult {
   final String? refreshToken;
   final String? role;
   final String? userId;
+  final String? contentTier;
+  final Map<String, dynamic>? profile;
 
   OtpVerifyResult({
     required this.tempToken,
@@ -22,6 +24,8 @@ class OtpVerifyResult {
     this.refreshToken,
     this.role,
     this.userId,
+    this.contentTier,
+    this.profile,
   });
 }
 
@@ -32,6 +36,8 @@ class LoginResult {
   final String userId;
   final int onboardingStage;
   final String? role;
+  final String? contentTier;
+  final Map<String, dynamic>? profile;
 
   LoginResult({
     required this.accessToken,
@@ -39,6 +45,8 @@ class LoginResult {
     required this.userId,
     required this.onboardingStage,
     this.role,
+    this.contentTier,
+    this.profile,
   });
 }
 
@@ -74,6 +82,8 @@ class AuthRepository {
         refreshToken:    data['refreshToken']    as String?,
         role:            data['role']            as String?,
         userId:          data['userId']          as String?,
+        contentTier:     data['contentTier']     as String?,
+        profile:         data['profile']         as Map<String, dynamic>?,
       );
       
       // Persist tokens if this is a returning user login
@@ -81,6 +91,16 @@ class AuthRepository {
       if (result.refreshToken != null) await _storage.setRefreshToken(result.refreshToken!);
       if (result.role != null) await _storage.setRole(result.role!);
       if (result.userId != null) await _storage.setUserId(result.userId!);
+      
+      // Sync profile details if present
+      if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
+      if (result.profile != null) {
+        final p = result.profile!;
+        if (p['displayName'] != null) await _storage.setDisplayName(p['displayName']);
+        if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
+        if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
+        if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+      }
       
       await _storage.setTempToken(result.tempToken);
       await _storage.setPhone(phone);
@@ -101,15 +121,54 @@ class AuthRepository {
         userId:          data['userId']          as String,
         onboardingStage: data['onboardingStage'] as int,
         role:            data['role']            as String?,
+        contentTier:     data['contentTier']     as String?,
+        profile:         data['profile']         as Map<String, dynamic>?,
       );
       await _storage.setAuthToken(result.accessToken);
       await _storage.setRefreshToken(result.refreshToken);
       await _storage.setUserId(result.userId);
       await _storage.setStageComplete(result.onboardingStage.toString());
       if (result.role != null) await _storage.setRole(result.role!);
+      
+      // Sync profile details if present
+      if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
+      if (result.profile != null) {
+        final p = result.profile!;
+        if (p['displayName'] != null) await _storage.setDisplayName(p['displayName']);
+        if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
+        if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
+        if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+      }
+      
       return result;
     } on DioException catch (e) {
       throw _extractError(e, 'Login failed.');
+    }
+  }
+
+  // ── Sync Profile (from /user/me) ──────────────────────────────────────────
+  Future<void> syncProfile() async {
+    try {
+      final resp = await _dio.get('/user/me');
+      final data = resp.data as Map<String, dynamic>;
+      
+      final contentTier = data['contentTier'] as String?;
+      final profile = data['profile'] as Map<String, dynamic>?;
+      final role = data['role'] as String?;
+
+      if (role != null) await _storage.setRole(role);
+      if (contentTier != null) await _storage.setContentTier(contentTier);
+      
+      if (profile != null) {
+        if (profile['displayName'] != null) await _storage.setDisplayName(profile['displayName']);
+        if (profile['pronouns'] != null) await _storage.setPronouns(profile['pronouns']);
+        if (profile['birthYear'] != null) {
+          await _storage.setBirthDate(profile['birthMonth'] ?? 1, profile['birthYear']);
+        }
+        if (profile['totalPoints'] != null) await _storage.setPoints(profile['totalPoints']);
+      }
+    } on DioException catch (e) {
+      throw _extractError(e, 'Failed to sync profile.');
     }
   }
 

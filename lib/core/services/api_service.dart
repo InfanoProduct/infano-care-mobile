@@ -39,6 +39,10 @@ class ApiService {
     // ── JWT interceptor ───────────────────────────────────────────────────────
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
+        if (!options.path.startsWith('http') && !options.path.startsWith('/')) {
+          options.path = '/${options.path}';
+        }
+        
         final token = storage.authToken;
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';

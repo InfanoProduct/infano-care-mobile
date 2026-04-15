@@ -7,7 +7,10 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/features/onboarding/data/onboarding_repository.dart';
 
+import 'package:infano_care_mobile/services/community_api.dart';
+import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -29,13 +32,25 @@ class InfanoCareApp extends StatelessWidget {
     final repo   = OnboardingRepository(ApiService.instance);
     final router = createRouter(storage);
 
-    return BlocProvider(
-      create: (_) => OnboardingBloc(repo, storage)..add(const SyncFromStorage()),
-      child: MaterialApp.router(
-        title: 'Infano.Care',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        routerConfig: router,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<LocalStorageService>.value(value: storage),
+        Provider<CommunityApi>(
+          create: (_) => CommunityApi(ApiService.instance.dio),
+        ),
+        Provider<CommunitySocketService>(
+          create: (_) => CommunitySocketService(storage)..connect(),
+          dispose: (_, s) => s.dispose(),
+        ),
+      ],
+      child: BlocProvider(
+        create: (_) => OnboardingBloc(repo, storage)..add(const SyncFromStorage()),
+        child: MaterialApp.router(
+          title: 'Infano.Care',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          routerConfig: router,
+        ),
       ),
     );
   }
