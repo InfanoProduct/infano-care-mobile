@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
 /// Consistent onboarding page wrapper with gradient progress bar, back nav, and safe-area padding.
@@ -35,37 +36,49 @@ class OnboardingScaffold extends StatelessWidget {
                 children: [
                   if (canGoBack)
                     GestureDetector(
-                      onTap: onBack ?? () => Navigator.maybePop(context),
+                      onTap: onBack ?? () {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          context.pop();
+                        }
+                      },
                       child: Container(
                         width: 40, height: 40,
                         decoration: BoxDecoration(
                           color: AppColors.surfaceCard,
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE9D5FF), width: 1),
                         ),
                         child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.purple),
                       ),
                     )
                   else
                     const SizedBox(width: 40),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: AppColors.surfaceCard,
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
-                        minHeight: 6,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '${(progress * 100).round()}%',
-                    style: const TextStyle(
-                      color: AppColors.purple,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Step $currentStep of $totalSteps',
+                          style: const TextStyle(
+                            color: AppColors.purple,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: AppColors.surfaceCard,
+                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
+                            minHeight: 8,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

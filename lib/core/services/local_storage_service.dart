@@ -8,7 +8,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _pronouns       = 'ob_pronouns';
   static const _role           = 'user_role';
   static const _points         = 'ob_points';
-  static const _stageComplete  = 'ob_stage_complete';
+  static const _stepComplete   = 'ob_step_complete';
   static const _personalization = 'ob_personalization';
   static const _avatar         = 'ob_avatar';
   static const _journeyName    = 'ob_journey_name';
@@ -23,6 +23,9 @@ class LocalStorageService extends ChangeNotifier {
   static const _termsAccepted   = 'ob_terms_accepted';
   static const _privacyAccepted = 'ob_privacy_accepted';
   static const _marketingOptIn  = 'ob_marketing_opt_in';
+  static const _isOnboarded     = 'ob_is_onboarded';
+  static const _periodStatus    = 'ob_period_status';
+  static const _calendarVisited = 'ob_calendar_visited';
   static const _contentTier     = 'user_content_tier';
 
   final SharedPreferences _prefs;
@@ -33,10 +36,16 @@ class LocalStorageService extends ChangeNotifier {
     return LocalStorageService(prefs);
   }
 
-  // ── Onboarding stage checkpoints ─────────────────────────────────────────
-  String? get stageComplete     => _prefs.getString(_stageComplete);
-  Future<void> setStageComplete(String stage) async {
-    await _prefs.setString(_stageComplete, stage);
+  // ── Onboarding step checkpoints ──────────────────────────────────────────
+  String? get stepComplete      => _prefs.getString(_stepComplete);
+  Future<void> setStepComplete(String step) async {
+    await _prefs.setString(_stepComplete, step);
+    notifyListeners();
+  }
+
+  bool get isOnboarded => _prefs.getBool(_isOnboarded) ?? false;
+  Future<void> setIsOnboarded(bool value) async {
+    await _prefs.setBool(_isOnboarded, value);
     notifyListeners();
   }
 
@@ -48,16 +57,35 @@ class LocalStorageService extends ChangeNotifier {
   String? get role              => _prefs.getString(_role);
   String? get contentTier       => _prefs.getString(_contentTier);
 
-  Future<void> setUserType(String t)     => _prefs.setString(_userType, t);
-  Future<void> setDisplayName(String n)  => _prefs.setString(_displayName, n);
-  Future<void> setPronouns(String? p)    => p != null ? _prefs.setString(_pronouns, p) : _prefs.remove(_pronouns);
-  Future<void> setPhone(String p)        => _prefs.setString(_phone, p);
-  Future<void> setRole(String r)         async {
+  Future<void> setUserType(String t) async {
+    await _prefs.setString(_userType, t);
+    notifyListeners();
+  }
+  Future<void> setDisplayName(String n) async {
+    await _prefs.setString(_displayName, n);
+    notifyListeners();
+  }
+  Future<void> setPronouns(String? p) async {
+    if (p != null) await _prefs.setString(_pronouns, p);
+    else await _prefs.remove(_pronouns);
+    notifyListeners();
+  }
+  Future<void> setPhone(String p) async {
+    await _prefs.setString(_phone, p);
+    notifyListeners();
+  }
+  Future<void> setRole(String r) async {
     await _prefs.setString(_role, r);
     notifyListeners();
   }
   Future<void> setContentTier(String tier) async {
     await _prefs.setString(_contentTier, tier);
+    notifyListeners();
+  }
+
+  String? get periodStatus      => _prefs.getString(_periodStatus);
+  Future<void> setPeriodStatus(String s) async {
+    await _prefs.setString(_periodStatus, s);
     notifyListeners();
   }
 
@@ -75,11 +103,16 @@ class LocalStorageService extends ChangeNotifier {
     await _prefs.setString(_authToken, t);
     notifyListeners();
   }
+  
   Future<void> setRefreshToken(String t) async {
     await _prefs.setString(_refreshToken, t);
     notifyListeners();
   }
-  Future<void> setUserId(String id)      => _prefs.setString(_userId, id);
+
+  Future<void> setUserId(String id) async {
+    await _prefs.setString(_userId, id);
+    notifyListeners();
+  }
 
   String? get tempToken                  => _prefs.getString(_tempToken);
   Future<void> setTempToken(String t)    => _prefs.setString(_tempToken, t);
@@ -108,6 +141,39 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears tokens and resets progress flags to force a fresh login/sync
+  Future<void> clearSession() async {
+    await clearAuthTokens();
+    await _prefs.remove(_stepComplete);
+    await _prefs.remove(_isOnboarded);
+    // Note: We keep displayName/phone for 'Welcome Back' UI, 
+    // but the app will force login because tokens are gone.
+    notifyListeners();
+  }
+
   // ── Clear all onboarding state ────────────────────────────────────────────
-  Future<void> clearAll() => _prefs.clear();
+  Future<void> clearAll() async {
+    await _prefs.clear();
+    notifyListeners();
+  }
+
+  // ── Calendar ──────────────────────────────────────────────────────────────
+  bool get hasCalendarVisited => _prefs.getBool(_calendarVisited) ?? false;
+  Future<void> setCalendarVisited(bool value) async {
+    await _prefs.setBool(_calendarVisited, value);
+    notifyListeners();
+  }
+
+  // ── Streak Animation Persistence ──────────────────────────────────────────
+
+  /// Check if a 7-day streak row has already played its animation.
+  /// [weekKey] should be in the format `streak_row_animated_YYYY-MM-DD`.
+  bool isWeekStreakAnimated(String weekKey) =>
+      _prefs.getBool('streak_animated_$weekKey') ?? false;
+
+  /// Mark a 7-day streak row as animated.
+  Future<void> setWeekStreakAnimated(String weekKey) async {
+    await _prefs.setBool('streak_animated_$weekKey', true);
+    notifyListeners();
+  }
 }

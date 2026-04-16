@@ -33,6 +33,7 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
   bool get _canContinue => _terms && _privacy;
 
   Future<void> _letsBloom() async {
+    setState(() => _loading = true);
     final bloc = context.read<OnboardingBloc>();
     final storage = await LocalStorageService.create();
     
@@ -40,10 +41,24 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
     await storage.setConsents(terms: _terms, privacy: _privacy, marketing: _marketing);
     bloc.add(SetConsent(_terms, _privacy, _marketing));
     
-    // Since registration already happened at OTP verification for new users,
-    // we can proceed directly to welcome. 
-    // If we wanted to update terms in backend, we'd need a separate API, 
-    // but for now this is sufficient.
+    final authToken = storage.authToken;
+    if (authToken != null) {
+      bloc.add(const SubmitProfile());
+      
+      // Wait for profile setup to finish
+      await bloc.stream.firstWhere((state) => !state.isLoading);
+      
+      if (!mounted) return;
+      if (bloc.state.errorMessage != null) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(bloc.state.errorMessage!), 
+          backgroundColor: AppColors.error,
+        ));
+        return;
+      }
+    }
+    
     if (mounted) {
       context.go('/onboarding/welcome');
     }
@@ -52,7 +67,9 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 10,
+      currentStep: 11,
+      totalSteps: 13,
+      onBack: () => context.go('/onboarding/journey-name'),
       bottomBar: GradientButton(
         label: "Let's Bloom! 🌸",
         onPressed: _letsBloom,

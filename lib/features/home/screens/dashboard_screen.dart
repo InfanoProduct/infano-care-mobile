@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 import 'package:infano_care_mobile/features/home/screens/home_screen.dart';
@@ -14,11 +15,26 @@ import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
+import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
+import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key, required this.storage});
 
   final LocalStorageService storage;
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Ensure native splash is removed if we land here directly
+    FlutterNativeSplash.remove();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +44,10 @@ class DashboardScreen extends StatelessWidget {
         builder: (context, state) {
           final screens = [
             const HomeScreen(),
-            const LearnScreen(),
+            BlocProvider(
+              create: (context) => JourneyListBloc(LearningRepository(ApiService.instance.dio)),
+              child: const JourneyExplorerScreen(),
+            ),
             const TrackScreen(),
             const QuestScreen(),
             const ConnectScreen(),
@@ -189,9 +208,9 @@ class DashboardScreen extends StatelessWidget {
             decoration: const BoxDecoration(
               gradient: AppGradients.brandDiagonal,
             ),
-            accountName: Text(storage.displayName ?? 'Infano User', 
+            accountName: Text(widget.storage.displayName ?? 'Infano User', 
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            accountEmail: Text(storage.phone ?? ''),
+            accountEmail: Text(widget.storage.phone ?? ''),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white.withOpacity(0.3),
               child: const Text('👤', style: TextStyle(fontSize: 32)),
@@ -256,7 +275,7 @@ class DashboardScreen extends StatelessWidget {
         debugPrint('Logout: Could not clear availability: $e');
       }
 
-      await storage.clearAll();
+      await widget.storage.clearAll();
       if (context.mounted) {
         context.go('/splash');
       }

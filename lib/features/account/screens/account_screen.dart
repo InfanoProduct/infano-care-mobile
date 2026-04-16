@@ -25,6 +25,8 @@ class AccountScreen extends StatelessWidget {
             _buildProfileHeader(),
             const SizedBox(height: 32),
             _buildInfoSection(context),
+            const SizedBox(height: 32),
+            _buildNavigationSection(context),
             const SizedBox(height: 48),
             _buildLogoutButton(context),
           ],
@@ -92,6 +94,44 @@ class AccountScreen extends StatelessWidget {
         ],
       ),
     ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1);
+  }
+
+  Widget _buildNavigationSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          _buildNavRow(
+            context,
+            icon: Icons.notifications_none,
+            label: 'Data & Notifications',
+            route: '/account/notifications',
+          ),
+          const Divider(height: 1),
+          _buildNavRow(
+            context,
+            icon: Icons.shield_outlined,
+            label: 'Health Data Privacy',
+            route: '/account/data-rights',
+            iconColor: AppColors.error,
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1);
+  }
+
+  Widget _buildNavRow(BuildContext context, {required IconData icon, required String label, required String route, Color iconColor = AppColors.purple}) {
+    return ListTile(
+      leading: Icon(icon, color: iconColor),
+      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textLight),
+      onTap: () => context.push(route),
+    );
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
