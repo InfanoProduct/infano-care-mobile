@@ -32,6 +32,8 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
   bool _notifyMe = true;
   Timer? _matchingTimer;
   CommunitySocketService? _socketService;
+  bool _isNavigating = false;
+  StreamSubscription? _socketSubscription;
 
   @override
   void initState() {
@@ -57,6 +59,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
   void dispose() {
     _matchingTimer?.cancel();
     _socketService?.queueUpdates.removeListener(_onQueueUpdate);
+    _socketSubscription?.cancel();
     if (_sessionId != null) {
       _socketService?.unsubscribeFromSession(_sessionId!);
     }
@@ -70,11 +73,35 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
         _queuePosition = update['position'] ?? _queuePosition;
         _estimatedWait = update['estimated_wait_minutes'] ?? _estimatedWait;
         
-        if (update['status'] == 'ACTIVE') {
-          context.pushReplacement('/peerline/chat/$_sessionId');
+        if (update['status'] == 'ACTIVE' && _sessionId != null) {
+          _showReadyNotification();
         }
       });
     }
+  }
+
+  void _showReadyNotification() {
+    if (_isNavigating || !mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Your mentor is ready to chat!')),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        duration: const Duration(seconds: 15),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'CHAT NOW',
+          textColor: Colors.white,
+          onPressed: _navigateToChat,
+        ),
+      ),
+    );
   }
 
   void _toggleTopic(String id) {
@@ -109,17 +136,52 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
       _sessionId = session.id;
       _socketService?.subscribeToSession(_sessionId!);
 
+      // Listen for events to snap straight to chat
+      _socketSubscription?.cancel();
+      _socketSubscription = _socketService?.chatEvents.listen((event) {
+        if (!mounted || _sessionId == null) return;
+        if (event['sessionId'] != _sessionId) return;
+
+        if (event['type'] == 'session_ready' || 
+           (event['type'] == 'message' && event['senderRole'] == 'mentor')) {
+          _showReadyNotification();
+        }
+      });
+
       // Simulation of matching duration (2-5 seconds)
-      _matchingTimer = Timer(Duration(seconds: 2 + math.Random().nextInt(3)), () {
+      _matchingTimer = Timer(Duration(seconds: 3 + math.Random().nextInt(2)), () async {
         if (!mounted) return;
         
-        if (session.status == 'ACTIVE') {
-          context.pushReplacement('/peerline/chat/${session.id}');
-        } else {
-          _fetchQueueStatus();
-          setState(() {
-            _currentPhase = PeerLinePhase.queueCard;
-          });
+        if (_isNavigating) return;
+        
+        // Fetch current status to check if matching happened during animation
+        final api = Provider.of<CommunityApi>(context, listen: false);
+        try {
+          final currentSession = await api.getSession(_sessionId!);
+          final currentStatus = currentSession.status.toUpperCase();
+          
+          if (currentStatus == 'ACTIVE') {
+            if (mounted) {
+              _showReadyNotification();
+              setState(() {
+                _currentPhase = PeerLinePhase.queueCard;
+              });
+              _fetchQueueStatus();
+            }
+          } else {
+            if (mounted) {
+              setState(() {
+                _currentPhase = PeerLinePhase.queueCard;
+              });
+              _fetchQueueStatus();
+            }
+          }
+        } catch (e) {
+          if (mounted) {
+            setState(() {
+              _currentPhase = PeerLinePhase.queueCard;
+            });
+          }
         }
       });
     } catch (e) {
@@ -130,6 +192,13 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
         );
       }
     }
+  }
+
+  void _navigateToChat() {
+    if (_isNavigating || !mounted || _sessionId == null) return;
+    _isNavigating = true;
+    _matchingTimer?.cancel();
+    context.pushReplacement('/peerline/chat/$_sessionId');
   }
 
   Future<void> _fetchQueueStatus() async {
@@ -203,7 +272,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
           children: [
             Text(
               'What would you like support with?',
-              style: GoogleFonts.nunito(
+              style: GoogleFonts.outfit(
                 fontSize: 24, 
                 fontWeight: FontWeight.w800,
                 color: AppColors.textDark,
@@ -212,7 +281,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
             const SizedBox(height: 8),
             Text(
               'Your selection is anonymous — only your matched mentor sees this',
-              style: GoogleFonts.nunito(
+              style: GoogleFonts.outfit(
                 fontSize: 14,
                 color: AppColors.textMedium,
               ),
@@ -245,7 +314,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                 onPressed: _handleNotSure,
                 child: Text(
                   "I'm not sure",
-                  style: GoogleFonts.nunito(
+                  style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.purple,
@@ -300,7 +369,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                   children: [
                     Text(
                       'Verified mentor',
-                      style: GoogleFonts.nunito(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w800,
                         color: AppColors.textDark,
                       ),
@@ -382,7 +451,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                 const Spacer(flex: 3),
                 Text(
                   'Finding your mentor...',
-                  style: GoogleFonts.nunito(
+                  style: GoogleFonts.outfit(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textDark,
@@ -394,7 +463,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                   child: Text(
                     'Matching you with someone who understands',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.nunito(
+                    style: GoogleFonts.outfit(
                       fontSize: 16,
                       color: AppColors.textMedium,
                     ),
@@ -437,7 +506,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                     const SizedBox(height: 24),
                     Text(
                       "You're #$_queuePosition in the queue",
-                      style: GoogleFonts.nunito(
+                      style: GoogleFonts.outfit(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textDark,
@@ -446,7 +515,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Estimated wait: ~$_estimatedWait minutes',
-                      style: GoogleFonts.nunito(
+                      style: GoogleFonts.outfit(
                         fontSize: 16,
                         color: AppColors.textMedium,
                       ),
@@ -459,7 +528,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                         Expanded(
                           child: Text(
                             'Notify me when a mentor is ready',
-                            style: GoogleFonts.nunito(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w700,
                               color: AppColors.textDark,
                             ),
@@ -480,7 +549,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'In the meantime, you can explore...',
-                  style: GoogleFonts.nunito(
+                  style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textDark,
@@ -500,7 +569,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
                 onPressed: _cancelRequest,
                 child: Text(
                   'Cancel request',
-                  style: GoogleFonts.nunito(
+                  style: GoogleFonts.outfit(
                     color: AppColors.textLight,
                     fontWeight: FontWeight.w700,
                   ),
@@ -529,7 +598,7 @@ class _PeerLineRequestScreenState extends State<PeerLineRequestScreen> {
             Expanded(
               child: Text(
                 title,
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textDark,
                 ),
@@ -592,7 +661,7 @@ class _TopicCard extends StatelessWidget {
               child: Text(
                 topic['name']!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.outfit(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   color: isSelected ? AppColors.purple : AppColors.textDark,
