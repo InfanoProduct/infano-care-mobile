@@ -50,6 +50,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
     // Wire up socket for real-time message notifications
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _socketService = Provider.of<CommunitySocketService>(context, listen: false);
+      _socketService?.subscribeToMentorUpdates();
       _socketSub = _socketService?.chatEvents.listen(_onSocketEvent);
     });
   }
@@ -66,6 +67,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
   @override
   void dispose() {
     _socketSub?.cancel();
+    _socketService?.unsubscribeFromMentorUpdates();
     // Unsubscribe all sessions on dispose
     for (final id in _subscribedSessions) {
       _socketService?.unsubscribeFromSession(id);
@@ -84,6 +86,9 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
         _localUnread[sessionId] = (_localUnread[sessionId] ?? 0) + 1;
       });
     } else if (type == 'session_ended' && sessionId != null) {
+      _loadStats();
+    } else if (type == 'queue_count_changed') {
+      debugPrint('MentorDashboard: Queue changed, refreshing stats...');
       _loadStats();
     }
   }
@@ -364,21 +369,51 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                 ),
               ),
               const SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
-                queueCount == 1 ? '1 mentee waiting' : '$queueCount mentees waiting',
-                style: GoogleFonts.outfit(color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+                queueCount == 0 
+                  ? 'No mentees waiting right now'
+                  : (queueCount == 1 ? '1 mentee waiting' : '$queueCount mentees waiting'),
+                style: GoogleFonts.outfit(
+                  color: queueCount > 0 ? AppColors.purple : Colors.grey.shade600, 
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16
+                ),
               ),
-              if (queueCount > 0) ...[
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _claimNext,
+              const SizedBox(height: 20),
+              SizedBox(
+                width: 240,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: queueCount > 0 ? _claimNext : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.purple,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    disabledBackgroundColor: Colors.grey.shade200,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: queueCount > 0 ? 8 : 0,
+                    shadowColor: AppColors.purple.withOpacity(0.4),
                   ),
-                  child: Text('Connect with mentee', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (queueCount > 0) 
+                        const Icon(Icons.flash_on_rounded, size: 18),
+                      if (queueCount > 0)
+                        const SizedBox(width: 8),
+                      Text(
+                        'Connect Now', 
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (queueCount == 0) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'We\'ll notify you when someone needs help',
+                  style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey.shade500),
                 ),
               ],
             ],

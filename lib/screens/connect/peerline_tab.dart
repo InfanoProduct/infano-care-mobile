@@ -284,10 +284,11 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                 child: Text(
                   count > 0 ? '$count mentors available now' : 'Mentors will be back soon',
                   key: ValueKey<int>(count),
-                  style: TextStyle(
+                  style: GoogleFonts.outfit(
                     color: count > 0 ? const Color(0xFF008080) : Colors.orange,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     fontSize: 13,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ),
@@ -466,38 +467,47 @@ class _SessionListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    session.mentorName ?? (session.status == 'MATCHING' ? 'Finding Mentor...' : 'Connected'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    session.mentorName ?? (session.status == 'MATCHING' ? 'Finding Mentor...' : 'Peer Mentor'),
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
                   ),
-                  const SizedBox(height: 4),
-                  if (session.topicIds.isNotEmpty && (session.status == 'ACTIVE' || session.status == 'active'))
+                  const SizedBox(height: 6),
+                  if (session.topicIds.isNotEmpty)
                     Wrap(
-                      spacing: 4,
-                      children: session.topicIds.map((t) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: session.topicIds.take(2).map((t) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(4),
+                          color: AppColors.purple.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          t,
-                          style: TextStyle(fontSize: 10, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+                          t.toUpperCase(),
+                          style: GoogleFonts.outfit(fontSize: 9, color: AppColors.purple, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                         ),
                       )).toList(),
                     )
                   else
                     Text(
                       dateFormat.format(session.createdAt),
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
                     ),
                 ],
               ),
             ),
             if (session.menteeRating != null) ...[
-              Row(
+              Column(
                 children: [
-                  Text(session.menteeRating.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  const Icon(Icons.star, color: Colors.orange, size: 14),
+                  Row(
+                    children: [
+                      Text(session.menteeRating!.toStringAsFixed(1), style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                    ],
+                  ),
+                  Text(
+                    dateFormat.format(session.createdAt),
+                    style: TextStyle(fontSize: 9, color: Colors.grey.shade400),
+                  ),
                 ],
               ),
               const SizedBox(width: 12),

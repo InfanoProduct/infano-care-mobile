@@ -117,6 +117,7 @@ class CommunitySocketService {
     _socket?.on('session_ready', (data) => _chatEventController.add({'type': 'session_ready', ...data}));
     _socket?.on('session_paused', (data) => _chatEventController.add({'type': 'session_paused', ...data}));
     _socket?.on('error', (data) => _chatEventController.add({'type': 'error', ...data}));
+    _socket?.on('queue_count_changed', (data) => _chatEventController.add({'type': 'queue_count_changed', ...data}));
 
     _socket?.onDisconnect((_) => debugPrint('[CommunitySocket] PeerLine Disconnected'));
     _eventsSocket?.onDisconnect((_) => debugPrint('[CommunitySocket] Events Disconnected'));
@@ -145,11 +146,20 @@ class CommunitySocketService {
     _socket?.emit('unsubscribe_session', sessionId);
   }
 
-  void sendMessage(String sessionId, String content, String senderRole) {
+  void subscribeToMentorUpdates() {
+    _socket?.emit('subscribe_mentor_updates');
+  }
+
+  void unsubscribeFromMentorUpdates() {
+    _socket?.emit('unsubscribe_mentor_updates');
+  }
+
+  void sendMessage(String sessionId, String content, String senderRole, {String? clientId}) {
     _socket?.emit('send_message', {
       'sessionId': sessionId,
       'content': content,
       'senderRole': senderRole,
+      'clientId': clientId,
     });
   }
 

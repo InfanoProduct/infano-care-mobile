@@ -78,14 +78,38 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
   }
 
   void _handleSocketEvent(Map<String, dynamic> event) {
-    if (event['sessionId'] != widget.sessionId && event['type'] != 'error' && event['type'] != 'message' && event['type'] != 'message_deleted') return;
+    // Robust session filtering
+    final String? eventSessionId = event['sessionId'];
+    final String type = event['type'] ?? '';
+    
+    // Always permit errors, but filter session-specific events
+    if (type != 'error' && eventSessionId != null && eventSessionId != widget.sessionId) return;
 
-    switch (event['type']) {
+    switch (type) {
       case 'message':
+        final newMessage = ChatMessage.fromJson(event);
+        final String? clientId = event['clientId'];
+        
         setState(() {
-          _messages.add(ChatMessage.fromJson(event));
-          if (event['senderRole'] == 'mentor') {
-            _isPeerTyping = false;
+          // Check if we have an optimistic message matching this clientId
+          final int existingIndex = clientId != null 
+              ? _messages.indexWhere((m) => m.id.startsWith('temp-') && m.content == newMessage.content) // Fallback content match if ID system differs
+              : -1;
+
+          // More reliable: if we have clientId, find and replace
+          final int clientMatchIndex = clientId != null 
+              ? _messages.indexWhere((m) => m.id == clientId) 
+              : -1;
+
+          if (clientMatchIndex != -1) {
+            // Replace optimistic message with real one from server
+            _messages[clientMatchIndex] = newMessage;
+          } else if (!_messages.any((m) => m.id == newMessage.id)) {
+            // Standard add for messages from the other peer
+            _messages.add(newMessage);
+            if (event['senderRole'] == 'mentor') {
+              _isPeerTyping = false;
+            }
           }
         });
         _scrollToBottom();
@@ -205,16 +229,38 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
     }
     
     _messageController.clear();
+    
+    // Explicit unique clientId for deduplication
+    final String clientId = 'client-${DateTime.now().millisecondsSinceEpoch}-${math.Random().nextInt(1000)}';
+
+    // Optimistic UI: Add message locally first
+    final tempMessage = ChatMessage(
+      id: clientId, // Use clientId as temp ID
+      sessionId: widget.sessionId,
+      senderRole: _myRole ?? 'mentee',
+      content: text,
+      sentAt: DateTime.now(),
+    );
+
     setState(() {
+      _messages.add(tempMessage);
       _piiError = null;
       _showIntroCard = false;
     });
+    _scrollToBottom();
 
     try {
-      _socketService?.sendMessage(widget.sessionId, text, _myRole ?? 'mentee');
+      _socketService?.sendMessage(
+        widget.sessionId, 
+        text, 
+        _myRole ?? 'mentee', 
+        clientId: clientId // Pass to server
+      );
       _sendTyping(false);
       _socketService?.sendTypingStop(widget.sessionId, _myRole ?? 'mentee');
     } catch (e) {
+      // Remove optimistic message on failure
+      setState(() => _messages.remove(tempMessage));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error sending message: $e')));
       }
@@ -274,10 +320,12 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                       style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
                     ),
                     Text(
-                      _isPeerTyping ? 'Typing...' : 'Online',
+                      _isPeerTyping 
+                          ? 'Typing...' 
+                          : (_session?.mentorId == null && _myRole == 'mentee' ? 'Finding your mentor...' : 'Online'),
                       style: GoogleFonts.outfit(
                         fontSize: 12, 
-                        color: _isPeerTyping ? Colors.amber.shade700 : Colors.green, 
+                        color: _isPeerTyping ? Colors.amber.shade700 : (_session?.mentorId == null && _myRole == 'mentee' ? Colors.grey : Colors.green), 
                         fontWeight: FontWeight.w600
                       ),
                     ),
@@ -462,17 +510,18 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
               decoration: BoxDecoration(
                 color: isMe 
-                    ? const Color(0xFFFFE4E6) // Pink for mentee
-                    : const Color(0xFFF0FDFA), // Teal/Light Purple tint for mentor
+                    ? const Color(0xFFFFF1F2) // Soft Rose Pink for mentee
+                    : const Color(0xFFF5F3FF), // Soft Lavender for mentor
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(isMe ? 20 : 4),
-                  bottomRight: Radius.circular(isMe ? 4 : 20),
+                  topLeft: const Radius.circular(22),
+                  topRight: const Radius.circular(22),
+                  bottomLeft: Radius.circular(isMe ? 22 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 22),
                 ),
-                boxShadow: isMe ? null : [
-                  BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2)),
-                ],
+                border: Border.all(
+                  color: isMe ? const Color(0xFFFEE2E2) : const Color(0xFFEDE9FE),
+                  width: 1,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -480,17 +529,33 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                   Text(
                     msg.content,
                     style: GoogleFonts.outfit(
-                      color: isMe ? const Color(0xFFE11D48) : const Color(0xFF0D9488), // Rose for mentee, Teal for mentor
+                      color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), 
                       fontSize: 15,
+                      height: 1.4,
                     ),
                   ),
-                  if (isMe) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      msg.isRead ? '✓✓' : '✓', 
-                      style: const TextStyle(fontSize: 10, color: Color(0xFFE11D48), fontWeight: FontWeight.bold)
-                    ),
-                  ]
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        DateFormat('h:mm a').format(msg.sentAt),
+                        style: TextStyle(
+                          fontSize: 9, 
+                          color: isMe ? const Color(0xFFFDA4AF) : const Color(0xFFC4B5FD),
+                          fontWeight: FontWeight.w500
+                        ),
+                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          msg.isRead ? Icons.done_all : Icons.done,
+                          size: 11,
+                          color: const Color(0xFFFDA4AF),
+                        ),
+                      ]
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -629,14 +694,21 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
+              // Optimistic socket end
               _socketService?.endSession(widget.sessionId, 'user_ended');
+              
               try {
                 final api = Provider.of<CommunityApi>(parentContext, listen: false);
                 await api.endSession(widget.sessionId);
-                if (mounted) parentContext.pushReplacement('/peerline/feedback/${widget.sessionId}');
+                if (mounted) {
+                  parentContext.pushReplacement('/peerline/feedback/${widget.sessionId}');
+                }
               } catch (e) {
-                // If the backend call fails, at least the socket event went out.
-                // The socket listener will redirect if it catches the broadcast.
+                if (mounted) {
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
+                    SnackBar(content: Text('Could not end session: ${e.toString()}')),
+                  );
+                }
               }
             }, 
             child: Text('End Session', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))
