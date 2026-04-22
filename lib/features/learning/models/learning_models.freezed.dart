@@ -316,8 +316,8 @@ class _$LearningJourneyImpl implements _LearningJourney {
   const _$LearningJourneyImpl({
     required this.id,
     required this.title,
-    required this.slug,
-    required this.description,
+    this.slug = '',
+    this.description = '',
     this.thumbnailUrl,
     this.bannerImage,
     this.totalXP = 0,
@@ -343,8 +343,10 @@ class _$LearningJourneyImpl implements _LearningJourney {
   @override
   final String title;
   @override
+  @JsonKey()
   final String slug;
   @override
+  @JsonKey()
   final String description;
   @override
   final String? thumbnailUrl;
@@ -480,8 +482,8 @@ abstract class _LearningJourney implements LearningJourney {
   const factory _LearningJourney({
     required final String id,
     required final String title,
-    required final String slug,
-    required final String description,
+    final String slug,
+    final String description,
     final String? thumbnailUrl,
     final String? bannerImage,
     final int totalXP,
@@ -746,9 +748,9 @@ class __$$EpisodeImplCopyWithImpl<$Res>
 class _$EpisodeImpl implements _Episode {
   const _$EpisodeImpl({
     required this.id,
-    required this.journeyId,
-    required this.title,
-    required this.slug,
+    this.journeyId = '',
+    this.title = '',
+    this.slug = '',
     this.description,
     this.order = 0,
     required this.content,
@@ -762,10 +764,13 @@ class _$EpisodeImpl implements _Episode {
   @override
   final String id;
   @override
+  @JsonKey()
   final String journeyId;
   @override
+  @JsonKey()
   final String title;
   @override
+  @JsonKey()
   final String slug;
   @override
   final String? description;
@@ -838,9 +843,9 @@ class _$EpisodeImpl implements _Episode {
 abstract class _Episode implements Episode {
   const factory _Episode({
     required final String id,
-    required final String journeyId,
-    required final String title,
-    required final String slug,
+    final String journeyId,
+    final String title,
+    final String slug,
     final String? description,
     final int order,
     required final dynamic content,

@@ -15,7 +15,7 @@ class ApiService {
 
   static Completer<void>? _refreshCompleter;
 
-  static const _defaultBaseUrl = 'http://192.168.1.8:4005/api';
+  static const _defaultBaseUrl = 'http://192.168.1.43:4005/api';
   static const _baseUrl = String.fromEnvironment('API_URL', defaultValue: _defaultBaseUrl);
 
   static void init(LocalStorageService storage) {

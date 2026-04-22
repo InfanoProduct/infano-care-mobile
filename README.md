@@ -19,6 +19,6 @@ samples, guidance on mobile development, and a full API reference.
 ### Development Run
 To run the app connected to your local backend:
 ```powershell
-flutter run --dart-define=API_URL=http://192.168.1.8:4005/api
+flutter run --dart-define=API_URL=http://192.168.1.43:4005/api
 ```
 
