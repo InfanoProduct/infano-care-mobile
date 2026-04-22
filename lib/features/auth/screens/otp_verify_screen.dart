@@ -125,6 +125,9 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
           await _repo.login(result.tempToken);
         }
         
+        // Sync full profile data from server so local storage is populated (birthYear, contentTier, etc.)
+        await _repo.syncProfile();
+        
         final target = getRouteForStep(
           widget.storage.stepComplete ?? '0', 
           periodStatus: widget.storage.periodStatus,

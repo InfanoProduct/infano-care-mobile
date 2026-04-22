@@ -187,19 +187,21 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: ['+91 🇮🇳 India', '+1 🇺🇸 USA', '+44 🇬🇧 UK', '+61 🇦🇺 Australia'].map((c) =>
-            ListTile(
-              title: Text(c, style: const TextStyle(fontWeight: FontWeight.w600)),
-              onTap: () {
-                setState(() => _countryCode = c.split(' ').first);
-                Navigator.pop(context);
-              },
-            ),
-          ).toList(),
+      builder: (_) => SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: ['+91 🇮🇳 India', '+1 🇺🇸 USA', '+44 🇬🇧 UK', '+61 🇦🇺 Australia'].map((c) =>
+              ListTile(
+                title: Text(c, style: const TextStyle(fontWeight: FontWeight.w600)),
+                onTap: () {
+                  setState(() => _countryCode = c.split(' ').first);
+                  Navigator.pop(context);
+                },
+              ),
+            ).toList(),
+          ),
         ),
       ),
     );

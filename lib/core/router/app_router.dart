@@ -9,9 +9,13 @@ import 'package:infano_care_mobile/features/account/screens/notification_prefere
 import 'package:infano_care_mobile/features/account/screens/data_rights_privacy_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/path_selector_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/name_pronouns_screen.dart';
+import 'package:infano_care_mobile/screens/connect/peerline_request_screen.dart';
+import 'package:infano_care_mobile/screens/connect/peerline_chat_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/birthday_input_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/parental_consent_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/consent_waiting_screen.dart';
+import 'package:infano_care_mobile/screens/connect/circle_screen.dart';
+import 'package:infano_care_mobile/models/circle.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/assent_terms_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/goals_selection_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/period_comfort_screen.dart';
@@ -234,6 +238,17 @@ GoRouter createRouter(LocalStorageService storage) {
         }
       ),
 
+      // PeerLine Focus
+      GoRoute(path: '/peerline/request', builder: (_, __) => const PeerLineRequestScreen()),
+      GoRoute(
+        path: '/peerline/chat/:sessionId',
+        builder: (_, state) => PeerLineChatScreen(
+          sessionId: state.pathParameters['sessionId']!,
+        ),
+      ),
+
+      // Community Circles
+      GoRoute(path: '/community/circle', builder: (_, state) => CircleScreen(circle: state.extra as Circle)),
       // Home
       GoRoute(path: '/home', builder: (_, __) => DashboardScreen(storage: storage)),
 
