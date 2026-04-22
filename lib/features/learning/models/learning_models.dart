@@ -8,8 +8,8 @@ class LearningJourney with _$LearningJourney {
   const factory LearningJourney({
     required String id,
     required String title,
-    required String slug,
-    required String description,
+    @Default('') String slug,
+    @Default('') String description,
     String? thumbnailUrl,
     String? bannerImage,
     @Default(0) int totalXP,
@@ -32,9 +32,9 @@ class LearningJourney with _$LearningJourney {
 class Episode with _$Episode {
   const factory Episode({
     required String id,
-    required String journeyId,
-    required String title,
-    required String slug,
+    @Default('') String journeyId,
+    @Default('') String title,
+    @Default('') String slug,
     String? description,
     @Default(0) int order,
     required dynamic content, // Structured map of 5 segments

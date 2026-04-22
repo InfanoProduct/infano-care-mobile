@@ -11,8 +11,8 @@ _$LearningJourneyImpl _$$LearningJourneyImplFromJson(
 ) => _$LearningJourneyImpl(
   id: json['id'] as String,
   title: json['title'] as String,
-  slug: json['slug'] as String,
-  description: json['description'] as String,
+  slug: json['slug'] as String? ?? '',
+  description: json['description'] as String? ?? '',
   thumbnailUrl: json['thumbnailUrl'] as String?,
   bannerImage: json['bannerImage'] as String?,
   totalXP: (json['totalXP'] as num?)?.toInt() ?? 0,
@@ -61,9 +61,9 @@ Map<String, dynamic> _$$LearningJourneyImplToJson(
 _$EpisodeImpl _$$EpisodeImplFromJson(Map<String, dynamic> json) =>
     _$EpisodeImpl(
       id: json['id'] as String,
-      journeyId: json['journeyId'] as String,
-      title: json['title'] as String,
-      slug: json['slug'] as String,
+      journeyId: json['journeyId'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
       description: json['description'] as String?,
       order: (json['order'] as num?)?.toInt() ?? 0,
       content: json['content'],
