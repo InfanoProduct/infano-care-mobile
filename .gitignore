@@ -43,3 +43,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated and Lock files
+pubspec.lock
+*.g.dart
+*.freezed.dart
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Platform specific generated files
+**/GeneratedPluginRegistrant.*
+/linux/flutter/generated_plugins.cmake
+/windows/flutter/generated_plugins.cmake
+/macos/Flutter/ephemeral/
