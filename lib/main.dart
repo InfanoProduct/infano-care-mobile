@@ -13,6 +13,8 @@ import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_re
 import 'package:infano_care_mobile/core/services/privacy_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'package:infano_care_mobile/services/community_api.dart';
+import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
@@ -78,28 +80,35 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
       PrivacyService(const FlutterSecureStorage()),
     );
 
-    return ChangeNotifierProvider.value(
-      value: widget.storage,
-      child: Provider<TrackerRepository>.value(
-        value: trackerRepo,
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (_) => OnboardingBloc(_repo, widget.storage)
-                ..add(const SyncFromStorage()),
-            ),
-            BlocProvider(
-              create: (_) =>
-                  TrackerBloc(trackerRepo)..add(const TrackerEvent.load()),
-            ),
-          ],
-          child: MaterialApp.router(
-            key: _navigatorKey,
-            title: 'Infano.Care',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            routerConfig: _router,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<LocalStorageService>.value(value: widget.storage),
+        Provider<TrackerRepository>.value(value: trackerRepo),
+        Provider<CommunityApi>(
+          create: (_) => CommunityApi(ApiService.instance.dio),
+        ),
+        Provider<CommunitySocketService>(
+          create: (_) => CommunitySocketService(widget.storage)..connect(),
+          dispose: (_, s) => s.dispose(),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => OnboardingBloc(_repo, widget.storage)
+              ..add(const SyncFromStorage()),
           ),
+          BlocProvider(
+            create: (_) =>
+                TrackerBloc(trackerRepo)..add(const TrackerEvent.load()),
+          ),
+        ],
+        child: MaterialApp.router(
+          key: _navigatorKey,
+          title: 'Infano.Care',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          routerConfig: _router,
         ),
       ),
     );

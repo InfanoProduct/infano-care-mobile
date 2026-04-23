@@ -13,6 +13,8 @@ class OtpVerifyResult {
   final bool isOnboardingCompleted;
   final String? role;
   final String? userId;
+  final String? contentTier;
+  final Map<String, dynamic>? profile;
 
   OtpVerifyResult({
     this.accessToken,
@@ -24,6 +26,8 @@ class OtpVerifyResult {
     required this.isOnboardingCompleted,
     this.role,
     this.userId,
+    this.contentTier,
+    this.profile,
   });
 }
 
@@ -34,6 +38,8 @@ class LoginResult {
   final String userId;
   final int onboardingStep;
   final String? role;
+  final String? contentTier;
+  final Map<String, dynamic>? profile;
 
   LoginResult({
     required this.accessToken,
@@ -41,6 +47,8 @@ class LoginResult {
     required this.userId,
     required this.onboardingStep,
     this.role,
+    this.contentTier,
+    this.profile,
   });
 }
 
@@ -71,15 +79,17 @@ class AuthRepository {
       });
       final data = resp.data as Map<String, dynamic>;
       final result = OtpVerifyResult(
-        accessToken:           data['accessToken']           as String?,
-        refreshToken:          data['refreshToken']          as String?,
         tempToken:             data['tempToken']             as String? ?? '',
         isNewUser:             data['isNewUser']             as bool? ?? false,
         onboardingStep:        data['onboardingStep']        as int? ?? 0,
         accountStatus:         data['accountStatus']         as String? ?? '',
         isOnboardingCompleted: data['isOnboardingCompleted'] as bool? ?? false,
+        accessToken:           data['accessToken']           as String?,
+        refreshToken:          data['refreshToken']          as String?,
         role:                  data['role']                  as String?,
         userId:                data['userId']                as String?,
+        contentTier:           data['contentTier']           as String?,
+        profile:               data['profile']               as Map<String, dynamic>?,
       );
       
       // Persist tokens if available (returning user)
@@ -88,7 +98,15 @@ class AuthRepository {
       if (result.role != null) await _storage.setRole(result.role!);
       if (result.userId != null) await _storage.setUserId(result.userId!);
       
-      // Always store tempToken and basic info
+      // Sync profile details if present
+      if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
+      if (result.profile != null) {
+        final p = result.profile!;
+        if (p['displayName'] != null) await _storage.setDisplayName(p['displayName']);
+        if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
+        if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
+        if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+      }
       await _storage.setTempToken(result.tempToken);
       await _storage.setPhone(phone);
       await _storage.setStepComplete(result.onboardingStep.toString());
@@ -114,15 +132,54 @@ class AuthRepository {
         userId:          data['userId']          as String,
         onboardingStep:  data['onboardingStep']  as int,
         role:            data['role']            as String?,
+        contentTier:     data['contentTier']     as String?,
+        profile:         data['profile']         as Map<String, dynamic>?,
       );
       await _storage.setAuthToken(result.accessToken);
       await _storage.setRefreshToken(result.refreshToken);
       await _storage.setUserId(result.userId);
       await _storage.setStepComplete(result.onboardingStep.toString());
       if (result.role != null) await _storage.setRole(result.role!);
+      
+      // Sync profile details if present
+      if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
+      if (result.profile != null) {
+        final p = result.profile!;
+        if (p['displayName'] != null) await _storage.setDisplayName(p['displayName']);
+        if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
+        if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
+        if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+      }
+      
       return result;
     } on DioException catch (e) {
       throw _extractError(e, 'Login failed.');
+    }
+  }
+
+  // ── Sync Profile (from /user/me) ──────────────────────────────────────────
+  Future<void> syncProfile() async {
+    try {
+      final resp = await _dio.get('/user/me');
+      final data = resp.data as Map<String, dynamic>;
+      
+      final contentTier = data['contentTier'] as String?;
+      final profile = data['profile'] as Map<String, dynamic>?;
+      final role = data['role'] as String?;
+
+      if (role != null) await _storage.setRole(role);
+      if (contentTier != null) await _storage.setContentTier(contentTier);
+      
+      if (profile != null) {
+        if (profile['displayName'] != null) await _storage.setDisplayName(profile['displayName']);
+        if (profile['pronouns'] != null) await _storage.setPronouns(profile['pronouns']);
+        if (profile['birthYear'] != null) {
+          await _storage.setBirthDate(profile['birthMonth'] ?? 1, profile['birthYear']);
+        }
+        if (profile['totalPoints'] != null) await _storage.setPoints(profile['totalPoints']);
+      }
+    } on DioException catch (e) {
+      throw _extractError(e, 'Failed to sync profile.');
     }
   }
 
