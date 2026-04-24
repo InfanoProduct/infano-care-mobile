@@ -113,11 +113,22 @@ class ApiService {
     ));
 
     // ── Startup connectivity ping ──────────────────────────────────────────────
-    // ── Startup connectivity ping ──────────────────────────────────────────
-    Dio().get('${_baseUrl.replaceAll('/api', '')}/health').then((r) {
-      debugPrint('[API] ✅ Backend reachable: ${r.data}');
+    final healthUrl = _baseUrl.endsWith('/api') 
+        ? _baseUrl.substring(0, _baseUrl.length - 4) + '/health'
+        : _baseUrl + '/health';
+
+    _dio.get(healthUrl).then((r) {
+      debugPrint('[API] ✅ Backend reachable at $healthUrl: ${r.data}');
     }).catchError((e) {
-      debugPrint('[API] ❌ Backend NOT reachable at $_baseUrl — $e');
+      String errorMessage = e.toString();
+      if (e is DioException) {
+        if (e.type == DioExceptionType.connectionError) {
+          errorMessage = 'Connection Error (check if phone is on same WiFi as Mac at 192.168.1.43)';
+        } else if (e.type == DioExceptionType.connectionTimeout) {
+          errorMessage = 'Connection Timeout (backend not responding)';
+        }
+      }
+      debugPrint('[API] ❌ Backend NOT reachable at $healthUrl — $errorMessage');
     });
   }
 

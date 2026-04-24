@@ -1,120 +1,314 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 
-/// Shown when [prediction.daysUntilPrediction] <= 7.
-/// Displays a countdown with confidence badge.
 class PredictionBanner extends StatelessWidget {
-  final PredictionResultModel prediction;
+  final CycleProfileModel profile;
+  final PredictionResultModel? prediction;
+  final VoidCallback? onClose;
 
-  const PredictionBanner({super.key, required this.prediction});
-
-  static bool shouldShow(PredictionResultModel? prediction) =>
-      prediction != null && prediction.daysUntilPrediction <= 7;
+  const PredictionBanner({
+    super.key,
+    required this.profile,
+    required this.prediction,
+    this.onClose,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final days = prediction.daysUntilPrediction;
-    final isToday = days <= 0;
-    final label = isToday
-        ? 'Your period may start today 🩸'
-        : 'Your period is expected in $days ${days == 1 ? 'day' : 'days'} 🩸';
+    final bannerInfo = _getBannerInfo();
 
-    final conf = prediction.confidenceLevel.toLowerCase();
-    final confidenceColor = conf == 'high'
-        ? AppColors.success
-        : conf == 'medium'
-            ? AppColors.bloom
-            : AppColors.textMedium;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFCE7F3), Color(0xFFFEF2F8)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: bannerInfo.color.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.pink.withOpacity(0.25),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.pink.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.pink.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Text('🔮', style: TextStyle(fontSize: 20)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      color: AppColors.textDark,
-                    ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Background soft gradient based on state color
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      bannerInfo.color.withOpacity(0.05),
+                      Colors.white,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
+                ),
+              ),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with confidence and Emoji
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            bannerInfo.emoji,
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Gigi',
+                            style: GoogleFonts.nunito(
+                              fontWeight: FontWeight.w900,
+                              color: bannerInfo.color,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (prediction != null && profile.trackerMode != 'watching_waiting')
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: confidenceColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: confidenceColor.withOpacity(0.3)),
+                          color: bannerInfo.color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '${prediction.confidenceLevel} confidence',
+                          _getConfidenceText(),
                           style: GoogleFonts.nunito(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: confidenceColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: bannerInfo.color,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Cycle day ${prediction.cycleDay}',
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          color: AppColors.textMedium,
+                    if (onClose != null)
+                      GestureDetector(
+                        onTap: onClose,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 12.0),
+                          child: Icon(Icons.close, size: 20, color: AppColors.textMedium),
                         ),
                       ),
-                    ],
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Message Content
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Gigi Mascot Image
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: bannerInfo.color.withOpacity(0.1),
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/gigi.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(Icons.person, color: bannerInfo.color),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Speech Text
+                    Expanded(
+                      child: Text(
+                        '"${bannerInfo.message}"',
+                        style: GoogleFonts.nunito(
+                          color: AppColors.textDark.withOpacity(0.9),
+                          fontSize: 15,
+                          fontStyle: FontStyle.italic,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // CTA Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/chat'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: bannerInfo.color.withOpacity(0.1),
+                      foregroundColor: bannerInfo.color,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text(
+                      bannerInfo.cta,
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      )
-          .animate()
-          .fadeIn(duration: 350.ms)
-          .slideY(begin: -0.1, end: 0, duration: 350.ms),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0);
+  }
+
+  String _getConfidenceText() {
+    final cv = prediction?.coefficientOfVar ?? 0.0;
+    if (cv == 0.0) return 'Learning...';
+    if (cv < 8.0) return 'High Confidence';
+    if (cv < 15.0) return 'Confident';
+    return 'Building Confidence';
+  }
+
+  _BannerState _getBannerInfo() {
+    final mode = profile.trackerMode;
+    final cycles = prediction?.cyclesLogged ?? 0;
+    final cv = prediction?.coefficientOfVar ?? 0.0;
+    final daysUntil = prediction?.daysUntilPrediction;
+
+    // Watching & Waiting
+    if (mode == 'watching_waiting') {
+      return _BannerState(
+        message: "Your period hasn't started yet — and that's exactly right for where you are 🌱 Keep logging your mood and energy. When your period arrives, I'll be right here.",
+        color: const Color(0xFF0D9488), // Teal
+        emoji: '🌱',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // Irregular
+    if (mode == 'irregular_support' || prediction?.confidenceLevel == 'irregular') {
+      return _BannerState(
+        message: "Your cycle varies — which is completely normal for many people. Your period may arrive anywhere in this window. I'm tracking the patterns to get better at predicting yours specifically 💜",
+        color: Colors.amber.shade700,
+        emoji: '🧐',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // None
+    if (prediction == null || cycles == 0) {
+      return _BannerState(
+        message: 'Log a few days and your cycle ring will start to come alive! 🌸 The more you log, the smarter your predictions get.',
+        color: const Color(0xFFD946EF), // Pink
+        emoji: '🌸',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // Period Overdue
+    if (daysUntil != null && daysUntil <= -5) {
+      return _BannerState(
+        message: 'Your period is a few days later than expected — which is completely normal. Late periods happen for many reasons: stress, illness, travel, or your body taking its time 💜 Want to know more?',
+        color: AppColors.purple,
+        emoji: '💜',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // Period Imminent
+    if (daysUntil != null && daysUntil >= 0 && daysUntil <= 3) {
+      return _BannerState(
+        message: 'Your period may be arriving soon 🩸 — tap to prepare.',
+        color: Colors.red.shade500,
+        emoji: '🩸',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // High Confidence
+    if (cycles >= 5 && cv > 0 && cv < 8.0) {
+      return _BannerState(
+        message: 'Your period is likely tomorrow or the day after ✨',
+        color: const Color(0xFFE84393), // Bright Pink
+        emoji: '✨',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // Confident
+    if (cycles >= 3 && cv > 0 && cv < 15.0) {
+      final range = '${daysUntil ?? 0}–${(daysUntil ?? 0) + 2}';
+      return _BannerState(
+        message: 'Your period is likely in $range days — you know your body 💜',
+        color: const Color(0xFFD946EF), // Pink
+        emoji: '😌',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // Building
+    if (cycles == 2 || cycles == 3) {
+      final range = '${daysUntil ?? 0}–${(daysUntil ?? 0) + 5}';
+      return _BannerState(
+        message: "Your period is likely in the next $range days. I'm learning your pattern — each log makes this more accurate 🌱",
+        color: const Color(0xFFD946EF),
+        emoji: '🤔',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // Getting Started
+    if (cycles == 1) {
+      final range = '${daysUntil ?? 0}–${(daysUntil ?? 0) + 7}';
+      return _BannerState(
+        message: 'Based on your first cycle, your period may arrive around $range days from now. Keep logging — after one more cycle, my predictions will get much sharper 💜',
+        color: const Color(0xFFA855F7), // Purple
+        emoji: '😊',
+        cta: 'Talk to Me',
+      );
+    }
+
+    // Fallback
+    return _BannerState(
+      message: 'Keep logging your symptoms to help me learn your cycle better! 🌸',
+      color: const Color(0xFFD946EF),
+      emoji: '🌸',
+      cta: 'Talk to Me',
     );
   }
+}
+
+class _BannerState {
+  final String message;
+  final Color color;
+  final String emoji;
+  final String cta;
+
+  _BannerState({
+    required this.message,
+    required this.color,
+    required this.emoji,
+    required this.cta,
+  });
 }

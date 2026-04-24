@@ -4,8 +4,11 @@ import 'package:infano_care_mobile/features/tracker/presentation/widgets/tracker
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/tracker_insights.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/phase_info_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/first_period_celebration_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/widgets/prediction_banner.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/daily_log_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/cycle_ring_painter.dart';
+import 'package:infano_care_mobile/features/tracker/data/models/insight_models.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/story_screen.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
@@ -17,6 +20,8 @@ import 'package:infano_care_mobile/core/services/privacy_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/cycle_ring.dart';
 import 'package:infano_care_mobile/features/tracker/application/character_greeting_service.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
@@ -83,9 +88,37 @@ class TrackScreen extends StatelessWidget {
               const SizedBox(height: 8),
               _buildTopBar(context, profile.trackerMode),
               const SizedBox(height: 8),
-              _buildGigiHeader(char),
-              const SizedBox(height: 12),
-              _buildGreetingBubble(profile, prediction, char),
+              
+              Consumer<LocalStorageService>(
+                builder: (context, storage, _) {
+                  final isDismissed = storage.isPredictionBannerDismissedToday;
+                  
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    transitionBuilder: (child, animation) => SizeTransition(
+                      sizeFactor: animation,
+                      axisAlignment: -1.0,
+                      child: FadeTransition(opacity: animation, child: child),
+                    ),
+                    child: isDismissed
+                        ? Column(
+                            key: const ValueKey('fallback_greeting'),
+                            children: [
+                              _buildGigiHeader(char),
+                              const SizedBox(height: 12),
+                              _buildGreetingBubble(profile, prediction, char),
+                            ],
+                          )
+                        : PredictionBanner(
+                            key: const ValueKey('prediction_banner'),
+                            profile: profile,
+                            prediction: prediction,
+                            onClose: () => storage.setPredictionBannerDismissed(),
+                          ),
+                  );
+                },
+              ),
+              
               const SizedBox(height: 24),
               _buildCycleRing(context, profile, prediction, history),
               const SizedBox(height: 12),
@@ -96,6 +129,8 @@ class TrackScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildStreakInfo(prediction?.currentLogStreak ?? 0),
               ],
+              const SizedBox(height: 24),
+              _buildDailyInsightsSection(context),
               const SizedBox(height: 24),
               _buildGoodToKnowSection(profile.currentPhase ?? 'menstrual'),
               const SizedBox(height: 32),
@@ -537,6 +572,128 @@ class TrackScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+  Widget _buildDailyInsightsSection(BuildContext context) {
+    final insights = _getMockDailyInsights();
+    
+    if (insights.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'My Daily Insights',
+              style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textDark),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: Text('See All', style: GoogleFonts.nunito(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 13)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 140,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: insights.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              final insight = insights[index];
+              return GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => StoryScreen(insight: insight)),
+                ),
+                child: _buildInsightCard(insight),
+              );
+            },
+          ),
+        ),
+      ],
+    ).animate().fadeIn(delay: 700.ms);
+  }
+
+  Widget _buildInsightCard(DailyInsight insight) {
+    return Container(
+      width: 120,
+      decoration: BoxDecoration(
+        color: Color(int.parse(insight.previewColorHex.replaceFirst('#', '0xFF'))).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Color(int.parse(insight.previewColorHex.replaceFirst('#', '0xFF'))).withOpacity(0.3)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+              ],
+            ),
+            child: Text(insight.previewEmoji, style: const TextStyle(fontSize: 32)),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              insight.previewTitle,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w800, 
+                fontSize: 13, 
+                color: AppColors.textDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<DailyInsight> _getMockDailyInsights() {
+    return [
+      DailyInsight(
+        id: '1',
+        previewTitle: 'Today\'s Energy',
+        previewEmoji: '⚡',
+        previewColorHex: '#EAB308',
+        stories: [
+          InsightStory(
+            id: 's1',
+            title: 'Energy Peak',
+            imageUrl: '',
+            content: 'You are entering your follicular phase! Estrogen is rising, which means you might experience a surge in energy and creativity today. Take advantage of this by tackling difficult tasks.',
+          ),
+          InsightStory(
+            id: 's2',
+            title: 'Movement Tip',
+            imageUrl: '',
+            content: 'It\'s a great day for a high-intensity workout. Try a new class or go for a run. Your body is primed for physical exertion and rapid recovery right now.',
+          ),
+        ],
+      ),
+      DailyInsight(
+        id: '2',
+        previewTitle: 'Nutrition Focus',
+        previewEmoji: '🥑',
+        previewColorHex: '#10B981',
+        stories: [
+          InsightStory(
+            id: 's3',
+            title: 'Feed Your Body',
+            imageUrl: '',
+            content: 'Incorporate foods rich in Vitamin E like almonds and spinach. Vitamin E supports healthy hormone production.',
+          ),
+        ],
+      ),
+    ];
   }
 
   List<Map<String, String>> _getArticlesForPhase(String phase) {

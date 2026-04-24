@@ -28,6 +28,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _calendarVisited = 'ob_calendar_visited';
   static const _contentTier     = 'user_content_tier';
   static const _savedArticles   = 'saved_articles_list';
+  static const _predictionBannerDismissedAt = 'ob_prediction_banner_dismissed_at';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -162,6 +163,24 @@ class LocalStorageService extends ChangeNotifier {
   bool get hasCalendarVisited => _prefs.getBool(_calendarVisited) ?? false;
   Future<void> setCalendarVisited(bool value) async {
     await _prefs.setBool(_calendarVisited, value);
+    notifyListeners();
+  }
+
+  // ── Prediction Banner ─────────────────────────────────────────────────────
+  bool get isPredictionBannerDismissedToday {
+    final dismissedAtStr = _prefs.getString(_predictionBannerDismissedAt);
+    if (dismissedAtStr == null) return false;
+    final dismissedAt = DateTime.tryParse(dismissedAtStr);
+    if (dismissedAt == null) return false;
+    
+    final now = DateTime.now();
+    return dismissedAt.year == now.year && 
+           dismissedAt.month == now.month && 
+           dismissedAt.day == now.day;
+  }
+
+  Future<void> setPredictionBannerDismissed() async {
+    await _prefs.setString(_predictionBannerDismissedAt, DateTime.now().toIso8601String());
     notifyListeners();
   }
 

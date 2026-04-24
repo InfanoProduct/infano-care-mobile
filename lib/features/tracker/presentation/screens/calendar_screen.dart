@@ -13,7 +13,6 @@ import 'package:infano_care_mobile/features/tracker/presentation/widgets/day_det
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/period_editor_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/period_history_list.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/phase_legend_strip.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/prediction_banner.dart';
 import 'package:infano_care_mobile/features/tracker/utils/calendar_types.dart';
 import 'package:infano_care_mobile/features/tracker/utils/calendar_utils.dart';
 import 'package:infano_care_mobile/features/tracker/utils/prediction_windows_computer.dart';
@@ -390,8 +389,6 @@ class _LoadedViewState extends State<_LoadedView> {
         ),
         const PhaseLegendStrip(),
         const SizedBox(height: 8),
-        if (PredictionBanner.shouldShow(widget.prediction))
-          PredictionBanner(prediction: widget.prediction!),
         
         Expanded(
           child: SingleChildScrollView(
