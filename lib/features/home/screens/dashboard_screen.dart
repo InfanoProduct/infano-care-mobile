@@ -54,6 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ];
 
           return Scaffold(
+            backgroundColor: const Color(0xFFF5F4F7),
             appBar: AppBar(
               title: Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
               backgroundColor: Colors.white,
@@ -131,7 +132,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            floatingActionButton: FloatingActionButton.extended(
+            floatingActionButton: state.selectedIndex == 2 ? null : FloatingActionButton.extended(
               onPressed: () => context.push('/chat'),
               backgroundColor: AppColors.purple,
               icon: const Icon(Icons.auto_awesome, color: Colors.white),

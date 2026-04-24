@@ -28,22 +28,22 @@ class CycleRingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF130F26), // Match TrackScreen background
+      backgroundColor: const Color(0xFFF5F4F7),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: const Icon(Icons.close, color: AppColors.textDark),
           onPressed: () => context.pop(),
         ),
         title: Text(
           'Cycle Signature',
-          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 18),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.textDark, fontSize: 18),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_month, color: Colors.white),
+            icon: const Icon(Icons.calendar_month, color: AppColors.textDark),
             onPressed: () => context.push('/tracker/calendar'),
           ),
           const SizedBox(width: 8),
@@ -109,21 +109,28 @@ class CycleRingView extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white70, size: 28),
+          Icon(icon, color: AppColors.textMedium, size: 28),
           const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                Text(title, style: GoogleFonts.nunito(color: AppColors.textDark, fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text(subtitle, style: GoogleFonts.nunito(color: Colors.white60, fontSize: 13)),
+                Text(subtitle, style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 13)),
               ],
             ),
           ),
@@ -145,7 +152,7 @@ class CycleRingView extends StatelessWidget {
 
   Widget _buildErrorState(BuildContext context, String msg) {
     return Center(
-      child: Text(msg, style: const TextStyle(color: Colors.white70)),
+      child: Text(msg, style: const TextStyle(color: AppColors.textMedium)),
     );
   }
 }

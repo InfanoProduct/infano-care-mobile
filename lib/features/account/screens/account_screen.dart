@@ -108,6 +108,13 @@ class AccountScreen extends StatelessWidget {
         children: [
           _buildNavRow(
             context,
+            icon: Icons.bookmark_outline,
+            label: 'My Library',
+            route: '/account/saved',
+          ),
+          const Divider(height: 1),
+          _buildNavRow(
+            context,
             icon: Icons.notifications_none,
             label: 'Data & Notifications',
             route: '/account/notifications',

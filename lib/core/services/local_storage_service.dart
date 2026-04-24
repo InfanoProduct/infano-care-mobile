@@ -27,6 +27,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _periodStatus    = 'ob_period_status';
   static const _calendarVisited = 'ob_calendar_visited';
   static const _contentTier     = 'user_content_tier';
+  static const _savedArticles   = 'saved_articles_list';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -174,6 +175,22 @@ class LocalStorageService extends ChangeNotifier {
   /// Mark a 7-day streak row as animated.
   Future<void> setWeekStreakAnimated(String weekKey) async {
     await _prefs.setBool('streak_animated_$weekKey', true);
+    notifyListeners();
+  }
+
+  // ── Saved Articles ────────────────────────────────────────────────────────
+  List<String> get savedArticles => _prefs.getStringList(_savedArticles) ?? [];
+
+  bool isArticleSaved(String title) => savedArticles.contains(title);
+
+  Future<void> toggleSavedArticle(String title) async {
+    final current = savedArticles.toList();
+    if (current.contains(title)) {
+      current.remove(title);
+    } else {
+      current.add(title);
+    }
+    await _prefs.setStringList(_savedArticles, current);
     notifyListeners();
   }
 }
