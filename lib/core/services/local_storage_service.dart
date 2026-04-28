@@ -29,6 +29,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _contentTier     = 'user_content_tier';
   static const _savedArticles   = 'saved_articles_list';
   static const _predictionBannerDismissedAt = 'ob_prediction_banner_dismissed_at';
+  static const _isFriendOnboarded = 'ob_is_friend_onboarded';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -48,6 +49,12 @@ class LocalStorageService extends ChangeNotifier {
   bool get isOnboarded => _prefs.getBool(_isOnboarded) ?? false;
   Future<void> setIsOnboarded(bool value) async {
     await _prefs.setBool(_isOnboarded, value);
+    notifyListeners();
+  }
+
+  bool get isFriendOnboarded => _prefs.getBool(_isFriendOnboarded) ?? false;
+  Future<void> setIsFriendOnboarded(bool value) async {
+    await _prefs.setBool(_isFriendOnboarded, value);
     notifyListeners();
   }
 

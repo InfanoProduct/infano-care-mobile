@@ -12,6 +12,7 @@ import 'package:infano_care_mobile/features/onboarding/screens/path_selector_scr
 import 'package:infano_care_mobile/features/onboarding/screens/name_pronouns_screen.dart';
 import 'package:infano_care_mobile/screens/connect/peerline_request_screen.dart';
 import 'package:infano_care_mobile/screens/connect/peerline_chat_screen.dart';
+import 'package:infano_care_mobile/screens/connect/friend_chat_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/birthday_input_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/parental_consent_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/consent_waiting_screen.dart';
@@ -246,6 +247,12 @@ GoRouter createRouter(LocalStorageService storage) {
         path: '/peerline/chat/:sessionId',
         builder: (_, state) => PeerLineChatScreen(
           sessionId: state.pathParameters['sessionId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/friends/chat/:matchId',
+        builder: (_, state) => FriendChatScreen(
+          matchId: state.pathParameters['matchId']!,
         ),
       ),
 

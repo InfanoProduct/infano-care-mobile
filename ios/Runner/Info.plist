@@ -68,5 +68,11 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>This app requires access to the photo library to upload a profile picture.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>This app requires access to the camera to take a profile picture.</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>We need your approximate location to find friends in your area.</string>
 	</dict>
 </plist>

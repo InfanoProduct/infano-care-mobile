@@ -25,38 +25,13 @@ class PredictionBanner extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bannerInfo.color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: bannerInfo.color.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        border: Border.all(color: bannerInfo.color.withOpacity(0.3)),
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Background soft gradient based on state color
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      bannerInfo.color.withOpacity(0.05),
-                      Colors.white,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-              ),
-            ),
-          ),
 
           Padding(
             padding: const EdgeInsets.all(20),
@@ -157,8 +132,8 @@ class PredictionBanner extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () => context.push('/chat'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: bannerInfo.color.withOpacity(0.1),
-                      foregroundColor: bannerInfo.color,
+                      backgroundColor: bannerInfo.color,
+                      foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -219,9 +194,9 @@ class PredictionBanner extends StatelessWidget {
     // None
     if (prediction == null || cycles == 0) {
       return _BannerState(
-        message: 'Log a few days and your cycle ring will start to come alive! 🌸 The more you log, the smarter your predictions get.',
-        color: const Color(0xFFD946EF), // Pink
-        emoji: '🌸',
+        message: 'Log a few days and your cycle ring will start to come alive! ✨ The more you log, the smarter your predictions get.',
+        color: const Color(0xFF10B981), // Emerald Green
+        emoji: '✨',
         cta: 'Talk to Me',
       );
     }
@@ -250,7 +225,7 @@ class PredictionBanner extends StatelessWidget {
     if (cycles >= 5 && cv > 0 && cv < 8.0) {
       return _BannerState(
         message: 'Your period is likely tomorrow or the day after ✨',
-        color: const Color(0xFFE84393), // Bright Pink
+        color: const Color(0xFF10B981), // Emerald Green
         emoji: '✨',
         cta: 'Talk to Me',
       );
@@ -261,7 +236,7 @@ class PredictionBanner extends StatelessWidget {
       final range = '${daysUntil ?? 0}–${(daysUntil ?? 0) + 2}';
       return _BannerState(
         message: 'Your period is likely in $range days — you know your body 💜',
-        color: const Color(0xFFD946EF), // Pink
+        color: const Color(0xFF10B981), // Emerald Green
         emoji: '😌',
         cta: 'Talk to Me',
       );
@@ -272,7 +247,7 @@ class PredictionBanner extends StatelessWidget {
       final range = '${daysUntil ?? 0}–${(daysUntil ?? 0) + 5}';
       return _BannerState(
         message: "Your period is likely in the next $range days. I'm learning your pattern — each log makes this more accurate 🌱",
-        color: const Color(0xFFD946EF),
+        color: const Color(0xFF10B981),
         emoji: '🤔',
         cta: 'Talk to Me',
       );
@@ -283,7 +258,7 @@ class PredictionBanner extends StatelessWidget {
       final range = '${daysUntil ?? 0}–${(daysUntil ?? 0) + 7}';
       return _BannerState(
         message: 'Based on your first cycle, your period may arrive around $range days from now. Keep logging — after one more cycle, my predictions will get much sharper 💜',
-        color: const Color(0xFFA855F7), // Purple
+        color: const Color(0xFF10B981), // Emerald Green
         emoji: '😊',
         cta: 'Talk to Me',
       );
@@ -291,9 +266,9 @@ class PredictionBanner extends StatelessWidget {
 
     // Fallback
     return _BannerState(
-      message: 'Keep logging your symptoms to help me learn your cycle better! 🌸',
-      color: const Color(0xFFD946EF),
-      emoji: '🌸',
+      message: 'Keep logging your symptoms to help me learn your cycle better! 🌱',
+      color: const Color(0xFF10B981),
+      emoji: '🌱',
       cta: 'Talk to Me',
     );
   }

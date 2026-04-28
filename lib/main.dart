@@ -15,6 +15,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
+import 'package:infano_care_mobile/services/friends_socket_service.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
@@ -89,6 +90,10 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
         ),
         Provider<CommunitySocketService>(
           create: (_) => CommunitySocketService(widget.storage)..connect(),
+          dispose: (_, s) => s.dispose(),
+        ),
+        Provider<FriendsSocketService>(
+          create: (_) => FriendsSocketService(widget.storage)..connect(),
           dispose: (_, s) => s.dispose(),
         ),
       ],

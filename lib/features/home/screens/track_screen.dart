@@ -243,31 +243,17 @@ class TrackScreen extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           height: 56,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: const LinearGradient(
-                colors: [Color(0xFFE84393), Color(0xFFA855F7)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFA855F7).withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                )
-              ],
+          child: ElevatedButton(
+            onPressed: () => _openDailyLog(context, DateTime.now()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.purple,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            child: ElevatedButton(
-              onPressed: () => _openDailyLog(context, DateTime.now()),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              child: Text(
-                alreadyLogged ? 'Edit Today\'s Log ✦' : 'Log Today\'s Day ✦',
-                style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16),
-              ),
+            child: Text(
+              alreadyLogged ? 'Edit Today\'s Log ✦' : 'Log Today\'s Day ✦',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16),
             ),
           ),
         ),
