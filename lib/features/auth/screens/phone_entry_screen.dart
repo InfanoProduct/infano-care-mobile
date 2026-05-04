@@ -83,9 +83,18 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
       final signature = await PermissionService.instance.getAppSignature();
       debugPrint("📤 Sending OTP for $phone (App Hash: $signature)");
       
-      await _repo.sendOtp(phone, appHash: signature);
+      final result = await _repo.sendOtp(phone, appHash: signature);
       if (mounted) {
-        context.go('/auth/otp?phone=${Uri.encodeComponent(phone)}&fromOnboarding=${widget.fromOnboarding}');
+        if (result != null) {
+          // Auto-logged in! Navigate to home or onboarding
+          if (result.isOnboardingCompleted) {
+            context.go('/home');
+          } else {
+            context.go('/onboarding?step=${result.onboardingStep}');
+          }
+        } else {
+          context.go('/auth/otp?phone=${Uri.encodeComponent(phone)}&fromOnboarding=${widget.fromOnboarding}');
+        }
       }
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); });

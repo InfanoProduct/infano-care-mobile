@@ -59,12 +59,44 @@ class AuthRepository {
   AuthRepository(this._storage) : _dio = ApiService.instance.dio;
 
   // ── Send OTP ────────────────────────────────────────────────────────────────
-  Future<void> sendOtp(String phone, {String? appHash}) async {
+  Future<OtpVerifyResult?> sendOtp(String phone, {String? appHash}) async {
     try {
-      await _dio.post('/auth/otp/send', data: {
+      final resp = await _dio.post('/auth/otp/send', data: {
         'phone': phone,
         if (appHash != null) 'appHash': appHash,
       });
+
+      final data = resp.data as Map<String, dynamic>;
+      if (data.containsKey('autoLogin') && data['autoLogin'] != null) {
+        final loginData = data['autoLogin'] as Map<String, dynamic>;
+        final result = OtpVerifyResult(
+          tempToken:             loginData['tempToken']             as String? ?? '',
+          isNewUser:             loginData['isNewUser']             as bool? ?? false,
+          onboardingStep:        loginData['onboardingStep']        as int? ?? 0,
+          accountStatus:         loginData['accountStatus']         as String? ?? '',
+          isOnboardingCompleted: loginData['isOnboardingCompleted'] as bool? ?? false,
+          accessToken:           loginData['accessToken']           as String?,
+          refreshToken:          loginData['refreshToken']          as String?,
+          role:                  loginData['role']                  as String?,
+          userId:                loginData['userId']                as String?,
+          contentTier:           loginData['contentTier']           as String?,
+          profile:               loginData['profile']               as Map<String, dynamic>?,
+        );
+
+        // Persist tokens if available
+        if (result.accessToken != null) await _storage.setAuthToken(result.accessToken!);
+        if (result.refreshToken != null) await _storage.setRefreshToken(result.refreshToken!);
+        if (result.role != null) await _storage.setRole(result.role!);
+        if (result.userId != null) await _storage.setUserId(result.userId!);
+        
+        await _storage.setTempToken(result.tempToken);
+        await _storage.setPhone(phone);
+        await _storage.setStepComplete(result.onboardingStep.toString());
+        await _storage.setIsOnboarded(result.isOnboardingCompleted);
+
+        return result;
+      }
+      return null;
     } on DioException catch (e) {
       throw _extractError(e, 'Failed to send OTP.');
     }

@@ -37,6 +37,8 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
   late Animation<double> _pulseAnimation;
 
   StreamSubscription? _socketSubscription;
+  late TabController _sessionTabController;
+  int _sessionTabIndex = 0;
 
   @override
   void initState() {
@@ -71,6 +73,12 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
     );
 
     _entryController.forward();
+    _sessionTabController = TabController(length: 2, vsync: this);
+    _sessionTabController.addListener(() {
+      if (_sessionTabController.indexIsChanging) {
+        setState(() => _sessionTabIndex = _sessionTabController.index);
+      }
+    });
     _checkUserRoleAndRefresh();
   }
 
@@ -107,6 +115,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
     _socketSubscription?.cancel();
     _entryController.dispose();
     _pulseController.dispose();
+    _sessionTabController.dispose();
     super.dispose();
   }
 
@@ -150,7 +159,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
       
       _sessionsFuture = _api.getPeerLineSessions(
         role: _isCertifiedMentor && !_viewAsMentee ? 'mentor' : 'mentee',
-        status: _isCertifiedMentor && !_viewAsMentee ? null : 'completed',
+        status: null, // Fetch all sessions to show active/matching and completed
       );
     });
   }
@@ -209,11 +218,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                   isAvailable: (socketService.availabilityUpdates.value?.activeMentorsCount ?? 0) > 0,
                   pulseAnimation: _pulseAnimation,
                   onTapSupport: () => context.push('/peerline/request'),
-                  onTapMentor: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Mentor application coming soon!')),
-                    );
-                  },
+                  onTapMentor: () {}, // Handled internally as removed
                 ),
                 const SizedBox(height: 16),
                 _buildRealtimeAvailabilityHeader(),
@@ -342,7 +347,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
         }
         
         final sessions = snapshot.data ?? [];
-        final activeSessions = sessions.where((s) => 
+        final upcomingSessions = sessions.where((s) => 
           s.status.toLowerCase() == 'active' || 
           s.status.toLowerCase() == 'matching' || 
           s.status.toLowerCase() == 'queued'
@@ -356,22 +361,8 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (activeSessions.isNotEmpty) ...[
-              Text(
-                'Active Session',
-                style: GoogleFonts.outfit(
-                  fontSize: 18, 
-                  fontWeight: FontWeight.bold, 
-                  color: AppColors.purple
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...activeSessions.map((s) => _ActiveSessionCard(session: s)).toList(),
-              const SizedBox(height: 32),
-            ],
-            
             Text(
-              'Your Recent Sessions',
+              'Your Sessions',
               style: GoogleFonts.outfit(
                 fontSize: 18, 
                 fontWeight: FontWeight.bold,
@@ -380,42 +371,189 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
             ),
             const SizedBox(height: 4),
             Text(
-              'Your conversations stay here after a session — fully private.',
+              'Track your mentor conversations — fully private.',
               style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
             ),
-            const SizedBox(height: 16),
-            
-            if (pastSessions.isEmpty && activeSessions.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 40),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.history_rounded, color: Colors.grey.shade300, size: 40),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No past sessions yet.',
-                      style: GoogleFonts.outfit(
-                        color: Colors.grey.shade500, 
-                        fontSize: 14, 
-                        fontStyle: FontStyle.italic
-                      ),
-                    ),
+            const SizedBox(height: 12),
+
+            // Tab bar
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(4),
+              child: TabBar(
+                controller: _sessionTabController,
+                indicator: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 4, offset: const Offset(0, 2)),
                   ],
                 ),
-              )
-            else
-              ...pastSessions.map((s) => _SessionListItem(session: s)).toList(),
+                labelColor: AppColors.purple,
+                unselectedLabelColor: AppColors.textMedium,
+                labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
+                unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
+                dividerColor: Colors.transparent,
+                tabs: [
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.schedule_rounded, size: 15),
+                        const SizedBox(width: 6),
+                        const Text('Upcoming'),
+                        if (upcomingSessions.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: AppColors.purple,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${upcomingSessions.length}',
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.history_rounded, size: 15),
+                        const SizedBox(width: 6),
+                        const Text('Past'),
+                        if (pastSessions.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade400,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${pastSessions.length}',
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Tab content — fixed height so it doesn't fight with SingleChildScrollView
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _sessionTabIndex == 0
+                ? _buildUpcomingTab(upcomingSessions)
+                : _buildPastTab(pastSessions),
+            ),
           ],
         );
       },
     );
   }
+
+  Widget _buildUpcomingTab(List<PeerLineSession> sessions) {
+    if (sessions.isEmpty) {
+      return Container(
+        key: const ValueKey('upcoming-empty'),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.calendar_today_rounded, color: Colors.grey.shade300, size: 44),
+            const SizedBox(height: 14),
+            Text(
+              'No upcoming sessions',
+              style: GoogleFonts.outfit(
+                color: AppColors.textDark,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Request a session with a peer mentor to get started.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/peerline/request'),
+              icon: const Icon(Icons.add, size: 16),
+              label: Text('Find a Mentor', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.purple,
+                side: BorderSide(color: AppColors.purple),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return Column(
+      key: const ValueKey('upcoming-list'),
+      children: sessions.map((s) => _ActiveSessionCard(session: s)).toList(),
+    );
+  }
+
+  Widget _buildPastTab(List<PeerLineSession> sessions) {
+    if (sessions.isEmpty) {
+      return Container(
+        key: const ValueKey('past-empty'),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.history_rounded, color: Colors.grey.shade300, size: 44),
+            const SizedBox(height: 14),
+            Text(
+              'No past sessions yet',
+              style: GoogleFonts.outfit(
+                color: AppColors.textDark,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Completed sessions will appear here after you end a chat.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 13, height: 1.4),
+            ),
+          ],
+        ),
+      );
+    }
+    return Column(
+      key: const ValueKey('past-list'),
+      children: sessions.map((s) => _SessionListItem(session: s)).toList(),
+    );
+  }
 }
+
 
 class _SessionListItem extends StatelessWidget {
   final PeerLineSession session;
@@ -576,18 +714,56 @@ class _ActiveSessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isMatching = session.status.toLowerCase() == 'matching' || session.status.toLowerCase() == 'queued';
-    
+    final bool isDirectRequest = isMatching && session.mentorId != null;
+    final bool isAccepted = !isMatching;
+    final String mentorName = session.mentorName ?? 'Peer Mentor';
+
+    String titleText;
+    String subtitleText;
+    String buttonText;
+    Color cardBorderColor;
+    Color buttonColor;
+    Color buttonTextColor;
+    IconData leadingIcon;
+
+    if (isDirectRequest) {
+      titleText = 'Waiting for $mentorName to accept';
+      subtitleText = 'Request has been sent. Once the mentor accepts, you\'ll be able to chat.';
+      buttonText = 'Awaiting Response';
+      cardBorderColor = AppColors.purple.withOpacity(0.25);
+      buttonColor = Colors.grey.shade100;
+      buttonTextColor = Colors.grey.shade400;
+      leadingIcon = Icons.hourglass_empty;
+    } else if (isMatching) {
+      titleText = 'Finding your mentor...';
+      subtitleText = 'You are in the queue';
+      buttonText = 'View Status';
+      cardBorderColor = AppColors.purple.withOpacity(0.25);
+      buttonColor = AppColors.purple;
+      buttonTextColor = Colors.white;
+      leadingIcon = Icons.search_rounded;
+    } else {
+      // ACTIVE — mentor accepted
+      titleText = '$mentorName accepted your request!';
+      subtitleText = 'Your mentor is ready. Tap below to start chatting.';
+      buttonText = 'Initiate Chat';
+      cardBorderColor = const Color(0xFF10B981).withOpacity(0.4);
+      buttonColor = const Color(0xFF10B981);
+      buttonTextColor = Colors.white;
+      leadingIcon = Icons.check_circle_rounded;
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.purple.withOpacity(0.3), width: 2),
+        border: Border.all(color: cardBorderColor, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.purple.withOpacity(0.1),
-            blurRadius: 15,
+            color: (isAccepted ? const Color(0xFF10B981) : AppColors.purple).withOpacity(0.08),
+            blurRadius: 16,
             offset: const Offset(0, 8),
           ),
         ],
@@ -596,65 +772,127 @@ class _ActiveSessionCard extends StatelessWidget {
         children: [
           Row(
             children: [
+              // Mentor avatar
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
-                  color: AppColors.purple.withOpacity(0.1),
+                  color: (isAccepted ? const Color(0xFF10B981) : AppColors.purple).withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  isMatching ? Icons.search_rounded : Icons.chat_bubble_rounded,
-                  color: AppColors.purple,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Text(
+                      mentorName.substring(0, 1).toUpperCase(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: isAccepted ? const Color(0xFF10B981) : AppColors.purple,
+                      ),
+                    ),
+                    if (isAccepted)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: const Icon(Icons.check, color: Colors.white, size: 9),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isMatching ? 'Finding your mentor...' : 'Connected with ${session.mentorName ?? 'Peer Mentor'}',
+                      titleText,
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 15,
                         color: AppColors.textDark,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
-                      isMatching ? 'You are in the queue' : 'Your session is active now',
+                      subtitleText,
                       style: GoogleFonts.outfit(
-                        fontSize: 13,
+                        fontSize: 12,
                         color: AppColors.textMedium,
+                        height: 1.4,
                       ),
                     ),
                   ],
                 ),
               ),
+              Icon(
+                leadingIcon,
+                color: isAccepted ? const Color(0xFF10B981) : AppColors.purple,
+                size: 22,
+              ),
             ],
           ),
-          const SizedBox(height: 20),
+          if (isAccepted) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withOpacity(0.06),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Mentor accepted · Session is ready',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      color: const Color(0xFF10B981),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: () {
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: isDirectRequest ? null : () {
                 if (isMatching) {
                   context.push('/peerline/request');
                 } else {
                   context.push('/peerline/chat/${session.id}');
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.purple,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
-              ),
-              child: Text(
-                isMatching ? 'View Status' : 'Enter Chat Room',
+              icon: isDirectRequest
+                ? const SizedBox.shrink()
+                : Icon(isAccepted ? Icons.chat_bubble_rounded : Icons.arrow_forward_rounded, size: 18),
+              label: Text(
+                buttonText,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: buttonTextColor,
+                  fontSize: 15,
                 ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: buttonColor,
+                disabledBackgroundColor: Colors.grey.shade100,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                elevation: isAccepted ? 2 : 0,
               ),
             ),
           ),
@@ -663,3 +901,4 @@ class _ActiveSessionCard extends StatelessWidget {
     );
   }
 }
+

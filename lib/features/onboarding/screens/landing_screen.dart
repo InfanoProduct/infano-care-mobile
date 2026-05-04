@@ -100,7 +100,18 @@ class _LandingScreenState extends State<LandingScreen> {
                         }
                       },
                     ).animate().slideY(begin: 0.5, duration: 400.ms, delay: 1200.ms, curve: Curves.easeOut),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () async {
+                        await storage.clearAll();
+                        if (context.mounted) {
+                          context.read<OnboardingBloc>().add(const SyncFromStorage());
+                          context.go('/splash'); // Refresh the splash screen state
+                        }
+                      },
+                      child: const Text('Reset App Data', style: TextStyle(color: Colors.white54, decoration: TextDecoration.underline)),
+                    ).animate().fadeIn(delay: 1400.ms),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),

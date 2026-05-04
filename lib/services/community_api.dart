@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:infano_care_mobile/models/circle.dart';
 import 'package:infano_care_mobile/models/peerline_session.dart';
+import 'package:infano_care_mobile/models/peerline_topic.dart';
 import 'package:infano_care_mobile/models/event.dart';
 import 'package:infano_care_mobile/models/post.dart';
 import 'package:infano_care_mobile/models/chat_message.dart';
@@ -18,6 +19,19 @@ class CommunityApi {
         .map((e) => Circle.fromJson(e as Map<String, dynamic>))
         .toList();
     return circles;
+  }
+
+  Future<void> joinCircle(String circleId) async {
+    await _dio.post('community/circles/join', data: {'circleIds': [circleId]});
+  }
+
+  Future<void> joinCircles(List<String> circleIds) async {
+    await _dio.post('community/circles/join', data: {'circleIds': circleIds});
+  }
+
+  Future<Map<String, dynamic>> getMyFeed({int page = 1}) async {
+    final response = await _dio.get('community/feed', queryParameters: {'page': page});
+    return response.data as Map<String, dynamic>;
   }
 
   Future<void> trackCircleVisit(String circleId) async {
@@ -75,6 +89,10 @@ class CommunityApi {
     });
   }
 
+  Future<void> deletePost(String postId) async {
+    await _dio.delete('community/posts/$postId');
+  }
+
   Future<void> submitAppeal(String contentId, String reason, {required String contentType}) async {
     await _dio.post('community/posts/$contentId/appeal', data: {
       'reason': reason,
@@ -83,6 +101,14 @@ class CommunityApi {
   }
 
   // PeerLine
+  Future<List<PeerLineTopic>> getPeerLineTopics() async {
+    final response = await _dio.get('peerline/topics');
+    final data = response.data as Map<String, dynamic>;
+    return (data['topics'] as List)
+        .map((e) => PeerLineTopic.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<MentorAvailability> getPeerLineAvailability() async {
     final response = await _dio.get('peerline/availability');
     // Match the new response structure
@@ -97,11 +123,25 @@ class CommunityApi {
     return response.data as Map<String, dynamic>;
   }
 
-  Future<PeerLineSession> requestPeerLineSession({required List<String> topicIds, bool requestVerified = false}) async {
-    final response = await _dio.post('peerline/sessions/request', data: {
+  Future<PeerLineSession> requestPeerLineSession({required List<String> topicIds, bool requestVerified = false, String? requestedMentorId}) async {
+    final dataMap = <String, dynamic>{
       'topicIds': topicIds,
       'requestVerified': requestVerified,
-    });
+    };
+    if (requestedMentorId != null) {
+      dataMap['requestedMentorId'] = requestedMentorId;
+    }
+    
+    final response = await _dio.post('peerline/sessions/request', data: dataMap);
+    final Map<String, dynamic> data = response.data;
+    if (data.containsKey('session')) {
+      return PeerLineSession.fromJson(data['session'] as Map<String, dynamic>);
+    }
+    return PeerLineSession.fromJson(data);
+  }
+
+  Future<PeerLineSession> acceptPeerLineSession(String sessionId) async {
+    final response = await _dio.post('peerline/mentor/sessions/$sessionId/accept');
     final Map<String, dynamic> data = response.data;
     if (data.containsKey('session')) {
       return PeerLineSession.fromJson(data['session'] as Map<String, dynamic>);
@@ -197,6 +237,30 @@ class CommunityApi {
       return PeerLineSession.fromJson(data['session'] as Map<String, dynamic>);
     }
     return PeerLineSession.fromJson(data);
+  }
+
+  Future<List<Map<String, dynamic>>> searchMentors(List<String> topicIds) async {
+    final path = 'peerline/mentor/search';
+    final query = {'topics': topicIds.join(',')};
+    
+    print('COMMUNITY_API: Searching mentors at ${_dio.options.baseUrl}$path with query $query');
+    
+    try {
+      final response = await _dio.get(path, queryParameters: query);
+      print('COMMUNITY_API: Search response status: ${response.statusCode}');
+      print('COMMUNITY_API: Search response data: ${response.data}');
+      
+      final data = response.data as Map<String, dynamic>;
+      final mentors = (data['mentors'] as List).map((e) => e as Map<String, dynamic>).toList();
+      print('COMMUNITY_API: Found ${mentors.length} mentors in response');
+      return mentors;
+    } catch (e) {
+      print('COMMUNITY_API: ERROR in searchMentors: $e');
+      if (e is DioException) {
+        print('COMMUNITY_API: ERROR Details: ${e.response?.statusCode} - ${e.response?.data}');
+      }
+      rethrow;
+    }
   }
 
   // Events

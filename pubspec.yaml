@@ -98,7 +98,9 @@ flutter:
   assets:
     - assets/logo.png
     - assets/logo_padded.png
+    - assets/images/
     - assets/images/gigi.png
     - assets/images/maya.png
     - assets/images/hook.jpeg
+    - assets/images/community_banner.png
     - assets/images/book/

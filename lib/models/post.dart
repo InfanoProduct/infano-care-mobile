@@ -17,6 +17,7 @@ class CommunityPost {
   final String? challengeTheme;
   final String authorRole;
   final String status;
+  final String? myReaction;
 
   CommunityPost({
     required this.id,
@@ -37,6 +38,7 @@ class CommunityPost {
     this.challengeTheme,
     this.authorRole = 'TEEN',
     this.status = 'APPROVED',
+    this.myReaction,
   });
 
   factory CommunityPost.fromJson(Map<String, dynamic> json) {
@@ -61,6 +63,7 @@ class CommunityPost {
       isBookmarked: json['isBookmarked'] ?? false,
       isChallengeResponse: json['isChallengeResponse'] ?? false,
       challengeTheme: json['challenge']?['theme']?.toString(),
+      myReaction: json['myReaction']?.toString(),
     );
   }
 
@@ -83,6 +86,7 @@ class CommunityPost {
     String? challengeTheme,
     String? authorRole,
     String? status,
+    String? myReaction,
   }) {
     return CommunityPost(
       id: id ?? this.id,
@@ -103,6 +107,7 @@ class CommunityPost {
       challengeTheme: challengeTheme ?? this.challengeTheme,
       authorRole: authorRole ?? this.authorRole,
       status: status ?? this.status,
+      myReaction: myReaction ?? this.myReaction,
     );
   }
 }

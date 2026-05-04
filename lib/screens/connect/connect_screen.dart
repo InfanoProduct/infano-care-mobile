@@ -12,6 +12,10 @@ import '../../core/services/api_service.dart';
 import '../../models/friend_profile.dart';
 import 'matches_tab.dart';
 import '../../core/services/local_storage_service.dart';
+import 'my_feed_tab.dart';
+import 'circle_selection_dialog.dart';
+import '../../services/community_api.dart';
+import '../../models/circle.dart';
 
 class ConnectScreen extends StatefulWidget {
   const ConnectScreen({Key? key}) : super(key: key);
@@ -29,12 +33,14 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this, initialIndex: 2);
     _friendsApi = FriendsApi(ApiService.instance.dio);
     _loadProfile();
     
-    // Listen for mutual matches
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkCircles();
+      
+      // Listen for mutual matches
       final friendsSocket = Provider.of<FriendsSocketService>(context, listen: false);
       friendsSocket.matchEvents.listen((matchData) {
         if (mounted) {
@@ -71,6 +77,35 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
     }
   }
 
+  Future<void> _checkCircles() async {
+    try {
+      final api = Provider.of<CommunityApi>(context, listen: false);
+      final circles = await api.getCircles();
+      
+      final hasJoined = circles.any((c) => c.isJoined);
+      
+      if (circles.isNotEmpty && !hasJoined && mounted) {
+        // Automatically navigate to Circles tab (index 3) if none joined
+        _tabController.animateTo(3);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Join some circles to start seeing your feed!'),
+            backgroundColor: Colors.pink,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking circles: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error connecting to community: $e')),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -83,68 +118,49 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        automaticallyImplyLeading: false, // No back arrow
+        automaticallyImplyLeading: false,
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surface,
-        title: const Text(
-          'Connect',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A1A2E), // Custom dark color
+        toolbarHeight: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: TabBar(
+            controller: _tabController,
+            indicatorWeight: 2.5,
+            indicatorColor: Colors.pink,
+            isScrollable: false,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 0),
+            labelStyle: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+            labelColor: Colors.pink,
+            unselectedLabelColor: Colors.grey.shade500,
+            tabs: const [
+              Tab(text: '✨ Friends'),
+              Tab(text: '💜 PeerLine'),
+              Tab(text: '📰 Feed'),
+              Tab(text: '🌐 Circles'),
+              Tab(text: '📅 Events'),
+            ],
           ),
-        ),
-        actions: [
-          _buildProfileMenu(),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorWeight: 2,
-          indicatorColor: Colors.pink, // pink underline indicator
-          isScrollable: true,
-          labelStyle: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 13,
-          ),
-          labelColor: Colors.pink,
-          unselectedLabelColor: Colors.grey.shade600,
-          tabs: [
-            const Tab(
-              text: '🌐 Circles',
-            ),
-            const Tab(
-              text: '💜 PeerLine',
-            ),
-            const Tab(
-              text: '📅 Events',
-            ),
-            Tab(
-              child: Text(
-                '✨ Friends',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  foreground: Paint()
-                    ..shader = const LinearGradient(
-                      colors: <Color>[Colors.pink, Colors.purple],
-                    ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
-                ),
-              ),
-            ),
-          ],
         ),
       ),
       body: ListenableProvider<TabController>.value(
         value: _tabController,
         child: TabBarView(
           controller: _tabController,
-          children: [
-            const CirclesTab(),
-            const PeerLineTab(),
-            const EventsTab(),
-            const FriendsTab(),
+          children: const [
+            FriendsTab(),
+            PeerLineTab(),
+            MyFeedTab(),
+            CirclesTab(),
+            EventsTab(),
           ],
         ),
       ),

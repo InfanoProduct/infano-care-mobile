@@ -136,7 +136,9 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         break;
       case 'session_ended':
         _sessionTimer?.cancel();
-        context.pushReplacement('/peerline/feedback/${widget.sessionId}');
+        if (mounted) {
+          _showSessionEndedBanner();
+        }
         break;
       case 'session_paused':
         setState(() {
@@ -681,6 +683,197 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
     );
   }
 
+  void _showSessionEndedBanner() {
+    int selectedRating = 0;
+    final TextEditingController noteController = TextEditingController();
+    bool isSubmitting = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 28,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Handle bar
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Emoji + title
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(child: Text('💜', style: TextStyle(fontSize: 36))),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Session Complete!',
+                      style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'How was your session with ${_session?.mentorName ?? 'your mentor'}?',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(fontSize: 14, color: AppColors.textMedium, height: 1.4),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Star rating
+                    Text(
+                      'Rate your experience',
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (i) {
+                        final starIndex = i + 1;
+                        return GestureDetector(
+                          onTap: () => setSheetState(() => selectedRating = starIndex),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            child: Icon(
+                              starIndex <= selectedRating ? Icons.star_rounded : Icons.star_outline_rounded,
+                              size: 44,
+                              color: starIndex <= selectedRating ? Colors.amber : Colors.grey.shade300,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    if (selectedRating > 0) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        ['', 'Not helpful', 'It was okay', 'Pretty good', 'Really helpful', 'Amazing! 🌟'][selectedRating],
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: selectedRating >= 4 ? const Color(0xFF10B981) : AppColors.purple,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+
+                    // Optional note
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: TextField(
+                        controller: noteController,
+                        maxLines: 3,
+                        maxLength: 200,
+                        textCapitalization: TextCapitalization.sentences,
+                        style: GoogleFonts.outfit(fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: 'Share any thoughts (optional)…',
+                          hintStyle: GoogleFonts.outfit(color: Colors.grey.shade400, fontSize: 14),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
+                          counterStyle: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Submit button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: (selectedRating == 0 || isSubmitting) ? null : () async {
+                          setSheetState(() => isSubmitting = true);
+                          try {
+                            final api = Provider.of<CommunityApi>(context, listen: false);
+                            await api.submitPeerLineFeedback(
+                              sessionId: widget.sessionId,
+                              role: _myRole ?? 'mentee',
+                              rating: selectedRating,
+                              note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+                            );
+                          } catch (_) {
+                            // Feedback failure is non-blocking
+                          }
+                          noteController.dispose();
+                          if (mounted) {
+                            Navigator.pop(sheetContext);
+                            context.go('/connect');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.purple,
+                          disabledBackgroundColor: Colors.grey.shade100,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 0,
+                        ),
+                        child: isSubmitting
+                          ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text(
+                              selectedRating == 0 ? 'Select a rating to continue' : 'Submit & Go Home',
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: selectedRating == 0 ? Colors.grey.shade400 : Colors.white,
+                              ),
+                            ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Skip link
+                    TextButton(
+                      onPressed: isSubmitting ? null : () {
+                        noteController.dispose();
+                        Navigator.pop(sheetContext);
+                        context.go('/connect');
+                      },
+                      child: Text(
+                        'Skip for now',
+                        style: GoogleFonts.outfit(color: Colors.grey.shade400, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+
   void _showEndSessionDialog() {
     final parentContext = context;
     showDialog(
@@ -694,14 +887,13 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
-              // Optimistic socket end
               _socketService?.endSession(widget.sessionId, 'user_ended');
               
               try {
                 final api = Provider.of<CommunityApi>(parentContext, listen: false);
                 await api.endSession(widget.sessionId);
                 if (mounted) {
-                  parentContext.pushReplacement('/peerline/feedback/${widget.sessionId}');
+                  _showSessionEndedBanner();
                 }
               } catch (e) {
                 if (mounted) {

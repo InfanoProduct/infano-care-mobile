@@ -10,7 +10,8 @@ import 'package:infano_care_mobile/features/account/screens/data_rights_privacy_
 import 'package:infano_care_mobile/features/account/screens/saved_articles_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/path_selector_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/name_pronouns_screen.dart';
-import 'package:infano_care_mobile/screens/connect/peerline_request_screen.dart';
+import 'package:infano_care_mobile/screens/connect/peerline_topic_selection_screen.dart';
+import 'package:infano_care_mobile/screens/connect/peerline_results_screen.dart';
 import 'package:infano_care_mobile/screens/connect/peerline_chat_screen.dart';
 import 'package:infano_care_mobile/screens/connect/friend_chat_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/birthday_input_screen.dart';
@@ -242,7 +243,14 @@ GoRouter createRouter(LocalStorageService storage) {
       ),
 
       // PeerLine Focus
-      GoRoute(path: '/peerline/request', builder: (_, __) => const PeerLineRequestScreen()),
+      GoRoute(path: '/peerline/request', builder: (_, __) => const PeerLineTopicSelectionScreen()),
+      GoRoute(
+        path: '/peerline/results', 
+        builder: (_, state) {
+          final topics = state.extra as List<String>? ?? [];
+          return PeerLineResultsScreen(selectedTopics: topics);
+        }
+      ),
       GoRoute(
         path: '/peerline/chat/:sessionId',
         builder: (_, state) => PeerLineChatScreen(

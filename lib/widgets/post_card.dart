@@ -12,6 +12,7 @@ class PostCard extends StatefulWidget {
   final Function(String, String?)? onReport;
   final Function(bool)? onPin; // null = don't show pin option
   final VoidCallback? onBookmark;
+  final VoidCallback? onDelete; // null = don't show delete option
   final bool isDetailView;
   final VoidCallback? onTap;
   final Function(String reason)? onAppeal;
@@ -24,6 +25,7 @@ class PostCard extends StatefulWidget {
     this.onReport,
     this.onPin,
     this.onBookmark,
+    this.onDelete,
     this.isDetailView = false,
     this.onTap,
     this.onAppeal,
@@ -83,13 +85,14 @@ class _PostCardState extends State<PostCard> {
     switch (role.toUpperCase()) {
       case 'EXPERT':
       case 'MENTOR':
-        return 'Mentor';
+        return 'Expert';
       case 'PARENT':
       case 'GUARDIAN':
-      case 'REGULAR':
-        return 'Regular';
+        return 'Guardian';
+      case 'TEEN':
+        return 'Student';
       default:
-        return 'Newcomer';
+        return 'Peer';
     }
   }
 
@@ -104,18 +107,18 @@ class _PostCardState extends State<PostCard> {
     return Hero(
       tag: 'post_${widget.post.id}',
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(28),
           border: widget.post.isPinned
               ? Border.all(color: AppColors.purple.withOpacity(0.3), width: 2)
-              : Border.all(color: Colors.grey.shade100),
+              : Border.all(color: Colors.grey.shade100.withOpacity(0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -123,11 +126,11 @@ class _PostCardState extends State<PostCard> {
           color: Colors.transparent,
           child: InkWell(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(28),
             child: Stack(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   child: widget.post.status == 'REMOVED'
                       ? _buildRemovedCollapsedView()
                       : Column(
@@ -136,59 +139,67 @@ class _PostCardState extends State<PostCard> {
                             // Pinned Badge
                 if (widget.post.isPinned)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Row(
-                      children: [
-                         Icon(Icons.push_pin, size: 14, color: AppColors.purple),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'PINNED',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.purple,
-                            letterSpacing: 1,
+                    padding: const EdgeInsets.only(bottom: 14.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.push_pin, size: 12, color: AppColors.purple),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'PINNED',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.purple,
+                              letterSpacing: 1.2,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   
                 // Featured / Challenge Chips
                 if (widget.post.isFeatured || widget.post.challengeTheme != null)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
+                    padding: const EdgeInsets.only(bottom: 14.0),
                     child: Row(
                       children: [
                         if (widget.post.isFeatured)
                           Container(
                             margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.amber.shade100,
-                              borderRadius: BorderRadius.circular(12),
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
                               children: [
                                 const Text('⭐', style: TextStyle(fontSize: 10)),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 6),
                                 Text(
                                   'Featured',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
+                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF92400E)),
                                 ),
                               ],
                             ),
                           ),
                         if (widget.post.challengeTheme != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0D9488).withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(12),
+                              color: const Color(0xFFCCFBF1),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               '#${widget.post.challengeTheme}',
-                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF0D9488)),
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF0F766E)),
                             ),
                           ),
                       ],
@@ -199,149 +210,274 @@ class _PostCardState extends State<PostCard> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Level dot (colour-coded)
+                    // Avatar with Gradient Border
                     Container(
-                      width: 10,
-                      height: 10,
+                      padding: const EdgeInsets.all(2.5),
                       decoration: BoxDecoration(
-                        color: _getRoleColor(widget.post.authorRole),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _getRoleColor(widget.post.authorRole).withOpacity(0.4),
-                            blurRadius: 4,
-                            spreadRadius: 1,
+                        gradient: LinearGradient(
+                          colors: [
+                            _getRoleColor(widget.post.authorRole).withOpacity(0.8),
+                            _getRoleColor(widget.post.authorRole).withOpacity(0.3),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: _getRoleColor(widget.post.authorRole).withOpacity(0.1),
+                            child: Text(
+                              widget.post.authorName.isNotEmpty ? widget.post.authorName[0].toUpperCase() : '?',
+                              style: TextStyle(
+                                color: _getRoleColor(widget.post.authorRole),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981), // Online green
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    // Display name
-                    Flexible(
-                      child: Text(
-                        widget.post.authorName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
+                    const SizedBox(width: 12),
+                    // Display name & Role
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.post.authorName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                              color: Color(0xFF1F2937),
+                              letterSpacing: -0.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '${_getRoleLabel(widget.post.authorRole)} • $timeAgo',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const Spacer(),
-                    // Relative timestamp
-                    Text(
-                      timeAgo,
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    // More Options
+                    IconButton(
+                      icon: Icon(Icons.more_horiz, color: Colors.grey.shade400, size: 20),
+                      onPressed: () => _showMoreOptions(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  displayContent,
-                  style: const TextStyle(fontSize: 15, height: 1.4),
-                ),
-                if (isLongContent)
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isExpanded = !_isExpanded;
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        _isExpanded ? 'Read less' : 'Read more',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.purple,
-                          fontWeight: FontWeight.bold,
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFDF2F8), // Very light pastel pink
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayContent,
+                        style: const TextStyle(
+                          fontSize: 15, 
+                          height: 1.5,
+                          color: Color(0xFF374151),
+                          letterSpacing: 0.1,
                         ),
                       ),
+                      if (isLongContent)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isExpanded = !_isExpanded;
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              _isExpanded ? 'Read less' : 'Read more',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.purple,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (!widget.isDetailView) ...[
+                  const SizedBox(height: 18),
+                  const Divider(height: 1, thickness: 0.5),
+                  const SizedBox(height: 14),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        _ReactionButton(
+                          emoji: '💜',
+                          count: widget.post.reactionHeart,
+                          isSelected: widget.post.myReaction == 'heart',
+                          onTap: () => _handleReact('heart'),
+                        ),
+                        _ReactionButton(
+                          emoji: '🤗',
+                          count: widget.post.reactionHug,
+                          isSelected: widget.post.myReaction == 'hug',
+                          onTap: () => _handleReact('hug'),
+                        ),
+                        _ReactionButton(
+                          emoji: '💡',
+                          count: widget.post.reactionBulb,
+                          isSelected: widget.post.myReaction == 'bulb',
+                          onTap: () => _handleReact('bulb'),
+                        ),
+                        _ReactionButton(
+                          emoji: '👊',
+                          count: widget.post.reactionFist,
+                          isSelected: widget.post.myReaction == 'fist',
+                          onTap: () => _handleReact('fist'),
+                        ),
+                        _ActionEmojiButton(
+                          emoji: '💬',
+                          label: widget.post.replyCount >= 1000 
+                              ? '${(widget.post.replyCount / 1000).toStringAsFixed(1)}K' 
+                              : widget.post.replyCount.toString(),
+                          onTap: widget.onReply,
+                        ),
+                      ],
                     ),
                   ),
-                if (!widget.isDetailView) ...[
-                  const SizedBox(height: 16),
-                  const Divider(height: 1),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      _ReactionButton(
-                        emoji: '💜',
-                        count: widget.post.reactionHeart,
-                        onTap: () => _handleReact('heart'),
-                      ),
-                      _ReactionButton(
-                        emoji: '🤗',
-                        count: widget.post.reactionHug,
-                        onTap: () => _handleReact('hug'),
-                      ),
-                      _ReactionButton(
-                        emoji: '💡',
-                        count: widget.post.reactionBulb,
-                        onTap: () => _handleReact('bulb'),
-                      ),
-                      _ReactionButton(
-                        emoji: '👊',
-                        count: widget.post.reactionFist,
-                        onTap: () => _handleReact('fist'),
-                      ),
-                      const Spacer(),
-                      _ActionEmojiButton(
-                        emoji: '💬',
-                        label: '${widget.post.replyCount} replies',
-                        onTap: widget.onReply,
-                      ),
-                    ],
-                  ),
                 ],
-                const SizedBox(height: 12),
-                  // Action Row: Bookmark + Report (minimal opacity)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (widget.onPin != null) ...[  
-                        IconButton(
-                          icon: Icon(
-                            widget.post.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-                            size: 18,
-                            color: widget.post.isPinned ? AppColors.purple : Colors.grey.shade400,
-                          ),
-                          onPressed: () => widget.onPin!(!widget.post.isPinned),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                        const SizedBox(width: 12),
-                      ],
-                      IconButton(
-                        icon: Icon(
-                          widget.post.isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                          size: 20,
-                          color: widget.post.isBookmarked ? AppColors.purple : Colors.grey.shade400,
-                        ),
-                        onPressed: widget.onBookmark,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        tooltip: widget.post.isBookmarked ? 'Remove bookmark' : 'Bookmark',
-                      ),
-                      const SizedBox(width: 12),
-                      Opacity(
-                        opacity: 0.35,
-                        child: IconButton(
-                          icon: const Icon(Icons.flag_outlined, size: 18, color: Colors.grey),
-                          onPressed: () => _showReportModal(context),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          tooltip: 'Report',
-                        ),
-                      ),
-                    ],
-                  ),
-                          ],
-                        ),
-                ),
-                _buildModerationOverlay(widget.post.status),
               ],
             ),
           ),
+          _buildModerationOverlay(widget.post.status),
+        ],
+      ),
+    ),
+  ),
+),
+    );
+  }
+
+  void _showMoreOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.onPin != null)
+              ListTile(
+                leading: Icon(
+                  widget.post.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                  color: AppColors.purple,
+                ),
+                title: Text(widget.post.isPinned ? 'Unpin Post' : 'Pin Post'),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onPin!(!widget.post.isPinned);
+                },
+              ),
+            ListTile(
+              leading: Icon(
+                widget.post.isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                color: Colors.amber,
+              ),
+              title: Text(widget.post.isBookmarked ? 'Remove Bookmark' : 'Save Post'),
+              onTap: () {
+                Navigator.pop(context);
+                if (widget.onBookmark != null) widget.onBookmark!();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.flag_outlined, color: Colors.redAccent),
+              title: const Text('Report Post'),
+              onTap: () {
+                Navigator.pop(context);
+                _showReportModal(context);
+              },
+            ),
+            if (widget.onDelete != null) ...[
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                title: const Text(
+                  'Delete Post',
+                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(context);
+                },
+              ),
+            ],
+            const SizedBox(height: 12),
+          ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete Post?'),
+        content: const Text(
+          'This will permanently remove your post from the community. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              widget.onDelete!();
+            },
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }
@@ -355,11 +491,11 @@ class _PostCardState extends State<PostCard> {
     if (difference.inDays > 7) {
       return DateFormat('MMM dd').format(dateTime);
     } else if (difference.inDays >= 1) {
-      return '${difference.inDays}d ago';
+      return '${difference.inDays}d back';
     } else if (difference.inHours >= 1) {
-      return '${difference.inHours}h ago';
+      return '${difference.inHours}h back';
     } else if (difference.inMinutes >= 1) {
-      return '${difference.inMinutes}m ago';
+      return '${difference.inMinutes}m back';
     }
     return 'Just now';
   }
@@ -424,7 +560,7 @@ class _PostCardState extends State<PostCard> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(28),
         ),
         child: Center(
           child: Column(
@@ -457,24 +593,64 @@ class _PostCardState extends State<PostCard> {
 class _ReactionButton extends StatelessWidget {
   final String emoji;
   final int count;
+  final bool isSelected;
   final VoidCallback? onTap;
 
-  const _ReactionButton({required this.emoji, required this.count, this.onTap});
+  const _ReactionButton({
+    required this.emoji,
+    required this.count,
+    this.isSelected = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected 
+                  ? AppColors.purple.withOpacity(0.15) 
+                  : Colors.black.withOpacity(0.04),
+              blurRadius: isSelected ? 12 : 8,
+              spreadRadius: isSelected ? 2 : 0,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: isSelected ? AppColors.purple.withOpacity(0.4) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 15)),
-            const SizedBox(width: 4),
             Text(
-              count.toString(),
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              emoji,
+              style: TextStyle(
+                fontSize: isSelected ? 17 : 15,
+                shadows: isSelected ? [
+                  Shadow(color: AppColors.purple.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 1))
+                ] : null,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              count >= 1000 ? '${(count / 1000).toStringAsFixed(1)}K' : count.toString(),
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected ? AppColors.purple : const Color(0xFF4B5563),
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+              ),
             ),
           ],
         ),
@@ -492,18 +668,33 @@ class _ActionEmojiButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(emoji, style: const TextStyle(fontSize: 15)),
-            const SizedBox(width: 4),
+            const SizedBox(width: 8),
             Text(
               label,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontSize: 12, 
+                color: Color(0xFF4B5563), 
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),

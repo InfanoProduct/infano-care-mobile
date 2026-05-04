@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/models/circle.dart';
 import 'package:infano_care_mobile/models/post.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
@@ -49,11 +50,17 @@ class _CircleScreenState extends State<CircleScreen> {
   final Map<String, int> _localReplyDelta = {};             // postId → reply count delta
   final Map<String, bool> _localPinState = {};              // postId → isPinned override
   final Map<String, bool> _localBookmarkState = {};         // postId → isBookmarked override
+  final Map<String, String?> _localMyReaction = {};         // postId → myReaction override
+  String? _currentUserId;
+  String? _currentUserRole;
 
   @override
   void initState() {
     super.initState();
     _api = Provider.of<CommunityApi>(context, listen: false);
+    final storage = Provider.of<LocalStorageService>(context, listen: false);
+    _currentUserId = storage.userId;
+    _currentUserRole = storage.role;
     _loadInitialFeed();
     _checkDraft();
     _markAsRead();
@@ -153,17 +160,33 @@ class _CircleScreenState extends State<CircleScreen> {
 
   // ── Reactions (optimistic, no reload) ────────────────────────────────────
   Future<void> _toggleReaction(String postId, String reaction) async {
+    final post = _allPosts.firstWhere((p) => p.id == postId);
+    final currentReaction = _localMyReaction[postId] ?? post.myReaction;
+
     setState(() {
       _localReactions[postId] ??= {};
-      _localReactions[postId]![reaction] = (_localReactions[postId]![reaction] ?? 0) + 1;
+      
+      if (currentReaction == reaction) {
+        // Toggle off
+        _localMyReaction[postId] = null;
+        _localReactions[postId]![reaction] = (_localReactions[postId]![reaction] ?? 0) - 1;
+      } else {
+        // Replace or add new
+        if (currentReaction != null) {
+          // Decrement old
+          _localReactions[postId]![currentReaction] = (_localReactions[postId]![currentReaction] ?? 0) - 1;
+        }
+        // Increment new
+        _localMyReaction[postId] = reaction;
+        _localReactions[postId]![reaction] = (_localReactions[postId]![reaction] ?? 0) + 1;
+      }
     });
+
     try {
       await _api.toggleReaction(postId, reaction, contentType: 'post', action: 'add');
     } catch (e) {
-      setState(() {
-        final cur = _localReactions[postId]?[reaction] ?? 1;
-        _localReactions[postId]![reaction] = cur - 1;
-      });
+      // Revert on error
+      _loadInitialFeed();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not react: $e')));
     }
   }
@@ -226,6 +249,36 @@ class _CircleScreenState extends State<CircleScreen> {
           _loadInitialFeed();
         });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not update pin: $e')));
+      }
+    }
+  }
+
+  // ── Delete Post ───────────────────────────────────────────────────────────
+  Future<void> _deletePost(String postId) async {
+    final removedIndex = _allPosts.indexWhere((p) => p.id == postId);
+    final removedPost = removedIndex != -1 ? _allPosts[removedIndex] : null;
+    if (removedPost != null) {
+      setState(() => _allPosts.removeAt(removedIndex));
+    }
+    try {
+      await _api.deletePost(postId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post deleted'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted && removedPost != null) {
+        setState(() {
+          if (removedIndex <= _allPosts.length) {
+            _allPosts.insert(removedIndex, removedPost);
+          } else {
+            _allPosts.add(removedPost);
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete post'), backgroundColor: Colors.red),
+        );
       }
     }
   }
@@ -312,10 +365,10 @@ class _CircleScreenState extends State<CircleScreen> {
       authorName: post.authorName,
       content: post.content,
       createdAt: post.createdAt,
-      reactionHeart: post.reactionHeart + (reactions?['heart'] ?? 0),
-      reactionHug: post.reactionHug + (reactions?['hug'] ?? 0),
-      reactionBulb: post.reactionBulb + (reactions?['bulb'] ?? 0),
-      reactionFist: post.reactionFist + (reactions?['fist'] ?? 0),
+      reactionHeart: (post.reactionHeart + (reactions?['heart'] ?? 0)).clamp(0, 9999),
+      reactionHug: (post.reactionHug + (reactions?['hug'] ?? 0)).clamp(0, 9999),
+      reactionBulb: (post.reactionBulb + (reactions?['bulb'] ?? 0)).clamp(0, 9999),
+      reactionFist: (post.reactionFist + (reactions?['fist'] ?? 0)).clamp(0, 9999),
       replyCount: post.replyCount + replyDelta,
       isPinned: pinnedOverride ?? post.isPinned,
       isFeatured: post.isFeatured,
@@ -324,6 +377,7 @@ class _CircleScreenState extends State<CircleScreen> {
       challengeTheme: post.challengeTheme,
       authorRole: post.authorRole,
       status: post.status,
+      myReaction: _localMyReaction.containsKey(post.id) ? _localMyReaction[post.id] : post.myReaction,
     );
   }
 
@@ -499,7 +553,7 @@ class _CircleScreenState extends State<CircleScreen> {
                 ),
 
                 // Post Feed (Zone 6)
-                if (_isLoading)
+                if (_isLoading && _allPosts.isEmpty)
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: SliverList(
@@ -537,6 +591,10 @@ class _CircleScreenState extends State<CircleScreen> {
                               onReply: () => _navigateToReplies(post),
                               onPin: (pin) => _togglePin(post.id, pin),
                               onBookmark: () => _toggleBookmark(post.id, post.isBookmarked),
+                              onDelete: (post.authorId == _currentUserId ||
+                                  _currentUserRole?.toUpperCase() == 'ADMIN')
+                                  ? () => _deletePost(post.id)
+                                  : null,
                               onReport: (category, note) async {
                                 try {
                                   await _api.reportPost(post.id, category, note, contentType: 'post');
