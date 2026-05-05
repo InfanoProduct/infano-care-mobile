@@ -267,7 +267,16 @@ GoRouter createRouter(LocalStorageService storage) {
       // Community Circles
       GoRoute(path: '/community/circle', builder: (_, state) => CircleScreen(circle: state.extra as Circle)),
       // Home
-      GoRoute(path: '/home', builder: (_, __) => DashboardScreen(storage: storage)),
+      GoRoute(
+        path: '/home', 
+        builder: (_, state) {
+          final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+          final subtab = int.tryParse(state.uri.queryParameters['subtab'] ?? '2') ?? 2;
+          return DashboardScreen(storage: storage, initialTab: tab, initialSubTab: subtab);
+        }
+
+      ),
+
 
       // Learning Journey Module
       GoRoute(

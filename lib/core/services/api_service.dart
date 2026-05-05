@@ -15,8 +15,16 @@ class ApiService {
 
   static Completer<void>? _refreshCompleter;
 
-  static const _defaultBaseUrl = 'http://192.168.1.43:4005/api';
-  static const _baseUrl = String.fromEnvironment('API_URL', defaultValue: _defaultBaseUrl);
+  static const _defaultBaseUrl = 'http://192.168.1.43:4005/api/';
+  static final String _baseUrl = _getNormalizedBaseUrl();
+
+  static String _getNormalizedBaseUrl() {
+    String url = const String.fromEnvironment('API_URL', defaultValue: _defaultBaseUrl);
+    if (!url.endsWith('/')) {
+      return '$url/';
+    }
+    return url;
+  }
 
   static void init(LocalStorageService storage) {
     _dio = Dio(BaseOptions(
@@ -39,8 +47,13 @@ class ApiService {
     // ── JWT interceptor ───────────────────────────────────────────────────────
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        if (!options.path.startsWith('http') && !options.path.startsWith('/')) {
-          options.path = '/${options.path}';
+        // Ensure path doesn't start with a slash when using a baseUrl with a path segment.
+        // This prevents Dio from replacing the '/api/' part of the baseUrl.
+        if (!options.path.startsWith('http')) {
+          if (options.path.startsWith('/')) {
+            options.path = options.path.substring(1);
+          }
+          // Also handle cases where double slashes might be introduced if the path was empty/weird
         }
         
         final token = storage.authToken;
@@ -70,7 +83,7 @@ class ApiService {
           try {
             debugPrint('[API] 🔄 Token expired. Attempting refresh...');
             final resp = await Dio().post(
-              '$_baseUrl/auth/refresh',
+              '${_baseUrl}auth/refresh',
               data: {'refreshToken': storage.refreshToken},
             );
 
@@ -113,9 +126,10 @@ class ApiService {
     ));
 
     // ── Startup connectivity ping ──────────────────────────────────────────────
-    final healthUrl = _baseUrl.endsWith('/api') 
-        ? _baseUrl.substring(0, _baseUrl.length - 4) + '/health'
-        : _baseUrl + '/health';
+    // Use a robust way to find the health endpoint (usually at root, not under /api)
+    final healthUrl = _baseUrl.contains('/api')
+        ? _baseUrl.split('/api')[0] + '/health'
+        : (_baseUrl.endsWith('/') ? '${_baseUrl}health' : '$_baseUrl/health');
 
     _dio.get(healthUrl).then((r) {
       debugPrint('[API] ✅ Backend reachable at $healthUrl: ${r.data}');

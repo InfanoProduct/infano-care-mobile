@@ -5,6 +5,8 @@ import 'package:infano_care_mobile/models/peerline_topic.dart';
 import 'package:infano_care_mobile/models/event.dart';
 import 'package:infano_care_mobile/models/post.dart';
 import 'package:infano_care_mobile/models/chat_message.dart';
+import 'package:path/path.dart' as path;
+
 
 class CommunityApi {
   final Dio _dio;
@@ -230,6 +232,14 @@ class CommunityApi {
     return response.data as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> updateMentorExpertise(Map<String, List<String>> expertise) async {
+    final response = await _dio.patch('peerline/mentor/expertise', data: {
+      'expertise': expertise,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+
   Future<PeerLineSession> claimNextSession() async {
     final response = await _dio.post('peerline/mentor/claim');
     final Map<String, dynamic> data = response.data;
@@ -239,7 +249,21 @@ class CommunityApi {
     return PeerLineSession.fromJson(data);
   }
 
+  Future<String> uploadMedia(String filePath, {String folder = 'peerline'}) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: path.basename(filePath)),
+    });
+    
+    final response = await _dio.post('peerline/mentor/media', 
+      data: formData,
+      queryParameters: {'folder': folder},
+    );
+    
+    return response.data['mediaUrl'];
+  }
+
   Future<List<Map<String, dynamic>>> searchMentors(List<String> topicIds) async {
+
     final path = 'peerline/mentor/search';
     final query = {'topics': topicIds.join(',')};
     

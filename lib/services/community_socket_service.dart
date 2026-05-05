@@ -44,7 +44,7 @@ class CommunitySocketService {
 
     if (_socket?.connected == true) return;
 
-    final baseUrl = ApiService.instance.dio.options.baseUrl.replaceAll('/api', '');
+    final baseUrl = ApiService.instance.dio.options.baseUrl.split('/api')[0];
     debugPrint('[CommunitySocket] Connecting to components...');
     
     // Core/PeerLine Namespace
@@ -154,14 +154,17 @@ class CommunitySocketService {
     _socket?.emit('unsubscribe_mentor_updates');
   }
 
-  void sendMessage(String sessionId, String content, String senderRole, {String? clientId}) {
+  void sendMessage(String sessionId, String? content, String senderRole, {String? messageType, String? mediaUrl, String? clientId}) {
     _socket?.emit('send_message', {
       'sessionId': sessionId,
       'content': content,
       'senderRole': senderRole,
+      'messageType': messageType,
+      'mediaUrl': mediaUrl,
       'clientId': clientId,
     });
   }
+
 
   void unsendMessage(String sessionId, String messageId) {
     _socket?.emit('delete_message', {

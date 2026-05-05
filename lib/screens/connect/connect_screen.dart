@@ -16,13 +16,16 @@ import 'my_feed_tab.dart';
 import 'circle_selection_dialog.dart';
 import '../../services/community_api.dart';
 import '../../models/circle.dart';
+import '../../core/theme/app_theme.dart';
 
 class ConnectScreen extends StatefulWidget {
-  const ConnectScreen({Key? key}) : super(key: key);
+  const ConnectScreen({Key? key, this.initialTab = 2}) : super(key: key);
+  final int initialTab;
 
   @override
   State<ConnectScreen> createState() => _ConnectScreenState();
 }
+
 
 class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -33,7 +36,11 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this, initialIndex: 2);
+    _tabController = TabController(length: 5, vsync: this, initialIndex: widget.initialTab);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
+
     _friendsApi = FriendsApi(ApiService.instance.dio);
     _loadProfile();
     
@@ -117,36 +124,41 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        toolbarHeight: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: TabBar(
-            controller: _tabController,
-            indicatorWeight: 2.5,
-            indicatorColor: Colors.pink,
-            isScrollable: false,
-            labelPadding: const EdgeInsets.symmetric(horizontal: 0),
-            labelStyle: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-            labelColor: Colors.pink,
-            unselectedLabelColor: Colors.grey.shade500,
-            tabs: const [
-              Tab(text: '✨ Friends'),
-              Tab(text: '💜 PeerLine'),
-              Tab(text: '📰 Feed'),
-              Tab(text: '🌐 Circles'),
-              Tab(text: '📅 Events'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(90),
+        child: Container(
+          padding: const EdgeInsets.only(top: 5),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Row(
+                  children: [
+                    _buildTabItem(0, 'Friends', Icons.people_alt_rounded),
+                    const SizedBox(width: 12),
+                    _buildTabItem(1, 'PeerLine', Icons.favorite_rounded),
+                    const SizedBox(width: 12),
+                    _buildTabItem(2, 'My Feed', Icons.newspaper_rounded),
+                    const SizedBox(width: 12),
+                    _buildTabItem(3, 'Circles', Icons.groups_rounded),
+                    const SizedBox(width: 12),
+                    _buildTabItem(4, 'Events', Icons.event_available_rounded),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
             ],
           ),
         ),
@@ -297,6 +309,50 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
+      ),
+    );
+  }
+  Widget _buildTabItem(int index, String label, IconData icon) {
+    final isSelected = _tabController.index == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _tabController.animateTo(index);
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppColors.purple : Colors.grey.shade50,
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: AppColors.purple.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ] : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : AppColors.textMedium,
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppColors.textMedium,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

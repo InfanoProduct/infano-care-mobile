@@ -20,13 +20,17 @@ import 'package:infano_care_mobile/features/learning/repositories/learning_repos
 import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key, required this.storage});
+  const DashboardScreen({super.key, required this.storage, this.initialTab = 0, this.initialSubTab = 2});
 
   final LocalStorageService storage;
+  final int initialTab;
+  final int initialSubTab;
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
+
+
 
 class _DashboardScreenState extends State<DashboardScreen> {
   @override
@@ -39,7 +43,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => DashboardCubit(),
+      create: (context) => DashboardCubit(initialIndex: widget.initialTab),
+
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {
           final screens = [
@@ -50,8 +55,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const TrackScreen(),
             const QuestScreen(),
-            const ConnectScreen(),
+            ConnectScreen(initialTab: widget.initialSubTab),
           ];
+
 
           return Scaffold(
             backgroundColor: const Color(0xFFF5F4F7),

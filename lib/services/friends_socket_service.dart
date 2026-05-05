@@ -31,7 +31,7 @@ class FriendsSocketService {
     if (token == null) return;
     if (_socket?.connected == true) return;
 
-    final baseUrl = ApiService.instance.dio.options.baseUrl.replaceAll('/api', '');
+    final baseUrl = ApiService.instance.dio.options.baseUrl.split('/api')[0];
     
     _socket = IO.io('$baseUrl/friends', <String, dynamic>{
       'transports': ['websocket', 'polling'],
