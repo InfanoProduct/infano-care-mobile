@@ -144,7 +144,7 @@ class SubmitProfile        extends OnboardingEvent { const SubmitProfile(); }
 class SubmitPersonalization extends OnboardingEvent { const SubmitPersonalization(); }
 class SubmitAvatar          extends OnboardingEvent { const SubmitAvatar(); }
 class SubmitJourneyName     extends OnboardingEvent { const SubmitJourneyName(); }
-class SubmitTrackerSetup    extends OnboardingEvent { const SubmitTrackerSetup(); }
+class SubmitTrackerSetup    extends OnboardingEvent { final String? overrideTrackerMode; const SubmitTrackerSetup([this.overrideTrackerMode]); @override List<Object?> get props => [overrideTrackerMode]; }
 class SkipTracker           extends OnboardingEvent { const SkipTracker(); }
 class SyncFromStorage       extends OnboardingEvent { const SyncFromStorage(); }
 class BootstrapApp         extends OnboardingEvent { const BootstrapApp(); }
@@ -351,11 +351,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   Future<void> _onSubmitTrackerSetup(SubmitTrackerSetup e, Emitter<OnboardingState> emit) async {
     emit(state.copyWith(isLoading: true));
     try {
-      String trackerMode = 'active';
-      if (state.periodStatus == 'waiting' || state.periodStatus == 'unsure') {
-        trackerMode = 'watching_waiting';
-      } else if (state.isIrregular) {
-        trackerMode = 'irregular_support';
+      String trackerMode = e.overrideTrackerMode ?? 'active';
+      if (e.overrideTrackerMode == null) {
+        if (state.periodStatus == 'waiting' || state.periodStatus == 'unsure') {
+          trackerMode = 'watching_waiting';
+        } else if (state.isIrregular) {
+          trackerMode = 'irregular_support';
+        }
       }
 
       await _repo.trackerSetup(

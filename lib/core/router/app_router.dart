@@ -35,9 +35,11 @@ import 'package:infano_care_mobile/features/tracker/presentation/screens/doctor_
 import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_insights_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_settings_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/first_period_celebration_screen.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_ring_screen.dart';
+import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/calendar_screen.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/calendar_cubit.dart';
+import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
@@ -220,16 +222,22 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(path: '/onboarding/tracker/done',    builder: (_, __) => const TrackerActivatedScreen()),
 
       // Deep Link Routes for Notifications
-      GoRoute(path: '/tracker/log', builder: (_, __) => const CycleRingScreen()), // Placeholder for direct log sheet
-      GoRoute(path: '/tracker/prediction', builder: (_, __) => const CycleRingScreen()),
-      GoRoute(path: '/tracker/phase', builder: (_, __) => const CycleRingScreen()), // Placeholder
+      GoRoute(path: '/tracker/log', builder: (_, __) => const TrackScreen()), // Placeholder for direct log sheet
+      GoRoute(path: '/tracker/prediction', builder: (_, __) => const TrackScreen()),
+      GoRoute(path: '/tracker/phase', builder: (_, __) => const TrackScreen()), // Placeholder
       GoRoute(path: '/tracker/doctor-connect', builder: (_, __) => const DoctorSummaryScreen()),
 
       // Tracker Reporting
-      GoRoute(path: '/tracker/ring', builder: (_, __) => const CycleRingScreen()),
+
       GoRoute(path: '/tracker/doctor-summary', builder: (_, __) => const DoctorSummaryScreen()),
       GoRoute(path: '/tracker/settings', builder: (_, __) => const CycleSettingsScreen()),
-      GoRoute(path: '/tracker/calendar', builder: (_, __) => const CalendarScreen()),
+      GoRoute(
+        path: '/tracker/calendar', 
+        builder: (context, _) => BlocProvider(
+          create: (_) => CalendarCubit(context.read<TrackerRepository>())..loadCalendarData(),
+          child: const CalendarScreen(),
+        ),
+      ),
       GoRoute(path: '/tracker/milestone/first-period', builder: (_, __) => const FirstPeriodCelebrationScreen()),
       GoRoute(
         path: '/tracker/insights', 
@@ -238,6 +246,7 @@ GoRouter createRouter(LocalStorageService storage) {
           return CycleInsightsScreen(
             profile: extra['profile'] as CycleProfileModel,
             logs: extra['logs'] as List<CycleLogModel>,
+            history: (extra['history'] as List<CycleRecordModel>?) ?? [],
           );
         }
       ),

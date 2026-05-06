@@ -101,11 +101,12 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
         providers: [
           BlocProvider(
             create: (_) => OnboardingBloc(_repo, widget.storage)
-              ..add(const SyncFromStorage()),
+              ..add(const SyncFromStorage())
+              ..add(const BootstrapApp()),
           ),
           BlocProvider(
             create: (_) =>
-                TrackerBloc(trackerRepo)..add(const TrackerEvent.load()),
+                TrackerBloc(trackerRepo, widget.storage)..add(const TrackerEvent.load()),
           ),
         ],
         child: MaterialApp.router(

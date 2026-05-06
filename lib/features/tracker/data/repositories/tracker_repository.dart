@@ -32,8 +32,11 @@ class TrackerRepository {
         return CycleProfileModel.fromJson(response.data);
       }
       return null;
-    } catch (e) {
-      return null;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return null; // Profile truly doesn't exist
+      }
+      rethrow; // Auth or network error
     }
   }
 
@@ -114,7 +117,6 @@ class TrackerRepository {
           var logs = (response.data as List)
               .map((j) => CycleLogModel.fromJson(j))
               .toList();
-          if (logs.isEmpty && (_isDemoMode())) logs = _getDummyLogsForMonth(y, mo);
           await _cache.putLogs(y, mo, logs);
           debugPrint('[Repo] 🌐 Logs $y/$mo from network (${logs.length} items)');
           merged.addAll(logs);
@@ -125,8 +127,6 @@ class TrackerRepository {
         final stale = await _cache.getLogs(y, mo);
         if (stale != null) {
           merged.addAll(stale);
-        } else {
-          merged.addAll(_getDummyLogsForMonth(y, mo));
         }
       }
     }
@@ -141,14 +141,12 @@ class TrackerRepository {
         if (from != null) 'from': from,
         if (to != null) 'to': to,
       });
-
-      var logs = (response.data as List)
+      return (response.data as List)
           .map((json) => CycleLogModel.fromJson(json))
           .toList();
-      if (logs.isEmpty) logs = _getDummyLogs();
-      return logs;
     } catch (e) {
-      return _getDummyLogs();
+      debugPrint('[Repo] ⚠️ getLogs failed: $e');
+      return [];
     }
   }
 
@@ -174,16 +172,15 @@ class TrackerRepository {
         final cycles = (response.data as List)
             .map((j) => CycleRecordModel.fromJson(j))
             .toList();
-        final result = cycles.isEmpty ? _getDummyHistory() : cycles;
-        await _cache.putCycles(result);
-        return result;
+        await _cache.putCycles(cycles);
+        return cycles;
       }
     } catch (e) {
       debugPrint('[Repo] ⚠️ Cycles fetch failed: $e');
     }
 
     // Stale cache fallback
-    return (await _cache.getCycles()) ?? _getDummyHistory();
+    return (await _cache.getCycles()) ?? [];
   }
 
   /// Legacy getHistory kept for TrackerBloc compatibility.
@@ -191,17 +188,30 @@ class TrackerRepository {
     try {
       final response = await _dio.get('/tracker/history');
       if (response.statusCode == 200 && response.data != null) {
-        var history = (response.data as List)
+        return (response.data as List)
             .map((json) => CycleRecordModel.fromJson(json))
             .toList();
-        if (history.isEmpty) history = _getDummyHistory();
-        return history;
       }
-      return _getDummyHistory();
+      return [];
     } catch (e) {
-      return _getDummyHistory();
+      debugPrint('[Repo] ⚠️ getHistory failed: $e');
+      return [];
     }
   }
+
+  Future<Map<String, dynamic>> getDailyInsights() async {
+    try {
+      final response = await _dio.get('/tracker/daily-insights');
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data;
+      }
+      return {'insights': [], 'articles': []};
+    } catch (e) {
+      debugPrint('[Repo] ⚠️ Daily insights fetch failed: $e');
+      return {'insights': [], 'articles': []};
+    }
+  }
+
 
   // ── Write operations ───────────────────────────────────────────────────────
 
@@ -298,10 +308,8 @@ class TrackerRepository {
 
   Future<void> updatePeriodRange(DateTime start, DateTime end) async {
     try {
-      final startStr =
-          "${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}";
-      final endStr =
-          "${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}";
+      final startStr = start.toUtc().toIso8601String();
+      final endStr = end.toUtc().toIso8601String();
 
       await _dio.post('/tracker/period-range', data: {
         'startDate': startStr,
@@ -313,8 +321,10 @@ class TrackerRepository {
       await invalidateCyclesCache();
       await invalidatePredictionCache();
     } on DioException catch (e) {
-      throw Exception(
-          e.response?.data['message'] ?? 'Failed to update period range');
+      final msg = e.response?.data['error'] ?? 
+                 e.response?.data['message'] ?? 
+                 'Failed to update period range';
+      throw Exception(msg);
     }
   }
 

@@ -61,15 +61,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           return Scaffold(
             backgroundColor: const Color(0xFFF5F4F7),
-            appBar: state.selectedIndex == 4 
-              ? null // Hide main AppBar for Connect module
+            appBar: (state.selectedIndex == 2 || state.selectedIndex == 4) 
+              ? null // Hide main AppBar for Track and Connect modules
               : AppBar(
-                  title: Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
+                  title: const Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
                   backgroundColor: Colors.white,
                   elevation: 0,
                   iconTheme: const IconThemeData(color: AppColors.purple),
                 ),
-            drawer: state.selectedIndex == 4 ? null : _buildDrawer(context),
+            drawer: (state.selectedIndex == 2 || state.selectedIndex == 4) ? null : _buildDrawer(context),
             body: SafeArea(
               child: screens[state.selectedIndex],
             ),

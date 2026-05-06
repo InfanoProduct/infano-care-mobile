@@ -26,16 +26,8 @@ class GradientButton extends StatelessWidget {
         child: Container(
           height: 52,
           decoration: BoxDecoration(
-            gradient: enabled ? AppGradients.brand : null,
-            color: enabled ? null : AppColors.textLight,
-            borderRadius: BorderRadius.circular(100),
-            boxShadow: enabled ? [
-              BoxShadow(
-                color: AppColors.purple.withOpacity(0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ] : null,
+            color: enabled ? AppColors.purple : AppColors.textLight,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Center(
             child: Text(

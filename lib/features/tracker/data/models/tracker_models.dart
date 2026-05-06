@@ -45,6 +45,7 @@ class CycleLogModel with _$CycleLogModel {
     @Default([]) List<String> nutritionTags,
     @Default([]) List<String> activityTags,
     bool? isRetroactive,
+    String? vaginalDischarge, // shown only when not on period
   }) = _CycleLogModel;
 
   factory CycleLogModel.fromJson(Map<String, dynamic> json) =>

@@ -29,8 +29,8 @@ class ApiService {
   static void init(LocalStorageService storage) {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
     ));
 
     // ── Request/Response logger (shows in flutter run console) ───────────────

@@ -288,8 +288,8 @@ class CalendarEditNotifier extends ChangeNotifier {
     );
 
     final apiPayload = <String, dynamic>{
-      'log_date': dateStr,
-      'period_flow': flow.name,
+      'date': date.toUtc().toIso8601String(),
+      'flow': flow.name,
     };
 
     _emit(_state.copyWith(isSaving: true));

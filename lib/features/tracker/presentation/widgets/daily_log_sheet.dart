@@ -22,6 +22,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   late List<DateTime> _selectableDates;
 
   String? _flow;
+  String? _vaginalDischarge;
   final Set<String> _symptoms = {};
   int _crampIntensity = 1;
   MoodState? _selectedMood;
@@ -35,9 +36,12 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   bool _showAdvanced = false;
   bool _isSaving = false;
 
+  final ScrollController _dateScrollController = ScrollController();
+
   void _loadLogForDate(DateTime date, List<CycleLogModel> logs) {
     // Reset to defaults first
     _flow = null;
+    _vaginalDischarge = null;
     _symptoms.clear();
     _crampIntensity = 1;
     _selectedMood = null;
@@ -49,16 +53,24 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     _noteController.clear();
     _showAdvanced = false;
 
+    debugPrint('[DailyLog] Loading logs for date: $date (Day: ${date.day})');
+    debugPrint('[DailyLog] Total logs available: ${logs.length}');
+
     final log = logs.firstWhereOrNull((l) {
-      // Comparison: We want to match the CALENDAR DAY.
-      // Since our backend stores logs at 00:00:00 UTC for the target day,
-      // we check if the UTC year/month/day components match the device's selected year/month/day.
       final logUtc = l.date.toUtc();
-      return logUtc.year == date.year && logUtc.month == date.month && logUtc.day == date.day;
+      final matches = logUtc.year == date.year && logUtc.month == date.month && logUtc.day == date.day;
+      if (matches) {
+        debugPrint('[DailyLog] Found matching log for ${logUtc.toIso8601String()}');
+      }
+      return matches;
     });
 
-    if (log != null) {
+    if (log == null) {
+      debugPrint('[DailyLog] No log found for date: ${date.toIso8601String()}');
+    } else {
+      debugPrint('[DailyLog] Log found! Flow: ${log.flow}, Symptoms: ${log.symptoms.length}');
       _flow = log.flow;
+      _vaginalDischarge = log.vaginalDischarge;
       _symptoms.addAll(log.symptoms);
       _crampIntensity = log.crampIntensity ?? 1;
       _energy = log.energyLevel ?? 3;
@@ -104,9 +116,27 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     // Initial load from Bloc state using current state
     final state = context.read<TrackerBloc>().state;
     state.maybeWhen(
-      loaded: (_, __, logs, ____, ___) => _loadLogForDate(_selectedDate, logs),
+      loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) => _loadLogForDate(_selectedDate, logs),
       orElse: () {},
     );
+
+    // Scroll to the rightmost (today) item after the first frame so it's always visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_dateScrollController.hasClients) {
+        _dateScrollController.animateTo(
+          _dateScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _dateScrollController.dispose();
+    _noteController.dispose();
+    super.dispose();
   }
 
   final List<Map<String, String>> _symptomList = [
@@ -127,11 +157,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   void _save() {
     setState(() {
       _isSaving = true;
-      _showSuccessOverlay = true;
+      // Don't show overlay yet — wait for BLoC to confirm success
     });
-    
+
     final dateToSend = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, 12, 0, 0);
-    
+
     final data = {
       'date': dateToSend.toUtc().toIso8601String(),
       if (_flow != null) 'flow': _flow,
@@ -144,76 +174,95 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       'nutritionTags': _nutrition,
       'activityTags': _activity,
       if (_noteController.text.isNotEmpty) 'noteText': _noteController.text,
+      if (_vaginalDischarge != null) 'vaginalDischarge': _vaginalDischarge,
     };
 
     context.read<TrackerBloc>().add(TrackerEvent.logDaily(data));
-    
-    // Check if we should pop or wait for milestone navigation
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        final state = context.read<TrackerBloc>().state;
-        bool hasMilestone = false;
-        state.maybeWhen(
-          loaded: (_, __, ___, ____, milestone) {
-            debugPrint('[DailyLog] Save check. Milestone: $milestone');
-            hasMilestone = (milestone == 'first_period');
-          },
-          orElse: () => debugPrint('[DailyLog] Save check. State is not loaded.'),
-        );
-        
-        if (!hasMilestone) {
-          debugPrint('[DailyLog] No milestone detected, popping screen.');
-          Navigator.pop(context);
-        } else {
-          debugPrint('[DailyLog] Milestone detected, NOT popping. Letting listener handle it.');
-        }
-      }
-    });
   }
 
-  Widget _buildPeriodStartedToggle(bool isWw) {
-    if (!isWw) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+  Widget _buildDischargeSection() {
+    const dischargeOptions = [
+      {'id': 'No discharge',  'emoji': '✅'},
+      {'id': 'Creamy',        'emoji': '🤍'},
+      {'id': 'Watery',        'emoji': '💧'},
+      {'id': 'Sticky',        'emoji': '🍯'},
+      {'id': 'Egg white',     'emoji': '🥚'},
+      {'id': 'Clumpy white',  'emoji': '❄️'},
+      {'id': 'Spotting',      'emoji': '🩸'},
+      {'id': 'Unusual',       'emoji': '⚠️'},
+    ];
+
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       sliver: SliverToBoxAdapter(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.pink.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.pink.withOpacity(0.3)),
-          ),
-          child: Row(
-            children: [
-              const Text('🌸', style: TextStyle(fontSize: 24)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text('My period has started!', 
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: AppColors.pink, fontSize: 16),
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 24),
+            Text(
+              '💧 Vaginal Discharge',
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+                fontSize: 16,
               ),
-              Switch(
-                value: _flow != null && _flow != 'none',
-                activeColor: AppColors.pink,
-                onChanged: (val) {
-                  if (val && isWw) {
-                    // Immediate navigation to milestone screen for First Period entry
-                    debugPrint('[DailyLog] First period toggle enabled. Navigating to milestone...');
-                    context.go('/tracker/milestone/first-period');
-                    return;
-                  }
-                  setState(() {
-                    if (val) {
-                      _flow = 'light'; // Default to light when switched
-                    } else {
-                      _flow = 'none';
-                    }
-                  });
-                },
-              ),
-            ],
-          ),
-        ).animate().fadeIn(delay: 50.ms),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Discharge tells a lot about your cycle phase.',
+              style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: dischargeOptions.map((opt) {
+                final id = opt['id']!;
+                final emoji = opt['emoji']!;
+                final isSelected = _vaginalDischarge == id;
+                return GestureDetector(
+                  onTap: () => setState(() {
+                    _vaginalDischarge = isSelected ? null : id;
+                  }),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF7B5EA7).withOpacity(0.12)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isSelected ? const Color(0xFF7B5EA7) : Colors.grey[200]!,
+                        width: isSelected ? 2 : 1,
+                      ),
+                      boxShadow: isSelected
+                          ? [BoxShadow(color: const Color(0xFF7B5EA7).withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(emoji, style: const TextStyle(fontSize: 16)),
+                        const SizedBox(width: 6),
+                        Text(
+                          id,
+                          style: GoogleFonts.nunito(
+                            fontSize: 13,
+                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                            color: isSelected ? const Color(0xFF7B5EA7) : AppColors.textMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ).animate().fadeIn(delay: 120.ms, duration: 350.ms).slideX(begin: 0.05, end: 0),
       ),
     );
   }
@@ -239,28 +288,53 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       body: BlocConsumer<TrackerBloc, TrackerState>(
         listener: (context, state) {
           state.maybeWhen(
-            loaded: (profile, _, logs, ____, milestone) {
-              // We only update if we are not currently saving to avoid jumpy UI
-              if (!_isSaving) {
+            loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) {
+              if (_isSaving) {
+                // Save confirmed by backend — show success and reload logged data
+                setState(() {
+                  _isSaving = false;
+                  _showSuccessOverlay = true;
+                  _loadLogForDate(_selectedDate, logs);
+                });
+                if (milestone == 'first_period') {
+                  debugPrint('[DailyLog] Milestone! Letting milestone screen handle navigation.');
+                } else {
+                  Future.delayed(const Duration(milliseconds: 1500), () {
+                    if (mounted) Navigator.pop(context);
+                  });
+                }
+              } else {
+                // Normal reload when not saving (e.g. date switch)
                 setState(() => _loadLogForDate(_selectedDate, logs));
+              }
+            },
+            error: (message) {
+              if (_isSaving) {
+                setState(() => _isSaving = false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Could not save log: $message'),
+                    backgroundColor: Colors.red[700],
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
               }
             },
             orElse: () {},
           );
         },
         builder: (context, state) {
-          bool isWw = false;
+          // Derive current cycle phase from the backend prediction data.
+          // Defaults to 'waiting' if the state is not loaded yet.
+          String currentPhase = 'waiting';
           state.maybeWhen(
-            loaded: (profile, _, _, ____, ___) {
-              if (profile.trackerMode == 'watching_waiting') {
-                isWw = true;
-              }
+            loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) {
+              currentPhase = profile.currentPhase ?? 'waiting';
             },
             orElse: () {},
           );
 
-          // If WW mode and period has started, we show everything else
-          bool hideMenses = isWw && (_flow == null || _flow == 'none');
+          final bool isMenstrualPhase = currentPhase == 'menstrual';
 
           return Stack(
             children: [
@@ -268,10 +342,13 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                 slivers: [
                   _buildDateSelector(),
                   _buildHeading(),
-                  _buildPeriodStartedToggle(isWw),
-                  if (!hideMenses) _buildFlowSection(),
-                  if (!hideMenses) _buildSymptomsSection(),
+                  // Period Flow: only during menstrual phase
+                  if (isMenstrualPhase) _buildFlowSection(),
+                  // Symptoms always visible
+                  _buildSymptomsSection(),
                   _buildMoodSection(),
+                  // Vaginal Discharge: visible in all non-menstrual phases
+                  if (!isMenstrualPhase) _buildDischargeSection(),
                   _buildAdvancedToggle(),
                   if (_showAdvanced) ...[
                     _buildEnergySection(),
@@ -746,6 +823,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         child: SizedBox(
           height: 80,
           child: ListView.builder(
+            controller: _dateScrollController,
             scrollDirection: Axis.horizontal,
             itemCount: _selectableDates.length,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -759,7 +837,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                     _selectedDate = date;
                     final state = context.read<TrackerBloc>().state;
                     state.maybeWhen(
-                      loaded: (_, __, logs, ____, ___) => _loadLogForDate(_selectedDate, logs),
+                      loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) => _loadLogForDate(_selectedDate, logs),
                       orElse: () {},
                     );
                   });

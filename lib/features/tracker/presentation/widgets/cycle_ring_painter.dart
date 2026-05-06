@@ -32,12 +32,6 @@ class CycleRingPainter extends CustomPainter {
   final bool isDragging; // New field for active state
   final Color? innerColor; // New field for phase-based background
   final double waveValue; // New field for wave animation progress
-  final String? formattedDate; // New field for date display
-  final int? dayInPhase; // New field for phase-relative day
-  final String phaseEmoji;
-  final String phaseName;
-  final String? nextPhaseName;
-  final int? daysUntilNextPhase;
   final double coefficientOfVar;
 
   CycleRingPainter({
@@ -53,12 +47,6 @@ class CycleRingPainter extends CustomPainter {
     this.isDragging = false,
     this.innerColor,
     this.waveValue = 0.0,
-    this.formattedDate,
-    this.dayInPhase,
-    required this.phaseEmoji,
-    required this.phaseName,
-    this.nextPhaseName,
-    this.daysUntilNextPhase,
     this.coefficientOfVar = 0.0,
   });
 
@@ -337,83 +325,6 @@ class CycleRingPainter extends CustomPainter {
     final fillLevel = (displayDay / totalCycleDays).clamp(0.0, 1.0);
     
     _drawWaves(canvas, center, radius * 0.95, fillLevel);
-
-    _drawWaves(canvas, center, radius * 0.95, fillLevel);
-
-    // --- 1. Draw Date (Top) ---
-    if (formattedDate != null) {
-      final dateParts = formattedDate!.split(' ');
-      final dayStr = dateParts[0];
-      final monthStr = dateParts.length > 1 ? dateParts[1].toLowerCase() : '';
-
-      final dayPainter = TextPainter(
-        text: TextSpan(
-          text: dayStr,
-          style: GoogleFonts.nunito(fontSize: 28, fontWeight: FontWeight.w300, color: AppColors.textDark),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      dayPainter.paint(canvas, center - Offset(dayPainter.width / 2, 75));
-
-      final monthPainter = TextPainter(
-        text: TextSpan(
-          text: monthStr,
-          style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.textMedium),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      monthPainter.paint(canvas, center - Offset(monthPainter.width / 2, 45));
-    }
-
-    // --- 2. Draw Phase Day (Middle) ---
-    final displayPhaseName = phaseName == 'Menstrual' ? 'Period' : phaseName;
-    final dayInPhasePainter = TextPainter(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: '$displayPhaseName day ',
-            style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark),
-          ),
-          TextSpan(
-            text: '${dayInPhase ?? 1}',
-            style: GoogleFonts.nunito(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textDark),
-          ),
-        ],
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    dayInPhasePainter.paint(canvas, center - Offset(dayInPhasePainter.width / 2, 5));
-
-    // --- 3. Draw pregnancy chance ---
-    final chancePainter = TextPainter(
-      text: TextSpan(
-        text: 'Low chance of getting pregnant',
-        style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textMedium),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    chancePainter.paint(canvas, center - Offset(chancePainter.width / 2, -25));
-
-    // --- 4. Draw next phase info (Bottom) ---
-    if (nextPhaseName != null && daysUntilNextPhase != null) {
-      final nextPhaseText = daysUntilNextPhase == 0 
-          ? 'Phase change today!' 
-          : '$daysUntilNextPhase ${daysUntilNextPhase == 1 ? 'day' : 'days'} until ${nextPhaseName![0].toUpperCase()}${nextPhaseName!.substring(1)}';
-      
-      final nextPhasePainter = TextPainter(
-        text: TextSpan(
-          text: nextPhaseText,
-          style: GoogleFonts.nunito(
-            fontSize: 10, 
-            fontWeight: FontWeight.w700, 
-            color: const Color(0xFFD946EF),
-            letterSpacing: 0.2
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      nextPhasePainter.paint(canvas, center - Offset(nextPhasePainter.width / 2, -50));
-    }
   }
 
   void _drawWaves(Canvas canvas, Offset center, double radius, double fillLevel) {

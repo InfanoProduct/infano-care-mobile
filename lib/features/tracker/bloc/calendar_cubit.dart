@@ -77,9 +77,9 @@ class CalendarCubit extends Cubit<CalendarState> {
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
-  Future<void> loadCalendarData() async {
+  Future<void> loadCalendarData({bool forceRefresh = false}) async {
     emit(const CalendarState.loading());
-    await _fetchAndEmit(_viewYear, _viewMonth);
+    await _fetchAndEmit(_viewYear, _viewMonth, forceRefresh: forceRefresh);
   }
 
   /// Navigate month by [delta] (+1 = forward, -1 = back).
@@ -235,6 +235,8 @@ class CalendarCubit extends Cubit<CalendarState> {
   /// Call this after a successful POST /logs to invalidate & reload.
   Future<void> refreshAfterLog() async {
     await _repository.invalidateLogsCache();
+    await _repository.invalidateCyclesCache();
+    await _repository.invalidatePredictionCache();
     await _fetchAndEmit(_viewYear, _viewMonth, forceRefresh: true);
   }
 

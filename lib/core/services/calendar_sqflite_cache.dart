@@ -14,7 +14,7 @@ import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.d
 ///  - cycles     key = `latest`        TTL = 60 min
 class CalendarSqfliteCache {
   static const _dbName = 'infano_calendar_cache.db';
-  static const _dbVersion = 1;
+  static const _dbVersion = 2;
 
   static const _tableLogs = 'logs_cache';
   static const _tablePrediction = 'prediction_cache';
@@ -38,38 +38,50 @@ class CalendarSqfliteCache {
     return openDatabase(
       path,
       version: _dbVersion,
-      onCreate: (db, _) async {
-        await db.execute('''
-          CREATE TABLE $_tableLogs (
-            key TEXT PRIMARY KEY,
-            payload TEXT NOT NULL,
-            expires_at INTEGER NOT NULL
-          )
-        ''');
-        await db.execute('''
-          CREATE TABLE $_tablePrediction (
-            key TEXT PRIMARY KEY,
-            payload TEXT NOT NULL,
-            expires_at INTEGER NOT NULL
-          )
-        ''');
-        await db.execute('''
-          CREATE TABLE $_tableCycles (
-            key TEXT PRIMARY KEY,
-            payload TEXT NOT NULL,
-            expires_at INTEGER NOT NULL
-          )
-        ''');
-        await db.execute('''
-          CREATE TABLE $_tableOfflineQueue (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            endpoint TEXT NOT NULL,
-            payload TEXT NOT NULL,
-            created_at INTEGER NOT NULL
-          )
-        ''');
+      onCreate: (db, _) => _createTables(db),
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // Force clear stale dummy data by dropping tables
+          await db.execute('DROP TABLE IF EXISTS $_tableLogs');
+          await db.execute('DROP TABLE IF EXISTS $_tablePrediction');
+          await db.execute('DROP TABLE IF EXISTS $_tableCycles');
+          await db.execute('DROP TABLE IF EXISTS $_tableOfflineQueue');
+          await _createTables(db);
+        }
       },
     );
+  }
+
+  Future<void> _createTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE $_tableLogs (
+        key TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        expires_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE $_tablePrediction (
+        key TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        expires_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE $_tableCycles (
+        key TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        expires_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE $_tableOfflineQueue (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        endpoint TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      )
+    ''');
   }
 
   // ── Logs ───────────────────────────────────────────────────────────────────

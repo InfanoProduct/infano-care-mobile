@@ -15,7 +15,7 @@ class LastPeriodDateScreen extends StatefulWidget {
 }
 
 class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
-  DateTime? _selected;
+  DateTime? _selected = DateTime.now();
   bool _dontRemember = false;
 
   @override
@@ -66,7 +66,7 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
                   colorScheme: const ColorScheme.light(primary: AppColors.purple),
                 ),
                 child: CalendarDatePicker(
-                  initialDate: _selected ?? DateTime.now().subtract(const Duration(days: 14)),
+                  initialDate: _selected ?? DateTime.now(),
                   firstDate: DateTime.now().subtract(const Duration(days: 90)),
                   lastDate: DateTime.now(),
                   onDateChanged: (d) => setState(() { _selected = d; _dontRemember = false; }),

@@ -95,7 +95,22 @@ class _CycleSettingsScreenState extends State<CycleSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader('Baseline Data', 'Update your average cycle details to improve prediction accuracy.'),
+                if (_lastPeriodStart == null) ...[
+                  Center(
+                    child: Image.asset(
+                      'assets/images/period_onboarding.png',
+                      height: 180,
+                      fit: BoxFit.contain,
+                    ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+                _buildSectionHeader(
+                  _lastPeriodStart == null ? 'Welcome! ✨' : 'Baseline Data', 
+                  _lastPeriodStart == null 
+                    ? 'Let\'s set up your tracker. Tell us about your typical cycle to start receiving AI-powered predictions.'
+                    : 'Update your average cycle details to improve prediction accuracy.'
+                ),
                 const SizedBox(height: 32),
                 
                 _buildDateTile(),
@@ -258,7 +273,10 @@ class _CycleSettingsScreenState extends State<CycleSettingsScreen> {
         ),
         child: _isSaving 
           ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-          : const Text('Save Changes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          : Text(
+              _lastPeriodStart == null ? 'Start My Journey' : 'Save Changes', 
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+            ),
       ),
     );
   }

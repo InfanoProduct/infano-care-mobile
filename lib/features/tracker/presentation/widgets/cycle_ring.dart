@@ -28,6 +28,7 @@ class CycleRing extends StatefulWidget {
 }
 
 class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
+  int _centerDataIndex = 0; // 0: Date/Phase/Day, 1: Period/Pregnancy/Avg
   int _viewingCycleIndex = 0; // 0 is current, 1+ is history
   double? _selectedDaySmooth; // Double for smooth animation
   bool _isDragging = false;
@@ -46,7 +47,17 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
-    _selectedDaySmooth = widget.profile.currentCycleDay?.toDouble();
+    
+    int localCurrentDay = 1;
+    if (widget.profile.lastPeriodStart != null) {
+      final now = DateTime.now();
+      final todayDate = DateTime(now.year, now.month, now.day);
+      final lastStart = widget.profile.lastPeriodStart!;
+      final startDate = DateTime(lastStart.year, lastStart.month, lastStart.day);
+      localCurrentDay = todayDate.difference(startDate).inDays + 1;
+      if (localCurrentDay < 1) localCurrentDay = 1;
+    }
+    _selectedDaySmooth = localCurrentDay.toDouble();
   }
 
   @override
@@ -91,9 +102,11 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     final innerR = size * 0.36;
     final outerR = size * 0.46;
 
-    // 1. Center Disc Tap
+    // 1. Center Disc Tap -> Cycle Data Sets
     if (distance < innerR) {
-       _openDailyLog();
+       setState(() {
+         _centerDataIndex = (_centerDataIndex + 1) % 3;
+       });
        return;
     }
 
@@ -160,22 +173,30 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
       builder: (context, constraints) {
         final double size = constraints.maxWidth;
         
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapUp: (details) => _handleTap(details, constraints),
-          onPanStart: (details) => _handlePanUpdate(DragUpdateDetails(
-            globalPosition: details.globalPosition,
-            localPosition: details.localPosition,
-          ), constraints),
-          onPanUpdate: (details) => _handlePanUpdate(details, constraints),
-          onPanEnd: (details) {
-            _handleSwipe(details);
-            _handlePanEnd();
-          },
-          child: FadeTransition(
-            opacity: _fadeController,
-            child: _getPainterWidget(size),
-          ),
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapUp: (details) => _handleTap(details, constraints),
+              onPanStart: (details) => _handlePanUpdate(DragUpdateDetails(
+                globalPosition: details.globalPosition,
+                localPosition: details.localPosition,
+              ), constraints),
+              onPanUpdate: (details) => _handlePanUpdate(details, constraints),
+              onPanEnd: (details) {
+                _handleSwipe(details);
+                _handlePanEnd();
+              },
+              child: FadeTransition(
+                opacity: _fadeController,
+                child: _getPainterWidget(size),
+              ),
+            ),
+            // Center Content Layer
+            if (_viewingCycleIndex == 0) // Only show in current cycle view
+              _buildCenterContent(size),
+          ],
         );
       }
     );
@@ -195,19 +216,23 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
           totalCycleDays: record.cycleLengthDays ?? 28,
           confidenceLevel: 'high',
           currentProgress: 1.0,
-          phaseEmoji: '📊',
-          phaseName: 'Past Cycle ${record.cycleNumber}',
           historicalSegments: [0.0, (record.periodDurationDays ?? 5) / (record.cycleLengthDays ?? 28)],
         ),
       );
     }
 
-    final currentDay = widget.profile.currentCycleDay;
+    final now = DateTime.now();
+    final lastStart = widget.profile.lastPeriodStart ?? now;
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final startDate = DateTime(lastStart.year, lastStart.month, lastStart.day);
+    
+    int localCurrentDay = todayDate.difference(startDate).inDays + 1;
+    if (localCurrentDay < 1) localCurrentDay = 1;
+    
     final avgLength = widget.profile.avgCycleLength;
-    final displayDay = _selectedDaySmooth?.round() ?? currentDay ?? 1;
+    final displayDay = _selectedDaySmooth?.round() ?? localCurrentDay;
     
     // Calculate absolute date
-    final lastStart = widget.profile.lastPeriodStart ?? DateTime.now();
     final absoluteDate = lastStart.add(Duration(days: displayDay - 1));
     final formattedDate = DateFormat('d MMMM').format(absoluteDate);
 
@@ -231,23 +256,203 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
             trackerMode: widget.profile.trackerMode,
             totalCycleDays: avgLength,
             confidenceLevel: widget.prediction?.confidenceLevel ?? 'none',
-            currentProgress: (currentDay ?? 1) / avgLength.toDouble(),
-            currentDay: currentDay,
+            currentProgress: localCurrentDay / avgLength.toDouble(),
+            currentDay: localCurrentDay,
             selectedDaySmooth: _selectedDaySmooth,
             isDragging: _isDragging,
             innerColor: phaseColor,
             waveValue: _waveController.value,
-            formattedDate: formattedDate,
-            dayInPhase: dayInPhase,
-            phaseEmoji: _getPhaseEmoji(selectedPhase),
-            phaseName: _getPhaseName(selectedPhase),
-            nextPhaseName: nextPhaseInfo['name'] as String?,
-            daysUntilNextPhase: nextPhaseInfo['daysLeft'] as int?,
-            coefficientOfVar: widget.prediction?.coefficientOfVar ?? 0.0,
           ),
         );
       },
     );
+  }
+
+  Widget _buildCenterContent(double size) {
+    final innerR = size * 0.36;
+    final avgLength = widget.profile.avgCycleLength;
+    final displayDay = _selectedDaySmooth?.round() ?? widget.profile.currentCycleDay ?? 1;
+    final selectedPhase = _calculatePhase(displayDay, avgLength);
+    final nextPhaseInfo = _calculateNextPhase(displayDay, avgLength);
+    
+    // Formatting date
+    final now = DateTime.now();
+    final lastStart = widget.profile.lastPeriodStart ?? now;
+    final absoluteDate = lastStart.add(Duration(days: displayDay - 1));
+    final dayStr = DateFormat('d').format(absoluteDate);
+    final monthStr = DateFormat('MMMM').format(absoluteDate).toLowerCase();
+
+    return IgnorePointer( // Let taps pass to the ring gesture detector
+      child: Container(
+        width: innerR * 2,
+        height: innerR * 2,
+        alignment: Alignment.center,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.1),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            );
+          },
+          child: _centerDataIndex == 0 
+            ? _buildSetOne(dayStr, monthStr, selectedPhase, displayDay, nextPhaseInfo)
+            : _centerDataIndex == 1
+              ? _buildSetTwo(selectedPhase)
+              : _buildSetThree(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSetOne(String day, String month, String phase, int cycleDay, Map<String, dynamic> nextPhase) {
+    final nextPhaseName = nextPhase['name'] as String?;
+    final daysUntilNextPhase = nextPhase['daysLeft'] as int?;
+    
+    return Column(
+      key: const ValueKey('set_one'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 10),
+        Text(day, style: GoogleFonts.nunito(fontSize: 32, fontWeight: FontWeight.w300, color: AppColors.textDark)),
+        Text(month, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.textMedium)),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_getPhaseEmoji(phase), style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 6),
+            Text(
+              _getPhaseName(phase),
+              style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark),
+            ),
+          ],
+        ),
+        Text(
+          'Cycle day $cycleDay',
+          style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark),
+        ),
+        const SizedBox(height: 8),
+        if (nextPhaseName != null && daysUntilNextPhase != null)
+          Text(
+            daysUntilNextPhase == 0 
+              ? 'Phase change today!' 
+              : '$daysUntilNextPhase ${daysUntilNextPhase == 1 ? 'day' : 'days'} until ${nextPhaseName[0].toUpperCase()}${nextPhaseName.substring(1)}',
+            style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMedium),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSetTwo(String phase) {
+    final avgLength = widget.profile.avgCycleLength;
+    final avgPeriod = widget.profile.avgPeriodDuration ?? 5;
+    
+    // Calculate days until period
+    int daysToPeriod = 0;
+    if (widget.prediction?.predictedStart != null) {
+      daysToPeriod = widget.prediction!.predictedStart.difference(DateTime.now()).inDays;
+      if (daysToPeriod < 0) daysToPeriod = 0;
+    }
+
+    String pregnancyChance = 'Low';
+    if (phase == 'follicular') pregnancyChance = 'Medium';
+    if (phase == 'ovulation') pregnancyChance = 'High';
+
+    return Column(
+      key: const ValueKey('set_two'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          '$daysToPeriod days',
+          style: GoogleFonts.nunito(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.purple),
+        ),
+        Text(
+          'until next period',
+          style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textMedium),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: _getPregnancyColor(pregnancyChance).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            '$pregnancyChance chance of pregnancy',
+            style: GoogleFonts.nunito(
+              fontSize: 12, 
+              fontWeight: FontWeight.w700, 
+              color: _getPregnancyColor(pregnancyChance)
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildStatItem('Avg. Cycle', '$avgLength'),
+            _buildStatItem('Avg. Period', '${avgPeriod.round()}'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSetThree() {
+    final streak = widget.prediction?.currentLogStreak ?? 0;
+    final mode = widget.profile.trackerMode;
+    final displayMode = mode == 'active' ? 'Active Tracking' : 'Watching & Waiting';
+
+    return Column(
+      key: const ValueKey('set_three'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text('🔥', style: TextStyle(fontSize: 40)),
+        const SizedBox(height: 8),
+        Text(
+          '$streak Day Streak',
+          style: GoogleFonts.nunito(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.pink),
+        ),
+        Text(
+          'Keep logging to bloom! ✨',
+          style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMedium),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.purple.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            displayMode,
+            style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.purple),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textDark)),
+        Text(label, style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textMedium)),
+      ],
+    );
+  }
+
+  Color _getPregnancyColor(String chance) {
+    if (chance == 'High') return Colors.red;
+    if (chance == 'Medium') return Colors.orange;
+    return Colors.green;
   }
 
   int _calculateDayInPhase(int day, int avgLength) {

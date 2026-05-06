@@ -31,7 +31,7 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
             onPressed: state.isLoading ? null : () async {
               final bloc = context.read<OnboardingBloc>();
               bloc.add(SetTrackerDetails(_periodLength, _cycleLength, bloc.state.lastPeriod));
-              bloc.add(const SubmitTrackerSetup());
+              bloc.add(const SubmitTrackerSetup('active'));
 
               // Wait for submission completion
               await for (final s in bloc.stream) {

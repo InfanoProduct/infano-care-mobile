@@ -75,6 +75,8 @@ dependencies:
   image_cropper: ^12.2.1
   record: ^6.2.0
   audioplayers: ^6.6.0
+  pdf: ^3.12.0
+  printing: ^5.14.3
 
 dev_dependencies:
   flutter_test:
@@ -105,4 +107,5 @@ flutter:
     - assets/images/maya.png
     - assets/images/hook.jpeg
     - assets/images/community_banner.png
+    - assets/images/period_onboarding.png
     - assets/images/book/

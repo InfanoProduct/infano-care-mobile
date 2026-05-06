@@ -51,10 +51,23 @@ class _WelcomeWorldScreenState extends State<WelcomeWorldScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('🌸', style: const TextStyle(fontSize: 100))
-                  .animate(onPlay: (c) => c.repeat())
-                  .scaleXY(begin: 0.9, end: 1.1, duration: 1500.ms, curve: Curves.easeInOut)
-                  .then().scaleXY(begin: 1.1, end: 0.9, duration: 1500.ms),
+                BlocBuilder<OnboardingBloc, OnboardingState>(
+                  builder: (context, state) {
+                    if (state.periodStatus == 'waiting') {
+                      return Image.asset(
+                        'assets/images/period_onboarding.png',
+                        height: 200,
+                        fit: BoxFit.contain,
+                      ).animate()
+                       .scaleXY(begin: 0.9, end: 1.05, duration: 1500.ms, curve: Curves.easeInOut)
+                       .then().scaleXY(begin: 1.05, end: 0.9, duration: 1500.ms);
+                    }
+                    return Text('🌸', style: const TextStyle(fontSize: 100))
+                      .animate(onPlay: (c) => c.repeat())
+                      .scaleXY(begin: 0.9, end: 1.1, duration: 1500.ms, curve: Curves.easeInOut)
+                      .then().scaleXY(begin: 1.1, end: 0.9, duration: 1500.ms);
+                  },
+                ),
                 const SizedBox(height: 32),
                 Text('You\'re in! 🎉', style: Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white))
                   .animate(delay: 500.ms).fadeIn(duration: 500.ms).slideY(begin: 0.3, duration: 500.ms),

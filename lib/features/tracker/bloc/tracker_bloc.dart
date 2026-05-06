@@ -1,7 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
+import 'package:infano_care_mobile/features/tracker/data/models/insight_models.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
+
+import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 
 part 'tracker_bloc.freezed.dart';
 
@@ -22,16 +25,20 @@ class TrackerState with _$TrackerState {
     PredictionResultModel? prediction,
     @Default([]) List<CycleLogModel> recentLogs,
     @Default([]) List<CycleRecordModel> history,
+    @Default([]) List<DailyInsight> dailyInsights,
+    @Default([]) List<Map<String, String>> recommendedArticles,
     String? milestone,
   }) = _Loaded;
   const factory TrackerState.notStarted() = _NotStarted;
   const factory TrackerState.error(String message) = _Error;
 }
 
+
 class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
   final TrackerRepository _repository;
+  final LocalStorageService _storage;
 
-  TrackerBloc(this._repository) : super(const TrackerState.initial()) {
+  TrackerBloc(this._repository, this._storage) : super(const TrackerState.initial()) {
     on<_Load>((event, emit) async {
       emit(const TrackerState.loading());
       try {
@@ -41,20 +48,51 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
           return;
         }
 
+        // If we found a profile, the user IS onboarded for the tracker
+        if (!_storage.isOnboarded) {
+          await _storage.setIsOnboarded(true);
+          await _storage.setStepComplete('13'); // Completed all steps
+        }
+
         final prediction = await _repository.getPrediction();
         final logs = await _repository.getLogs();
         final history = await _repository.getHistory();
+        final insightsData = await _repository.getDailyInsights();
+
+        final dailyInsights = (insightsData['insights'] as List? ?? [])
+            .map((i) => DailyInsight(
+                  id: i['id'],
+                  previewTitle: i['previewTitle'],
+                  previewEmoji: i['previewEmoji'],
+                  previewColorHex: i['previewColorHex'],
+                  stories: (i['stories'] as List? ?? [])
+                      .map((s) => InsightStory(
+                            id: s['id'],
+                            title: s['title'],
+                            imageUrl: s['imageUrl'],
+                            content: s['content'],
+                          ))
+                      .toList(),
+                ))
+            .toList();
+
+        final articles = (insightsData['articles'] as List? ?? [])
+            .map((a) => Map<String, String>.from(a))
+            .toList();
 
         emit(TrackerState.loaded(
           profile: profile,
           prediction: prediction,
           recentLogs: logs,
           history: history,
+          dailyInsights: dailyInsights,
+          recommendedArticles: articles,
         ));
       } catch (e) {
         emit(TrackerState.error(e.toString()));
       }
     });
+
 
     on<_LogDaily>((event, emit) async {
       final currentState = state;
@@ -73,11 +111,16 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
             prediction: prediction,
             recentLogs: logs,
             history: history,
-            milestone: result['milestone'], // Pass milestone to UI
+            dailyInsights: currentState.dailyInsights,
+            recommendedArticles: currentState.recommendedArticles,
+            milestone: result['milestone'],
           ));
         }
       } catch (e) {
-        // Handle error toast in UI
+        // Emit error so the UI can show a toast, then restore the previous state
+        emit(TrackerState.error(e.toString()));
+        await Future.delayed(const Duration(milliseconds: 100));
+        emit(currentState);
       }
     });
 
