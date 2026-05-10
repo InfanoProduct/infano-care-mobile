@@ -4,17 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:infano_care_mobile/core/services/calendar_sqflite_cache.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
-import 'package:infano_care_mobile/core/services/privacy_service.dart';
-
 @lazySingleton
 class TrackerRepository {
   final Dio _dio;
-  final PrivacyService _privacyService;
 
   /// Singleton SQLite cache shared across all calls.
   final CalendarSqfliteCache _cache = CalendarSqfliteCache();
 
-  TrackerRepository(this._dio, this._privacyService);
+  TrackerRepository(this._dio);
 
   // ── Connectivity helper ────────────────────────────────────────────────────
 
@@ -138,10 +135,10 @@ class TrackerRepository {
   Future<List<CycleLogModel>> getLogs({String? from, String? to}) async {
     try {
       final response = await _dio.get('/tracker/logs', queryParameters: {
-        if (from != null) 'from': from,
-        if (to != null) 'to': to,
-      });
-      return (response.data as List)
+        'from': from,
+        'to': to,
+      }..removeWhere((_, v) => v == null));
+q      return (response.data as List)
           .map((json) => CycleLogModel.fromJson(json))
           .toList();
     } catch (e) {
@@ -308,8 +305,8 @@ class TrackerRepository {
 
   Future<void> updatePeriodRange(DateTime start, DateTime end) async {
     try {
-      final startStr = start.toUtc().toIso8601String();
-      final endStr = end.toUtc().toIso8601String();
+      final startStr = DateTime.utc(start.year, start.month, start.day).toIso8601String();
+      final endStr = DateTime.utc(end.year, end.month, end.day).toIso8601String();
 
       await _dio.post('/tracker/period-range', data: {
         'startDate': startStr,
@@ -326,88 +323,5 @@ class TrackerRepository {
                  'Failed to update period range';
       throw Exception(msg);
     }
-  }
-
-  // ── Demo / Dummy data ──────────────────────────────────────────────────────
-
-  bool _isDemoMode() => false; // Disabled to use real seeded data
-
-  List<CycleLogModel> _getDummyLogsForMonth(int year, int month) {
-    final from = DateTime(year, month, 1);
-    final to = DateTime(year, month + 1, 0);
-    final now = DateTime.now();
-    final logs = <CycleLogModel>[];
-
-    for (var d = from;
-        !d.isAfter(to) && !d.isAfter(now);
-        d = d.add(const Duration(days: 1))) {
-      final dayOfCycle = d.difference(now).inDays.abs() % 28;
-      String? flow;
-      if (dayOfCycle >= 0 && dayOfCycle < 5) {
-        flow = dayOfCycle == 0 || dayOfCycle == 4 ? 'light' : 'medium';
-      }
-      String? mood;
-      if (d.day % 3 == 0) mood = 'Happy';
-      if (d.day % 7 == 0) mood = 'Calm';
-
-      logs.add(CycleLogModel(
-        id: 'dummy_${d.year}_${d.month}_${d.day}',
-        date: d,
-        flow: flow,
-        moodPrimary: mood,
-        isRetroactive: d.isBefore(now.subtract(const Duration(days: 1))),
-      ));
-    }
-    return logs;
-  }
-
-  List<CycleLogModel> _getDummyLogs() {
-    final now = DateTime.now();
-    final logs = <CycleLogModel>[];
-    for (int i = 0; i < 90; i++) {
-      final date = now.subtract(Duration(days: i));
-      final dayOfCycle = i % 28;
-      String? flow;
-      if (dayOfCycle >= 0 && dayOfCycle < 5) {
-        flow = dayOfCycle == 0 || dayOfCycle == 4 ? 'light' : 'medium';
-      }
-      String? mood;
-      if (i % 3 == 0) mood = 'Happy';
-      if (i % 7 == 0) mood = 'Calm';
-      logs.add(CycleLogModel(
-        id: 'dummy_$i',
-        date: date,
-        flow: flow,
-        moodPrimary: mood,
-        isRetroactive: i > 0,
-      ));
-    }
-    return logs;
-  }
-
-  List<CycleRecordModel> _getDummyHistory() {
-    final now = DateTime.now();
-    return [
-      CycleRecordModel(
-        id: 'h1',
-        cycleNumber: 1,
-        startDate: now.subtract(const Duration(days: 28)),
-        periodStartDate: now.subtract(const Duration(days: 28)),
-        periodEndDate: now.subtract(const Duration(days: 23)),
-        cycleLengthDays: 28,
-        periodDurationDays: 5,
-        isComplete: true,
-      ),
-      CycleRecordModel(
-        id: 'h2',
-        cycleNumber: 2,
-        startDate: now.subtract(const Duration(days: 56)),
-        periodStartDate: now.subtract(const Duration(days: 56)),
-        periodEndDate: now.subtract(const Duration(days: 51)),
-        cycleLengthDays: 28,
-        periodDurationDays: 5,
-        isComplete: true,
-      ),
-    ];
   }
 }

@@ -6,21 +6,43 @@ import 'package:intl/intl.dart';
 
 class PeriodHistoryList extends StatelessWidget {
   final List<CycleRecordModel> cycles;
+  final CycleProfileModel profile;
   final void Function(String startDate) onCycleSelected;
 
   const PeriodHistoryList({
     super.key,
     required this.cycles,
+    required this.profile,
     required this.onCycleSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    // 1. Sort all cycles newest first
-    final sortedCycles = List<CycleRecordModel>.from(cycles)
-      ..sort((a, b) => b.startDate.compareTo(a.startDate));
+    // 1. Combine history with current active cycle from profile
+    final List<CycleRecordModel> displayList = List<CycleRecordModel>.from(cycles);
+    
+    final hasActiveCycle = profile.lastPeriodStart != null;
+    final isAlreadyInHistory = displayList.any((c) => 
+      c.startDate.year == profile.lastPeriodStart?.year && 
+      c.startDate.month == profile.lastPeriodStart?.month &&
+      c.startDate.day == profile.lastPeriodStart?.day
+    );
 
-    if (sortedCycles.isEmpty) {
+    if (hasActiveCycle && !isAlreadyInHistory) {
+      // Synthesize a current cycle record
+      displayList.add(CycleRecordModel(
+        id: 'current',
+        cycleNumber: (cycles.firstOrNull?.cycleNumber ?? 0) + 1,
+        startDate: profile.lastPeriodStart!,
+        periodStartDate: profile.lastPeriodStart!,
+        isComplete: false,
+      ));
+    }
+
+    // 2. Sort newest first
+    displayList.sort((a, b) => b.startDate.compareTo(a.startDate));
+
+    if (displayList.isEmpty) {
       return _buildEmptyState(context);
     }
 
@@ -46,11 +68,11 @@ class PeriodHistoryList extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.purple.withOpacity(0.1),
+                    color: AppColors.purple.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${sortedCycles.length}',
+                    '${displayList.length}',
                     style: GoogleFonts.nunito(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -61,7 +83,7 @@ class PeriodHistoryList extends StatelessWidget {
               ],
             ),
           ),
-          _buildListWithGaps(sortedCycles),
+          _buildListWithGaps(displayList),
         ],
       ),
     );
@@ -76,7 +98,7 @@ class PeriodHistoryList extends StatelessWidget {
         border: Border.all(color: const Color(0xFFF3F4F6)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.purple.withOpacity(0.05),
+            color: AppColors.purple.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -96,8 +118,8 @@ class PeriodHistoryList extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.purple.withOpacity(0.1),
-                      AppColors.purple.withOpacity(0),
+                      AppColors.purple.withValues(alpha: 0.1),
+                      AppColors.purple.withValues(alpha: 0),
                     ],
                   ),
                 ),
@@ -120,7 +142,7 @@ class PeriodHistoryList extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Your Cycle Journey Starts Here',
+                    'Cycle History',
                     style: GoogleFonts.nunito(
                       fontWeight: FontWeight.w900,
                       fontSize: 18,
@@ -129,7 +151,7 @@ class PeriodHistoryList extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Log your past periods to unlock personalized predictions and health insights. Gigi works best with 2-3 months of history!',
+                    'Track your body\'s natural patterns. Your cycle history will appear here once you start logging your periods.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.nunito(
                       color: AppColors.textMedium,
@@ -197,8 +219,8 @@ class _CycleHistoryRow extends StatelessWidget {
     
     final periodDuration = cycle.periodDurationDays ?? 5;
     final cycleLen = cycle.cycleLengthDays ?? 28;
-    final errorDays = cycle.predictionErrorDays ?? 0;
-    final isIrregular = errorDays.abs() > 4;
+    // final errorDays = cycle.predictionErrorDays ?? 0;
+    // final isIrregular = errorDays.abs() > 4;
 
     return InkWell(
       onTap: onTap,
@@ -214,7 +236,7 @@ class _CycleHistoryRow extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

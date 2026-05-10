@@ -6,10 +6,10 @@ class JoinedCircleCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const JoinedCircleCard({
-    Key? key,
+    super.key,
     required this.circle,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class JoinedCircleCard extends StatelessWidget {
     } catch (e) {
       accentColor = const Color(0xFF6D28D9); // Fallback color
     }
-    final Color pastelBg = accentColor.withOpacity(0.12);
+    final Color pastelBg = accentColor.withValues(alpha: 0.12);
     
     return GestureDetector(
       onTap: onTap,
@@ -29,10 +29,10 @@ class JoinedCircleCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: pastelBg,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: accentColor.withOpacity(0.1), width: 1.5),
+          border: Border.all(color: accentColor.withValues(alpha: 0.1), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: accentColor.withOpacity(0.06),
+              color: accentColor.withValues(alpha: 0.06),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -50,7 +50,7 @@ class JoinedCircleCard extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.05),
+                    color: accentColor.withValues(alpha: 0.05),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -70,7 +70,7 @@ class JoinedCircleCard extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -131,7 +131,7 @@ class JoinedCircleCard extends StatelessWidget {
                       circle.description ?? 'Share your journey with others in this safe space.',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.black87.withOpacity(0.65),
+                        color: Colors.black87.withValues(alpha: 0.65),
                         height: 1.5,
                         fontWeight: FontWeight.w500,
                       ),

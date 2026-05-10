@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/onboarding/data/onboarding_repository.dart';
-import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:dio/dio.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -36,6 +35,7 @@ class OnboardingState extends Equatable {
   final bool sessionExpired;
   final bool isBootstrapping;
   final bool isIrregular;
+  final String? parentEmail;
 
   const OnboardingState({
     this.isBootstrapping    = false,
@@ -65,6 +65,7 @@ class OnboardingState extends Equatable {
     this.errorMessage,
     this.sessionExpired     = false,
     this.isIrregular        = false,
+    this.parentEmail,
   });
 
   OnboardingState copyWith({
@@ -76,7 +77,7 @@ class OnboardingState extends Equatable {
     Map<String, dynamic>? avatarData, String? journeyName,
     int? totalPoints, DateTime? lastPeriod, int? periodLength, int? cycleLength,
     bool? isLoading, String? errorMessage, bool? sessionExpired,
-    bool? isIrregular, bool? isBootstrapping,
+    bool? isIrregular, bool? isBootstrapping, String? parentEmail,
   }) {
     return OnboardingState(
       isBootstrapping:    isBootstrapping   ?? this.isBootstrapping,
@@ -106,6 +107,7 @@ class OnboardingState extends Equatable {
       errorMessage:       errorMessage,
       sessionExpired:     sessionExpired    ?? this.sessionExpired,
       isIrregular:        isIrregular       ?? this.isIrregular,
+      parentEmail:        parentEmail       ?? this.parentEmail,
     );
   }
 
@@ -115,7 +117,7 @@ class OnboardingState extends Equatable {
     contentTier, coppaRequired, termsAccepted, privacyAccepted, marketingOptIn,
     goals, periodComfortScore, periodStatus, interestTopics, avatarData,
     journeyName, totalPoints, lastPeriod, periodLength, cycleLength,
-    isLoading, errorMessage, sessionExpired, isBootstrapping,
+    isLoading, errorMessage, sessionExpired, isBootstrapping, parentEmail,
   ];
 }
 
@@ -148,6 +150,8 @@ class SubmitTrackerSetup    extends OnboardingEvent { final String? overrideTrac
 class SkipTracker           extends OnboardingEvent { const SkipTracker(); }
 class SyncFromStorage       extends OnboardingEvent { const SyncFromStorage(); }
 class BootstrapApp         extends OnboardingEvent { const BootstrapApp(); }
+class SendConsentEmail     extends OnboardingEvent { final String email; const SendConsentEmail(this.email); @override List<Object?> get props => [email]; }
+class CheckConsentStatus   extends OnboardingEvent { const CheckConsentStatus(); }
 
 // ─── BLoC ─────────────────────────────────────────────────────────────────────
 
@@ -178,6 +182,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<SetRegularity>(_onSetRegularity);
     on<SkipTracker>(_onSkipTracker);
     on<BootstrapApp>(_onBootstrapApp);
+    on<SendConsentEmail>(_onSendConsentEmail);
+    on<CheckConsentStatus>(_onCheckConsentStatus);
   }
 
   void _onSetUserType(SetUserType e, Emitter<OnboardingState> emit) {
@@ -361,7 +367,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       }
 
       await _repo.trackerSetup(
-        lastPeriodStart:  state.lastPeriod?.toIso8601String(),
+        lastPeriodStart:  state.lastPeriod != null 
+            ? DateTime.utc(state.lastPeriod!.year, state.lastPeriod!.month, state.lastPeriod!.day).toIso8601String()
+            : null,
         periodLengthDays: state.periodLength,
         cycleLengthDays:  state.cycleLength,
         trackerMode:      trackerMode,
@@ -436,6 +444,29 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         await _storage.clearSession();
       }
       emit(state.copyWith(isBootstrapping: false));
+    }
+  }
+
+  Future<void> _onSendConsentEmail(SendConsentEmail e, Emitter<OnboardingState> emit) async {
+    emit(state.copyWith(isLoading: true, errorMessage: null));
+    try {
+      await _repo.sendConsentEmail(e.email);
+      emit(state.copyWith(isLoading: false, parentEmail: e.email));
+    } catch (err) {
+      emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
+    }
+  }
+
+  Future<void> _onCheckConsentStatus(CheckConsentStatus e, Emitter<OnboardingState> emit) async {
+    try {
+      final status = await _repo.getConsentStatus();
+      if (status == 'approved') {
+        // If approved, we can proceed to terms (step 10)
+        _storage.setStepComplete('10');
+        _repo.updateStep(10);
+      }
+    } catch (_) {
+      // Polling errors are ignored to avoid flickering
     }
   }
 }

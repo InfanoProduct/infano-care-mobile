@@ -5,10 +5,10 @@ class FriendEmptyState extends StatelessWidget {
   final VoidCallback onExploreCircles;
 
   const FriendEmptyState({
-    Key? key,
+    super.key,
     required this.onWidenRadius,
     required this.onExploreCircles,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

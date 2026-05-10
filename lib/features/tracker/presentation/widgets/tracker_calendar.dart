@@ -46,7 +46,7 @@ class _TrackerCalendarState extends State<TrackerCalendar> {
             _focusedDay = focusedDay;
           },
           calendarStyle: CalendarStyle(
-            todayDecoration: BoxDecoration(color: AppColors.purple.withOpacity(0.1), shape: BoxShape.circle),
+            todayDecoration: BoxDecoration(color: AppColors.purple.withValues(alpha: 0.1), shape: BoxShape.circle),
             todayTextStyle: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold),
             selectedDecoration: const BoxDecoration(color: AppColors.purple, shape: BoxShape.circle),
             markerDecoration: const BoxDecoration(color: AppColors.pink, shape: BoxShape.circle),
@@ -72,7 +72,7 @@ class _TrackerCalendarState extends State<TrackerCalendar> {
                     if (log?.flow != null && log!.flow != 'none')
                       _buildMarker(AppColors.pink),
                     if (_isPredictedPeriod(date))
-                      _buildMarker(AppColors.purple.withOpacity(0.3)),
+                      _buildMarker(AppColors.purple.withValues(alpha: 0.3)),
                     if (log?.moodPrimary != null)
                       const Text('•', style: TextStyle(color: Colors.blue, fontSize: 12)),
                   ],
@@ -103,7 +103,7 @@ class _TrackerCalendarState extends State<TrackerCalendar> {
         runSpacing: 8,
         children: [
           _legendItem('Period', AppColors.pink),
-          _legendItem('Predicted', AppColors.purple.withOpacity(0.3)),
+          _legendItem('Predicted', AppColors.purple.withValues(alpha: 0.3)),
           _legendItem('Logged', Colors.blue),
         ],
       ),

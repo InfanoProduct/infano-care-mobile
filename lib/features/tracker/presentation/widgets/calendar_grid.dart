@@ -23,6 +23,9 @@ class CalendarGrid extends StatefulWidget {
   /// Dates inside the predicted period window (yyyy-MM-dd strings).
   final Set<String> predictionDates;
 
+  /// Dates that already have a period recorded (used for highlighting in edit mode).
+  final Set<String> existingPeriodDates;
+
   /// Dates inside the fertility window (yyyy-MM-dd strings).
   final Set<String> fertilityDates;
 
@@ -45,6 +48,7 @@ class CalendarGrid extends StatefulWidget {
     required this.logs,
     required this.phaseMap,
     required this.predictionDates,
+    this.existingPeriodDates = const {},
     this.fertilityDates = const {},
     this.predictedCycles = const [],
     this.selectedDate,
@@ -211,8 +215,10 @@ class _CalendarGridState extends State<CalendarGrid>
     final dayKey    = PredictionWindowsComputer.toKey(day);
     final isOtherM  = day.month != widget.month.month;
     final isToday   = DateUtils.isSameDay(day, DateTime.now());
+    final isFuture  = day.isAfter(DateTime.now());
     final isSelected = dayKey == widget.selectedDate;
     final isPredicted = widget.predictionDates.contains(dayKey);
+    final isPrevPeriod = widget.existingPeriodDates.contains(dayKey);
 
     // Phase → PhaseType bridge
     final cyclePhase = widget.phaseMap[dayKey] ?? CyclePhase.unknown;
@@ -263,6 +269,8 @@ class _CalendarGridState extends State<CalendarGrid>
       isStreakStatic: isStaticStreak,
       isEditMode: widget.isEditMode,
       isInEditRange: _isInRange(day),
+      isPreviousPeriod: isPrevPeriod,
+      isFutureDate: isFuture,
       onTap: () => widget.onDayTap(day),
     );
   }

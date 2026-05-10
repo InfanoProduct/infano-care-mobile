@@ -6,7 +6,7 @@ class FriendMatchDialog extends StatefulWidget {
   final String nickname;
   final String matchId;
 
-  const FriendMatchDialog({Key? key, required this.nickname, required this.matchId}) : super(key: key);
+  const FriendMatchDialog({super.key, required this.nickname, required this.matchId});
 
   static void show(BuildContext context, String nickname, String matchId) {
     showGeneralDialog(
@@ -75,7 +75,7 @@ class _FriendMatchDialogState extends State<FriendMatchDialog> {
               borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.pink.withOpacity(0.3),
+                  color: Colors.pink.withValues(alpha: 0.3),
                   blurRadius: 40,
                   spreadRadius: 10,
                 )

@@ -13,7 +13,7 @@ import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
 class PeerLineTab extends StatefulWidget {
-  const PeerLineTab({Key? key}) : super(key: key);
+  const PeerLineTab({super.key});
 
   @override
   State<PeerLineTab> createState() => _PeerLineTabState();
@@ -25,7 +25,6 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
   bool _isLoadingRole = true;
   bool _viewAsMentee = false;
 
-  Future<MentorAvailability?>? _availabilityFuture;
   Future<List<PeerLineSession>>? _sessionsFuture;
   Future<List<Map<String, dynamic>>>? _mentorsFuture;
 
@@ -151,12 +150,11 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
   void _refreshData() {
     if (!mounted) return;
     setState(() {
-      _availabilityFuture = _api.getPeerLineAvailability().then((avail) {
+      _api.getPeerLineAvailability().then((avail) {
         if (mounted) {
           final socketService = Provider.of<CommunitySocketService>(context, listen: false);
           socketService.availabilityUpdates.value = avail;
         }
-        return avail;
       });
       
       _sessionsFuture = _api.getPeerLineSessions(
@@ -455,7 +453,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 4, offset: const Offset(0, 2)),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4, offset: const Offset(0, 2)),
                   ],
                 ),
                 labelColor: AppColors.purple,
@@ -624,7 +622,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
 class _SessionListItem extends StatelessWidget {
   final PeerLineSession session;
 
-  const _SessionListItem({Key? key, required this.session}) : super(key: key);
+  const _SessionListItem({required this.session});
 
   @override
   Widget build(BuildContext context) {
@@ -641,7 +639,7 @@ class _SessionListItem extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -655,7 +653,7 @@ class _SessionListItem extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.purple.withOpacity(0.1),
+              color: AppColors.purple.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -709,7 +707,7 @@ class _SessionListItem extends StatelessWidget {
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontStyle: FontStyle.italic,
-                        color: AppColors.textDark.withOpacity(0.7),
+                        color: AppColors.textDark.withValues(alpha: 0.7),
                         height: 1.3,
                       ),
                       maxLines: 2,
@@ -760,7 +758,7 @@ class _SessionListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -776,7 +774,7 @@ class _ActiveSessionCard extends StatelessWidget {
 
   final PeerLineSession session;
 
-  const _ActiveSessionCard({Key? key, required this.session}) : super(key: key);
+  const _ActiveSessionCard({required this.session});
 
   @override
   Widget build(BuildContext context) {
@@ -797,7 +795,7 @@ class _ActiveSessionCard extends StatelessWidget {
       titleText = 'Waiting for $mentorName to accept';
       subtitleText = 'Request has been sent. Once the mentor accepts, you\'ll be able to chat.';
       buttonText = 'Awaiting Response';
-      cardBorderColor = AppColors.purple.withOpacity(0.25);
+      cardBorderColor = AppColors.purple.withValues(alpha: 0.25);
       buttonColor = Colors.grey.shade100;
       buttonTextColor = Colors.grey.shade400;
       leadingIcon = Icons.hourglass_empty;
@@ -805,7 +803,7 @@ class _ActiveSessionCard extends StatelessWidget {
       titleText = 'Finding your mentor...';
       subtitleText = 'You are in the queue';
       buttonText = 'View Status';
-      cardBorderColor = AppColors.purple.withOpacity(0.25);
+      cardBorderColor = AppColors.purple.withValues(alpha: 0.25);
       buttonColor = AppColors.purple;
       buttonTextColor = Colors.white;
       leadingIcon = Icons.search_rounded;
@@ -814,7 +812,7 @@ class _ActiveSessionCard extends StatelessWidget {
       titleText = '$mentorName accepted your request!';
       subtitleText = 'Your mentor is ready. Tap below to start chatting.';
       buttonText = 'Initiate Chat';
-      cardBorderColor = const Color(0xFF10B981).withOpacity(0.4);
+      cardBorderColor = const Color(0xFF10B981).withValues(alpha: 0.4);
       buttonColor = const Color(0xFF10B981);
       buttonTextColor = Colors.white;
       leadingIcon = Icons.check_circle_rounded;
@@ -829,7 +827,7 @@ class _ActiveSessionCard extends StatelessWidget {
         border: Border.all(color: cardBorderColor, width: 2),
         boxShadow: [
           BoxShadow(
-            color: (isAccepted ? const Color(0xFF10B981) : AppColors.purple).withOpacity(0.08),
+            color: (isAccepted ? const Color(0xFF10B981) : AppColors.purple).withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -844,7 +842,7 @@ class _ActiveSessionCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: (isAccepted ? const Color(0xFF10B981) : AppColors.purple).withOpacity(0.12),
+                  color: (isAccepted ? const Color(0xFF10B981) : AppColors.purple).withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Stack(
@@ -913,7 +911,7 @@ class _ActiveSessionCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.06),
+                color: const Color(0xFF10B981).withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -974,10 +972,9 @@ class _TopMentorCard extends StatefulWidget {
   final VoidCallback onRequested;
 
   const _TopMentorCard({
-    Key? key,
     required this.mentor,
     required this.onRequested,
-  }) : super(key: key);
+  });
 
   @override
   State<_TopMentorCard> createState() => _TopMentorCardState();
@@ -1069,10 +1066,10 @@ class _TopMentorCardState extends State<_TopMentorCard> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.black.withOpacity(0.03), width: 1),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.03), width: 1),
         boxShadow: [
           BoxShadow(
-            color: bgColor.withOpacity(0.4),
+            color: bgColor.withValues(alpha: 0.4),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -1097,7 +1094,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                           width: 64,
                           height: 64,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                             borderRadius: BorderRadius.circular(22),
                           ),
                           alignment: Alignment.center,
@@ -1171,7 +1168,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                                       style: GoogleFonts.outfit(
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
-                                        color: const Color(0xFFFFB800).withOpacity(0.9),
+                                        color: const Color(0xFFFFB800).withValues(alpha: 0.9),
                                       ),
                                     ),
                                   ],
@@ -1183,9 +1180,9 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: accentColor.withOpacity(0.1)),
+                              border: Border.all(color: accentColor.withValues(alpha: 0.1)),
                             ),
                             child: Text(
                               category.toUpperCase(),
@@ -1228,16 +1225,16 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                   children: topics.take(3).map((topic) => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: accentColor.withOpacity(0.05)),
+                      border: Border.all(color: accentColor.withValues(alpha: 0.05)),
                     ),
                     child: Text(
                       topic,
                       style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: accentColor.withOpacity(0.8),
+                        color: accentColor.withValues(alpha: 0.8),
                       ),
                     ),
                   )).toList(),
@@ -1247,7 +1244,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                   bio,
                   style: GoogleFonts.outfit(
                     fontSize: 13,
-                    color: accentColor.withOpacity(0.7),
+                    color: accentColor.withValues(alpha: 0.7),
                     height: 1.4,
                   ),
                   maxLines: 2,
@@ -1261,7 +1258,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                     onPressed: _isRequested ? null : _handleRequest,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF7C3AED),
-                      disabledBackgroundColor: const Color(0xFF7C3AED).withOpacity(0.1),
+                      disabledBackgroundColor: const Color(0xFF7C3AED).withValues(alpha: 0.1),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,

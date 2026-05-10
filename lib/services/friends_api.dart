@@ -20,7 +20,9 @@ class FriendsApi {
     // Permission was already requested and granted on the Location Privacy step.
     // Just get the current position directly.
     Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.medium,
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.medium,
+      ),
     );
 
     // Geohash generation
@@ -66,7 +68,7 @@ class FriendsApi {
 
   Future<List<Map<String, dynamic>>> getMatches({String? status}) async {
     final response = await _dio.get('/friends/matches', queryParameters: {
-      if (status != null) 'status': status,
+      'status': ?status,
     });
     if (response.data != null && response.data['matches'] is List) {
       return List<Map<String, dynamic>>.from(response.data['matches']);

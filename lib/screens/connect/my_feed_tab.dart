@@ -7,7 +7,7 @@ import '../../core/services/local_storage_service.dart';
 import 'reply_thread_screen.dart';
 
 class MyFeedTab extends StatefulWidget {
-  const MyFeedTab({Key? key}) : super(key: key);
+  const MyFeedTab({super.key});
 
   @override
   State<MyFeedTab> createState() => _MyFeedTabState();

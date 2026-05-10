@@ -7,19 +7,19 @@ class TrackerCharacter {
 }
 
 class CharacterGreetingService {
-  static final Gigi = TrackerCharacter(name: 'Gigi', emoji: '🌸');
-  static final Lily = TrackerCharacter(name: 'Lily', emoji: '🌱');
-  static final Maya = TrackerCharacter(name: 'Maya', emoji: '🌪️');
+  static final gigi = TrackerCharacter(name: 'Gigi', emoji: '🌸');
+  static final lily = TrackerCharacter(name: 'Lily', emoji: '🌱');
+  static final maya = TrackerCharacter(name: 'Maya', emoji: '🌪️');
 
   static TrackerCharacter getCharacter(String mode) {
     switch (mode) {
       case 'watching_waiting':
-        return Lily;
+        return lily;
       case 'irregular_support':
-        return Maya;
+        return maya;
       case 'active':
       default:
-        return Gigi;
+        return gigi;
     }
   }
 

@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:go_router/go_router.dart';
-import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 
 class DataRightsPrivacyScreen extends StatefulWidget {
   const DataRightsPrivacyScreen({super.key});
@@ -80,6 +79,7 @@ class _DataRightsPrivacyScreenState extends State<DataRightsPrivacyScreen> {
     if (confirmed2 != true) return;
 
     try {
+      if (!mounted) return;
       showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
       await ApiService.instance.dio.delete('/api/v1/tracker/data/all');
       

@@ -101,10 +101,10 @@ class _FirstPeriodCelebrationScreenState extends State<FirstPeriodCelebrationScr
       height: 180,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withOpacity(0.3),
+        color: Colors.white.withValues(alpha: 0.3),
       ),
       child: Center(
-        child: Icon(Icons.favorite, size: 80, color: AppColors.pink.withOpacity(0.8))
+        child: Icon(Icons.favorite, size: 80, color: AppColors.pink.withValues(alpha: 0.8))
             .animate(onPlay: (c) => c.repeat())
             .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2), duration: 1500.ms, curve: Curves.easeInOut)
             .then()
@@ -121,7 +121,7 @@ class _FirstPeriodCelebrationScreenState extends State<FirstPeriodCelebrationScr
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(30),
-            boxShadow: [BoxShadow(color: AppColors.pink.withOpacity(0.2), blurRadius: 20)],
+            boxShadow: [BoxShadow(color: AppColors.pink.withValues(alpha: 0.2), blurRadius: 20)],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -154,10 +154,10 @@ class _FirstPeriodCelebrationScreenState extends State<FirstPeriodCelebrationScr
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.pink.withOpacity(0.2)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15)],
+        border: Border.all(color: AppColors.pink.withValues(alpha: 0.2)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15)],
       ),
       child: Column(
         children: [
@@ -216,7 +216,7 @@ class _FirstPeriodCelebrationScreenState extends State<FirstPeriodCelebrationScr
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [AppColors.pink, AppColors.purple]),
               borderRadius: BorderRadius.circular(26),
-              boxShadow: [BoxShadow(color: AppColors.pink.withOpacity(0.3), blurRadius: 15)],
+              boxShadow: [BoxShadow(color: AppColors.pink.withValues(alpha: 0.3), blurRadius: 15)],
             ),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(

@@ -6,7 +6,7 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 
 class AgeRoomSection extends StatelessWidget {
   final List<Circle> circles;
-  const AgeRoomSection({Key? key, required this.circles}) : super(key: key);
+  const AgeRoomSection({super.key, required this.circles});
 
   /// Determine which age-specific slug to show based on birth year.
   String _getMyAgeSlug(LocalStorageService storage) {
@@ -34,7 +34,7 @@ class AgeRoomSection extends StatelessWidget {
     if (myCircle == null) return const SizedBox.shrink();
 
     // Define display properties per slug
-    final _roomData = {
+    final roomData = {
       'junior_girls': _RoomInfo(
         label: 'Ages 10–13',
         subtitle: 'Junior safe space (age-verified)',
@@ -58,7 +58,7 @@ class AgeRoomSection extends StatelessWidget {
       ),
     };
 
-    final info = _roomData[myCircle.slug] ?? _roomData['teen_community']!;
+    final info = roomData[myCircle.slug] ?? roomData['teen_community']!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +98,7 @@ class AgeRoomSection extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: info.gradientStart.withOpacity(0.15),
+                      color: info.gradientStart.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Center(

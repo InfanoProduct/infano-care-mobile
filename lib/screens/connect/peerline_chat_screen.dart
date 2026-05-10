@@ -16,13 +16,12 @@ import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
 
 
 class PeerLineChatScreen extends StatefulWidget {
   final String sessionId;
 
-  const PeerLineChatScreen({Key? key, required this.sessionId}) : super(key: key);
+  const PeerLineChatScreen({super.key, required this.sessionId});
 
   @override
   State<PeerLineChatScreen> createState() => _PeerLineChatScreenState();
@@ -42,7 +41,6 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
   CommunitySocketService? _socketService;
   StreamSubscription? _socketSubscription;
   String? _piiError;
-  String? _currentUserId;
   String? _myRole;
 
   
@@ -81,6 +79,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           });
         });
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Microphone permission is required to record voice notes.')),
         );
@@ -142,9 +141,11 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       );
     } catch (e) {
       debugPrint('Error sending voice note: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send voice note: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send voice note: $e')),
+        );
+      }
     }
   }
 
@@ -193,11 +194,6 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         final String? clientId = event['clientId'];
         
         setState(() {
-          // Check if we have an optimistic message matching this clientId
-          final int existingIndex = clientId != null 
-              ? _messages.indexWhere((m) => m.id.startsWith('temp-') && m.content == newMessage.content) // Fallback content match if ID system differs
-              : -1;
-
           // More reliable: if we have clientId, find and replace
           final int clientMatchIndex = clientId != null 
               ? _messages.indexWhere((m) => m.id == clientId) 
@@ -278,6 +274,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       final api = Provider.of<CommunityApi>(context, listen: false);
       final session = await api.getSession(widget.sessionId);
 
+      if (!mounted) return;
       final storage = Provider.of<LocalStorageService>(context, listen: false);
       final userId = storage.userId;
       final myRole = session.menteeId == userId ? 'mentee' : 'mentor';
@@ -287,7 +284,6 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           _session = session;
           _messages.clear();
           _messages.addAll(session.messages);
-          _currentUserId = userId;
           _myRole = myRole;
           _isLoading = false;
         });
@@ -393,7 +389,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: AppColors.purple.withOpacity(0.1),
+                    backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                     child: Text(
                       (_session?.mentorName ?? 'M')[0],
                       style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold),
@@ -443,7 +439,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
               onPressed: () => _showEndSessionDialog(),
               child: Text(
                 'End session', 
-                style: GoogleFonts.outfit(color: AppColors.textLight.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)
+                style: GoogleFonts.outfit(color: AppColors.textLight.withValues(alpha: 0.7), fontSize: 13, fontWeight: FontWeight.w500)
               ),
             ),
           ],
@@ -494,7 +490,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)],
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -519,9 +515,9 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -721,7 +717,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: AppColors.purple.withOpacity(0.05),
+                color: AppColors.purple.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Row(
@@ -878,7 +874,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: AppColors.purple.withOpacity(0.08),
+                        color: AppColors.purple.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                       ),
                       child: const Center(child: Text('💜', style: TextStyle(fontSize: 36))),
@@ -975,8 +971,10 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                           } catch (_) {
                             // Feedback failure is non-blocking
                           }
-                          if (mounted) {
+                          if (sheetContext.mounted) {
                             Navigator.pop(sheetContext);
+                          }
+                          if (mounted) {
                             context.go('/home?tab=4&subtab=1');
                           }
                         },
@@ -1045,7 +1043,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                   _showSessionEndedBanner();
                 }
               } catch (e) {
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(parentContext).showSnackBar(
                     SnackBar(content: Text('Could not end session: ${e.toString()}')),
                   );
@@ -1064,7 +1062,7 @@ class VoiceMessageBubble extends StatefulWidget {
   final String url;
   final bool isMe;
 
-  const VoiceMessageBubble({Key? key, required this.url, required this.isMe}) : super(key: key);
+  const VoiceMessageBubble({super.key, required this.url, required this.isMe});
 
   @override
   State<VoiceMessageBubble> createState() => _VoiceMessageBubbleState();
@@ -1138,7 +1136,7 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                   overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
                   activeTrackColor: color,
-                  inactiveTrackColor: color.withOpacity(0.2),
+                  inactiveTrackColor: color.withValues(alpha: 0.2),
                   thumbColor: color,
                 ),
                 child: Slider(
@@ -1154,11 +1152,11 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
                   children: [
                     Text(
                       _formatDuration(_position),
-                      style: TextStyle(fontSize: 10, color: color.withOpacity(0.6)),
+                      style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.6)),
                     ),
                     Text(
                       _formatDuration(_duration),
-                      style: TextStyle(fontSize: 10, color: color.withOpacity(0.6)),
+                      style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.6)),
                     ),
                   ],
                 ),

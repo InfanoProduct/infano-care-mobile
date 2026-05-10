@@ -146,7 +146,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 if (isOnline) BoxShadow(
-                                  color: Colors.green.withOpacity(0.5),
+                                  color: Colors.green.withValues(alpha: 0.5),
                                   blurRadius: 4,
                                   spreadRadius: 1,
                                 ),
@@ -228,7 +228,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: Colors.black.withValues(alpha: 0.03),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -238,7 +238,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (!isMe) Text('Sender: ...${senderId.split('-').first}', 
-                  style: TextStyle(fontSize: 10, color: AppColors.textLight.withOpacity(0.5))),
+                  style: TextStyle(fontSize: 10, color: AppColors.textLight.withValues(alpha: 0.5))),
                 Text(
                   content, 
                   style: TextStyle(
@@ -267,7 +267,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -280,7 +280,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
               decoration: BoxDecoration(
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+                border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
               ),
               child: TextField(
                 controller: _messageController,

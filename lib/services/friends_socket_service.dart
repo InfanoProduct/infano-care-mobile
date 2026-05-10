@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class FriendsSocketService {
   final LocalStorageService _storage;
-  IO.Socket? _socket;
+  io.Socket? _socket;
   
   final _chatEventController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get chatEvents => _chatEventController.stream;
@@ -33,7 +33,7 @@ class FriendsSocketService {
 
     final baseUrl = ApiService.instance.dio.options.baseUrl.split('/api')[0];
     
-    _socket = IO.io('$baseUrl/friends', <String, dynamic>{
+    _socket = io.io('$baseUrl/friends', <String, dynamic>{
       'transports': ['websocket', 'polling'],
       'forceNew': true,
       'auth': {'token': token},

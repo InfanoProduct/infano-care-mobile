@@ -13,10 +13,10 @@ class FriendProfileSetupScreen extends StatefulWidget {
   final bool isWidenRadius;
 
   const FriendProfileSetupScreen({
-    Key? key,
+    super.key,
     this.initialStep = 0,
     this.isWidenRadius = false,
-  }) : super(key: key);
+  });
 
   @override
   State<FriendProfileSetupScreen> createState() => _FriendProfileSetupScreenState();
@@ -215,12 +215,13 @@ class _FriendProfileSetupScreenState extends State<FriendProfileSetupScreen> {
         'discoveryRadius': _proximityPreference,
       });
       
-      if (mounted) {
-        final storage = Provider.of<LocalStorageService>(context, listen: false);
-        await storage.setIsFriendOnboarded(true);
-        Navigator.pop(context, true); 
-      }
+      if (!mounted) return;
+      final storage = Provider.of<LocalStorageService>(context, listen: false);
+      await storage.setIsFriendOnboarded(true);
+      if (!mounted) return;
+      Navigator.pop(context, true);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -329,7 +330,7 @@ class _FriendProfileSetupScreenState extends State<FriendProfileSetupScreen> {
               return FilterChip(
                 label: Text(tag),
                 selected: isSelected,
-                selectedColor: Colors.purple.withOpacity(0.2),
+                selectedColor: Colors.purple.withValues(alpha: 0.2),
                 checkmarkColor: Colors.purple,
                 onSelected: (selected) {
                   setState(() {
@@ -391,7 +392,7 @@ class _FriendProfileSetupScreenState extends State<FriendProfileSetupScreen> {
           const Text('We never share your exact GPS. We group you into an approximate 5km area.'),
           const SizedBox(height: 24),
           DropdownButtonFormField<String>(
-            value: _proximityPreference,
+            initialValue: _proximityPreference,
             decoration: InputDecoration(
               labelText: 'Discovery Radius',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -413,8 +414,8 @@ class _FriendProfileSetupScreenState extends State<FriendProfileSetupScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _locationGranted
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.orange.withOpacity(0.1),
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.orange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _locationGranted ? Colors.green : Colors.orange,
@@ -461,7 +462,7 @@ class _FriendProfileSetupScreenState extends State<FriendProfileSetupScreen> {
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.green.withOpacity(0.07), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.07), borderRadius: BorderRadius.circular(12)),
             child: const Row(
               children: [
                 Icon(Icons.shield, color: Colors.green),

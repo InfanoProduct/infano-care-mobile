@@ -6,10 +6,10 @@ class ExploreCircleCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const ExploreCircleCard({
-    Key? key,
+    super.key,
     required this.circle,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class ExploreCircleCard extends StatelessWidget {
     } catch (e) {
       accentColor = const Color(0xFF6D28D9); // Fallback color
     }
-    final Color pastelBg = accentColor.withOpacity(0.08);
+    final Color pastelBg = accentColor.withValues(alpha: 0.08);
 
     return GestureDetector(
       onTap: onTap,
@@ -27,10 +27,10 @@ class ExploreCircleCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: pastelBg,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: accentColor.withOpacity(0.1), width: 1),
+          border: Border.all(color: accentColor.withValues(alpha: 0.1), width: 1),
           boxShadow: [
             BoxShadow(
-              color: accentColor.withOpacity(0.04),
+              color: accentColor.withValues(alpha: 0.04),
               blurRadius: 15,
               offset: const Offset(0, 6),
             ),
@@ -46,7 +46,7 @@ class ExploreCircleCard extends StatelessWidget {
                 child: Icon(
                   Icons.explore_rounded,
                   size: 60,
-                  color: accentColor.withOpacity(0.05),
+                  color: accentColor.withValues(alpha: 0.05),
                 ),
               ),
               Padding(
@@ -65,7 +65,7 @@ class ExploreCircleCard extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -82,7 +82,7 @@ class ExploreCircleCard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withValues(alpha: 0.8),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.lock_outline, size: 14, color: Colors.grey),

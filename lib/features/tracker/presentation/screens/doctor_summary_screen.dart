@@ -18,10 +18,7 @@ class DoctorSummaryScreen extends StatelessWidget {
     return BlocBuilder<TrackerBloc, TrackerState>(
       builder: (context, state) {
         return state.maybeWhen(
-          loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) {
-            final avgCycle = profile.avgCycleLength;
-            final avgPeriod = profile.avgPeriodDuration;
-            
+          loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) {
             return Scaffold(
               backgroundColor: const Color(0xFFF8FAFC), // Clinical light grey
               appBar: AppBar(
@@ -104,7 +101,7 @@ class DoctorSummaryScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: const Icon(Icons.medical_services_outlined, color: Colors.blue),
           ),
           const SizedBox(width: 16),
@@ -130,7 +127,7 @@ class DoctorSummaryScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey[100]!),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +156,7 @@ class DoctorSummaryScreen extends StatelessWidget {
   Widget _buildDisclaimer() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.orange.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withOpacity(0.1))),
+      decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withValues(alpha: 0.1))),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -356,7 +353,9 @@ This report was generated securely via Infano.Care for clinical reference.
   String? _getTopItem(List<String> items) {
     if (items.isEmpty) return null;
     Map<String, int> counts = {};
-    for (var i in items) counts[i] = (counts[i] ?? 0) + 1;
+    for (var i in items) {
+      counts[i] = (counts[i] ?? 0) + 1;
+    }
     final sorted = counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return sorted.first.key;
   }

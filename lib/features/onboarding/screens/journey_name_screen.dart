@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
-import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
@@ -37,7 +36,9 @@ class _JourneyNameScreenState extends State<JourneyNameScreen> {
           if (mounted) {
             // Wait for sync to backend
             await bloc.stream.firstWhere((state) => !state.isLoading);
-            if (mounted) context.go('/onboarding/terms');
+            if (context.mounted) {
+              context.go('/onboarding/terms');
+            }
           }
         },
         enabled: _valid,

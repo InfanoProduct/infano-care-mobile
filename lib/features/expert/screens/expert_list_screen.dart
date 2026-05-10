@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/expert/services/expert_service.dart';
-import 'package:get_it/get_it.dart';
 
 class ExpertListScreen extends StatefulWidget {
   final LocalStorageService storage;
@@ -81,7 +80,7 @@ class _ExpertListScreenState extends State<ExpertListScreen> {
                   contentPadding: const EdgeInsets.all(16),
                   leading: CircleAvatar(
                     radius: 28,
-                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                    backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     child: Icon(Icons.person, color: Theme.of(context).primaryColor, size: 32),
                   ),
                   title: Text(name, 
@@ -112,7 +111,7 @@ class _ExpertListScreenState extends State<ExpertListScreen> {
                   ),
                   onTap: () async {
                     final session = await _expertService.getOrCreateSession(expert['id']);
-                    if (session != null && mounted) {
+                    if (session != null && context.mounted) {
                       context.push('/expert/chat/${session['id']}', extra: {'expertName': name});
                     }
                   },

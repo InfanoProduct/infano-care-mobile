@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
-import 'package:infano_care_mobile/models/peerline_session.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 
 class PeerLineFeedbackScreen extends StatefulWidget {
   final String sessionId;
 
-  const PeerLineFeedbackScreen({Key? key, required this.sessionId}) : super(key: key);
+  const PeerLineFeedbackScreen({super.key, required this.sessionId});
 
   @override
   State<PeerLineFeedbackScreen> createState() => _PeerLineFeedbackScreenState();
@@ -20,15 +18,12 @@ class _PeerLineFeedbackScreenState extends State<PeerLineFeedbackScreen> {
   int _rating = 0;
   final TextEditingController _noteController = TextEditingController();
   bool _isSubmitting = false;
-  PeerLineSession? _session;
   bool _isLoading = true;
   String? _role;
 
-  int _mentorSelfRating = 0;
   bool _wellbeingOk = true;
   bool _needsSupport = false;
   bool _readyForNext = true;
-  bool _flagForModeration = false;
 
   @override
   void initState() {
@@ -43,7 +38,6 @@ class _PeerLineFeedbackScreenState extends State<PeerLineFeedbackScreen> {
       final session = await api.getSession(widget.sessionId);
 
       setState(() {
-        _session = session;
         _isLoading = false;
         _role = session.menteeId == storage.userId ? 'mentee' : 'mentor';
       });
@@ -72,11 +66,9 @@ class _PeerLineFeedbackScreenState extends State<PeerLineFeedbackScreen> {
         role: _role!,
         rating: _rating,
         note: _noteController.text.trim(),
-        mentorSelfRating: _mentorSelfRating > 0 ? _mentorSelfRating : null,
         wellbeingOk: _wellbeingOk,
         needsSupport: _needsSupport,
         readyForNext: _readyForNext,
-        flagForModeration: _flagForModeration,
       );
 
       if (mounted) context.go('/home');

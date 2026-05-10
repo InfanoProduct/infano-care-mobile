@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 
 class ChatRepository {
@@ -13,8 +12,8 @@ class ChatRepository {
         '/chat/send',
         data: {
           'content': content,
-          if (sessionId != null) 'sessionId': sessionId,
-          if (moodCode != null) 'moodCode': moodCode,
+          'sessionId': ?sessionId,
+          'moodCode': ?moodCode,
         },
       );
       return response.data['data'];
@@ -27,7 +26,7 @@ class ChatRepository {
   Future<List<dynamic>> getHistory(String sessionId, {String? cursor, int limit = 20}) async {
     try {
       final queryParams = <String, dynamic>{
-        if (cursor != null) 'cursor': cursor,
+        'cursor': ?cursor,
         'limit': limit,
       };
       

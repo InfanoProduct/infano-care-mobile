@@ -126,7 +126,7 @@ class CycleRingPainter extends CustomPainter {
 
   void _drawWatchingWaitingRing(Canvas canvas, Offset center, double radius, double thickness, double size) {
     final paint = Paint()
-      ..color = const Color(0xFF0D9488).withOpacity(0.3) // Teal
+      ..color = const Color(0xFF0D9488).withValues(alpha: 0.3) // Teal
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
@@ -173,7 +173,7 @@ class CycleRingPainter extends CustomPainter {
 
     final rect = Rect.fromCircle(center: center, radius: radius);
     final paint = Paint()
-      ..color = color.withOpacity(opacity)
+      ..color = color.withValues(alpha: opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = trackerMode == 'irregular_support' ? 8 : 4
       ..strokeCap = StrokeCap.round;
@@ -196,7 +196,7 @@ class CycleRingPainter extends CustomPainter {
     if (historicalSegments == null || historicalSegments!.isEmpty) return;
 
     final paint = Paint()
-      ..color = Colors.black.withOpacity(0.15)
+      ..color = Colors.black.withValues(alpha: 0.15)
       ..style = PaintingStyle.stroke
       ..strokeWidth = thickness
       ..strokeCap = StrokeCap.butt;
@@ -217,14 +217,40 @@ class CycleRingPainter extends CustomPainter {
     final outerOffset = Offset(center.dx + (radius + thickness/2) * cos(angle), center.dy + (radius + thickness/2) * sin(angle));
 
     if (isCurrent) {
-      // Draw a subtle "Today" ring
+      // Draw a highly visible "Today" marker
+      final todayRadius = 16.0;
+      
+      // Outer glow
       canvas.drawCircle(
         outerOffset, 
-        thickness / 2 + 4, 
+        todayRadius + 6, 
         Paint()
-          ..color = Colors.white.withOpacity(0.5)
+          ..color = AppColors.purple.withValues(alpha: 0.4)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8)
+      );
+
+      // Solid white background
+      canvas.drawCircle(
+        outerOffset, 
+        todayRadius, 
+        Paint()..color = Colors.white
+      );
+      
+      // Prominent Purple Border
+      canvas.drawCircle(
+        outerOffset, 
+        todayRadius, 
+        Paint()
+          ..color = AppColors.purple
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
+          ..strokeWidth = 4
+      );
+      
+      // Inner dot
+      canvas.drawCircle(
+        outerOffset, 
+        4.0, 
+        Paint()..color = AppColors.purple
       );
     } else {
       // Draw the main active indicator (the one that moves)
@@ -236,7 +262,7 @@ class CycleRingPainter extends CustomPainter {
           outerOffset, 
           indicatorRadius + 6, 
           Paint()
-            ..color = AppColors.pink.withOpacity(0.2)
+            ..color = AppColors.pink.withValues(alpha: 0.2)
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8)
         );
       }
@@ -283,7 +309,7 @@ class CycleRingPainter extends CustomPainter {
             color: Colors.white,
             shadows: [
               Shadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 4,
                 offset: const Offset(0, 1),
               ),
@@ -304,7 +330,7 @@ class CycleRingPainter extends CustomPainter {
         center, 
         radius + 5, 
         Paint()
-          ..color = innerColor!.withOpacity(0.15)
+          ..color = innerColor!.withValues(alpha: 0.15)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30)
       );
     }
@@ -314,7 +340,7 @@ class CycleRingPainter extends CustomPainter {
     canvas.drawCircle(
       center, 
       radius, 
-      Paint()..color = innerColor?.withOpacity(0.05) ?? Colors.white
+      Paint()..color = innerColor?.withValues(alpha: 0.05) ?? Colors.white
     );
     
     // Inner white disc for content
@@ -334,12 +360,9 @@ class CycleRingPainter extends CustomPainter {
     canvas.save();
     canvas.clipPath(Path()..addOval(rect));
 
-    // Fill the bottom part with a solid color first
-    final baseHeight = center.dy + radius - (2 * radius * fillLevel);
-    
     // Draw two waves for a more dynamic look
-    _drawSingleWave(canvas, center, radius, fillLevel, waveValue, innerColor!.withOpacity(0.3), 0);
-    _drawSingleWave(canvas, center, radius, fillLevel, (waveValue + 0.5) % 1.0, innerColor!.withOpacity(0.5), 10);
+    _drawSingleWave(canvas, center, radius, fillLevel, waveValue, innerColor!.withValues(alpha: 0.3), 0);
+    _drawSingleWave(canvas, center, radius, fillLevel, (waveValue + 0.5) % 1.0, innerColor!.withValues(alpha: 0.5), 10);
 
     canvas.restore();
   }

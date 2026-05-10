@@ -30,6 +30,7 @@ class DayDetailPanel extends StatefulWidget {
   /// Called when the user taps the Save button.
   final Future<void> Function() onSave;
   final bool isSaving;
+  final bool isEditMode;
 
   const DayDetailPanel({
     super.key,
@@ -41,6 +42,7 @@ class DayDetailPanel extends StatefulWidget {
     required this.onFlowChange,
     required this.onSave,
     required this.isSaving,
+    required this.isEditMode,
   });
 
   @override
@@ -104,6 +106,7 @@ class _DayDetailPanelState extends State<DayDetailPanel>
             onFlowChange: widget.onFlowChange,
             onSave: widget.onSave,
             isSaving: widget.isSaving,
+            isEditMode: widget.isEditMode,
           ),
         ),
       ),
@@ -132,6 +135,7 @@ class _PanelBody extends StatelessWidget {
   final void Function(FlowLevel) onFlowChange;
   final Future<void> Function() onSave;
   final bool isSaving;
+  final bool isEditMode;
 
   const _PanelBody({
     required this.selectedDate,
@@ -142,6 +146,7 @@ class _PanelBody extends StatelessWidget {
     required this.onFlowChange,
     required this.onSave,
     required this.isSaving,
+    required this.isEditMode,
   });
 
   @override
@@ -154,10 +159,10 @@ class _PanelBody extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: style.borderColor.withAlpha(51), width: 1.2),
+        border: Border.all(color: style.borderColor.withValues(alpha: 0.2), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: style.accentColor.withAlpha(18),
+            color: style.accentColor.withValues(alpha: 0.07),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -185,7 +190,7 @@ class _PanelBody extends StatelessWidget {
                 ],
 
                 // ── 3. Flow pills (past / today only) ───────────────────────
-                if (!isFutureDay) ...[
+                if (!isFutureDay && isEditMode) ...[
                   _FlowPillRow(
                     selected: log != null ? flowLevelFromString(log!.flow) : FlowLevel.none,
                     phase: phase,
@@ -202,7 +207,8 @@ class _PanelBody extends StatelessWidget {
                 ],
 
                 // ── 5. Save button ───────────────────────────────────────────
-                _SaveButton(isSaving: isSaving, onSave: onSave),
+                if (isEditMode)
+                  _SaveButton(isSaving: isSaving, onSave: onSave),
 
                 // ── 6. Phase tip ─────────────────────────────────────────────
                 const SizedBox(height: 10),
@@ -322,7 +328,7 @@ class _Header extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
       decoration: BoxDecoration(
-        color: style.bgColor.withAlpha(90),
+        color: style.bgColor.withValues(alpha: 0.35),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Row(
@@ -367,11 +373,11 @@ class _PhaseChipBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: phaseInfo.isPredicted
             ? Colors.white
-            : style.accentColor.withAlpha(26),
+            : style.accentColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
         border: phaseInfo.isPredicted
             ? null // dashed painted separately
-            : Border.all(color: style.accentColor.withAlpha(77), width: 1),
+            : Border.all(color: style.accentColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Text(
         label,
@@ -549,7 +555,7 @@ class _FlowPill extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
-                  ? style.accentColor.withAlpha(180)
+                  ? style.accentColor.withValues(alpha: 0.7)
                   : const Color(0xFFE5E7EB),
               width: isSelected ? 1.5 : 1,
             ),
@@ -588,12 +594,13 @@ class _SaveButton extends StatelessWidget {
             ? null
             : () async {
                 await onSave();
-                if (context.mounted) {
-                  SemanticsService.announce(
-                    'Log saved and prediction updated.',
-                    ui.TextDirection.ltr,
-                  );
-                }
+                if (!context.mounted) return;
+                final view = View.of(context);
+                SemanticsService.sendAnnouncement(
+                  view,
+                  'Log saved and prediction updated.',
+                  ui.TextDirection.ltr,
+                );
               },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),

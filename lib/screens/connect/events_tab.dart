@@ -8,7 +8,7 @@ import 'package:infano_care_mobile/screens/connect/live_event_screen.dart';
 import 'package:provider/provider.dart';
 
 class EventsTab extends StatefulWidget {
-  const EventsTab({Key? key}) : super(key: key);
+  const EventsTab({super.key});
 
   @override
   State<EventsTab> createState() => _EventsTabState();
@@ -94,7 +94,7 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.error.withOpacity(0.3),
+                    color: AppColors.error.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -174,7 +174,7 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.purple.withOpacity(0.05)),
+                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.05)),
                 ),
                 child: Row(
                   children: [
@@ -248,9 +248,9 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.shade50.withOpacity(0.5),
+        color: Colors.blueGrey.shade50.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blueGrey.shade100.withOpacity(0.5)),
+        border: Border.all(color: Colors.blueGrey.shade100.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
@@ -260,7 +260,7 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blueGrey.shade100.withOpacity(0.3)),
+              border: Border.all(color: Colors.blueGrey.shade100.withValues(alpha: 0.3)),
             ),
             child: Icon(Icons.history, color: Colors.blueGrey.shade300),
           ),

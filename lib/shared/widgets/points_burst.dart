@@ -44,7 +44,7 @@ class _PointsBurstState extends State<PointsBurst> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.purple.withOpacity(0.4),
+              color: AppColors.purple.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),

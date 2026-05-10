@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
+
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 
 class TrackerActivatedScreen extends StatefulWidget {
@@ -57,7 +57,7 @@ class _TrackerActivatedScreenState extends State<TrackerActivatedScreen> {
                 // Points summary
                 Container(
                   padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(24)),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(24)),
                   child: Column(
                     children: [
                       const Text('Your Bloom Points 🌸', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),

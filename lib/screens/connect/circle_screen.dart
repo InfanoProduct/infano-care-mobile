@@ -14,7 +14,7 @@ import 'package:infano_care_mobile/widgets/crisis_resource_card.dart' as infano_
 
 class CircleScreen extends StatefulWidget {
   final Circle circle;
-  const CircleScreen({Key? key, required this.circle}) : super(key: key);
+  const CircleScreen({super.key, required this.circle});
 
   @override
   State<CircleScreen> createState() => _CircleScreenState();
@@ -22,7 +22,6 @@ class CircleScreen extends StatefulWidget {
 
 class _CircleScreenState extends State<CircleScreen> {
   late CommunityApi _api;
-  late Future<Map<String, dynamic>> _feedFuture;
   bool _isLoading = false;
 
   int _selectedTab = 0; // 0 = All Posts, 1 = This Week's Challenge
@@ -33,7 +32,7 @@ class _CircleScreenState extends State<CircleScreen> {
   bool _isChallengeMode = false;
   WeeklyChallenge? _currentChallenge;
   bool _hasNewPosts = false;
-  int _newPostsCount = 0;
+  final int _newPostsCount = 0;
   
   // Pagination
   bool _isMoreLoading = false;
@@ -332,7 +331,7 @@ class _CircleScreenState extends State<CircleScreen> {
               content: Row(
                 children: [
                   Icon(Icons.check_circle, color: Colors.white, size: 20),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(child: Text('Post submitted!')),
                 ],
               ),
@@ -407,7 +406,7 @@ class _CircleScreenState extends State<CircleScreen> {
                   floating: false,
                   pinned: true,
                   elevation: _isScrolled ? 4 : 0,
-                  shadowColor: Colors.black.withOpacity(0.08),
+                  shadowColor: Colors.black.withValues(alpha: 0.08),
                   backgroundColor: const Color(0xFFFDF2F8), // Light pink header
                   surfaceTintColor: const Color(0xFFFDF2F8),
                   // Title fades in ONLY when collapsed (scroll offset > threshold)
@@ -464,20 +463,20 @@ class _CircleScreenState extends State<CircleScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.purple.withOpacity(0.08),
+                                  color: AppColors.purple.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.group_outlined, size: 12, color: AppColors.purple.withOpacity(0.7)),
+                                    Icon(Icons.group_outlined, size: 12, color: AppColors.purple.withValues(alpha: 0.7)),
                                     const SizedBox(width: 4),
                                     Text(
                                       '${((widget.circle.memberCount ?? 0) > 0 ? widget.circle.memberCount : _allPosts.map((p) => p.authorId).toSet().length)} members',
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.purple.withOpacity(0.8),
+                                        color: AppColors.purple.withValues(alpha: 0.8),
                                       ),
                                     ),
                                   ],
@@ -598,17 +597,15 @@ class _CircleScreenState extends State<CircleScreen> {
                               onReport: (category, note) async {
                                 try {
                                   await _api.reportPost(post.id, category, note, contentType: 'post');
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Report submitted. Thank you for helping keep our community safe!')),
-                                    );
-                                  }
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Report submitted. Thank you for helping keep our community safe!')),
+                                  );
                                 } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Error submitting report: $e')),
-                                    );
-                                  }
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error submitting report: $e')),
+                                  );
                                 }
                               },
                             );
@@ -695,7 +692,7 @@ class _CircleScreenState extends State<CircleScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.push_pin, color: Colors.redAccent.withOpacity(0.6), size: 14),
+              Icon(Icons.push_pin, color: Colors.redAccent.withValues(alpha: 0.6), size: 14),
               // Removed "Pinned" text label
             ],
           ),
@@ -705,7 +702,7 @@ class _CircleScreenState extends State<CircleScreen> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _pinnedPosts.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final pin = _pinnedPosts[index];
                 final snippet = pin.content.length > 50
@@ -718,10 +715,10 @@ class _CircleScreenState extends State<CircleScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF5F0),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.redAccent.withOpacity(0.2)),
+                      border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.redAccent.withOpacity(0.06),
+                          color: Colors.redAccent.withValues(alpha: 0.06),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -768,7 +765,7 @@ class _CircleScreenState extends State<CircleScreen> {
         decoration: BoxDecoration(
           color: AppColors.purple,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: AppColors.purple.withOpacity(0.4), blurRadius: 10)],
+          boxShadow: [BoxShadow(color: AppColors.purple.withValues(alpha: 0.4), blurRadius: 10)],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -796,7 +793,7 @@ class _CircleScreenState extends State<CircleScreen> {
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   backgroundColor: Colors.white,
-                  side: BorderSide(color: AppColors.purple.withOpacity(0.2)),
+                  side: BorderSide(color: AppColors.purple.withValues(alpha: 0.2)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: Text('Load older posts', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold)),
@@ -976,9 +973,9 @@ class _CircleScreenState extends State<CircleScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.purple.withOpacity(0.05),
+            color: AppColors.purple.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+            border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1016,7 +1013,7 @@ class _CircleScreenState extends State<CircleScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.amber.withOpacity(0.3)),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
             ),
             child: PostCard(
               key: ValueKey(post.id),
@@ -1096,11 +1093,11 @@ class _CircleScreenState extends State<CircleScreen> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 2)),
           ],
           image: DecorationImage(
             image: const NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'), // Subtle texture
-            colorFilter: ColorFilter.mode(Colors.white.withOpacity(0.9), BlendMode.lighten),
+            colorFilter: ColorFilter.mode(Colors.white.withValues(alpha: 0.9), BlendMode.lighten),
             fit: BoxFit.cover,
           ),
         ),
@@ -1164,7 +1161,7 @@ class _WeeklyChallengeHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFBBF24).withOpacity(0.3),
+            color: const Color(0xFFFBBF24).withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -1185,7 +1182,7 @@ class _WeeklyChallengeHeader extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
@@ -1220,7 +1217,7 @@ class _WeeklyChallengeHeader extends StatelessWidget {
                     Text(
                       prompt,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 13,
                         height: 1.4,
                       ),
@@ -1233,7 +1230,7 @@ class _WeeklyChallengeHeader extends StatelessWidget {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.emoji_events, color: Colors.white, size: 28),
@@ -1246,7 +1243,7 @@ class _WeeklyChallengeHeader extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -1335,7 +1332,7 @@ class _SkeletonBoxState extends State<_SkeletonBox> with SingleTickerProviderSta
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            color: Colors.grey.shade300.withOpacity(_animation.value),
+            color: Colors.grey.shade300.withValues(alpha: _animation.value),
             borderRadius: widget.isCircle
                 ? BorderRadius.circular(widget.height / 2)
                 : BorderRadius.circular(widget.radius),

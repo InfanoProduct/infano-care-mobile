@@ -5,19 +5,18 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 import 'package:infano_care_mobile/features/home/screens/home_screen.dart';
-import 'package:infano_care_mobile/features/home/screens/learn_screen.dart';
+
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/screens/connect/connect_screen.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
-import 'package:infano_care_mobile/services/community_socket_service.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
 import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key, required this.storage, this.initialTab = 0, this.initialSubTab = 2});
@@ -77,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 20,
                     offset: const Offset(0, -5),
                   ),
@@ -221,7 +220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             accountEmail: Text(widget.storage.phone ?? ''),
             currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: Colors.white.withValues(alpha: 0.3),
               child: const Text('👤', style: TextStyle(fontSize: 32)),
             ),
           ),
@@ -273,20 +272,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     if (confirmed == true) {
-      // If mentor, clear availability on server before clearing local storage
-      try {
-        final api = Provider.of<CommunityApi>(context, listen: false);
-        final status = await api.getMentorStatus();
-        if (status['is_certified'] == true) {
-          await api.updateMentorAvailability(false);
-        }
-      } catch (e) {
-        debugPrint('Logout: Could not clear availability: $e');
-      }
-
-      await widget.storage.clearAll();
       if (context.mounted) {
-        context.go('/splash');
+        // If mentor, clear availability on server before clearing local storage
+        try {
+          final api = Provider.of<CommunityApi>(context, listen: false);
+          final status = await api.getMentorStatus();
+          if (status['is_certified'] == true) {
+            await api.updateMentorAvailability(false);
+          }
+        } catch (e) {
+          debugPrint('Logout: Could not clear availability: $e');
+        }
+
+        await widget.storage.clearAll();
+        if (context.mounted) {
+          context.go('/splash');
+        }
       }
     }
   }

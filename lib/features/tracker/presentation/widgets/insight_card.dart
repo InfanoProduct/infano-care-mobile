@@ -24,7 +24,7 @@ class InsightCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: accentColor.withOpacity(0.1),
+            color: accentColor.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -35,13 +35,13 @@ class InsightCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            border: Border.all(color: accentColor.withOpacity(0.2), width: 1.5),
+            border: Border.all(color: accentColor.withValues(alpha: 0.2), width: 1.5),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
                 Colors.white,
-                accentColor.withOpacity(0.05),
+                accentColor.withValues(alpha: 0.05),
               ],
             ),
           ),
@@ -53,7 +53,7 @@ class InsightCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.1),
+                    color: accentColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: accentColor, size: 24),

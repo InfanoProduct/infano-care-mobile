@@ -8,7 +8,7 @@ class LearningRepository {
 
   Future<List<LearningJourney>> listJourneys({String? ageBand}) async {
     final response = await _dio.get('/learning/journeys', queryParameters: {
-      if (ageBand != null) 'ageBand': ageBand,
+      'ageBand': ?ageBand,
     });
     return (response.data as List).map((json) => LearningJourney.fromJson(json)).toList();
   }
@@ -47,8 +47,8 @@ class LearningRepository {
       '/learning/episodes/$episodeId/progress',
       data: {
         'completedItems': completedSegments,
-        if (lastViewedItemId != null) 'lastViewedItemId': lastViewedItemId,
-        if (history != null) 'history': history,
+        'lastViewedItemId': ?lastViewedItemId,
+        'history': ?history,
       },
     );
   }

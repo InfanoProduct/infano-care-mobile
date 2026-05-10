@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 import 'cycle_ring_painter.dart';
@@ -11,6 +11,7 @@ class CycleRing extends StatefulWidget {
   final CycleProfileModel profile;
   final PredictionResultModel? prediction;
   final List<CycleRecordModel> history;
+  final bool isRefreshing;
   final VoidCallback? onCenterTap;
   final Function(String)? onSegmentTap;
 
@@ -19,6 +20,7 @@ class CycleRing extends StatefulWidget {
     required this.profile,
     this.prediction,
     this.history = const [],
+    this.isRefreshing = false,
     this.onCenterTap,
     this.onSegmentTap,
   });
@@ -56,8 +58,10 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
       final startDate = DateTime(lastStart.year, lastStart.month, lastStart.day);
       localCurrentDay = todayDate.difference(startDate).inDays + 1;
       if (localCurrentDay < 1) localCurrentDay = 1;
+      _selectedDaySmooth = localCurrentDay.toDouble();
+    } else {
+      _selectedDaySmooth = 1.0;
     }
-    _selectedDaySmooth = localCurrentDay.toDouble();
   }
 
   @override
@@ -65,6 +69,26 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     _fadeController.dispose();
     _waveController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(CycleRing oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.profile != widget.profile) {
+      if (widget.profile.lastPeriodStart != null) {
+        final now = DateTime.now();
+        final todayDate = DateTime(now.year, now.month, now.day);
+        final lastStart = widget.profile.lastPeriodStart!;
+        final startDate = DateTime(lastStart.year, lastStart.month, lastStart.day);
+        int localCurrentDay = todayDate.difference(startDate).inDays + 1;
+        if (localCurrentDay < 1) localCurrentDay = 1;
+        
+        setState(() {
+          _selectedDaySmooth = localCurrentDay.toDouble();
+          _viewingCycleIndex = 0;
+        });
+      }
+    }
   }
 
   void _handleSwipe(DragEndDetails details) {
@@ -153,9 +177,7 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     setState(() => _isDragging = false);
   }
 
-  void _openDailyLog() {
-    widget.onCenterTap?.call();
-  }
+
 
   void _onSegmentTapped(double percent) {
     final phases = _getPhasesForCurrentMode();
@@ -233,15 +255,7 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     final displayDay = _selectedDaySmooth?.round() ?? localCurrentDay;
     
     // Calculate absolute date
-    final absoluteDate = lastStart.add(Duration(days: displayDay - 1));
-    final formattedDate = DateFormat('d MMMM').format(absoluteDate);
-
-    // Calculate day within phase
-    final dayInPhase = _calculateDayInPhase(displayDay, avgLength);
-    
-    // Dynamic data for selected day
     final selectedPhase = _calculatePhase(displayDay, avgLength);
-    final nextPhaseInfo = _calculateNextPhase(displayDay, avgLength);
     
     // Get color for the inner background based on selected phase
     final phaseColor = phases.firstWhere((p) => p.id == selectedPhase, orElse: () => phases.first).gradient[0];
@@ -301,11 +315,35 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
               ),
             );
           },
-          child: _centerDataIndex == 0 
-            ? _buildSetOne(dayStr, monthStr, selectedPhase, displayDay, nextPhaseInfo)
-            : _centerDataIndex == 1
-              ? _buildSetTwo(selectedPhase)
-              : _buildSetThree(),
+          child: widget.isRefreshing 
+            ? Column(
+                key: const ValueKey('refreshing'),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(
+                      color: AppColors.purple,
+                      strokeWidth: 3,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Refreshing...',
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMedium,
+                    ),
+                  ),
+                ],
+              )
+            : _centerDataIndex == 0 
+              ? _buildSetOne(dayStr, monthStr, selectedPhase, displayDay, nextPhaseInfo)
+              : _centerDataIndex == 1
+                ? _buildSetTwo(selectedPhase)
+                : _buildSetThree(),
         ),
       ),
     );
@@ -352,7 +390,7 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
 
   Widget _buildSetTwo(String phase) {
     final avgLength = widget.profile.avgCycleLength;
-    final avgPeriod = widget.profile.avgPeriodDuration ?? 5;
+    final avgPeriod = widget.profile.avgPeriodDuration;
     
     // Calculate days until period
     int daysToPeriod = 0;
@@ -381,7 +419,7 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: _getPregnancyColor(pregnancyChance).withOpacity(0.1),
+            color: _getPregnancyColor(pregnancyChance).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -428,7 +466,7 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.purple.withOpacity(0.1),
+            color: AppColors.purple.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -455,12 +493,7 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     return Colors.green;
   }
 
-  int _calculateDayInPhase(int day, int avgLength) {
-    if (day <= 5) return day; // Menstrual
-    if (day <= avgLength * 0.45) return day - 5; // Follicular
-    if (day <= avgLength * 0.55) return day - (avgLength * 0.45).floor(); // Ovulation
-    return day - (avgLength * 0.55).floor(); // Luteal
-  }
+
 
   String _calculatePhase(int day, int avgLength) {
     if (day <= 5) return 'menstrual';

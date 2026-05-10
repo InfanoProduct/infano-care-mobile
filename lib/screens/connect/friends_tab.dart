@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import '../../widgets/friends_tab_entry_card.dart';
 import '../../widgets/friend_swipe_cards.dart';
 import '../../services/friends_api.dart';
@@ -12,7 +11,7 @@ import 'package:provider/provider.dart';
 import 'matches_tab.dart';
 
 class FriendsTab extends StatefulWidget {
-  const FriendsTab({Key? key}) : super(key: key);
+  const FriendsTab({super.key});
 
   @override
   State<FriendsTab> createState() => _FriendsTabState();
@@ -51,7 +50,7 @@ class _FriendsTabState extends State<FriendsTab> {
         });
       }
     } catch (e) {
-      print('Failed to check opt-in status: $e');
+      debugPrint('Failed to check opt-in status: $e');
       setState(() => _isOptedIn = false);
     } finally {
       setState(() => _isLoading = false);
@@ -101,9 +100,11 @@ class _FriendsTabState extends State<FriendsTab> {
         _nearbyProfiles = profiles;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load nearby friends')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load nearby friends')),
+        );
+      }
     }
   }
 
@@ -120,12 +121,12 @@ class _FriendsTabState extends State<FriendsTab> {
         _nearbyProfiles.removeWhere((p) => p.id == targetId);
       });
 
-      if (result['result'] == 'match' && result['matchId'] != null) {
+      if (result['result'] == 'match' && result['matchId'] != null && mounted) {
         FriendMatchDialog.show(context, nickname, result['matchId']);
       }
     } catch (e) {
       // Background failure, log it
-      print('Swipe failed: $e');
+      debugPrint('Swipe failed: $e');
     }
   }
 
@@ -196,7 +197,7 @@ class _FriendsTabState extends State<FriendsTab> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.1),
+              color: Colors.amber.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.shield_outlined, size: 80, color: Colors.amber),

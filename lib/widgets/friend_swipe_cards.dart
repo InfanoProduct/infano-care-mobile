@@ -15,13 +15,13 @@ class FriendSwipeCards extends StatefulWidget {
   final VoidCallback? onExploreCircles;
 
   const FriendSwipeCards({
-    Key? key,
+    super.key,
     required this.profiles,
     required this.onSwipe,
     required this.onEmpty,
     this.onWidenRadius,
     this.onExploreCircles,
-  }) : super(key: key);
+  });
 
   @override
   State<FriendSwipeCards> createState() => _FriendSwipeCardsState();
@@ -185,7 +185,7 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
         gradient: gradient,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -207,7 +207,7 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
           borderRadius: BorderRadius.circular(24),
           color: Colors.white,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
           ],
         ),
         clipBehavior: Clip.antiAlias,
@@ -231,7 +231,7 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                    colors: [Colors.transparent, Colors.black.withValues(alpha: 0.8)],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     stops: const [0.4, 1.0],
@@ -261,7 +261,7 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
                         Container(
                           margin: const EdgeInsets.only(left: 8, bottom: 4),
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                           child: Text(profile.ageBand!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                         ),
                     ],
@@ -282,7 +282,7 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
                   if (profile.intent.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: Colors.amber.withOpacity(0.9), borderRadius: BorderRadius.circular(16)),
+                      decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(16)),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -306,8 +306,8 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
                     children: profile.vibeTags.take(4).map((tag) => Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
-                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        color: Colors.black.withValues(alpha: 0.4),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(tag, style: const TextStyle(color: Colors.white, fontSize: 13)),
@@ -316,7 +316,7 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
                         profile.vibeTags.length > 4
                             ? Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(16)),
+                                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16)),
                                 child: Text('+${profile.vibeTags.length - 4}', style: const TextStyle(color: Colors.white, fontSize: 13)),
                               )
                             : Container(), // Empty fallback
@@ -333,7 +333,7 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: profile.compatibilityScore! / 100,
-                              backgroundColor: Colors.white.withOpacity(0.2),
+                              backgroundColor: Colors.white.withValues(alpha: 0.2),
                               valueColor: const AlwaysStoppedAnimation<Color>(Colors.pinkAccent),
                               minHeight: 6,
                             ),

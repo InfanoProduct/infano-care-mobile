@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/widgets/joined_circle_card.dart';
 import 'package:infano_care_mobile/widgets/explore_circle_card.dart';
@@ -9,7 +9,7 @@ import 'package:infano_care_mobile/models/circle.dart';
 import 'package:provider/provider.dart';
 
 class CirclesTab extends StatefulWidget {
-  const CirclesTab({Key? key}) : super(key: key);
+  const CirclesTab({super.key});
 
   @override
   State<CirclesTab> createState() => _CirclesTabState();
@@ -124,9 +124,9 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Colors.pink.withOpacity(0.1),
+                                  color: Colors.pink.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.pink.withOpacity(0.2)),
+                                  border: Border.all(color: Colors.pink.withValues(alpha: 0.2)),
                                 ),
                                 child: const Text(
                                   'COMMUNITY',
@@ -160,7 +160,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                                   'Join our vibrant circles to accelerate your growth and find your tribe.',
                                   style: TextStyle(
                                     fontSize: 13, // Reduced from 15
-                                    color: const Color(0xFF4A3F6B).withOpacity(0.7),
+                                    color: const Color(0xFF4A3F6B).withValues(alpha: 0.7),
                                     fontWeight: FontWeight.w600,
                                     height: 1.4,
                                   ),
@@ -193,7 +193,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1A1A2E).withOpacity(0.05),
+                              color: const Color(0xFF1A1A2E).withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(

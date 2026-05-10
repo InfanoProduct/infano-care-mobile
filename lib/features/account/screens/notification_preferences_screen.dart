@@ -94,9 +94,11 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
 
       await ApiService.instance.dio.put('/api/v1/tracker/notification-preferences', data: dataStr);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update: $e')),
+        );
+      }
       // Revert optimism if failed
       _loadPreferences();
     }
@@ -130,7 +132,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
     if (newTime != null) {
       final hour = newTime.hour.toString().padLeft(2, '0');
       final minute = newTime.minute.toString().padLeft(2, '0');
-      _updatePreference('dailyReminderTime', "\$hour:\$minute");
+      _updatePreference('dailyReminderTime', "$hour:$minute");
     }
   }
 
@@ -162,9 +164,9 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.purple.withOpacity(0.05),
+                  color: AppColors.purple.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
                 ),
                 child: Row(
                   children: [
@@ -296,7 +298,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
       )),
       subtitle: Text(subtitle, style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textMedium)),
       value: value,
-      activeColor: AppColors.purple,
+      activeThumbColor: AppColors.purple,
       onChanged: _globalEnabled || isCritical ? onChanged : null,
     );
   }

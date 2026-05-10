@@ -12,14 +12,14 @@ class ComposeBox extends StatefulWidget {
   final String? challengePrompt;
 
   const ComposeBox({
-    Key? key,
+    super.key,
     required this.placeholder,
     required this.onSubmitted,
     this.draftKey,
     this.initialText,
     this.isChallengeMode = false,
     this.challengePrompt,
-  }) : super(key: key);
+  });
 
   @override
   State<ComposeBox> createState() => _ComposeBoxState();
@@ -121,7 +121,7 @@ class _ComposeBoxState extends State<ComposeBox> with SingleTickerProviderStateM
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -137,7 +137,7 @@ class _ComposeBoxState extends State<ComposeBox> with SingleTickerProviderStateM
               position: _slideAnimation,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: AppColors.purple.withOpacity(0.05),
+                color: AppColors.purple.withValues(alpha: 0.05),
                 child: Row(
                   children: [
                     const Icon(Icons.auto_awesome, color: AppColors.purple, size: 16),
@@ -146,7 +146,7 @@ class _ComposeBoxState extends State<ComposeBox> with SingleTickerProviderStateM
                       child: Text(
                         widget.challengePrompt!,
                         style: TextStyle(
-                          color: AppColors.purple.withOpacity(0.8),
+                          color: AppColors.purple.withValues(alpha: 0.8),
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -198,7 +198,7 @@ class _ComposeBoxState extends State<ComposeBox> with SingleTickerProviderStateM
                             'Community Guidelines',
                             style: TextStyle(
                               fontSize: 10,
-                              color: AppColors.purple.withOpacity(0.7),
+                              color: AppColors.purple.withValues(alpha: 0.7),
                               decoration: TextDecoration.underline,
                             ),
                           ),

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/screens/phone_entry_screen.dart';
@@ -154,17 +153,17 @@ GoRouter createRouter(LocalStorageService storage) {
       return null;
     },
     routes: [
-      GoRoute(path: '/splash',   builder: (_, __) => const LandingScreen()),
-      GoRoute(path: '/account',  builder: (_, __) => AccountScreen(storage: storage)),
-      GoRoute(path: '/account/notifications', builder: (_, __) => const NotificationPreferencesScreen()),
-      GoRoute(path: '/account/data-rights', builder: (_, __) => const DataRightsPrivacyScreen()),
-      GoRoute(path: '/account/saved', builder: (_, __) => const SavedArticlesScreen()),
+      GoRoute(path: '/splash',   builder: (_, _) => const LandingScreen()),
+      GoRoute(path: '/account',  builder: (_, _) => AccountScreen(storage: storage)),
+      GoRoute(path: '/account/notifications', builder: (_, _) => const NotificationPreferencesScreen()),
+      GoRoute(path: '/account/data-rights', builder: (_, _) => const DataRightsPrivacyScreen()),
+      GoRoute(path: '/account/saved', builder: (_, _) => const SavedArticlesScreen()),
       
       // Expert Dashboard
-      GoRoute(path: '/expert/dashboard', builder: (_, __) => ExpertDashboardScreen(storage: storage)),
+      GoRoute(path: '/expert/dashboard', builder: (_, _) => ExpertDashboardScreen(storage: storage)),
       
       // Expert Chat
-      GoRoute(path: '/expert/list', builder: (_, __) => ExpertListScreen(storage: storage)),
+      GoRoute(path: '/expert/list', builder: (_, _) => ExpertListScreen(storage: storage)),
       GoRoute(
         path: '/expert/chat/:sessionId', 
         builder: (_, state) {
@@ -180,7 +179,7 @@ GoRouter createRouter(LocalStorageService storage) {
       // Gigi assistant
       GoRoute(
         path: '/chat',
-        builder: (_, __) => BlocProvider(
+        builder: (_, _) => BlocProvider(
           create: (context) => ChatBloc(chatRepo)..add(LoadSessions()),
           child: const ChatScreen(),
         ),
@@ -204,33 +203,33 @@ GoRouter createRouter(LocalStorageService storage) {
       ),
 
       // Onboarding
-      GoRoute(path: '/onboarding/path',           builder: (_, __) => const PathSelectorScreen()),
-      GoRoute(path: '/onboarding/name',            builder: (_, __) => const NamePronounsScreen()),
-      GoRoute(path: '/onboarding/birthday',        builder: (_, __) => const BirthdayInputScreen()),
-      GoRoute(path: '/onboarding/consent/send',    builder: (_, __) => const ParentalConsentScreen()),
-      GoRoute(path: '/onboarding/consent/waiting', builder: (_, __) => const ConsentWaitingScreen()),
-      GoRoute(path: '/onboarding/terms',           builder: (_, __) => const AssentTermsScreen()),
-      GoRoute(path: '/onboarding/goals',           builder: (_, __) => const GoalsSelectionScreen()),
-      GoRoute(path: '/onboarding/period-comfort',  builder: (_, __) => const PeriodComfortScreen()),
-      GoRoute(path: '/onboarding/period-status',   builder: (_, __) => const PeriodExperienceScreen()),
-      GoRoute(path: '/onboarding/interests',       builder: (_, __) => const InterestTopicsScreen()),
-      GoRoute(path: '/onboarding/avatar',          builder: (_, __) => const AvatarBuilderScreen()),
-      GoRoute(path: '/onboarding/journey-name',    builder: (_, __) => const JourneyNameScreen()),
-      GoRoute(path: '/onboarding/welcome',         builder: (_, __) => const WelcomeWorldScreen()),
-      GoRoute(path: '/onboarding/tracker/date',    builder: (_, __) => const LastPeriodDateScreen()),
-      GoRoute(path: '/onboarding/tracker/details', builder: (_, __) => const CycleDetailsScreen()),
-      GoRoute(path: '/onboarding/tracker/done',    builder: (_, __) => const TrackerActivatedScreen()),
+      GoRoute(path: '/onboarding/path',           builder: (_, _) => const PathSelectorScreen()),
+      GoRoute(path: '/onboarding/name',            builder: (_, _) => const NamePronounsScreen()),
+      GoRoute(path: '/onboarding/birthday',        builder: (_, _) => const BirthdayInputScreen()),
+      GoRoute(path: '/onboarding/consent/send',    builder: (_, _) => const ParentalConsentScreen()),
+      GoRoute(path: '/onboarding/consent/waiting', builder: (_, _) => const ConsentWaitingScreen()),
+      GoRoute(path: '/onboarding/terms',           builder: (_, _) => const AssentTermsScreen()),
+      GoRoute(path: '/onboarding/goals',           builder: (_, _) => const GoalsSelectionScreen()),
+      GoRoute(path: '/onboarding/period-comfort',  builder: (_, _) => const PeriodComfortScreen()),
+      GoRoute(path: '/onboarding/period-status',   builder: (_, _) => const PeriodExperienceScreen()),
+      GoRoute(path: '/onboarding/interests',       builder: (_, _) => const InterestTopicsScreen()),
+      GoRoute(path: '/onboarding/avatar',          builder: (_, _) => const AvatarBuilderScreen()),
+      GoRoute(path: '/onboarding/journey-name',    builder: (_, _) => const JourneyNameScreen()),
+      GoRoute(path: '/onboarding/welcome',         builder: (_, _) => const WelcomeWorldScreen()),
+      GoRoute(path: '/onboarding/tracker/date',    builder: (_, _) => const LastPeriodDateScreen()),
+      GoRoute(path: '/onboarding/tracker/details', builder: (_, _) => const CycleDetailsScreen()),
+      GoRoute(path: '/onboarding/tracker/done',    builder: (_, _) => const TrackerActivatedScreen()),
 
       // Deep Link Routes for Notifications
-      GoRoute(path: '/tracker/log', builder: (_, __) => const TrackScreen()), // Placeholder for direct log sheet
-      GoRoute(path: '/tracker/prediction', builder: (_, __) => const TrackScreen()),
-      GoRoute(path: '/tracker/phase', builder: (_, __) => const TrackScreen()), // Placeholder
-      GoRoute(path: '/tracker/doctor-connect', builder: (_, __) => const DoctorSummaryScreen()),
+      GoRoute(path: '/tracker/log', builder: (_, _) => const TrackScreen()), // Placeholder for direct log sheet
+      GoRoute(path: '/tracker/prediction', builder: (_, _) => const TrackScreen()),
+      GoRoute(path: '/tracker/phase', builder: (_, _) => const TrackScreen()), // Placeholder
+      GoRoute(path: '/tracker/doctor-connect', builder: (_, _) => const DoctorSummaryScreen()),
 
       // Tracker Reporting
 
-      GoRoute(path: '/tracker/doctor-summary', builder: (_, __) => const DoctorSummaryScreen()),
-      GoRoute(path: '/tracker/settings', builder: (_, __) => const CycleSettingsScreen()),
+      GoRoute(path: '/tracker/doctor-summary', builder: (_, _) => const DoctorSummaryScreen()),
+      GoRoute(path: '/tracker/settings', builder: (_, _) => const CycleSettingsScreen()),
       GoRoute(
         path: '/tracker/calendar', 
         builder: (context, _) => BlocProvider(
@@ -238,7 +237,7 @@ GoRouter createRouter(LocalStorageService storage) {
           child: const CalendarScreen(),
         ),
       ),
-      GoRoute(path: '/tracker/milestone/first-period', builder: (_, __) => const FirstPeriodCelebrationScreen()),
+      GoRoute(path: '/tracker/milestone/first-period', builder: (_, _) => const FirstPeriodCelebrationScreen()),
       GoRoute(
         path: '/tracker/insights', 
         builder: (_, state) {
@@ -252,7 +251,7 @@ GoRouter createRouter(LocalStorageService storage) {
       ),
 
       // PeerLine Focus
-      GoRoute(path: '/peerline/request', builder: (_, __) => const PeerLineTopicSelectionScreen()),
+      GoRoute(path: '/peerline/request', builder: (_, _) => const PeerLineTopicSelectionScreen()),
       GoRoute(
         path: '/peerline/results', 
         builder: (_, state) {
@@ -290,7 +289,7 @@ GoRouter createRouter(LocalStorageService storage) {
       // Learning Journey Module
       GoRoute(
         path: '/learning/journeys',
-        builder: (_, __) {
+        builder: (_, _) {
           final repo = LearningRepository(ApiService.instance.dio);
           return BlocProvider(
             create: (context) => JourneyListBloc(repo),

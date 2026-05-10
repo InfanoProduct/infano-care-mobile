@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/mood_wheel.dart';
@@ -116,7 +115,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     // Initial load from Bloc state using current state
     final state = context.read<TrackerBloc>().state;
     state.maybeWhen(
-      loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) => _loadLogForDate(_selectedDate, logs),
+      loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) => _loadLogForDate(_selectedDate, logs),
       orElse: () {},
     );
 
@@ -230,7 +229,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFF7B5EA7).withOpacity(0.12)
+                          ? const Color(0xFF7B5EA7).withValues(alpha: 0.12)
                           : Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
@@ -238,7 +237,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                         width: isSelected ? 2 : 1,
                       ),
                       boxShadow: isSelected
-                          ? [BoxShadow(color: const Color(0xFF7B5EA7).withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))]
+                          ? [BoxShadow(color: const Color(0xFF7B5EA7).withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 2))]
                           : null,
                     ),
                     child: Row(
@@ -288,7 +287,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       body: BlocConsumer<TrackerBloc, TrackerState>(
         listener: (context, state) {
           state.maybeWhen(
-            loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) {
+            loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) {
               if (_isSaving) {
                 // Save confirmed by backend — show success and reload logged data
                 setState(() {
@@ -300,7 +299,9 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   debugPrint('[DailyLog] Milestone! Letting milestone screen handle navigation.');
                 } else {
                   Future.delayed(const Duration(milliseconds: 1500), () {
-                    if (mounted) Navigator.pop(context);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
                   });
                 }
               } else {
@@ -328,7 +329,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
           // Defaults to 'waiting' if the state is not loaded yet.
           String currentPhase = 'waiting';
           state.maybeWhen(
-            loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) {
+            loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) {
               currentPhase = profile.currentPhase ?? 'waiting';
             },
             orElse: () {},
@@ -385,7 +386,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   Widget _buildSuccessOverlay() {
     return Positioned.fill(
       child: Container(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -421,7 +422,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: flowOptions.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final option = flowOptions[index];
                   final isSelected = _flow == option.toLowerCase();
@@ -471,7 +472,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                       Container(
                         width: 64, height: 64,
                         decoration: BoxDecoration(
-                          color: _symptoms.isEmpty ? AppColors.purple.withOpacity(0.1) : Colors.white,
+                          color: _symptoms.isEmpty ? AppColors.purple.withValues(alpha: 0.1) : Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: _symptoms.isEmpty ? AppColors.purple : Colors.grey[200]!, width: 2),
                         ),
@@ -486,8 +487,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   final isSelected = _symptoms.contains(symptom['id']);
                   return GestureDetector(
                     onTap: () => setState(() {
-                      if (isSelected) _symptoms.remove(symptom['id']);
-                      else _symptoms.add(symptom['id']!);
+                      if (isSelected) {
+                        _symptoms.remove(symptom['id']);
+                      } else {
+                        _symptoms.add(symptom['id']!);
+                      }
                     }),
                     child: Column(
                       children: [
@@ -495,7 +499,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                           width: 64,
                           height: 64,
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.purple.withOpacity(0.1) : Colors.white,
+                            color: isSelected ? AppColors.purple.withValues(alpha: 0.1) : Colors.white,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: isSelected ? AppColors.purple : Colors.grey[200]!, width: 2),
                           ),
@@ -592,7 +596,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
               value: _energy.toDouble(),
               min: 1, max: 5, divisions: 4,
               activeColor: AppColors.purple,
-              inactiveColor: AppColors.purple.withOpacity(0.1),
+              inactiveColor: AppColors.purple.withValues(alpha: 0.1),
               onChanged: (val) => setState(() => _energy = val.round()),
             ),
             const SizedBox(height: 32),
@@ -622,7 +626,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
               value: _sleepDuration,
               min: 2, max: 12, divisions: 20,
               activeColor: AppColors.purple,
-              inactiveColor: AppColors.purple.withOpacity(0.1),
+              inactiveColor: AppColors.purple.withValues(alpha: 0.1),
               onChanged: (val) => setState(() => _sleepDuration = val),
             ),
             const SizedBox(height: 32),
@@ -678,21 +682,24 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: options.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final opt = options[index];
               final isSelected = _nutrition.contains(opt['id']);
               return GestureDetector(
                 onTap: () => setState(() {
-                  if (isSelected) _nutrition.remove(opt['id']);
-                  else _nutrition.add(opt['id']!);
+                  if (isSelected) {
+                    _nutrition.remove(opt['id']);
+                  } else {
+                    _nutrition.add(opt['id']!);
+                  }
                 }),
                 child: Column(
                   children: [
                     Container(
                       width: 60, height: 60,
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.purple.withOpacity(0.1) : Colors.white,
+                        color: isSelected ? AppColors.purple.withValues(alpha: 0.1) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: isSelected ? AppColors.purple : Colors.grey[200]!, width: 2),
                       ),
@@ -729,21 +736,24 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: options.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final opt = options[index];
               final isSelected = _activity.contains(opt['id']);
               return GestureDetector(
                 onTap: () => setState(() {
-                  if (isSelected) _activity.remove(opt['id']);
-                  else _activity.add(opt['id']!);
+                  if (isSelected) {
+                    _activity.remove(opt['id']);
+                  } else {
+                    _activity.add(opt['id']!);
+                  }
                 }),
                 child: Column(
                   children: [
                     Container(
                       width: 60, height: 60,
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.purple.withOpacity(0.1) : Colors.white,
+                        color: isSelected ? AppColors.purple.withValues(alpha: 0.1) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: isSelected ? AppColors.purple : Colors.grey[200]!, width: 2),
                       ),
@@ -784,9 +794,15 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   }
 
   String _getSleepStatus() {
-    if (_sleepDuration < 5) return 'Restless/Short';
-    if (_sleepDuration < 7) return 'Below Ideal';
-    if (_sleepDuration < 9) return 'Optimal Rest ✨';
+    if (_sleepDuration < 5) {
+      return 'Restless/Short';
+    }
+    if (_sleepDuration < 7) {
+      return 'Below Ideal';
+    }
+    if (_sleepDuration < 9) {
+      return 'Optimal Rest ✨';
+    }
     return 'Long Rest';
   }
 
@@ -798,7 +814,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         height: 56,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
-          boxShadow: [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 5))],
+          boxShadow: [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 5))],
         ),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -837,7 +853,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                     _selectedDate = date;
                     final state = context.read<TrackerBloc>().state;
                     state.maybeWhen(
-                      loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) => _loadLogForDate(_selectedDate, logs),
+                      loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) => _loadLogForDate(_selectedDate, logs),
                       orElse: () {},
                     );
                   });
@@ -849,7 +865,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                     color: isSelected ? AppColors.purple : Colors.grey[50],
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: isSelected ? AppColors.purple : Colors.grey[200]!),
-                    boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : null,
+                    boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : null,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

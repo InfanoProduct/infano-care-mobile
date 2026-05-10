@@ -8,12 +8,11 @@ import 'package:infano_care_mobile/models/peerline_session.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
-import 'package:infano_care_mobile/core/router/app_router.dart';
 import 'package:dio/dio.dart';
 
 class MentorDashboard extends StatefulWidget {
   final VoidCallback? onSwitchToMentee;
-  const MentorDashboard({Key? key, this.onSwitchToMentee}) : super(key: key);
+  const MentorDashboard({super.key, this.onSwitchToMentee});
 
   @override
   State<MentorDashboard> createState() => _MentorDashboardState();
@@ -101,13 +100,12 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
         api.getMentorStatus(),
       ]);
       
-      final stats = results[0] as Map<String, dynamic>;
-      final status = results[1] as Map<String, dynamic>;
+      final stats = results[0];
+      final status = results[1];
       
-      PeerLineSession? activeSession;
       if (status['active_session_id'] != null) {
         try {
-          activeSession = await api.getSession(status['active_session_id']);
+          await api.getSession(status['active_session_id']);
         } catch (e) {
           debugPrint('Failed to load active session details: $e');
         }
@@ -269,7 +267,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
         borderRadius: BorderRadius.circular(20),
         gradient: _isAvailable 
           ? LinearGradient(
-              colors: [AppColors.purple, AppColors.purple.withOpacity(0.8)],
+              colors: [AppColors.purple, AppColors.purple.withValues(alpha: 0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             )
@@ -279,7 +277,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
               end: Alignment.bottomRight,
             ),
         boxShadow: [
-          if (_isAvailable) BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4)),
+          if (_isAvailable) BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
@@ -287,7 +285,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -312,7 +310,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                 Text(
                   _isAvailable ? 'Mentees can see you now' : 'Toggle on to start matching',
                   style: GoogleFonts.outfit(
-                    color: _isAvailable ? Colors.white.withOpacity(0.8) : Colors.grey.shade500,
+                    color: _isAvailable ? Colors.white.withValues(alpha: 0.8) : Colors.grey.shade500,
                     fontSize: 13,
                   ),
                 ),
@@ -322,8 +320,8 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
           Switch.adaptive(
             value: _isAvailable,
             onChanged: _toggleAvailability,
-            activeColor: Colors.white,
-            activeTrackColor: Colors.white.withOpacity(0.3),
+            activeThumbColor: Colors.white,
+            activeTrackColor: Colors.white.withValues(alpha: 0.3),
           ),
         ],
       ),
@@ -355,7 +353,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: queueCount > 0 ? AppColors.purple.withOpacity(0.1) : Colors.grey.shade50,
+                    color: queueCount > 0 ? AppColors.purple.withValues(alpha: 0.1) : Colors.grey.shade50,
                     shape: BoxShape.circle,
                   ),
                   child: Text(
@@ -392,7 +390,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                     disabledBackgroundColor: Colors.grey.shade200,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: queueCount > 0 ? 8 : 0,
-                    shadowColor: AppColors.purple.withOpacity(0.4),
+                    shadowColor: AppColors.purple.withValues(alpha: 0.4),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -456,7 +454,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
             _buildSessionItem(s),
             const SizedBox(height: 12),
           ],
-        )).toList(),
+        )),
       ],
     );
   }
@@ -493,7 +491,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: history.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) => _buildHistoryItem(history[index]),
           ),
       ],
@@ -540,7 +538,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
             spacing: 8,
             children: topics.map((t) => Chip(
               label: Text(t.toString().toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-              backgroundColor: AppColors.purple.withOpacity(0.05),
+              backgroundColor: AppColors.purple.withValues(alpha: 0.05),
               padding: EdgeInsets.zero,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             )).toList(),
@@ -558,12 +556,12 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: unread > 0 ? AppColors.purple : AppColors.purple.withOpacity(0.1),
+          color: unread > 0 ? AppColors.purple : AppColors.purple.withValues(alpha: 0.1),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.purple.withOpacity(0.05),
+            color: AppColors.purple.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -580,7 +578,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.purple.withOpacity(0.1),
+                        color: AppColors.purple.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.forum_rounded, color: AppColors.purple),
@@ -616,7 +614,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                         children: session.topicIds.map((t) => Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.purple.withOpacity(0.05),
+                            color: AppColors.purple.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -726,7 +724,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
       contentPadding: EdgeInsets.zero,
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: AppColors.purple.withOpacity(0.05), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: AppColors.purple.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, color: AppColors.purple, size: 20),
       ),
       title: Text(title, style: GoogleFonts.outfit(fontSize: 14)),

@@ -106,12 +106,12 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
                     onTap: () => _toggle(g.$1),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      transform: Matrix4.identity()..scale(isSelected ? 1.04 : 1.0),
+                      transform: Matrix4.diagonal3Values(isSelected ? 1.04 : 1.0, isSelected ? 1.04 : 1.0, 1.0),
                       transformAlignment: Alignment.center,
                       decoration: BoxDecoration(
                         gradient: isSelected ? AppGradients.brand : AppGradients.softCard,
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))] : null,
+                        boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))] : null,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 
 class ConsentWaitingScreen extends StatefulWidget {
   const ConsentWaitingScreen({super.key});
@@ -31,9 +32,10 @@ class _ConsentWaitingScreenState extends State<ConsentWaitingScreen> {
   }
 
   void _startPolling() {
-    _pollTimer = Timer.periodic(const Duration(seconds: 60), (_) async {
-      // TODO: call repository.getConsentStatus()
-      // if status == 'approved' → navigate to /onboarding/terms
+    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted) {
+        context.read<OnboardingBloc>().add(const CheckConsentStatus());
+      }
     });
   }
 
@@ -82,8 +84,14 @@ class _ConsentWaitingScreenState extends State<ConsentWaitingScreen> {
                 icon: const Icon(Icons.refresh_rounded, color: AppColors.purple),
                 label: const Text('Resend Email', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600)),
                 onPressed: _resendCooldown == 0 ? () {
-                  setState(() => _resendCooldown = 600);
-                  // TODO: call sendConsentEmail again
+                  final parentEmail = context.read<OnboardingBloc>().state.parentEmail;
+                  if (parentEmail != null) {
+                    context.read<OnboardingBloc>().add(SendConsentEmail(parentEmail));
+                    setState(() => _resendCooldown = 60); // 1 minute cooldown
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Verification email resent!')),
+                    );
+                  }
                 } : null,
               ),
             ],

@@ -95,7 +95,6 @@ class TrackerInsights extends StatelessWidget {
 
     final sorted = counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final topSymptoms = sorted.take(4).toList();
-    final maxCount = topSymptoms.first.value;
 
     return _buildInsightCard(
       title: 'Top Symptoms 🌡️',
@@ -210,7 +209,7 @@ class TrackerInsights extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.purple,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,7 +230,7 @@ class TrackerInsights extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Generate a clinical summary of your last 3 cycles for your next appointment.',
-            style: GoogleFonts.nunito(color: Colors.white.withOpacity(0.9), fontSize: 13),
+            style: GoogleFonts.nunito(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -259,8 +258,8 @@ class TrackerInsights extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5))],
-        border: Border.all(color: AppColors.purple.withOpacity(0.05)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,7 +293,7 @@ class TrackerInsights extends StatelessWidget {
   Widget _moodChip(String mood, int count) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: AppColors.purple.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: AppColors.purple.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
       child: Text('$mood ($count)', style: const TextStyle(fontSize: 12, color: AppColors.purple, fontWeight: FontWeight.w600)),
     );
   }
@@ -310,7 +309,7 @@ class TrackerInsights extends StatelessWidget {
           flex: 3,
           child: LinearProgressIndicator(
             value: percent / 100, 
-            backgroundColor: color.withOpacity(0.1), 
+            backgroundColor: color.withValues(alpha: 0.1), 
             color: color, 
             minHeight: 6, 
             borderRadius: BorderRadius.circular(3),
@@ -347,7 +346,7 @@ class TrackerInsights extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFDF4FF),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.pink.withOpacity(0.1)),
+        border: Border.all(color: AppColors.pink.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,7 +436,7 @@ class TrackerInsights extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: _lifestyleItem('Main Fuel', topNutrition ?? 'Healthy', '🥗')),
-          Container(width: 1, height: 40, color: Colors.grey.withOpacity(0.1)),
+          Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.1)),
           Expanded(child: _lifestyleItem('Main Move', topActivity ?? 'Walking', '👟')),
         ],
       ),
@@ -458,7 +457,9 @@ class TrackerInsights extends StatelessWidget {
   String? _getTopItem(List<String> items) {
     if (items.isEmpty) return null;
     Map<String, int> counts = {};
-    for (var i in items) counts[i] = (counts[i] ?? 0) + 1;
+    for (var i in items) {
+      counts[i] = (counts[i] ?? 0) + 1;
+    }
     final sorted = counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return sorted.first.key;
   }

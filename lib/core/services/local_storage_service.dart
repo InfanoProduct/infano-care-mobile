@@ -9,10 +9,6 @@ class LocalStorageService extends ChangeNotifier {
   static const _role           = 'user_role';
   static const _points         = 'ob_points';
   static const _stepComplete   = 'ob_step_complete';
-  static const _personalization = 'ob_personalization';
-  static const _avatar         = 'ob_avatar';
-  static const _journeyName    = 'ob_journey_name';
-  static const _trackerSetup   = 'ob_tracker_setup';
   static const _authToken      = 'auth_token';
   static const _refreshToken   = 'refresh_token';
   static const _userId         = 'user_id';
@@ -75,8 +71,11 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
   Future<void> setPronouns(String? p) async {
-    if (p != null) await _prefs.setString(_pronouns, p);
-    else await _prefs.remove(_pronouns);
+    if (p != null) {
+      await _prefs.setString(_pronouns, p);
+    } else {
+      await _prefs.remove(_pronouns);
+    }
     notifyListeners();
   }
   Future<void> setPhone(String p) async {

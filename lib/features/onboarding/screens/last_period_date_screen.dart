@@ -43,7 +43,8 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
               final bloc = context.read<OnboardingBloc>();
               bloc.add(const SkipTracker());
               await bloc.stream.firstWhere((state) => !state.isLoading);
-              if (mounted) context.go('/home');
+              if (!context.mounted) return;
+              context.go('/home');
             },
             child: const Text("I'll do this later", style: TextStyle(color: AppColors.textLight)),
           ),

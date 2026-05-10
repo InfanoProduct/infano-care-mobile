@@ -3,10 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
-import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
-import 'package:infano_care_mobile/core/services/privacy_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CycleSettingsScreen extends StatefulWidget {
@@ -31,7 +28,6 @@ class _CycleSettingsScreenState extends State<CycleSettingsScreen> {
     super.initState();
     _repository = TrackerRepository(
       ApiService.instance.dio,
-      PrivacyService(const FlutterSecureStorage()),
     );
     _loadProfile();
   }
@@ -190,9 +186,9 @@ class _CycleSettingsScreenState extends State<CycleSettingsScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Row(
           children: [
@@ -226,9 +222,9 @@ class _CycleSettingsScreenState extends State<CycleSettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -238,7 +234,7 @@ class _CycleSettingsScreenState extends State<CycleSettingsScreen> {
               Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white, fontSize: 16)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
                 child: Text('${value.round()} $unit', style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 15)),
               ),
             ],
@@ -247,9 +243,9 @@ class _CycleSettingsScreenState extends State<CycleSettingsScreen> {
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: color,
-              inactiveTrackColor: color.withOpacity(0.1),
+              inactiveTrackColor: color.withValues(alpha: 0.1),
               thumbColor: color,
-              overlayColor: color.withOpacity(0.2),
+              overlayColor: color.withValues(alpha: 0.2),
               trackHeight: 6,
             ),
             child: Slider(value: value, min: min, max: max, onChanged: onChanged),

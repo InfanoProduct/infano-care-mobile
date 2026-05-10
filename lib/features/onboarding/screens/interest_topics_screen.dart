@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
-import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 import 'package:infano_care_mobile/shared/widgets/points_burst.dart';
@@ -68,7 +67,7 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
                 // Wait for sync to backend
                 await bloc.stream.firstWhere((state) => !state.isLoading);
                 
-                if (mounted) {
+                if (context.mounted) {
                   context.go('/onboarding/avatar');
                 }
               }
@@ -112,7 +111,7 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
                     onTap: () => _toggle(t.$1),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      transform: Matrix4.identity()..scale(isSelected ? 1.04 : 1.0),
+                      transform: Matrix4.diagonal3Values(isSelected ? 1.04 : 1.0, isSelected ? 1.04 : 1.0, 1.0),
                       transformAlignment: Alignment.center,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(

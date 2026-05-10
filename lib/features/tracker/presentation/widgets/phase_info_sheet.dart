@@ -29,7 +29,7 @@ class PhaseInfoSheet extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: phaseData['color'].withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: phaseData['color'].withValues(alpha: 0.1), shape: BoxShape.circle),
                 child: Text(phaseData['emoji'], style: const TextStyle(fontSize: 32)),
               ),
               const SizedBox(width: 20),
@@ -58,7 +58,7 @@ class PhaseInfoSheet extends StatelessWidget {
           
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: phaseData['color'].withOpacity(0.05), borderRadius: BorderRadius.circular(24), border: Border.all(color: phaseData['color'].withOpacity(0.1))),
+            decoration: BoxDecoration(color: phaseData['color'].withValues(alpha: 0.05), borderRadius: BorderRadius.circular(24), border: Border.all(color: phaseData['color'].withValues(alpha: 0.1))),
             child: Row(
               children: [
                 const Text('💡', style: TextStyle(fontSize: 24)),

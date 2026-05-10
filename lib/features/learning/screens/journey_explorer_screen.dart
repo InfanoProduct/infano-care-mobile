@@ -67,7 +67,7 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
                                   height: 160,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                                  errorBuilder: (_, _, _) => _buildPlaceholder(),
                                 )
                               else
                                 _buildPlaceholder(),
@@ -78,7 +78,7 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.9),
+                                      color: Colors.green.withValues(alpha: 0.9),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: const Row(

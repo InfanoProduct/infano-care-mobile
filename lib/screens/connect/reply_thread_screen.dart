@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 class ReplyThreadScreen extends StatefulWidget {
   final CommunityPost post;
 
-  const ReplyThreadScreen({Key? key, required this.post}) : super(key: key);
+  const ReplyThreadScreen({super.key, required this.post});
 
   @override
   State<ReplyThreadScreen> createState() => _ReplyThreadScreenState();
@@ -24,10 +24,6 @@ class _ReplyThreadScreenState extends State<ReplyThreadScreen> {
   String? _replyingToId;
   String? _replyingToName;
   int _replyingToDepth = 1;
-
-  final Map<String, bool> _localBookmarkState = {};
-  final Map<String, Map<String, int>> _localReactionCounts = {};
-  final Map<String, Map<String, bool>> _localUserReactions = {};
 
   // For the original post
   String? _localPostReaction;
@@ -231,8 +227,8 @@ class _ReplyThreadScreenState extends State<ReplyThreadScreen> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.softAmber.withOpacity(0.1),
-          border: Border(top: BorderSide(color: AppColors.softAmber.withOpacity(0.3))),
+          color: AppColors.softAmber.withValues(alpha: 0.1),
+          border: Border(top: BorderSide(color: AppColors.softAmber.withValues(alpha: 0.3))),
         ),
         child: Column(
           children: [
@@ -264,7 +260,7 @@ class _ReplyThreadScreenState extends State<ReplyThreadScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -581,7 +577,7 @@ class _ReplyNodeState extends State<_ReplyNode> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         margin: const EdgeInsets.only(right: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.purple.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? AppColors.purple.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(

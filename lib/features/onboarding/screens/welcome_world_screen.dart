@@ -79,7 +79,7 @@ class _WelcomeWorldScreenState extends State<WelcomeWorldScreen> {
                 const SizedBox(height: 48),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
                   child: Column(
                     children: [
                       _AchievementRow(icon: '⭐', text: 'Stage 4 complete!'),

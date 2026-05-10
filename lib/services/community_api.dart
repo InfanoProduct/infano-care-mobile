@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:infano_care_mobile/models/circle.dart';
 import 'package:infano_care_mobile/models/peerline_session.dart';
@@ -267,21 +268,21 @@ class CommunityApi {
     final path = 'peerline/mentor/search';
     final query = {'topics': topicIds.join(',')};
     
-    print('COMMUNITY_API: Searching mentors at ${_dio.options.baseUrl}$path with query $query');
+    debugPrint('COMMUNITY_API: Searching mentors at ${_dio.options.baseUrl}$path with query $query');
     
     try {
       final response = await _dio.get(path, queryParameters: query);
-      print('COMMUNITY_API: Search response status: ${response.statusCode}');
-      print('COMMUNITY_API: Search response data: ${response.data}');
+      debugPrint('COMMUNITY_API: Search response status: ${response.statusCode}');
+      debugPrint('COMMUNITY_API: Search response data: ${response.data}');
       
       final data = response.data as Map<String, dynamic>;
       final mentors = (data['mentors'] as List).map((e) => e as Map<String, dynamic>).toList();
-      print('COMMUNITY_API: Found ${mentors.length} mentors in response');
+      debugPrint('COMMUNITY_API: Found ${mentors.length} mentors in response');
       return mentors;
     } catch (e) {
-      print('COMMUNITY_API: ERROR in searchMentors: $e');
+      debugPrint('COMMUNITY_API: ERROR in searchMentors: $e');
       if (e is DioException) {
-        print('COMMUNITY_API: ERROR Details: ${e.response?.statusCode} - ${e.response?.data}');
+        debugPrint('COMMUNITY_API: ERROR Details: ${e.response?.statusCode} - ${e.response?.data}');
       }
       rethrow;
     }

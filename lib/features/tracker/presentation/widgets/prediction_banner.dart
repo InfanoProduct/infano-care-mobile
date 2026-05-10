@@ -25,9 +25,9 @@ class PredictionBanner extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 0),
       decoration: BoxDecoration(
-        color: bannerInfo.color.withOpacity(0.1),
+        color: bannerInfo.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: bannerInfo.color.withOpacity(0.3)),
+        border: Border.all(color: bannerInfo.color.withValues(alpha: 0.3)),
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -65,7 +65,7 @@ class PredictionBanner extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: bannerInfo.color.withOpacity(0.1),
+                          color: bannerInfo.color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -99,7 +99,7 @@ class PredictionBanner extends StatelessWidget {
                       height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: bannerInfo.color.withOpacity(0.1),
+                        color: bannerInfo.color.withValues(alpha: 0.1),
                       ),
                       child: ClipOval(
                         child: Image.asset(
@@ -115,7 +115,7 @@ class PredictionBanner extends StatelessWidget {
                       child: Text(
                         '"${bannerInfo.message}"',
                         style: GoogleFonts.nunito(
-                          color: AppColors.textDark.withOpacity(0.9),
+                          color: AppColors.textDark.withValues(alpha: 0.9),
                           fontSize: 15,
                           fontStyle: FontStyle.italic,
                           height: 1.5,

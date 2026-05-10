@@ -1,0 +1,175 @@
+Analyzing infano-care-mobile...                                 
+
+   info • Use interpolation to compose strings and values • lib/core/services/api_service.dart:131:11 • prefer_interpolation_to_compose_strings
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/auth/repository/auth_repository.dart:66:9 • use_null_aware_elements
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/chat/data/chat_repository.dart:15:11 • use_null_aware_elements
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/chat/data/chat_repository.dart:16:11 • use_null_aware_elements
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/chat/data/chat_repository.dart:29:9 • use_null_aware_elements
+   info • Unnecessary use of multiple underscores • lib/features/chat/screens/chat_screen.dart:256:35 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/chat/screens/chat_screen.dart:256:39 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/chat/screens/chat_screen.dart:680:41 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/chat/screens/chat_screen.dart:820:20 • unnecessary_underscores
+   info • The prefix 'IO' isn't a lower_case_with_underscores identifier • lib/features/expert/services/expert_service.dart:6:60 • library_prefixes
+  error • The method 'animate' isn't defined for the type 'Container' • lib/features/home/screens/track_screen.dart:219:7 • undefined_method
+  error • The getter 'ms' isn't defined for the type 'int' • lib/features/home/screens/track_screen.dart:219:38 • undefined_getter
+  error • The method 'animate' isn't defined for the type 'Center' • lib/features/home/screens/track_screen.dart:249:7 • undefined_method
+  error • The getter 'ms' isn't defined for the type 'int' • lib/features/home/screens/track_screen.dart:249:37 • undefined_getter
+  error • The method 'animate' isn't defined for the type 'Container' • lib/features/home/screens/track_screen.dart:331:7 • undefined_method
+  error • The getter 'ms' isn't defined for the type 'int' • lib/features/home/screens/track_screen.dart:331:37 • undefined_getter
+  error • The method 'animate' isn't defined for the type 'Image' • lib/features/home/screens/track_screen.dart:384:17 • undefined_method
+  error • The getter 'ms' isn't defined for the type 'int' • lib/features/home/screens/track_screen.dart:385:64 • undefined_getter
+  error • The method 'animate' isn't defined for the type 'SizedBox' • lib/features/home/screens/track_screen.dart:429:17 • undefined_method
+  error • The getter 'ms' isn't defined for the type 'int' • lib/features/home/screens/track_screen.dart:429:60 • undefined_getter
+  error • The method 'animate' isn't defined for the type 'Row' • lib/features/home/screens/track_screen.dart:459:7 • undefined_method
+  error • The getter 'ms' isn't defined for the type 'int' • lib/features/home/screens/track_screen.dart:459:35 • undefined_getter
+  error • The method 'animate' isn't defined for the type 'Column' • lib/features/home/screens/track_screen.dart:541:7 • undefined_method
+  error • The getter 'ms' isn't defined for the type 'int' • lib/features/home/screens/track_screen.dart:541:35 • undefined_getter
+  error • The method 'animate' isn't defined for the type 'Column' • lib/features/home/screens/track_screen.dart:654:7 • undefined_method
+  error • The getter 'ms' isn't defined for the type 'int' • lib/features/home/screens/track_screen.dart:654:35 • undefined_getter
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/learning/repositories/learning_repository.dart:11:7 • use_null_aware_elements
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/learning/repositories/learning_repository.dart:50:9 • use_null_aware_elements
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/learning/repositories/learning_repository.dart:51:9 • use_null_aware_elements
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:125:26 • unnecessary_underscores
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/learning/screens/episode_player_screen.dart:723:41 • use_null_aware_elements
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1307:58 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1307:65 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1307:70 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1307:76 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1307:83 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1307:91 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1307:100 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1307:110 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1309:53 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1309:57 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1309:62 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1309:68 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1309:75 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1309:83 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1309:92 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1309:105 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1377:47 • unnecessary_underscores
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/learning/screens/episode_player_screen.dart:1472:13 • use_null_aware_elements
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1609:25 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1609:29 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1609:34 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1609:40 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1609:47 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1609:55 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1609:64 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/episode_player_screen.dart:1609:83 • unnecessary_underscores
+   info • Statements in an if should be enclosed in a block • lib/features/learning/screens/episode_player_screen.dart:1869:34 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/learning/screens/episode_player_screen.dart:1870:30 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/learning/screens/episode_player_screen.dart:1981:30 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/learning/screens/episode_player_screen.dart:1982:26 • curly_braces_in_flow_control_structures
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/journey_explorer_screen.dart:70:53 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/features/learning/screens/journey_explorer_screen.dart:70:57 • unnecessary_underscores
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/onboarding/screens/last_period_date_screen.dart:46:28 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/onboarding/screens/parental_consent_screen.dart:30:9 • use_build_context_synchronously
+   info • The variable name 'Gigi' isn't a lowerCamelCase identifier • lib/features/tracker/application/character_greeting_service.dart:10:16 • non_constant_identifier_names
+   info • The variable name 'Lily' isn't a lowerCamelCase identifier • lib/features/tracker/application/character_greeting_service.dart:11:16 • non_constant_identifier_names
+   info • The variable name 'Maya' isn't a lowerCamelCase identifier • lib/features/tracker/application/character_greeting_service.dart:12:16 • non_constant_identifier_names
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/tracker/data/repositories/tracker_repository.dart:138:9 • use_null_aware_elements
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/features/tracker/data/repositories/tracker_repository.dart:139:9 • use_null_aware_elements
+   info • Statements in a for should be enclosed in a block • lib/features/tracker/presentation/screens/doctor_summary_screen.dart:356:26 • curly_braces_in_flow_control_structures
+   info • Don't use 'BuildContext's across async gaps • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:302:48 • use_build_context_synchronously
+   info • Unnecessary use of multiple underscores • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:423:39 • unnecessary_underscores
+   info • Statements in an if should be enclosed in a block • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:488:39 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:489:28 • curly_braces_in_flow_control_structures
+   info • Unnecessary use of multiple underscores • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:680:35 • unnecessary_underscores
+   info • Statements in an if should be enclosed in a block • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:686:35 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:687:24 • curly_braces_in_flow_control_structures
+   info • Unnecessary use of multiple underscores • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:731:35 • unnecessary_underscores
+   info • Statements in an if should be enclosed in a block • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:737:35 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/tracker/presentation/widgets/daily_log_sheet.dart:738:24 • curly_braces_in_flow_control_structures
+   info • 'alpha' is deprecated and shouldn't be used. Use (*.a * 255.0).round().clamp(0, 255) • lib/features/tracker/presentation/widgets/day_cell.dart:349:46 • deprecated_member_use
+   info • 'announce' is deprecated and shouldn't be used. Use sendAnnouncement instead. This API is incompatible with multiple windows. This feature was deprecated after v3.35.0-0.1.pre • lib/features/tracker/presentation/widgets/day_detail_panel.dart:592:36 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/features/tracker/presentation/widgets/period_editor_sheet.dart:119:15 • deprecated_member_use
+warning • The value of the local variable 'isIrregular' isn't used • lib/features/tracker/presentation/widgets/period_history_list.dart:201:11 • unused_local_variable
+   info • Statements in a for should be enclosed in a block • lib/features/tracker/presentation/widgets/tracker_insights.dart:460:26 • curly_braces_in_flow_control_structures
+   info • Dangling library doc comment • lib/features/tracker/utils/calendar_types.dart:1:1 • dangling_library_doc_comments
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/bookmarks_screen.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/circle_screen.dart:17:9 • use_super_parameters
+warning • The value of the field '_feedFuture' isn't used • lib/screens/connect/circle_screen.dart:25:37 • unused_field
+   info • The private field _newPostsCount could be 'final' • lib/screens/connect/circle_screen.dart:36:7 • prefer_final_fields
+   info • Unnecessary 'const' keyword • lib/screens/connect/circle_screen.dart:335:19 • unnecessary_const
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/circle_screen.dart:602:58 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/circle_screen.dart:608:58 • use_build_context_synchronously
+   info • Unnecessary use of multiple underscores • lib/screens/connect/circle_screen.dart:708:37 • unnecessary_underscores
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/circle_selection_dialog.dart:8:9 • use_super_parameters
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/screens/connect/circle_selection_dialog.dart:135:29 • deprecated_member_use
+   info • The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' • lib/screens/connect/circles_tab.dart:2:8 • unnecessary_import
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/circles_tab.dart:12:9 • use_super_parameters
+warning • Unused import: 'matches_tab.dart' • lib/screens/connect/connect_screen.dart:12:8 • unused_import
+warning • The declaration '_showGlobalSettings' isn't referenced • lib/screens/connect/connect_screen.dart:178:8 • unused_element
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/connect_screen.dart:233:31 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/connect_screen.dart:234:31 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/connect_screen.dart:237:66 • use_build_context_synchronously
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/events_tab.dart:11:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/friend_chat_screen.dart:17:9 • use_super_parameters
+   info • Unnecessary use of 'toList' in a spread • lib/screens/connect/friend_chat_screen.dart:312:14 • unnecessary_to_list_in_spreads
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/friend_chat_screen.dart:469:40 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/friend_chat_screen.dart:492:28 • use_build_context_synchronously
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/friend_profile_setup_screen.dart:15:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/connect/friend_profile_setup_screen.dart:221:23 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/connect/friend_profile_setup_screen.dart:224:28 • use_build_context_synchronously
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/connect/friend_profile_setup_screen.dart:394:13 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/live_event_screen.dart:11:9 • use_super_parameters
+warning • The declaration '_showSubmissionConfirmation' isn't referenced • lib/screens/connect/live_event_screen.dart:142:8 • unused_element
+   info • Statements in an if should be enclosed in a block • lib/screens/connect/live_event_screen.dart:210:33 • curly_braces_in_flow_control_structures
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/my_feed_tab.dart:10:9 • use_super_parameters
+   info • Don't use 'BuildContext's across async gaps • lib/screens/connect/peerline_chat_screen.dart:82:30 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/connect/peerline_chat_screen.dart:276:56 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/peerline_chat_screen.dart:973:43 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/screens/connect/peerline_chat_screen.dart:1043:40 • use_build_context_synchronously
+warning • The value of the field '_session' isn't used • lib/screens/connect/peerline_feedback_screen.dart:22:20 • unused_field
+   info • The private field _mentorSelfRating could be 'final' • lib/screens/connect/peerline_feedback_screen.dart:26:7 • prefer_final_fields
+   info • The private field _flagForModeration could be 'final' • lib/screens/connect/peerline_feedback_screen.dart:30:8 • prefer_final_fields
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/peerline_results_screen.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/peerline_results_screen.dart:296:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/peerline_tab.dart:16:9 • use_super_parameters
+warning • The value of the field '_availabilityFuture' isn't used • lib/screens/connect/peerline_tab.dart:28:32 • unused_field
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/peerline_tab.dart:627:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/peerline_tab.dart:779:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/peerline_tab.dart:976:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/peerline_topic_selection_screen.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/screens/connect/reply_thread_screen.dart:13:9 • use_super_parameters
+warning • The value of the field '_localBookmarkState' isn't used • lib/screens/connect/reply_thread_screen.dart:28:27 • unused_field
+warning • The value of the field '_localReactionCounts' isn't used • lib/screens/connect/reply_thread_screen.dart:29:39 • unused_field
+warning • The value of the field '_localUserReactions' isn't used • lib/screens/connect/reply_thread_screen.dart:30:40 • unused_field
+   info • Don't invoke 'print' in production code • lib/services/community_api.dart:270:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/services/community_api.dart:274:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/services/community_api.dart:275:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/services/community_api.dart:279:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/services/community_api.dart:282:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/services/community_api.dart:284:9 • avoid_print
+   info • The prefix 'IO' isn't a lower_case_with_underscores identifier • lib/services/community_socket_service.dart:6:60 • library_prefixes
+   info • 'desiredAccuracy' is deprecated and shouldn't be used. use settings parameter with AndroidSettings, AppleSettings, WebSettings, or LocationSettings • lib/services/friends_api.dart:23:7 • deprecated_member_use
+   info • Use the null-aware marker '?' rather than a null check via an 'if' • lib/services/friends_api.dart:69:7 • use_null_aware_elements
+   info • The prefix 'IO' isn't a lower_case_with_underscores identifier • lib/services/friends_socket_service.dart:5:60 • library_prefixes
+   info • Parameter 'key' could be a super parameter • lib/widgets/age_room_section.dart:9:9 • use_super_parameters
+   info • The local variable '_roomData' starts with an underscore • lib/widgets/age_room_section.dart:37:11 • no_leading_underscores_for_local_identifiers
+   info • Parameter 'key' could be a super parameter • lib/widgets/appeal_modal.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/circle_card.dart:8:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/circle_details_sheet.dart:11:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/community_pulse_strip.dart:9:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/compose_box.dart:14:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/event_card.dart:12:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/explore_circle_card.dart:8:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/friend_empty_state.dart:7:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/friend_match_dialog.dart:9:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/friend_profile_detail_sheet.dart:7:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/friend_swipe_cards.dart:17:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/friends_explainer_bottom_sheet.dart:4:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/friends_tab_entry_card.dart:8:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/joined_circle_card.dart:8:9 • use_super_parameters
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/widgets/mentor_dashboard.dart:323:13 • deprecated_member_use
+   info • Unnecessary use of 'toList' in a spread • lib/widgets/mentor_dashboard.dart:457:12 • unnecessary_to_list_in_spreads
+   info • Unnecessary use of multiple underscores • lib/widgets/mentor_dashboard.dart:494:35 • unnecessary_underscores
+   info • The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' • lib/widgets/peerline_entry_card.dart:1:8 • unnecessary_import
+   info • Parameter 'key' could be a super parameter • lib/widgets/peerline_entry_card.dart:12:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/widgets/report_modal.dart:9:9 • use_super_parameters
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/widgets/report_modal.dart:78:17 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/widgets/report_modal.dart:82:17 • deprecated_member_use
+warning • Unused import: 'package:flutter/material.dart' • test/widget_test.dart:8:8 • unused_import
+warning • Unused import: 'package:infano_care_mobile/main.dart' • test/widget_test.dart:11:8 • unused_import
+

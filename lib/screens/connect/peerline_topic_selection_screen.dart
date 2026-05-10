@@ -7,7 +7,7 @@ import '../../services/community_api.dart';
 import '../../models/peerline_topic.dart';
 
 class PeerLineTopicSelectionScreen extends StatefulWidget {
-  const PeerLineTopicSelectionScreen({Key? key}) : super(key: key);
+  const PeerLineTopicSelectionScreen({super.key});
 
   @override
   State<PeerLineTopicSelectionScreen> createState() => _PeerLineTopicSelectionScreenState();
@@ -132,7 +132,7 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
       accentColor = AppColors.purple;
     }
     
-    final Color pastelBg = isSelected ? accentColor : accentColor.withOpacity(0.08);
+    final Color pastelBg = isSelected ? accentColor : accentColor.withValues(alpha: 0.08);
 
     return GestureDetector(
       onTap: () {
@@ -150,12 +150,12 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
           color: pastelBg,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isSelected ? accentColor : accentColor.withOpacity(0.1),
+            color: isSelected ? accentColor : accentColor.withValues(alpha: 0.1),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: isSelected ? accentColor.withOpacity(0.3) : accentColor.withOpacity(0.04),
+              color: isSelected ? accentColor.withValues(alpha: 0.3) : accentColor.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -167,11 +167,11 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white.withOpacity(0.2) : Colors.white,
+                color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.white,
                 shape: BoxShape.circle,
                 boxShadow: isSelected ? null : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -204,7 +204,7 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4)),
         ],
       ),
       child: SafeArea(

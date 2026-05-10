@@ -1,5 +1,6 @@
 /// Domain types for the calendar day cell.
 /// Import this file wherever PhaseInfo, PhaseType or FlowLevel are needed.
+library;
 
 // ── PhaseType ─────────────────────────────────────────────────────────────────
 

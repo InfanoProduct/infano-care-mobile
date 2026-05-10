@@ -6,10 +6,10 @@ class FriendsTabEntryCard extends StatelessWidget {
   final int nearbyCount;
 
   const FriendsTabEntryCard({
-    Key? key,
+    super.key,
     required this.onStartMatching,
     required this.nearbyCount,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class FriendsTabEntryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.pink.withOpacity(0.1),
+            color: Colors.pink.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),

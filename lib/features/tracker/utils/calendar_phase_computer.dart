@@ -80,7 +80,7 @@ class CalendarPhaseComputer {
         // 4. Current/Future Cycle Phases (if not covered by records yet)
         final phase = CalendarUtils.getPhaseForDate(cursorDate, profile, logs);
         final diff = cursorDate.difference(DateUtils.dateOnly(profile.lastPeriodStart!)).inDays;
-        if (diff < profile.avgCycleLength + 5) { // Allow some slack for future display
+        if (diff < profile.avgCycleLength * 5) { // Allow up to 5 cycles of future predictions
           map[key] = phase;
         } else {
           map[key] = CyclePhase.unknown;

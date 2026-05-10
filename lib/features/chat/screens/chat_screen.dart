@@ -49,9 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _showSessionsDrawer(List<dynamic> sessions) {
-    _scaffoldKey.currentState?.openEndDrawer();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -255,7 +253,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 'https://assets9.lottiefiles.com/packages/lf20_m6cu9mfc.json',
                 width: 180,
                 height: 180,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     const Text('🌟', style: TextStyle(fontSize: 60)),
               ),
               const SizedBox(height: 20),
@@ -679,7 +677,7 @@ class _SessionsDrawer extends StatelessWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: sessions.length,
-                  separatorBuilder: (_, __) => const Divider(
+                  separatorBuilder: (_, _) => const Divider(
                       height: 1, indent: 72, endIndent: 16),
                   itemBuilder: (context, i) {
                     final s = sessions[i];
@@ -819,7 +817,7 @@ class _BouncingDotState extends State<_BouncingDot>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) => Transform.translate(
+      builder: (_, _) => Transform.translate(
         offset: Offset(0, -4 * _anim.value),
         child: Container(
           width: 8,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,7 +7,7 @@ import 'dart:async';
 
 class CrisisResourceCard extends StatefulWidget {
   final VoidCallback? onDismiss;
-  const CrisisResourceCard({Key? key, this.onDismiss}) : super(key: key);
+  const CrisisResourceCard({super.key, this.onDismiss});
 
   @override
   State<CrisisResourceCard> createState() => _CrisisResourceCardState();

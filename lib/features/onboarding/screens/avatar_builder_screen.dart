@@ -21,14 +21,13 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
   int _bodyType   = 0;
   int _skinTone   = 0;
   int _hairStyle  = 0;
-  int _hairColor  = 0;
+  final int _hairColor  = 0;
   int _outfit     = 0;
   int _category   = 0;
   bool _showPoints = false;
 
   static const _categories = ['Body', 'Hair', 'Skin', 'Outfit'];
   static const _skinTones  = [0xFFFFDBAC, 0xFFF5CBA7, 0xFFD4965A, 0xFFAD6F3B, 0xFF7B4F2E, 0xFF4B2E10];
-  static const _hairColors = [0xFF3B1F0A, 0xFF7B4F2E, 0xFFF6C522, 0xFFFF4D4D, 0xFFAD6FD9, 0xFF000000];
   static const _outfitEmojis = ['👕', '🩱', '👗', '🧥', '👚', '🩴'];
   static const _bodyEmojis   = ['🌸', '🌺', '🌻', '🌼', '🌷', '💐'];
   static const _hairEmojis   = ['💁', '👩', '👩‍🦱', '👩‍🦰', '👩‍🦳', '👩‍🦲'];
@@ -82,7 +81,7 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
                 // Wait for sync to backend
                 await bloc.stream.firstWhere((state) => !state.isLoading);
                 
-                if (mounted) {
+                if (context.mounted) {
                   context.go('/onboarding/journey-name');
                 }
               }

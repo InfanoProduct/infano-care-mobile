@@ -6,11 +6,9 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 import 'package:infano_care_mobile/core/services/permission_service.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:sms_autofill/sms_autofill.dart';
 
 class PhoneEntryScreen extends StatefulWidget {
-  PhoneEntryScreen({super.key, required this.storage, this.fromOnboarding = false});
+  const PhoneEntryScreen({super.key, required this.storage, this.fromOnboarding = false});
   final LocalStorageService storage;
   final bool fromOnboarding;
 
@@ -54,23 +52,6 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
     }
   }
 
-  Future<void> _showPhoneHint() async {
-    try {
-      final String? result = await SmsAutoFill().hint;
-      if (result != null && mounted) {
-        final cleaned = result.replaceAll(' ', '').replaceAll('-', '').replaceAll('+', '');
-        if (cleaned.length >= 10) {
-          setState(() {
-            _controller.text = cleaned.substring(cleaned.length - 10);
-            _countryCode = '+${cleaned.substring(0, cleaned.length - 10)}';
-            if (_countryCode == '+') _countryCode = '+91'; // Fallback
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Phone hint error: $e');
-    }
-  }
 
   bool get _valid => _controller.text.replaceAll(' ', '').length >= 10;
 

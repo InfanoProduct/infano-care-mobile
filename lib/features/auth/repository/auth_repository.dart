@@ -63,7 +63,7 @@ class AuthRepository {
     try {
       final resp = await _dio.post('/auth/otp/send', data: {
         'phone': phone,
-        if (appHash != null) 'appHash': appHash,
+        'appHash': ?appHash,
       });
 
       final data = resp.data as Map<String, dynamic>;

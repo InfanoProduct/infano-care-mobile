@@ -7,7 +7,7 @@ import '../../services/community_api.dart';
 
 class PeerLineResultsScreen extends StatefulWidget {
   final List<String> selectedTopics;
-  const PeerLineResultsScreen({Key? key, required this.selectedTopics}) : super(key: key);
+  const PeerLineResultsScreen({super.key, required this.selectedTopics});
 
   @override
   State<PeerLineResultsScreen> createState() => _PeerLineResultsScreenState();
@@ -88,7 +88,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
               return CustomPaint(
                 painter: SearchingBackgroundPainter(
                   animationValue: _animationController.value,
-                  color: AppColors.purple.withOpacity(0.15),
+                  color: AppColors.purple.withValues(alpha: 0.15),
                 ),
               );
             },
@@ -118,7 +118,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.purple.withOpacity(0.2 * (1 - value)),
+                              color: AppColors.purple.withValues(alpha: 0.2 * (1 - value)),
                               width: 2,
                             ),
                           ),
@@ -136,7 +136,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.purple.withOpacity(0.2),
+                          color: AppColors.purple.withValues(alpha: 0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -294,10 +294,9 @@ class _MentorCardWidget extends StatefulWidget {
   final List<String> selectedTopics;
 
   const _MentorCardWidget({
-    Key? key,
     required this.mentor,
     required this.selectedTopics,
-  }) : super(key: key);
+  });
 
   @override
   State<_MentorCardWidget> createState() => _MentorCardWidgetState();
@@ -363,7 +362,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
         border: Border.all(color: Colors.grey.shade100, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -383,7 +382,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        color: AppColors.purple.withOpacity(0.1),
+                        color: AppColors.purple.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Center(
@@ -482,9 +481,9 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                               children: (widget.mentor['expertiseTags'] as List).map((tag) => Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.08),
+                                  color: Colors.blue.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.blue.withOpacity(0.1)),
+                                  border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
                                 ),
                                 child: Text(
                                   tag.toString(),
@@ -505,7 +504,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                           children: topics.take(3).map((t) => Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.purple.withOpacity(0.05),
+                              color: AppColors.purple.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -544,9 +543,9 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.purple.withOpacity(0.05),
+                  color: AppColors.purple.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.purple.withOpacity(0.2)),
+                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   children: [
@@ -624,7 +623,7 @@ class SearchingBackgroundPainter extends CustomPainter {
     // Draw scanning line
     final scanPaint = Paint()
       ..shader = LinearGradient(
-        colors: [Colors.transparent, color.withOpacity(0.5), Colors.transparent],
+        colors: [Colors.transparent, color.withValues(alpha: 0.5), Colors.transparent],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       ).createShader(Rect.fromLTWH(0, (animationValue * size.height) - 50, size.width, 100));
@@ -645,7 +644,7 @@ class SearchingBackgroundPainter extends CustomPainter {
       canvas.drawCircle(
         Offset(x, y),
         particleSize,
-        Paint()..color = color.withOpacity(opacity * 0.3),
+        Paint()..color = color.withValues(alpha: opacity * 0.3),
       );
     }
   }

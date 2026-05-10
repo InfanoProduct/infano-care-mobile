@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
@@ -10,12 +9,12 @@ class PeerLineEntryCard extends StatelessWidget {
   final Animation<double>? pulseAnimation;
 
   const PeerLineEntryCard({
-    Key? key,
+    super.key,
     required this.isAvailable,
     required this.onTapSupport,
     required this.onTapMentor,
     this.pulseAnimation,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +23,10 @@ class PeerLineEntryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF5F3FF), // Soft pastel purple
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.purple.withOpacity(0.2), width: 1.5),
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.2), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -45,7 +44,7 @@ class PeerLineEntryCard extends StatelessWidget {
                 height: 150,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.purple.withOpacity(0.05),
+                  color: AppColors.purple.withValues(alpha: 0.05),
                 ),
               ),
             ),

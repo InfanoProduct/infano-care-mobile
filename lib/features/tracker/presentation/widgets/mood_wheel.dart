@@ -217,7 +217,7 @@ class MoodWheelPainter extends CustomPainter {
         )
         ..close();
 
-      paint.color = mood.color.withOpacity(isSelected ? 1.0 : (selectedMoodId == null ? 0.7 : 0.3));
+      paint.color = mood.color.withValues(alpha: isSelected ? 1.0 : (selectedMoodId == null ? 0.7 : 0.3));
       
       if (isSelected) {
         canvas.drawShadow(path, Colors.black26, 8, true);

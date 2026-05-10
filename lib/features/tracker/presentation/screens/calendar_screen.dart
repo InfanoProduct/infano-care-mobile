@@ -8,7 +8,9 @@ import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.d
 import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/calendar_grid.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/day_detail_panel.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/widgets/phase_legend_strip.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/period_history_list.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/widgets/prediction_window_card.dart';
 import 'package:infano_care_mobile/features/tracker/utils/calendar_types.dart';
 import 'package:infano_care_mobile/features/tracker/utils/calendar_utils.dart';
 import 'package:infano_care_mobile/features/tracker/utils/prediction_windows_provider.dart';
@@ -38,6 +40,7 @@ class CalendarScreen extends StatelessWidget {
             predictionDates,
             fertilityDates,
             predictedCycles,
+            existingPeriodDates,
             selectedDate,
             isEditMode,
             editStartDate,
@@ -57,6 +60,7 @@ class CalendarScreen extends StatelessWidget {
             predictionDates: predictionDates,
             fertilityDates: fertilityDates,
             predictedCycles: predictedCycles,
+            existingPeriodDates: existingPeriodDates,
             selectedDate: selectedDate,
             isEditMode: isEditMode,
             editStartDate: editStartDate,
@@ -119,6 +123,7 @@ class _LoadedView extends StatefulWidget {
   final Set<String> predictionDates;
   final Set<String> fertilityDates;
   final List<PredictedCycle> predictedCycles;
+  final Set<String> existingPeriodDates;
   final String? selectedDate;
   final bool isEditMode;
   final DateTime? editStartDate;
@@ -137,6 +142,7 @@ class _LoadedView extends StatefulWidget {
     required this.predictionDates,
     required this.fertilityDates,
     required this.predictedCycles,
+    required this.existingPeriodDates,
     this.selectedDate,
     required this.isEditMode,
     this.editStartDate,
@@ -180,6 +186,16 @@ class _LoadedViewState extends State<_LoadedView> {
     final phaseInfo = cyclePhase != null 
         ? PhaseInfo(phase: _toPhaseType(cyclePhase), isPredicted: isPredDay)
         : null;
+
+    final hasMeaningfulLog = selLog.id.isNotEmpty && (
+      (selLog.flow != null && selLog.flow != 'none') ||
+      selLog.symptoms.isNotEmpty ||
+      (selLog.noteText != null && selLog.noteText!.trim().isNotEmpty) ||
+      selLog.moodPrimary != null ||
+      selLog.moodSecondary.isNotEmpty ||
+      selLog.activityTags.isNotEmpty ||
+      selLog.nutritionTags.isNotEmpty
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -232,6 +248,10 @@ class _LoadedViewState extends State<_LoadedView> {
                       ],
                     ),
                   ),
+                  
+                  const SizedBox(height: 8),
+                  PhaseLegendStrip(),
+                  const SizedBox(height: 8),
 
                   // Calendar + Details in a scrollable area
                   Expanded(
@@ -256,6 +276,7 @@ class _LoadedViewState extends State<_LoadedView> {
                                   logs: widget.logs,
                                   phaseMap: widget.phaseMap,
                                   predictionDates: widget.predictionDates,
+                                  existingPeriodDates: widget.existingPeriodDates,
                                   fertilityDates: widget.fertilityDates,
                                   predictedCycles: widget.predictedCycles,
                                   selectedDate: widget.selectedDate,
@@ -274,8 +295,7 @@ class _LoadedViewState extends State<_LoadedView> {
                               const SizedBox(height: 16),
                               
                               // Day Detail Panel
-                              if (!widget.isEditMode)
-                                AnimatedSwitcher(
+                              AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 300),
                                   transitionBuilder: (child, anim) => SizeTransition(
                                     sizeFactor: CurvedAnimation(
@@ -284,7 +304,8 @@ class _LoadedViewState extends State<_LoadedView> {
                                     ),
                                     child: FadeTransition(opacity: anim, child: child),
                                   ),
-                                  child: widget.selectedDate != null
+                                  child: (widget.selectedDate != null && 
+                                          ((phaseInfo != null && phaseInfo.phase != PhaseType.unknown) || hasMeaningfulLog))
                                       ? DayDetailPanel(
                                           key: ValueKey(widget.selectedDate),
                                           selectedDate: widget.selectedDate,
@@ -295,15 +316,21 @@ class _LoadedViewState extends State<_LoadedView> {
                                           onFlowChange: (f) => notifier.setFlow(f),
                                           onSave: () => notifier.save(context),
                                           isSaving: editState.isSaving,
+                                          isEditMode: widget.isEditMode,
                                         )
                                       : const SizedBox.shrink(),
                                 ),
                               
                               const SizedBox(height: 24),
                               
+                              PredictionWindowCard(profile: widget.profile),
+
+                              const SizedBox(height: 24),
+
                               // History List
                               PeriodHistoryList(
                                 cycles: widget.cycles,
+                                profile: widget.profile,
                                 onCycleSelected: (startDateStr) {
                                   final date = DateTime.tryParse(startDateStr);
                                   if (date != null) {
@@ -348,7 +375,7 @@ class _LoadedViewState extends State<_LoadedView> {
           ),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-            backgroundColor: AppColors.purple.withOpacity(0.08),
+            backgroundColor: AppColors.purple.withValues(alpha: 0.08),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),

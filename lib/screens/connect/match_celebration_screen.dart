@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lottie/lottie.dart';
 
 class MatchCelebrationScreen extends StatefulWidget {
   final Map<String, dynamic> matchData;
@@ -134,7 +133,7 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen> with Si
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Column(

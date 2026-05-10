@@ -151,7 +151,7 @@ class _StoryScreenState extends State<StoryScreen> with SingleTickerProviderStat
 
         return LinearProgressIndicator(
           value: value,
-          backgroundColor: Colors.white.withOpacity(0.3),
+          backgroundColor: Colors.white.withValues(alpha: 0.3),
           valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
           minHeight: 3,
           borderRadius: BorderRadius.circular(1.5),
@@ -189,9 +189,9 @@ class _StoryScreenState extends State<StoryScreen> with SingleTickerProviderStat
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.5),
+                Colors.black.withValues(alpha: 0.5),
                 Colors.transparent,
-                Colors.black.withOpacity(0.7),
+                Colors.black.withValues(alpha: 0.7),
               ],
             ),
           ),
@@ -218,7 +218,7 @@ class _StoryScreenState extends State<StoryScreen> with SingleTickerProviderStat
                 style: GoogleFonts.nunito(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white.withOpacity(0.95),
+                  color: Colors.white.withValues(alpha: 0.95),
                   height: 1.5,
                 ),
               ),

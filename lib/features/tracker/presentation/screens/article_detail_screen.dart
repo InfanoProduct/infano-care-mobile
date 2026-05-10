@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
@@ -57,7 +57,7 @@ class ArticleDetailScreen extends StatelessWidget {
       elevation: 0,
       backgroundColor: AppColors.purple,
       leading: CircleAvatar(
-        backgroundColor: Colors.black.withOpacity(0.3),
+        backgroundColor: Colors.black.withValues(alpha: 0.3),
         child: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -65,7 +65,7 @@ class ArticleDetailScreen extends StatelessWidget {
       ),
       actions: [
         CircleAvatar(
-          backgroundColor: Colors.black.withOpacity(0.3),
+          backgroundColor: Colors.black.withValues(alpha: 0.3),
           child: IconButton(
             icon: const Icon(Icons.share_outlined, color: Colors.white),
             onPressed: () => _shareArticle(article),
@@ -73,7 +73,7 @@ class ArticleDetailScreen extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         CircleAvatar(
-          backgroundColor: Colors.black.withOpacity(0.3),
+          backgroundColor: Colors.black.withValues(alpha: 0.3),
           child: IconButton(
             icon: Icon(
               isSaved ? Icons.bookmark : Icons.bookmark_border, 
@@ -88,7 +88,7 @@ class ArticleDetailScreen extends StatelessWidget {
         background: Hero(
           tag: 'article_${article['title']}',
           child: Container(
-            color: AppColors.purpleLight.withOpacity(0.2),
+            color: AppColors.purpleLight.withValues(alpha: 0.2),
             child: Center(
               child: Text(article['emoji'] ?? '📖', style: const TextStyle(fontSize: 100)),
             ),
@@ -102,7 +102,7 @@ class ArticleDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.purple.withOpacity(0.1),
+        color: AppColors.purple.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -135,7 +135,7 @@ class ArticleDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -175,7 +175,7 @@ class ArticleDetailScreen extends StatelessWidget {
       style: GoogleFonts.nunito(
         fontSize: 16,
         height: 1.8,
-        color: AppColors.textDark.withOpacity(0.8),
+        color: AppColors.textDark.withValues(alpha: 0.8),
       ),
     ).animate().fadeIn(delay: 600.ms);
   }

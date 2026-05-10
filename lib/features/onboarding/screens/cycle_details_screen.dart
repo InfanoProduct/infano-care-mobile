@@ -154,7 +154,7 @@ class _RegularityChip extends StatelessWidget {
             color: isSelected ? AppColors.purple : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: isSelected ? AppColors.purple : const Color(0xFFE9D5FF), width: 1.5),
-            boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))] : [],
+            boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))] : [],
           ),
           child: Center(
             child: Text(
@@ -192,7 +192,7 @@ class _SliderCard extends StatelessWidget {
               Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark, fontSize: 16)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
                 child: Text('${value.round()} $unit', style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 16)),
               ),
             ],
@@ -201,9 +201,9 @@ class _SliderCard extends StatelessWidget {
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: color,
-              inactiveTrackColor: color.withOpacity(0.2),
+              inactiveTrackColor: color.withValues(alpha: 0.2),
               thumbColor: color,
-              overlayColor: color.withOpacity(0.2),
+              overlayColor: color.withValues(alpha: 0.2),
               trackHeight: 6,
             ),
             child: Slider(value: value, min: min, max: max, onChanged: onChanged),

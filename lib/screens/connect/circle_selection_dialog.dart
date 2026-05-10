@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 class CircleSelectionDialog extends StatefulWidget {
   final List<Circle> initialCircles;
-  const CircleSelectionDialog({Key? key, required this.initialCircles}) : super(key: key);
+  const CircleSelectionDialog({super.key, required this.initialCircles});
 
   @override
   State<CircleSelectionDialog> createState() => _CircleSelectionDialogState();
@@ -95,7 +95,7 @@ class _CircleSelectionDialogState extends State<CircleSelectionDialog> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.pink.withOpacity(0.05) : Colors.grey.shade50,
+                        color: isSelected ? Colors.pink.withValues(alpha: 0.05) : Colors.grey.shade50,
                         border: Border.all(
                           color: isSelected ? Colors.pink : Colors.grey.shade200,
                           width: 1.5,
@@ -132,7 +132,7 @@ class _CircleSelectionDialogState extends State<CircleSelectionDialog> {
                           ),
                           Switch.adaptive(
                             value: isSelected,
-                            activeColor: Colors.pink,
+                            activeThumbColor: Colors.pink,
                             onChanged: (val) {
                               setState(() {
                                 if (val) {

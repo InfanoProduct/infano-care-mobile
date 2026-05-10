@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 class RepliesBottomSheet extends StatefulWidget {
   final CommunityPost post;
 
-  const RepliesBottomSheet({Key? key, required this.post}) : super(key: key);
+  const RepliesBottomSheet({super.key, required this.post});
 
   @override
   State<RepliesBottomSheet> createState() => _RepliesBottomSheetState();
@@ -31,7 +31,7 @@ class _RepliesBottomSheetState extends State<RepliesBottomSheet> {
     });
   }
 
-  Future<void> _submitReply({String? parentId, int depth = 1}) async {
+  Future<void> _submitReply({String? parentId}) async {
     if (_replyController.text.trim().isEmpty) return;
 
     setState(() => _isSubmitting = true);
@@ -43,13 +43,15 @@ class _RepliesBottomSheetState extends State<RepliesBottomSheet> {
         parentReplyId: parentId
       );
       _replyController.clear();
-      if (mounted) Navigator.pop(context, true); // Signal: a reply was posted
+      if (mounted && context.mounted) Navigator.pop(context, true); // Signal: a reply was posted
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     } finally {
-      setState(() => _isSubmitting = false);
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -146,7 +148,7 @@ class _RepliesBottomSheetState extends State<RepliesBottomSheet> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
                 ),
@@ -211,7 +213,7 @@ class _ReplyItem extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 14,
-                backgroundColor: AppColors.purple.withOpacity(0.1),
+                backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                 child: Text(
                   (reply.authorName.isNotEmpty ? reply.authorName[0] : 'A').toUpperCase(),
                   style: TextStyle(

@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 class CircleDetailsSheet extends StatefulWidget {
   final Circle circle;
 
-  const CircleDetailsSheet({Key? key, required this.circle}) : super(key: key);
+  const CircleDetailsSheet({super.key, required this.circle});
 
   @override
   State<CircleDetailsSheet> createState() => _CircleDetailsSheetState();
@@ -70,7 +70,7 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: accentColor.withOpacity(0.1),
+                            color: accentColor.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Text(
@@ -169,14 +169,14 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [accentColor.withOpacity(0.8), accentColor],
+                          colors: [accentColor.withValues(alpha: 0.8), accentColor],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: accentColor.withOpacity(0.3),
+                            color: accentColor.withValues(alpha: 0.3),
                             blurRadius: 15,
                             offset: const Offset(0, 8),
                           ),
@@ -201,7 +201,7 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                               const SizedBox(width: 6),
                               Text(
                                 '124 members participating',
-                                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -329,9 +329,9 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -380,7 +380,7 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppColors.purple.withOpacity(0.3),
+            color: AppColors.purple.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),

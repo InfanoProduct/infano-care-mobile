@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../services/friends_socket_service.dart';
 import 'match_celebration_screen.dart';
@@ -9,17 +8,12 @@ import 'events_tab.dart';
 import 'friends_tab.dart';
 import '../../services/friends_api.dart';
 import '../../core/services/api_service.dart';
-import '../../models/friend_profile.dart';
-import 'matches_tab.dart';
-import '../../core/services/local_storage_service.dart';
 import 'my_feed_tab.dart';
-import 'circle_selection_dialog.dart';
 import '../../services/community_api.dart';
-import '../../models/circle.dart';
 import '../../core/theme/app_theme.dart';
 
 class ConnectScreen extends StatefulWidget {
-  const ConnectScreen({Key? key, this.initialTab = 2}) : super(key: key);
+  const ConnectScreen({super.key, this.initialTab = 2});
   final int initialTab;
 
   @override
@@ -30,8 +24,6 @@ class ConnectScreen extends StatefulWidget {
 class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late FriendsApi _friendsApi;
-  FriendProfile? _friendProfile;
-  bool _isLoadingProfile = true;
 
   @override
   void initState() {
@@ -71,16 +63,12 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
 
   Future<void> _loadProfile() async {
     try {
-      final profile = await _friendsApi.getProfile();
+      await _friendsApi.getProfile();
       if (mounted) {
-        setState(() {
-          _friendProfile = profile;
-          _isLoadingProfile = false;
-        });
+        setState(() {});
       }
     } catch (e) {
       debugPrint('Error loading profile in ConnectScreen: $e');
-      if (mounted) setState(() => _isLoadingProfile = false);
     }
   }
 
@@ -132,7 +120,7 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
             color: AppColors.surface,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -179,139 +167,7 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildProfileMenu() {
-    return PopupMenuButton<String>(
-      onSelected: (value) {
-        switch (value) {
-          case 'chat':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const MatchesTab()));
-            break;
-          case 'settings':
-            // Since settings is logic inside FriendsTab, we might want to expose it or just navigate to FriendsTab + open sheet
-            // For now, we'll navigate to MatchesTab (which has most info) or trigger a callback.
-            // Actually, the user asked for "settings" in the menu.
-            _showGlobalSettings();
-            break;
-          case 'saved':
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const MatchesTab()));
-            // We could pass a parameter to MatchesTab to scroll to Saved, but it's already there.
-            break;
-        }
-      },
-      offset: const Offset(0, 48),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'chat',
-          child: ListTile(
-            leading: Icon(Icons.chat_bubble_outline, color: Colors.pink),
-            title: Text('Open Chat'),
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'saved',
-          child: ListTile(
-            leading: Icon(Icons.bookmark_border, color: Colors.purple),
-            title: Text('Saved Profiles'),
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'settings',
-          child: ListTile(
-            leading: Icon(Icons.settings_outlined, color: Colors.grey),
-            title: Text('Friends Settings'),
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-          ),
-        ),
-      ],
-      child: Padding(
-        padding: const EdgeInsets.only(right: 16.0),
-        child: CircleAvatar(
-          radius: 16,
-          backgroundColor: Colors.grey.shade200,
-          backgroundImage: _friendProfile?.photoUrl != null ? NetworkImage(_friendProfile!.photoUrl!) : null,
-          child: _friendProfile?.photoUrl == null 
-            ? const Icon(Icons.person, size: 20, color: Colors.grey) 
-            : null,
-        ),
-      ),
-    );
-  }
 
-  void _showGlobalSettings() {
-    // We'll show a bottom sheet similar to the one in FriendsTab
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) {
-        bool isPaused = !(_friendProfile?.isActive ?? true);
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Friends Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 24),
-                  SwitchListTile(
-                    title: const Text('Pause Discovery'),
-                    subtitle: const Text('You won\'t be seen by others, but your matches are safe.'),
-                    value: isPaused,
-                    activeThumbColor: Colors.pink,
-                    activeTrackColor: Colors.pink.withOpacity(0.5),
-                    onChanged: (val) async {
-                      await _friendsApi.toggleDiscovery(!val);
-                      setModalState(() => isPaused = val);
-                      _loadProfile(); // Refresh global profile state
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.delete_forever, color: Colors.red),
-                    title: const Text('Delete Friend Profile', style: TextStyle(color: Colors.red)),
-                    onTap: () => _confirmDeleteProfile(),
-                  ),
-                ],
-              ),
-            );
-          }
-        );
-      },
-    );
-  }
-
-  void _confirmDeleteProfile() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Profile?'),
-        content: const Text('Are you sure? This cannot be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () async {
-              await _friendsApi.deleteProfile();
-              if (mounted) {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Close bottom sheet
-                _loadProfile();
-                // Optionally reset the flag in LocalStorageService
-                final storage = Provider.of<LocalStorageService>(context, listen: false);
-                await storage.setIsFriendOnboarded(false);
-              }
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
   Widget _buildTabItem(int index, String label, IconData icon) {
     final isSelected = _tabController.index == index;
     return GestureDetector(
@@ -328,7 +184,7 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
           color: isSelected ? AppColors.purple : Colors.grey.shade50,
           boxShadow: isSelected ? [
             BoxShadow(
-              color: AppColors.purple.withOpacity(0.3),
+              color: AppColors.purple.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
             )

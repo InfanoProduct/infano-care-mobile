@@ -14,7 +14,7 @@ import 'package:intl/intl.dart';
 class FriendChatScreen extends StatefulWidget {
   final String matchId;
 
-  const FriendChatScreen({Key? key, required this.matchId}) : super(key: key);
+  const FriendChatScreen({super.key, required this.matchId});
 
   @override
   State<FriendChatScreen> createState() => _FriendChatScreenState();
@@ -51,7 +51,9 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
   }
 
   void _handleSocketEvent(Map<String, dynamic> event) {
-    if (event['matchId'] != widget.matchId && event['type'] != 'error') return;
+    if (event['matchId'] != widget.matchId && event['type'] != 'error') {
+      return;
+    }
 
     switch (event['type']) {
       case 'message':
@@ -145,7 +147,9 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty) {
+      return;
+    }
 
     _messageController.clear();
     final clientId = 'c-${DateTime.now().millisecondsSinceEpoch}';
@@ -203,7 +207,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: AppColors.purple.withOpacity(0.1),
+              backgroundColor: AppColors.purple.withValues(alpha: 0.1),
               backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
               child: photoUrl == null ? Text(nickname[0], style: const TextStyle(color: AppColors.purple)) : null,
             ),
@@ -235,10 +239,12 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               itemCount: _messages.length + (_messages.isEmpty ? 1 : 0),
               itemBuilder: (context, index) {
-                if (_messages.isEmpty) return _buildIceBreakers(vibeTags);
+                if (_messages.isEmpty) {
+                  return _buildIceBreakers(vibeTags);
+                }
                 
                 final msg = _messages[index];
                 final isMe = msg['senderId'] == _currentUserId;
@@ -262,7 +268,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.purple.withOpacity(0.05), Colors.white],
+              colors: [AppColors.purple.withValues(alpha: 0.05), Colors.white],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -306,10 +312,10 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+              border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
             ),
             child: Text(s, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppColors.textLight)),
-          )).toList(),
+          )),
         ],
       ),
     );
@@ -391,7 +397,9 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: (val) {
                       _sendTyping(val.isNotEmpty);
-                      if (_safetyError != null) setState(() => _safetyError = null);
+                      if (_safetyError != null) {
+                        setState(() => _safetyError = null);
+                      }
                     },
                     decoration: const InputDecoration(hintText: 'Send a message...', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14)),
                   ),
@@ -465,9 +473,8 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
                 Navigator.pop(context);
                 final api = FriendsApi(ApiService.instance.dio);
                 await api.reportMatch(widget.matchId, r);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report submitted. Thank you for keeping Infano safe.')));
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report submitted. Thank you for keeping Infano safe.')));
               },
             )).toList(),
           ),
@@ -489,7 +496,9 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
               Navigator.pop(context);
               final api = FriendsApi(ApiService.instance.dio);
               await api.blockMatch(widget.matchId);
-              if (mounted) context.pop();
+              if (context.mounted) {
+                context.pop();
+              }
             },
             child: const Text('Block', style: TextStyle(color: Colors.red)),
           ),

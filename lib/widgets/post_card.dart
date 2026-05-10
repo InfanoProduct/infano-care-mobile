@@ -18,7 +18,7 @@ class PostCard extends StatefulWidget {
   final Function(String reason)? onAppeal;
 
   const PostCard({
-    Key? key,
+    super.key,
     required this.post,
     this.onReact,
     this.onReply,
@@ -29,7 +29,7 @@ class PostCard extends StatefulWidget {
     this.isDetailView = false,
     this.onTap,
     this.onAppeal,
-  }) : super(key: key);
+  });
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -112,11 +112,11 @@ class _PostCardState extends State<PostCard> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(28),
           border: widget.post.isPinned
-              ? Border.all(color: AppColors.purple.withOpacity(0.3), width: 2)
-              : Border.all(color: Colors.grey.shade100.withOpacity(0.5)),
+              ? Border.all(color: AppColors.purple.withValues(alpha: 0.3), width: 2)
+              : Border.all(color: Colors.grey.shade100.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -143,7 +143,7 @@ class _PostCardState extends State<PostCard> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.purple.withOpacity(0.1),
+                        color: AppColors.purple.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -217,8 +217,8 @@ class _PostCardState extends State<PostCard> {
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
-                            _getRoleColor(widget.post.authorRole).withOpacity(0.8),
-                            _getRoleColor(widget.post.authorRole).withOpacity(0.3),
+                            _getRoleColor(widget.post.authorRole).withValues(alpha: 0.8),
+                            _getRoleColor(widget.post.authorRole).withValues(alpha: 0.3),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -228,7 +228,7 @@ class _PostCardState extends State<PostCard> {
                         children: [
                           CircleAvatar(
                             radius: 18,
-                            backgroundColor: _getRoleColor(widget.post.authorRole).withOpacity(0.1),
+                            backgroundColor: _getRoleColor(widget.post.authorRole).withValues(alpha: 0.1),
                             child: Text(
                               widget.post.authorName.isNotEmpty ? widget.post.authorName[0].toUpperCase() : '?',
                               style: TextStyle(
@@ -559,7 +559,7 @@ class _PostCardState extends State<PostCard> {
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(28),
         ),
         child: Center(
@@ -577,7 +577,7 @@ class _PostCardState extends State<PostCard> {
               Text(
                 label,
                 style: TextStyle(
-                  color: AppColors.purple.withOpacity(0.8),
+                  color: AppColors.purple.withValues(alpha: 0.8),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -619,15 +619,15 @@ class _ReactionButton extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: isSelected 
-                  ? AppColors.purple.withOpacity(0.15) 
-                  : Colors.black.withOpacity(0.04),
+                  ? AppColors.purple.withValues(alpha: 0.15) 
+                  : Colors.black.withValues(alpha: 0.04),
               blurRadius: isSelected ? 12 : 8,
               spreadRadius: isSelected ? 2 : 0,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: isSelected ? AppColors.purple.withOpacity(0.4) : Colors.transparent,
+            color: isSelected ? AppColors.purple.withValues(alpha: 0.4) : Colors.transparent,
             width: 1.5,
           ),
         ),
@@ -639,7 +639,7 @@ class _ReactionButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: isSelected ? 17 : 15,
                 shadows: isSelected ? [
-                  Shadow(color: AppColors.purple.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 1))
+                  Shadow(color: AppColors.purple.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 1))
                 ] : null,
               ),
             ),
@@ -677,7 +677,7 @@ class _ActionEmojiButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -703,31 +703,4 @@ class _ActionEmojiButton extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
 
-  const _ActionButton({required this.icon, required this.label, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: Colors.grey.shade600),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

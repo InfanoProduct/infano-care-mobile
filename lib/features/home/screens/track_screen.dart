@@ -1,12 +1,7 @@
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/insight_card.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/article_detail_screen.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/tracker_calendar.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/tracker_insights.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/phase_info_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/first_period_celebration_screen.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/prediction_banner.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/daily_log_sheet.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/cycle_ring_painter.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/insight_models.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/story_screen.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
@@ -16,11 +11,8 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:infano_care_mobile/core/services/privacy_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/cycle_ring.dart';
 import 'package:infano_care_mobile/features/tracker/application/character_greeting_service.dart';
@@ -35,7 +27,6 @@ class TrackScreen extends StatelessWidget {
       create: (context) => TrackerBloc(
         TrackerRepository(
           ApiService.instance.dio,
-          PrivacyService(const FlutterSecureStorage()),
         ),
         context.read<LocalStorageService>(),
       )..add(const TrackerEvent.load()),
@@ -45,7 +36,7 @@ class TrackScreen extends StatelessWidget {
         body: BlocListener<TrackerBloc, TrackerState>(
           listener: (context, state) {
             state.maybeWhen(
-              loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) {
+              loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) {
                 debugPrint('[TrackScreen] Listener receivedLoaded. Milestone: $milestone');
                 if (milestone == 'first_period') {
                   debugPrint('[TrackScreen] Milestone detected. Navigating with Navigator.push...');
@@ -64,16 +55,21 @@ class TrackScreen extends StatelessWidget {
                 loading: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
                 error: (msg) => _buildErrorState(context, msg),
                 notStarted: () => _buildNotStartedState(context),
-                loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone) => 
-                    _buildRedesignedDashboard(
-                      context, 
-                      profile, 
-                      prediction, 
-                      logs, 
-                      history, 
-                      dailyInsights, 
-                      articles,
-                    ),
+                loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) {
+                  if (profile.trackerMode == 'watching_waiting' && profile.lastPeriodStart == null) {
+                    return _buildNotStartedState(context);
+                  }
+                  return _buildRedesignedDashboard(
+                    context, 
+                    profile, 
+                    prediction, 
+                    logs, 
+                    history, 
+                    dailyInsights, 
+                    articles,
+                    isRefreshing,
+                  );
+                },
               );
             },
           ),
@@ -90,6 +86,7 @@ class TrackScreen extends StatelessWidget {
     List<CycleRecordModel> history,
     List<DailyInsight> dailyInsights,
     List<Map<String, String>> articles,
+    bool isRefreshing,
   ) {
     final mode = profile.trackerMode;
     final char = CharacterGreetingService.getCharacter(mode);
@@ -101,15 +98,22 @@ class TrackScreen extends StatelessWidget {
       color: const Color(0xFFF5F4F7),
       child: SafeArea(
 
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-              _buildRichHeader(context, profile, prediction, char),
-              const SizedBox(height: 32),
-              _buildCycleRing(context, profile, prediction, history),
-              const SizedBox(height: 12),
+        child: RefreshIndicator(
+          color: AppColors.purple,
+          onRefresh: () async {
+            context.read<TrackerBloc>().add(const TrackerEvent.load(isRefresh: true));
+            await Future.delayed(const Duration(milliseconds: 1500));
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                _buildRichHeader(context, profile, prediction, char),
+                const SizedBox(height: 32),
+                _buildCycleRing(context, profile, prediction, history, isRefreshing),
+                const SizedBox(height: 12),
               _buildActionButtons(context, profile, logs, history),
               const SizedBox(height: 32),
               _buildPrimaryActions(context, profile, logs, hasLoggedToday),
@@ -124,6 +128,7 @@ class TrackScreen extends StatelessWidget {
               const SizedBox(height: 32),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -148,8 +153,8 @@ class TrackScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.purple.withOpacity(0.08),
-            AppColors.pink.withOpacity(0.08),
+            AppColors.purple.withValues(alpha: 0.08),
+            AppColors.pink.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(32),
@@ -195,7 +200,7 @@ class TrackScreen extends StatelessWidget {
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.purple.withOpacity(0.15),
+                        color: AppColors.purple.withValues(alpha: 0.15),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -211,13 +216,13 @@ class TrackScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               '"$greeting"',
               style: GoogleFonts.nunito(
-                color: AppColors.textDark.withOpacity(0.8),
+                color: AppColors.textDark.withValues(alpha: 0.8),
                 fontSize: 15,
                 fontStyle: FontStyle.italic,
                 height: 1.4,
@@ -229,7 +234,7 @@ class TrackScreen extends StatelessWidget {
     ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildCycleRing(BuildContext context, CycleProfileModel profile, PredictionResultModel? prediction, List<CycleRecordModel> history) {
+  Widget _buildCycleRing(BuildContext context, CycleProfileModel profile, PredictionResultModel? prediction, List<CycleRecordModel> history, bool isRefreshing) {
     return Center(
       child: Container(
         width: 320, height: 320, // Increased size for the new technical specs
@@ -237,7 +242,7 @@ class TrackScreen extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFD946EF).withOpacity(0.1),
+              color: const Color(0xFFD946EF).withValues(alpha: 0.1),
               blurRadius: 40,
               spreadRadius: 2,
             ),
@@ -247,6 +252,7 @@ class TrackScreen extends StatelessWidget {
           profile: profile,
           prediction: prediction,
           history: history,
+          isRefreshing: isRefreshing,
           onCenterTap: () => _openDailyLog(context, DateTime.now()),
           onSegmentTap: (phaseId) => showModalBottomSheet(
             context: context,
@@ -272,7 +278,7 @@ class TrackScreen extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.purple.withOpacity(0.3),
+                color: AppColors.purple.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -314,10 +320,10 @@ class TrackScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: AppColors.pink.withOpacity(0.1)),
+        border: Border.all(color: AppColors.pink.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -444,37 +450,7 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, String title, String subtitle, Color color) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
-            child: Icon(Icons.star_outline, color: color),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white)),
-                Text(subtitle, style: GoogleFonts.nunito(fontSize: 13, color: Colors.white70)),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: color.withOpacity(0.5)),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildActionButtons(BuildContext context, profile, logs, history) {
     return Row(
@@ -493,7 +469,11 @@ class TrackScreen extends StatelessWidget {
           context, 
           'View Calendar', 
           Icons.calendar_month_outlined, 
-          () => context.push('/tracker/calendar')
+          () => context.push('/tracker/calendar').then((_) {
+            if (context.mounted) {
+              context.read<TrackerBloc>().add(const TrackerEvent.load(isRefresh: true));
+            }
+          })
         ),
       ],
     ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0);
@@ -587,9 +567,9 @@ class TrackScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -600,7 +580,7 @@ class TrackScreen extends StatelessWidget {
             child: Container(
               height: 90,
               width: double.infinity,
-              color: AppColors.purpleLight.withOpacity(0.1),
+              color: AppColors.purpleLight.withValues(alpha: 0.1),
               child: Center(child: Text(art['emoji'] ?? '📖', style: const TextStyle(fontSize: 32))),
             ),
           ),
@@ -698,9 +678,9 @@ class TrackScreen extends StatelessWidget {
     return Container(
       width: 120,
       decoration: BoxDecoration(
-        color: Color(int.parse(insight.previewColorHex.replaceFirst('#', '0xFF'))).withOpacity(0.1),
+        color: Color(int.parse(insight.previewColorHex.replaceFirst('#', '0xFF'))).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Color(int.parse(insight.previewColorHex.replaceFirst('#', '0xFF'))).withOpacity(0.3)),
+        border: Border.all(color: Color(int.parse(insight.previewColorHex.replaceFirst('#', '0xFF'))).withValues(alpha: 0.3)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -711,7 +691,7 @@ class TrackScreen extends StatelessWidget {
               color: Colors.white,
               shape: BoxShape.circle,
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
               ],
             ),
             child: Text(insight.previewEmoji, style: const TextStyle(fontSize: 32)),

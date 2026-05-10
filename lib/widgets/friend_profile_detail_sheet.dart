@@ -4,7 +4,7 @@ import '../models/friend_profile.dart';
 class FriendProfileDetailSheet extends StatelessWidget {
   final FriendProfile profile;
 
-  const FriendProfileDetailSheet({Key? key, required this.profile}) : super(key: key);
+  const FriendProfileDetailSheet({super.key, required this.profile});
 
   static void show(BuildContext context, FriendProfile profile) {
     showModalBottomSheet(
@@ -97,9 +97,9 @@ class FriendProfileDetailSheet extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [Colors.purple.withOpacity(0.1), Colors.pink.withOpacity(0.1)]),
+                        gradient: LinearGradient(colors: [Colors.purple.withValues(alpha: 0.1), Colors.pink.withValues(alpha: 0.1)]),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.pink.withOpacity(0.2)),
+                        border: Border.all(color: Colors.pink.withValues(alpha: 0.2)),
                       ),
                       child: Column(
                         children: [
@@ -156,7 +156,7 @@ class FriendProfileDetailSheet extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                border: Border.all(color: Colors.purple.withOpacity(0.3)),
+                                border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -217,7 +217,7 @@ class FriendProfileDetailSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -231,7 +231,7 @@ class FriendProfileDetailSheet extends StatelessWidget {
           ),
           Text(
             label,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: color.withOpacity(0.8)),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: color.withValues(alpha: 0.8)),
           ),
         ],
       ),
