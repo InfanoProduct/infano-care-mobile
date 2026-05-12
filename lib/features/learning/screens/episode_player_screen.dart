@@ -70,7 +70,7 @@ class _EpisodePlayerScreenState extends State<EpisodePlayerScreen> {
             const SizedBox(height: 16),
             const Text('Episode Complete!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('+$points XP earned', style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600, fontSize: 18)),
+            Text('+$points Pts earned', style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600, fontSize: 18)),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -282,7 +282,7 @@ class _TopBar extends StatelessWidget {
                     const Text('⚡', style: TextStyle(fontSize: 12)),
                     const SizedBox(width: 3),
                     Text(
-                      '$_earnedXP XP',
+                      '$_earnedXP Pts',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -396,7 +396,7 @@ class _SegmentDrawer extends StatelessWidget {
                         border: Border.all(color: AppColors.bloom.withValues(alpha: 0.4)),
                       ),
                       child: Text(
-                        '⚡ ${episode.points} XP total',
+                        '⚡ ${episode.points} Pts total',
                         style: const TextStyle(
                           color: AppColors.bloom,
                           fontSize: 12,
@@ -503,7 +503,7 @@ class _SegmentDrawer extends StatelessWidget {
                                   ),
                                   if (pts > 0)
                                     Text(
-                                      '+$pts XP',
+                                      '+$pts Pts',
                                       style: TextStyle(
                                         color: isCompleted
                                             ? AppColors.success.withValues(alpha: 0.8)
@@ -2488,8 +2488,8 @@ class _SummarySegmentState extends State<_SummarySegment> {
       key: const ValueKey('rewards_screen'),
       builder: (context, state) {
         final summaryPts = state.maybeWhen(
-          loaded: (ep, i, c, a, m, rc, comp, ci, h, sp) => sp['summary'] ?? 25,
-          orElse: () => 25,
+          loaded: (ep, i, c, a, m, rc, comp, ci, h, sp) => sp['summary'] ?? 75,
+          orElse: () => 75,
         );
 
         return SingleChildScrollView(
@@ -2532,7 +2532,7 @@ class _SummarySegmentState extends State<_SummarySegment> {
                   children: [
                     const Icon(Icons.stars_rounded, color: Colors.amber, size: 32),
                     const SizedBox(width: 12),
-                    Text('+$summaryPts XP', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                    Text('+$summaryPts Pts earned', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                   ],
                 ),
               ),

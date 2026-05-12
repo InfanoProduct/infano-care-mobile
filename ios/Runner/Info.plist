@@ -74,5 +74,10 @@
 		<string>This app requires access to the camera to take a profile picture.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>We need your approximate location to find friends in your area.</string>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+		</dict>
 	</dict>
 </plist>

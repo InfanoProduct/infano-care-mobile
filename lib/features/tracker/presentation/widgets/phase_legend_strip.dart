@@ -81,6 +81,7 @@ class _LegendItem extends StatelessWidget {
     required this.color,
     required this.label,
     required this.description,
+    this.isPredicted = false,
     this.isToday = false,
   });
 

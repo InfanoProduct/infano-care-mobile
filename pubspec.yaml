@@ -38,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_animate: ^4.5.2
   page_flip: ^0.2.5+1
+  youtube_player_flutter: ^9.1.1
 
   # Animations
   lottie: ^3.3.1

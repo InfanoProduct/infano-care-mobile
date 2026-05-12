@@ -138,7 +138,7 @@ class TrackerRepository {
         'from': from,
         'to': to,
       }..removeWhere((_, v) => v == null));
-q      return (response.data as List)
+      return (response.data as List)
           .map((json) => CycleLogModel.fromJson(json))
           .toList();
     } catch (e) {

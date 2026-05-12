@@ -7,10 +7,12 @@ import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 import 'package:infano_care_mobile/features/home/screens/home_screen.dart';
 
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/screens/connect/connect_screen.dart';
-import 'package:infano_care_mobile/core/services/local_storage_service.dart';
-import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
 import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
@@ -53,7 +55,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: const JourneyExplorerScreen(),
             ),
             const TrackScreen(),
-            const QuestScreen(),
+            BlocProvider(
+              create: (context) => QuestBloc(QuestRepository(ApiService.instance.dio)),
+              child: const QuestScreen(),
+            ),
             ConnectScreen(initialTab: widget.initialSubTab),
           ];
 

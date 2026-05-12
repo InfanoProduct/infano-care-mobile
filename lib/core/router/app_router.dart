@@ -39,6 +39,9 @@ import 'package:infano_care_mobile/features/tracker/presentation/screens/calenda
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/calendar_cubit.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
+import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
+import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
@@ -248,6 +251,16 @@ GoRouter createRouter(LocalStorageService storage) {
             history: (extra['history'] as List<CycleRecordModel>?) ?? [],
           );
         }
+      ),
+      GoRoute(
+        path: '/quests',
+        builder: (_, _) {
+          final repo = QuestRepository(ApiService.instance.dio);
+          return BlocProvider(
+            create: (context) => QuestBloc(repo)..add(const QuestEvent.load()),
+            child: const QuestScreen(),
+          );
+        },
       ),
 
       // PeerLine Focus

@@ -14,6 +14,7 @@ import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_re
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:infano_care_mobile/services/friends_socket_service.dart';
+import 'package:infano_care_mobile/services/mindful_api.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
@@ -84,6 +85,9 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
         Provider<TrackerRepository>.value(value: trackerRepo),
         Provider<CommunityApi>(
           create: (_) => CommunityApi(ApiService.instance.dio),
+        ),
+        Provider<MindfulApi>(
+          create: (_) => MindfulApi(ApiService.instance.dio),
         ),
         Provider<CommunitySocketService>(
           create: (_) => CommunitySocketService(widget.storage)..connect(),

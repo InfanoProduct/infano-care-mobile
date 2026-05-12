@@ -17,6 +17,7 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/cycle_ring.dart';
 import 'package:infano_care_mobile/features/tracker/application/character_greeting_service.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
+import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 
 class TrackScreen extends StatelessWidget {
   const TrackScreen({super.key});
@@ -119,7 +120,7 @@ class TrackScreen extends StatelessWidget {
               _buildPrimaryActions(context, profile, logs, hasLoggedToday),
               if (mode != 'watching_waiting') ...[
                 const SizedBox(height: 20),
-                _buildStreakInfo(prediction?.currentLogStreak ?? 0),
+                _buildQuestEntryCard(context, prediction?.currentLogStreak ?? 0),
               ],
               const SizedBox(height: 24),
               _buildDailyInsightsSection(context, dailyInsights),
@@ -314,37 +315,76 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStreakInfo(int streak) {
+  Widget _buildQuestEntryCard(BuildContext context, int streak) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: AppColors.pink.withValues(alpha: 0.1)),
+        gradient: const LinearGradient(
+          colors: [AppColors.purple, AppColors.pink],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.purple.withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 16)),
-          const SizedBox(width: 8),
-          Text(
-            '$streak-day streak',
-            style: GoogleFonts.nunito(
-              color: AppColors.pink, 
-              fontWeight: FontWeight.w800, 
-              fontSize: 14,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.auto_awesome, color: Colors.white, size: 32),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bloom Journey',
+                  style: GoogleFonts.nunito(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  'Complete quests to level up!',
+                  style: GoogleFonts.nunito(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => context.read<DashboardCubit>().setTab(3),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.purple,
+              minimumSize: const Size(80, 40),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              elevation: 0,
+            ),
+            child: Text(
+              'View Quests',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 13),
             ),
           ),
         ],
       ),
-    ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack);
+    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2);
   }
 
   void _openDailyLog(BuildContext context, DateTime date) {
