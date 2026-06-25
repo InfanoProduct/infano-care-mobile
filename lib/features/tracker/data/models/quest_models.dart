@@ -63,6 +63,33 @@ class UserQuest {
 }
 
 @JsonSerializable()
+class BadgeQuestLink {
+  final String id;
+  final String title;
+  final String description;
+  final String category;
+  final int pointsBase;
+  final String difficulty;
+  final int estimatedMinutes;
+  final Map<String, dynamic>? completionCondition;
+
+  BadgeQuestLink({
+    required this.id,
+    this.title = '',
+    this.description = '',
+    this.category = 'wildcard',
+    this.pointsBase = 0,
+    this.difficulty = 'standard',
+    this.estimatedMinutes = 5,
+    this.completionCondition,
+  });
+
+  factory BadgeQuestLink.fromJson(Map<String, dynamic> json) =>
+      _$BadgeQuestLinkFromJson(json);
+  Map<String, dynamic> toJson() => _$BadgeQuestLinkToJson(this);
+}
+
+@JsonSerializable()
 class Badge {
   final String id;
   final String? slug;
@@ -74,6 +101,14 @@ class Badge {
   final bool isAnimated;
   final bool isEarned;
   final DateTime? awardedAt;
+  final bool isSeasonal;
+  final DateTime? availableFrom;
+  final DateTime? availableUntil;
+  final String? sourceQuestId;
+  final List<BadgeQuestLink> rewardForQuests;
+  final double progressPercentage;
+  final int currentStep;
+  final int totalSteps;
 
   Badge({
     required this.id,
@@ -86,6 +121,14 @@ class Badge {
     this.isAnimated = false,
     this.isEarned = false,
     this.awardedAt,
+    this.isSeasonal = false,
+    this.availableFrom,
+    this.availableUntil,
+    this.sourceQuestId,
+    this.rewardForQuests = const [],
+    this.progressPercentage = 0,
+    this.currentStep = 0,
+    this.totalSteps = 0,
   });
 
   factory Badge.fromJson(Map<String, dynamic> json) => _$BadgeFromJson(json);

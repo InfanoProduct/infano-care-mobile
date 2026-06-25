@@ -573,8 +573,290 @@ class _BadgesTab extends StatelessWidget {
       ),
       itemCount: badges.length,
       itemBuilder: (context, index) {
-        return _BadgePin(badge: badges[index]);
+        final badge = badges[index];
+        return GestureDetector(
+          onTap: () => _showBadgeDetails(context, badge),
+          child: _BadgePin(badge: badge),
+        );
       },
+    );
+  }
+
+  void _showBadgeDetails(BuildContext context, Badge badge) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _BadgeDetailSheet(badge: badge),
+    );
+  }
+}
+
+class _BadgeDetailSheet extends StatelessWidget {
+  final Badge badge;
+  const _BadgeDetailSheet({required this.badge});
+
+  @override
+  Widget build(BuildContext context) {
+    final earned = badge.isEarned;
+    final rewardQuest = badge.rewardForQuests.isNotEmpty ? badge.rewardForQuests.first : null;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _BadgeLargeIcon(badge: badge),
+          const SizedBox(height: 24),
+          Text(
+            badge.name,
+            style: GoogleFonts.nunito(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textDark,
+            ),
+          ),
+          if (badge.rarity != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: _rarityColor(badge.rarity).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                badge.rarity!.toUpperCase(),
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: _rarityColor(badge.rarity),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 24),
+          Text(
+            badge.description ?? 'A special badge for dedicated users.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              color: AppColors.textMedium,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 32),
+          if (earned) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: AppColors.success),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Earned on ${badge.awardedAt != null ? _formatDate(badge.awardedAt!) : 'your journey'}',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.purple.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.lock_outline, color: AppColors.purple, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'HOW TO UNLOCK',
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.purple,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    rewardQuest != null 
+                      ? 'Complete the quest: "${rewardQuest.title}"'
+                      : 'This badge is earned by participating in special activities.',
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  if (rewardQuest != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      rewardQuest.description,
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        color: AppColors.textMedium,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Progress',
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      Text(
+                        '${badge.progressPercentage.toInt()}% (${badge.currentStep}/${badge.totalSteps} Days)',
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.purple,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: badge.progressPercentage / 100,
+                      backgroundColor: AppColors.purple.withOpacity(0.1),
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
+                      minHeight: 10,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Complete tracking your periods and logs to unlock this badge.',
+                    style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: AppColors.textLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.purple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: Text(
+                'Got it!',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Color _rarityColor(String? rarity) {
+    switch (rarity?.toLowerCase()) {
+      case 'rare': return Colors.blue;
+      case 'epic': return Colors.purple;
+      case 'legendary': return Colors.orange;
+      default: return Colors.grey;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+}
+
+class _BadgeLargeIcon extends StatelessWidget {
+  final Badge badge;
+  const _BadgeLargeIcon({required this.badge});
+
+  @override
+  Widget build(BuildContext context) {
+    final earned = badge.isEarned;
+    final url = badge.illustrationUrl;
+
+    return Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+        color: earned ? AppColors.purple.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: earned ? AppColors.purple.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+          width: 2,
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: (url != null && url.isNotEmpty)
+                ? Image.network(
+                    url,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.shield_outlined,
+                      color: earned ? AppColors.purple : AppColors.textLight,
+                      size: 48,
+                    ),
+                  )
+                : Icon(
+                    Icons.shield_outlined,
+                    color: earned ? AppColors.purple : AppColors.textLight,
+                    size: 48,
+                  ),
+          ),
+          if (!earned)
+            Icon(Icons.lock_outline, color: Colors.white.withOpacity(0.8), size: 32),
+        ],
+      ),
     );
   }
 }
@@ -632,9 +914,31 @@ class _BadgePin extends StatelessWidget {
                       color: Colors.black.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Center(
-                      child: Icon(Icons.lock_outline,
-                          color: Colors.white, size: 24),
+                    child: Center(
+                      child: badge.progressPercentage > 0
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${badge.progressPercentage.toInt()}%',
+                                  style: GoogleFonts.nunito(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                Text(
+                                  'IN PROGRESS',
+                                  style: GoogleFonts.nunito(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 8,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const Icon(Icons.lock_outline,
+                              color: Colors.white, size: 24),
                     ),
                   ),
               ],

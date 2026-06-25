@@ -144,7 +144,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            floatingActionButton: (state.selectedIndex == 2 || state.selectedIndex == 4) ? null : FloatingActionButton.extended(
+            floatingActionButton: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) ? null : FloatingActionButton.extended(
               onPressed: () => context.push('/chat'),
               backgroundColor: AppColors.purple,
               icon: const Icon(Icons.auto_awesome, color: Colors.white),
