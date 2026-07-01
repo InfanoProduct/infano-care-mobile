@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 import 'package:infano_care_mobile/features/home/screens/home_screen.dart';
@@ -37,10 +38,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     // Ensure native splash is removed if we land here directly
     FlutterNativeSplash.remove();
+    _syncProfile();
+  }
+
+  Future<void> _syncProfile() async {
+    debugPrint('[DashboardScreen] Starting background profile sync. Current local displayName: "${widget.storage.displayName}"');
+    try {
+      final repo = AuthRepository(widget.storage);
+      await repo.syncProfile();
+      debugPrint('[DashboardScreen] Background profile sync completed successfully ✅ Stored displayName after sync: "${widget.storage.displayName}"');
+    } catch (e) {
+      debugPrint('[DashboardScreen] Background profile sync failed ❌: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final storage = context.watch<LocalStorageService>();
     return BlocProvider(
       create: (context) => DashboardCubit(initialIndex: widget.initialTab),
 
@@ -48,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context, state) {
           final screens = [
             const HomeScreen(),
-            LearnHubScreen(storage: widget.storage),
+            LearnHubScreen(storage: storage),
             const TrackScreen(),
             BlocProvider(
               create: (context) => QuestBloc(QuestRepository(ApiService.instance.dio)),
@@ -68,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   elevation: 0,
                   iconTheme: const IconThemeData(color: AppColors.purple),
                 ),
-            drawer: (state.selectedIndex == 2 || state.selectedIndex == 4) ? null : _buildDrawer(context),
+            drawer: (state.selectedIndex == 2 || state.selectedIndex == 4) ? null : _buildDrawer(context, storage),
             body: SafeArea(
               child: screens[state.selectedIndex],
             ),
@@ -208,7 +222,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .scaleXY(begin: 1.15, end: 1.0, duration: 1000.ms);
   }
 
-  Widget _buildDrawer(BuildContext context) {
+  Widget _buildDrawer(BuildContext context, LocalStorageService storage) {
     return Drawer(
       child: Column(
         children: [
@@ -216,9 +230,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: const BoxDecoration(
               gradient: AppGradients.brandDiagonal,
             ),
-            accountName: Text(widget.storage.displayName ?? 'Infano User', 
+            accountName: Text(storage.displayName ?? 'Infano User', 
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            accountEmail: Text(widget.storage.phone ?? ''),
+            accountEmail: Text(storage.phone ?? ''),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white.withValues(alpha: 0.3),
               child: const Text('👤', style: TextStyle(fontSize: 32)),
@@ -230,6 +244,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onTap: () {
               Navigator.pop(context);
               context.push('/account');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.people_alt_outlined, color: AppColors.purple),
+            title: Text(storage.role == 'TEEN' ? 'Link Parent' : (storage.role == 'PARENT' || storage.role == 'GUARDIAN' ? 'Link Daughter' : 'Link Family')),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/account/family');
             },
           ),
           ListTile(

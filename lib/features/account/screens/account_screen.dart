@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key, required this.storage});
@@ -11,6 +12,7 @@ class AccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocalStorageService>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Account Details'),

@@ -4,6 +4,7 @@ import 'package:infano_care_mobile/features/auth/screens/phone_entry_screen.dart
 import 'package:infano_care_mobile/features/auth/screens/otp_verify_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/landing_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/account_screen.dart';
+import 'package:infano_care_mobile/features/account/screens/family_settings_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/notification_preferences_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/data_rights_privacy_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/saved_articles_screen.dart';
@@ -164,6 +165,7 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(path: '/account/notifications', builder: (_, _) => const NotificationPreferencesScreen()),
       GoRoute(path: '/account/data-rights', builder: (_, _) => const DataRightsPrivacyScreen()),
       GoRoute(path: '/account/saved', builder: (_, _) => const SavedArticlesScreen()),
+      GoRoute(path: '/account/family', builder: (_, _) => FamilySettingsScreen(storage: storage)),
       
       // Expert Dashboard
       GoRoute(path: '/expert/dashboard', builder: (_, _) => ExpertDashboardScreen(storage: storage)),

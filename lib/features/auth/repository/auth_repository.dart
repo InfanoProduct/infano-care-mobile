@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 
@@ -134,7 +135,9 @@ class AuthRepository {
       if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
       if (result.profile != null) {
         final p = result.profile!;
-        if (p['displayName'] != null) await _storage.setDisplayName(p['displayName']);
+        if (p['displayName'] != null && p['displayName'].toString().trim().isNotEmpty) {
+          await _storage.setDisplayName(p['displayName']);
+        }
         if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
         if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
         if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
@@ -177,7 +180,9 @@ class AuthRepository {
       if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
       if (result.profile != null) {
         final p = result.profile!;
-        if (p['displayName'] != null) await _storage.setDisplayName(p['displayName']);
+        if (p['displayName'] != null && p['displayName'].toString().trim().isNotEmpty) {
+          await _storage.setDisplayName(p['displayName']);
+        }
         if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
         if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
         if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
@@ -194,6 +199,7 @@ class AuthRepository {
     try {
       final resp = await _dio.get('/user/me');
       final data = resp.data as Map<String, dynamic>;
+      debugPrint('[syncProfile] Raw API Response from /user/me: $data');
       
       final contentTier = data['contentTier'] as String?;
       final profile = data['profile'] as Map<String, dynamic>?;
@@ -203,7 +209,9 @@ class AuthRepository {
       if (contentTier != null) await _storage.setContentTier(contentTier);
       
       if (profile != null) {
-        if (profile['displayName'] != null) await _storage.setDisplayName(profile['displayName']);
+        if (profile['displayName'] != null && profile['displayName'].toString().trim().isNotEmpty) {
+          await _storage.setDisplayName(profile['displayName']);
+        }
         if (profile['pronouns'] != null) await _storage.setPronouns(profile['pronouns']);
         if (profile['birthYear'] != null) {
           await _storage.setBirthDate(profile['birthMonth'] ?? 1, profile['birthYear']);
