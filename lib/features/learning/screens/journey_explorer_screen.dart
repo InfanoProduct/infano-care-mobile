@@ -4,7 +4,9 @@ import '../application/journey_list_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class JourneyExplorerScreen extends StatefulWidget {
-  const JourneyExplorerScreen({super.key});
+  const JourneyExplorerScreen({super.key, this.isEmbedded = false});
+
+  final bool isEmbedded;
 
   @override
   State<JourneyExplorerScreen> createState() => _JourneyExplorerScreenState();
@@ -20,9 +22,11 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Learning Journeys', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+      appBar: widget.isEmbedded
+          ? null
+          : AppBar(
+              title: const Text('Learning Journeys', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
       body: BlocBuilder<JourneyListBloc, JourneyListState>(
         builder: (context, state) {
           return state.when(

@@ -14,9 +14,7 @@ import 'package:infano_care_mobile/screens/connect/connect_screen.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
-import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
-import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
-import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
+import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -50,10 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context, state) {
           final screens = [
             const HomeScreen(),
-            BlocProvider(
-              create: (context) => JourneyListBloc(LearningRepository(ApiService.instance.dio)),
-              child: const JourneyExplorerScreen(),
-            ),
+            LearnHubScreen(storage: widget.storage),
             const TrackScreen(),
             BlocProvider(
               create: (context) => QuestBloc(QuestRepository(ApiService.instance.dio)),
@@ -235,6 +230,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onTap: () {
               Navigator.pop(context);
               context.push('/account');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.workspace_premium_outlined, color: AppColors.purple),
+            title: const Text('Enrolled Programs'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/learning/programs');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.credit_card_outlined, color: AppColors.purple),
+            title: const Text('Payment Details'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/payments');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.shopping_bag_outlined, color: AppColors.purple),
+            title: const Text('My Orders'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/orders');
             },
           ),
           ListTile(

@@ -59,6 +59,9 @@ import 'package:infano_care_mobile/features/learning/application/journey_list_bl
 import 'package:infano_care_mobile/features/learning/application/journey_detail_bloc.dart';
 import 'package:infano_care_mobile/features/learning/application/episode_player_bloc.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
+import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
+import 'package:infano_care_mobile/features/learning/screens/payments_and_orders_screens.dart';
+import 'package:infano_care_mobile/features/learning/screens/order_details_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_detail_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/episode_player_screen.dart';
 import 'package:infano_care_mobile/features/learning/models/learning_models.dart';
@@ -309,6 +312,25 @@ GoRouter createRouter(LocalStorageService storage) {
             child: const JourneyExplorerScreen(),
           );
         },
+      ),
+      GoRoute(
+        path: '/learning/programs',
+        builder: (_, _) => LearningProgramsScreen(storage: storage),
+      ),
+      GoRoute(
+        path: '/payments',
+        builder: (_, _) => MyPaymentsScreen(storage: storage),
+      ),
+      GoRoute(
+        path: '/orders',
+        builder: (_, _) => MyOrdersScreen(storage: storage),
+      ),
+      GoRoute(
+        path: '/order/:id',
+        builder: (_, state) => MyOrderDetailsScreen(
+          orderId: state.pathParameters['id']!,
+          storage: storage,
+        ),
       ),
       GoRoute(
         path: '/journey/:id',
