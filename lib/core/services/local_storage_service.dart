@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:infano_care_mobile/core/utils/url_utils.dart';
 
 /// Typed wrapper around SharedPreferences for onboarding state persistence.
 class LocalStorageService extends ChangeNotifier {
@@ -26,6 +27,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _savedArticles   = 'saved_articles_list';
   static const _predictionBannerDismissedAt = 'ob_prediction_banner_dismissed_at';
   static const _isFriendOnboarded = 'ob_is_friend_onboarded';
+  static const _avatarUrl         = 'user_avatar_url';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -61,6 +63,7 @@ class LocalStorageService extends ChangeNotifier {
   String? get phone             => _prefs.getString(_phone);
   String? get role              => _prefs.getString(_role);
   String? get contentTier       => _prefs.getString(_contentTier);
+  String? get avatarUrl         => UrlUtils.sanitizeUrl(_prefs.getString(_avatarUrl));
 
   Future<void> setUserType(String t) async {
     await _prefs.setString(_userType, t);
@@ -68,6 +71,14 @@ class LocalStorageService extends ChangeNotifier {
   }
   Future<void> setDisplayName(String n) async {
     await _prefs.setString(_displayName, n);
+    notifyListeners();
+  }
+  Future<void> setAvatarUrl(String? url) async {
+    if (url != null) {
+      await _prefs.setString(_avatarUrl, url);
+    } else {
+      await _prefs.remove(_avatarUrl);
+    }
     notifyListeners();
   }
   Future<void> setPronouns(String? p) async {

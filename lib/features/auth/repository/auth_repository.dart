@@ -141,6 +141,7 @@ class AuthRepository {
         if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
         if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
         if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+        await _storage.setAvatarUrl(p['avatarUrl']?.toString());
       }
       await _storage.setTempToken(result.tempToken);
       await _storage.setPhone(phone);
@@ -186,6 +187,7 @@ class AuthRepository {
         if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
         if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
         if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+        await _storage.setAvatarUrl(p['avatarUrl']?.toString());
       }
       
       return result;
@@ -217,6 +219,7 @@ class AuthRepository {
           await _storage.setBirthDate(profile['birthMonth'] ?? 1, profile['birthYear']);
         }
         if (profile['totalPoints'] != null) await _storage.setPoints(profile['totalPoints']);
+        await _storage.setAvatarUrl(profile['avatarUrl']?.toString());
       }
     } on DioException catch (e) {
       throw _extractError(e, 'Failed to sync profile.');

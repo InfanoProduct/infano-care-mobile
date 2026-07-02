@@ -235,7 +235,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             accountEmail: Text(storage.phone ?? ''),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white.withValues(alpha: 0.3),
-              child: const Text('👤', style: TextStyle(fontSize: 32)),
+              backgroundImage: storage.avatarUrl != null ? NetworkImage(storage.avatarUrl!) : null,
+              child: storage.avatarUrl == null
+                  ? const Text('👤', style: TextStyle(fontSize: 32))
+                  : null,
             ),
           ),
           ListTile(
