@@ -350,7 +350,8 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
             itemBuilder: (context, index) {
               final link = linkedAccounts[index];
               final otherUser = _isTeen ? link['parent'] : link['teen'];
-              final displayName = otherUser?['profile']?['displayName'] ?? 'Linked Account';
+              final displayNameRaw = otherUser?['profile']?['displayName']?.toString() ?? '';
+              final displayName = displayNameRaw.trim().isEmpty ? 'Linked Account' : displayNameRaw;
               final displayPhone = otherUser?['phone'] ?? link['receiverPhone'] ?? '';
 
               return Container(
@@ -419,7 +420,7 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.red[100]!),
+                        side: BorderSide(color: Colors.red[100] ?? Colors.red),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       ),
@@ -531,7 +532,7 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                       OutlinedButton(
                         onPressed: isProcessing ? null : () => _cancelOrDeclineInvite(link['id'], isDecline: false),
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey[300]!),
+                          side: BorderSide(color: Colors.grey[300] ?? Colors.grey),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         ),
@@ -552,7 +553,8 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
               } else {
                 // Received invitation (User is accepter)
                 final senderUser = link['sender'];
-                final displayName = senderUser?['profile']?['displayName'] ?? 'Family Link Request';
+                final displayNameRaw = senderUser?['profile']?['displayName']?.toString() ?? '';
+                final displayName = displayNameRaw.trim().isEmpty ? 'Family Link Request' : displayNameRaw;
                 final displayPhone = senderUser?['phone'] ?? link['receiverPhone'] ?? '';
 
                 return Container(
@@ -612,7 +614,7 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                           OutlinedButton(
                             onPressed: isProcessing ? null : () => _cancelOrDeclineInvite(link['id'], isDecline: true),
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.red[200]!),
+                              side: BorderSide(color: Colors.red[200] ?? Colors.red),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             ),
@@ -626,9 +628,9 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          ElevatedButton(
+                          FilledButton(
                             onPressed: isProcessing ? null : () => _acceptInvite(link['id']),
-                            style: ElevatedButton.styleFrom(
+                            style: FilledButton.styleFrom(
                               backgroundColor: AppColors.purple,
                               foregroundColor: Colors.white,
                               elevation: 0,
