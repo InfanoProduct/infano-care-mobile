@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
@@ -320,21 +321,6 @@ class _AccountScreenState extends State<AccountScreen> {
             label: 'My Library',
             route: '/account/saved',
           ),
-          const Divider(height: 1),
-          _buildNavRow(
-            context,
-            icon: Icons.notifications_none,
-            label: 'Data & Notifications',
-            route: '/account/notifications',
-          ),
-          const Divider(height: 1),
-          _buildNavRow(
-            context,
-            icon: Icons.shield_outlined,
-            label: 'Health Data Privacy',
-            route: '/account/data-rights',
-            iconColor: AppColors.error,
-          ),
         ],
       ),
     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1);
@@ -394,6 +380,13 @@ class _AccountScreenState extends State<AccountScreen> {
     );
 
     if (confirmed == true) {
+      // Unregister FCM token from backend so logged out users don't receive notifications
+      try {
+        await NotificationService().unregisterToken();
+      } catch (e) {
+        debugPrint('Logout: Could not unregister FCM token: $e');
+      }
+
       await widget.storage.clearAll();
       if (context.mounted) {
         context.go('/splash');

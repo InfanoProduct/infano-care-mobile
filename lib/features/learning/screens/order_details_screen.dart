@@ -541,3 +541,387 @@ class _MyOrderDetailsScreenState extends State<MyOrderDetailsScreen> {
     );
   }
 }
+
+class MyProgramPaymentDetailsScreen extends StatefulWidget {
+  const MyProgramPaymentDetailsScreen({
+    super.key,
+    required this.enrollmentId,
+    required this.storage,
+  });
+
+  final String enrollmentId;
+  final LocalStorageService storage;
+
+  @override
+  State<MyProgramPaymentDetailsScreen> createState() => _MyProgramPaymentDetailsScreenState();
+}
+
+class _MyProgramPaymentDetailsScreenState extends State<MyProgramPaymentDetailsScreen> {
+  late final LearningRepository _repository;
+  late Future<dynamic> _enrollmentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = LearningRepository(ApiService.instance.dio);
+    _loadData();
+  }
+
+  void _loadData() {
+    setState(() {
+      _enrollmentFuture = _repository.getMyProgramEnrollments().then((enrollments) {
+        return enrollments.firstWhere(
+          (e) => e != null && e['id'].toString() == widget.enrollmentId,
+          orElse: () => null,
+        );
+      });
+    });
+  }
+
+  String _formatDate(String isoString) {
+    try {
+      final dt = DateTime.parse(isoString).toLocal();
+      return DateFormat('d MMMM, yyyy, hh:mm a').format(dt);
+    } catch (_) {
+      return isoString;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F4F7),
+      appBar: AppBar(
+        title: const Text(
+          'Payment Details',
+          style: TextStyle(
+            color: AppColors.purple,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.purple),
+      ),
+      body: FutureBuilder<dynamic>(
+        future: _enrollmentFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.purple));
+          }
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      snapshot.hasError ? 'Failed to load payment details.' : 'Enrollment not found.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadData,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.purple,
+                        minimumSize: const Size(120, 44),
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final enr = snapshot.data;
+          final registrationId = (enr['id'] ?? '').toString();
+          final displayRegId = registrationId.length > 8 ? registrationId.substring(0, 8) : registrationId;
+          final datePaid = enr['createdAt'] ?? '';
+          final status = (enr['status'] ?? 'ACTIVE').toString().toUpperCase();
+          final prog = enr['program'] ?? {};
+          final pricePaid = double.tryParse((enr['pricePaid'] ?? enr['price'] ?? 0).toString()) ?? 0.0;
+
+          // Tax breakdown
+          final subtotal = pricePaid / 1.18;
+          final totalGst = pricePaid - subtotal;
+          final cgst = totalGst / 2;
+          final sgst = totalGst / 2;
+
+          final buyerName = enr['guestName'] ?? enr['user']?['profile']?['displayName'] ?? enr['user']?['username'] ?? 'Customer';
+          final buyerPhone = enr['guestPhone'] ?? enr['user']?['phone'] ?? 'N/A';
+          final buyerEmail = enr['guestEmail'] ?? enr['user']?['email'] ?? enr['user']?['parentEmail'] ?? 'N/A';
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              _loadData();
+              await _enrollmentFuture;
+            },
+            child: ListView(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
+              children: [
+                // 1. Enrollment Status Header
+                Card(
+                  elevation: 1,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Registration #$displayRegId',
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                              ),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: () => InvoicePdfHelper.generateAndPrintInvoice(type: 'PROGRAM', data: enr),
+                              icon: const Icon(Icons.download, size: 14, color: AppColors.purple),
+                              label: const Text('Invoice', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.purple)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFF5F3FF),
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                minimumSize: const Size(0, 0),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today, size: 14, color: AppColors.textLight),
+                            const SizedBox(width: 6),
+                            Text(
+                              _formatDate(datePaid),
+                              style: const TextStyle(fontSize: 12, color: AppColors.textMedium),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 2. Program Details Card
+                Card(
+                  elevation: 1,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Mentoring Program details',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark),
+                        ),
+                        const Divider(height: 24),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: AppColors.purple.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.workspace_premium_outlined, color: AppColors.purple, size: 30),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${prog['title'] ?? 'Program'} Program',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    '1:1 Private Mentoring Session',
+                                    style: TextStyle(fontSize: 12, color: AppColors.textMedium, fontWeight: FontWeight.w600),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: status == 'ACTIVE' ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          status,
+                                          style: TextStyle(
+                                            color: status == 'ACTIVE' ? Colors.green : Colors.amber[800],
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '₹${pricePaid.toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 3. Payment Details Table
+                Card(
+                  elevation: 1,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.receipt_long, size: 16, color: Colors.grey[400]),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Payment Summary',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildSummaryRow('Taxable Value', '₹${subtotal.toStringAsFixed(2)}'),
+                        const SizedBox(height: 8),
+                        _buildSummaryRow('CGST (9%)', '₹${cgst.toStringAsFixed(2)}'),
+                        const SizedBox(height: 8),
+                        _buildSummaryRow('SGST (9%)', '₹${sgst.toStringAsFixed(2)}'),
+                        const Divider(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Total Paid', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark)),
+                            Text(
+                              '₹${pricePaid.toStringAsFixed(2)}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppColors.purple),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFECFDF5),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'Paid successfully',
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 4. Billing Coordinates
+                Card(
+                  elevation: 1,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.person, size: 16, color: Colors.grey[400]),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Billing Details',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          buyerName,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Email: $buyerEmail',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textMedium),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Phone: $buyerPhone',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textMedium),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Billing for: Online Mentoring Service',
+                          style: TextStyle(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textDark,
+          ),
+        ),
+      ],
+    );
+  }
+}

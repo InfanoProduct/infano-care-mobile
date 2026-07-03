@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -10,6 +11,8 @@ import 'package:infano_care_mobile/features/home/screens/home_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
+import 'package:infano_care_mobile/core/services/notification_service.dart';
+import 'package:infano_care_mobile/widgets/notification_center_sheet.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/screens/connect/connect_screen.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
@@ -33,12 +36,59 @@ class DashboardScreen extends StatefulWidget {
 
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  bool _isExpanded = true;
+  Timer? _collapseTimer;
+  Timer? _notificationsTimer;
+  bool _hasUnreadNotifications = false;
+
   @override
   void initState() {
     super.initState();
     // Ensure native splash is removed if we land here directly
     FlutterNativeSplash.remove();
     _syncProfile();
+    _startCollapseTimer();
+
+    // Periodically poll for unread notifications to dynamically update the Bell badge
+    _notificationsTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _checkUnreadNotifications();
+    });
+    _checkUnreadNotifications();
+  }
+
+  void _startCollapseTimer() {
+    _collapseTimer?.cancel();
+    _collapseTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        setState(() {
+          _isExpanded = false;
+        });
+      }
+    });
+  }
+
+  Future<void> _checkUnreadNotifications() async {
+    final authToken = widget.storage.authToken;
+    if (authToken == null) return;
+
+    try {
+      final res = await ApiService.instance.dio.get('/parent/notifications');
+      final list = res.data as List<dynamic>;
+      if (mounted) {
+        setState(() {
+          _hasUnreadNotifications = list.isNotEmpty;
+        });
+      }
+    } catch (e) {
+      debugPrint('[DashboardScreen] Error checking notifications: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _collapseTimer?.cancel();
+    _notificationsTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _syncProfile() async {
@@ -81,10 +131,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   backgroundColor: Colors.white,
                   elevation: 0,
                   iconTheme: const IconThemeData(color: AppColors.purple),
+                  actions: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications_none_outlined),
+                          onPressed: () async {
+                            await NotificationCenterSheet.show(context);
+                            _checkUnreadNotifications();
+                          },
+                        ),
+                        if (_hasUnreadNotifications)
+                          Positioned(
+                            right: 12,
+                            top: 12,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
             drawer: (state.selectedIndex == 2 || state.selectedIndex == 4) ? null : _buildDrawer(context, storage),
-            body: SafeArea(
-              child: screens[state.selectedIndex],
+            body: NotificationListener<ScrollNotification>(
+              onNotification: (scrollNotification) {
+                if (scrollNotification is ScrollUpdateNotification) {
+                  if (scrollNotification.scrollDelta != null && scrollNotification.scrollDelta! > 2.0) {
+                    if (_isExpanded) {
+                      setState(() {
+                        _isExpanded = false;
+                      });
+                    }
+                  } else if (scrollNotification.scrollDelta != null && scrollNotification.scrollDelta! < -2.0) {
+                    if (!_isExpanded) {
+                      setState(() {
+                        _isExpanded = true;
+                      });
+                    }
+                  }
+                }
+                return false;
+              },
+              child: SafeArea(
+                child: screens[state.selectedIndex],
+              ),
             ),
             bottomNavigationBar: Container(
               decoration: BoxDecoration(
@@ -98,7 +195,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: BottomNavigationBar(
                 currentIndex: state.selectedIndex,
-                onTap: (index) => context.read<DashboardCubit>().setTab(index),
+                onTap: (index) {
+                  setState(() {
+                    _isExpanded = true;
+                  });
+                  _startCollapseTimer();
+                  context.read<DashboardCubit>().setTab(index);
+                },
                 type: BottomNavigationBarType.fixed,
                 backgroundColor: Colors.white,
                 selectedItemColor: AppColors.purple,
@@ -153,12 +256,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            floatingActionButton: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) ? null : FloatingActionButton.extended(
-              onPressed: () => context.push('/chat'),
-              backgroundColor: AppColors.purple,
-              icon: const Icon(Icons.auto_awesome, color: Colors.white),
-              label: const Text('Talk to Gigi', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
+            floatingActionButton: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) 
+              ? null 
+              : Stack(
+                  alignment: Alignment.bottomRight,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Pulse ring behind the button (only shown when collapsed)
+                    if (!_isExpanded)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Color(0xFFE9D5FF), Color(0xFFFBCFE8)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                        )
+                        .animate(onPlay: (controller) => controller.repeat())
+                        .scale(begin: const Offset(1, 1), end: const Offset(1.5, 1.5), duration: 2.seconds, curve: Curves.easeOut)
+                        .fadeOut(duration: 2.seconds),
+                      ),
+                    
+                    // Main Gigi floating button
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.fastOutSlowIn,
+                      clipBehavior: Clip.antiAlias, // Clip the sliding text!
+                      height: 56,
+                      width: _isExpanded ? 160 : 56,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE9D5FF), Color(0xFFFBCFE8)], // from-purple-200 to-pink-200
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFD8B4FE).withValues(alpha: 0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: const Color(0xFFD8B4FE).withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => context.push('/chat'),
+                          borderRadius: BorderRadius.circular(28),
+                          child: SizedBox.expand(
+                            child: Stack(
+                              alignment: Alignment.centerLeft,
+                              children: [
+                                // 1. Avatar Image
+                                Positioned(
+                                  left: 6, // 6px padding on left matches center position when collapsed: (56-44)/2 = 6
+                                  child: Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 2,
+                                          offset: Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child: _isExpanded
+                                          ? Image.asset(
+                                              'assets/images/gigi_avatar.png',
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.asset(
+                                              'assets/images/gigi_avatar.png',
+                                              fit: BoxFit.cover,
+                                            )
+                                            .animate(onPlay: (controller) => controller.repeat())
+                                            .shake(delay: 3.seconds, duration: 800.ms, hz: 4),
+                                    ),
+                                  ),
+                                ),
+                                
+                                // 2. Text (only visible when expanded)
+                                if (_isExpanded)
+                                  const Positioned(
+                                    left: 58,
+                                    child: Text(
+                                      'Talk to Gigi',
+                                      style: TextStyle(
+                                        color: Color(0xFF4C1D95), // text-purple-950
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+                .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                .slideY(begin: 0.0, end: -0.12, duration: 1500.ms, curve: Curves.easeInOut),
           );
         },
       ),
@@ -265,14 +481,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               context.push('/learning/programs');
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.credit_card_outlined, color: AppColors.purple),
-            title: const Text('Payment Details'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/payments');
-            },
-          ),
+
           ListTile(
             leading: const Icon(Icons.shopping_bag_outlined, color: AppColors.purple),
             title: const Text('My Orders'),
@@ -283,8 +492,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.settings_outlined, color: AppColors.purple),
-            title: const Text('Profile Settings'),
-            onTap: () => Navigator.pop(context),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/settings');
+            },
           ),
           ListTile(
             leading: const Icon(Icons.help_outline, color: AppColors.purple),
@@ -331,6 +543,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
         } catch (e) {
           debugPrint('Logout: Could not clear availability: $e');
+        }
+
+        // Unregister FCM token from backend so logged out users don't receive notifications
+        try {
+          await NotificationService().unregisterToken();
+        } catch (e) {
+          debugPrint('Logout: Could not unregister FCM token: $e');
         }
 
         await widget.storage.clearAll();

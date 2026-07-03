@@ -6,6 +6,7 @@ import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -70,9 +71,9 @@ class NotificationService {
     // 4. Handle Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
 
-      if (notification != null && android != null) {
+      if (notification != null) {
+        // Show System Heads-Up Notification Channel
         _localNotifications.show(
           id: notification.hashCode,
           title: notification.title,
@@ -82,11 +83,58 @@ class NotificationService {
               _channel.id,
               _channel.name,
               channelDescription: _channel.description,
-              icon: android.smallIcon,
+              icon: '@mipmap/ic_launcher',
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
             ),
           ),
           payload: message.data['deepLink'],
         );
+
+        // Also display a beautiful In-App SnackBar toast overlay when app is active/foreground
+        final context = _navigatorKey.currentState?.context;
+        if (context != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    notification.title ?? 'New Alert',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  if (notification.body != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        notification.body!,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                ],
+              ),
+              backgroundColor: AppColors.purple,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 4),
+              action: message.data['deepLink'] != null
+                  ? SnackBarAction(
+                      label: 'View',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        _handleDeepLink(message.data['deepLink']);
+                      },
+                    )
+                  : null,
+            ),
+          );
+        }
       }
     });
 
@@ -130,6 +178,18 @@ class NotificationService {
     } catch (e) {
       // If it's a 401, we just ignore it here because ApiService interceptor will handle it
       debugPrint("[Notifications] FCM sync failed (likely session expired).");
+    }
+  }
+
+  Future<void> unregisterToken() async {
+    try {
+      debugPrint("[Notifications] Unregistering FCM token on server...");
+      await ApiService.instance.dio.post('/user/register-fcm-token', data: {
+        'fcmToken': null,
+      });
+      debugPrint("[Notifications] FCM token unregistered successfully ✅");
+    } catch (e) {
+      debugPrint("[Notifications] FCM unregistration failed: $e");
     }
   }
 

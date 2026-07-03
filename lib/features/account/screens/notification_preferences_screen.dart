@@ -32,7 +32,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
 
   Future<void> _loadPreferences() async {
     try {
-      final res = await ApiService.instance.dio.get('/api/v1/tracker/notification-preferences');
+      final res = await ApiService.instance.dio.get('/tracker/notification-preferences');
       final data = res.data;
       if (mounted) {
         setState(() {
@@ -92,7 +92,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         if (key == 'globalEnabled') _globalEnabled = value;
       });
 
-      await ApiService.instance.dio.put('/api/v1/tracker/notification-preferences', data: dataStr);
+      await ApiService.instance.dio.put('/tracker/notification-preferences', data: dataStr);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

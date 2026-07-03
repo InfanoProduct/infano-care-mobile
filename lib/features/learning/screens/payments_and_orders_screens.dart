@@ -368,456 +368,6 @@ class InvoicePdfHelper {
   }
 }
 
-class MyPaymentsScreen extends StatefulWidget {
-  const MyPaymentsScreen({super.key, required this.storage});
-
-  final LocalStorageService storage;
-
-  @override
-  State<MyPaymentsScreen> createState() => _MyPaymentsScreenState();
-}
-
-class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
-  late final LearningRepository _repository;
-  late Future<List<dynamic>> _paymentsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _repository = LearningRepository(ApiService.instance.dio);
-    _loadData();
-  }
-
-  void _loadData() {
-    setState(() {
-      _paymentsFuture = Future.wait([
-        _repository.getMyProgramEnrollments(),
-        _repository.getMyBookOrders(),
-      ]);
-    });
-  }
-
-  String _formatDate(String isoString) {
-    try {
-      final dt = DateTime.parse(isoString).toLocal();
-      return DateFormat('d MMM, yyyy').format(dt);
-    } catch (_) {
-      return isoString;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F4F7),
-      appBar: AppBar(
-        title: const Text(
-          'Payment Details',
-          style: TextStyle(
-            color: AppColors.purple,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.purple),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          _loadData();
-          await _paymentsFuture;
-        },
-        child: FutureBuilder<List<dynamic>>(
-          future: _paymentsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.purple));
-            }
-            if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-              return _ErrorState(
-                errorMessage: snapshot.hasError
-                    ? 'Failed to load payment data.\n${snapshot.error}'
-                    : 'No payment data found.',
-                onRetry: _loadData,
-              );
-            }
-
-            final dataList = snapshot.data!;
-            final enrollments = (dataList.isNotEmpty ? dataList[0] : []) as List<dynamic>? ?? [];
-            final orders = (dataList.length > 1 ? dataList[1] : []) as List<dynamic>? ?? [];
-
-            if (enrollments.isEmpty && orders.isEmpty) {
-              return const _EmptyState(
-                icon: Icons.credit_card,
-                title: 'No Transactions Found',
-                subtitle: 'You haven\'t made any purchases yet.',
-              );
-            }
-
-            return ListView(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
-              children: [
-                // 1. Program Enrollments
-                if (enrollments.isNotEmpty) ...[
-                  const Text(
-                    'Program Enrollments',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textLight, letterSpacing: 1),
-                  ),
-                  const SizedBox(height: 10),
-                  ...enrollments.map((enr) {
-                    final prog = enr['program'] ?? {};
-                    final pricePaid = enr['pricePaid'] ?? enr['price'] ?? 0;
-                    final registrationId = enr['id'] ?? '';
-                    final datePaid = enr['createdAt'] ?? '';
-                    final status = enr['status'] ?? 'ACTIVE';
-
-                    return Card(
-                      elevation: 1.5,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      color: Colors.white,
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Top Web-styled Purple Border
-                          Container(height: 4, color: AppColors.purple),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.purple.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        '1:1 Private Mentoring',
-                                        style: TextStyle(
-                                          color: AppColors.purple,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textLight),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          _formatDate(datePaid),
-                                          style: const TextStyle(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w600),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        '${prog['title'] ?? 'Program'} Program',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textDark,
-                                        ),
-                                      ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          '₹$pricePaid',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.textDark,
-                                          ),
-                                        ),
-                                        const Text(
-                                          'Paid successfully',
-                                          style: TextStyle(
-                                            color: Colors.green,
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const Divider(height: 24, thickness: 0.5),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'REGISTRATION ID',
-                                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          registrationId.toString().length > 12 
-                                              ? '${registrationId.toString().substring(0, 12)}...' 
-                                              : registrationId.toString(),
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark, fontFamily: 'monospace'),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'ENROLLMENT STATUS',
-                                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.verified, size: 12, color: Colors.green),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              status.toString().toUpperCase(),
-                                              style: const TextStyle(
-                                                color: Colors.green,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    ElevatedButton.icon(
-                                      onPressed: () => InvoicePdfHelper.generateAndPrintInvoice(type: 'PROGRAM', data: enr),
-                                      icon: const Icon(Icons.file_present, size: 12, color: AppColors.textDark),
-                                      label: const Text('Invoice', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: AppColors.textDark,
-                                        elevation: 0,
-                                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        minimumSize: const Size(0, 0),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 20),
-                ],
-
-                // 2. Book Purchases
-                if (orders.isNotEmpty) ...[
-                  const Text(
-                    'Book Purchases',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textLight, letterSpacing: 1),
-                  ),
-                  const SizedBox(height: 10),
-                  ...orders.map((order) {
-                    final orderId = order['id'] ?? '';
-                    final totalAmount = order['totalAmount'] ?? 0;
-                    final orderDate = order['createdAt'] ?? '';
-                    final paymentStatus = order['paymentStatus'] ?? 'PENDING';
-                    final orderStatus = order['orderStatus'] ?? 'PROCESSING';
-                    final items = order['items'] as List<dynamic>? ?? [];
-
-                    final itemsText = items.map((it) {
-                      final book = it['book'] ?? {};
-                      final title = book['title'] ?? it['bookTitle'] ?? it['name'] ?? 'Book';
-                      return '$title (x${it['quantity']})';
-                    }).join(', ');
-
-                    return Card(
-                      elevation: 1.5,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      color: Colors.white,
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Top Web-styled Purple Border
-                          Container(height: 4, color: AppColors.purple),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.purple.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        'Gigi Book Order',
-                                        style: TextStyle(
-                                          color: AppColors.purple,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textLight),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          _formatDate(orderDate),
-                                          style: const TextStyle(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w600),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        itemsText.isEmpty ? 'Gigi Survival Book Order' : itemsText,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textDark,
-                                        ),
-                                      ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          '₹$totalAmount',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.textDark,
-                                          ),
-                                        ),
-                                        Text(
-                                          paymentStatus == 'COMPLETED' ? 'Paid successfully' : paymentStatus,
-                                          style: TextStyle(
-                                            color: paymentStatus == 'COMPLETED' ? Colors.green : Colors.amber[800],
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const Divider(height: 24, thickness: 0.5),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'ORDER ID',
-                                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          orderId.toString().length > 12 
-                                              ? '${orderId.toString().substring(0, 12)}...' 
-                                              : orderId.toString(),
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark, fontFamily: 'monospace'),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'ORDER STATUS',
-                                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.shopping_bag_outlined, size: 12, color: AppColors.purple),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              orderStatus,
-                                              style: const TextStyle(
-                                                color: AppColors.textDark,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    ElevatedButton.icon(
-                                      onPressed: () => InvoicePdfHelper.generateAndPrintInvoice(type: 'BOOK', data: order),
-                                      icon: const Icon(Icons.file_present, size: 12, color: AppColors.textDark),
-                                      label: const Text('Invoice', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: AppColors.textDark,
-                                        elevation: 0,
-                                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        minimumSize: const Size(0, 0),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
 class MyOrdersScreen extends StatefulWidget {
   const MyOrdersScreen({super.key, required this.storage});
 
@@ -829,7 +379,7 @@ class MyOrdersScreen extends StatefulWidget {
 
 class _MyOrdersScreenState extends State<MyOrdersScreen> {
   late final LearningRepository _repository;
-  late Future<List<dynamic>> _ordersFuture;
+  late Future<List<dynamic>> _dataFuture;
 
   @override
   void initState() {
@@ -840,7 +390,10 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
 
   void _loadData() {
     setState(() {
-      _ordersFuture = _repository.getMyBookOrders();
+      _dataFuture = Future.wait([
+        _repository.getMyBookOrders(),
+        _repository.getMyProgramEnrollments(),
+      ]);
     });
   }
 
@@ -883,259 +436,449 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           _loadData();
-          await _ordersFuture;
+          await _dataFuture;
         },
         child: FutureBuilder<List<dynamic>>(
-          future: _ordersFuture,
+          future: _dataFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator(color: AppColors.purple));
             }
-            if (snapshot.hasError) {
+            if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
               return _ErrorState(
-                errorMessage: 'Failed to load orders.\n${snapshot.error}',
+                errorMessage: snapshot.hasError
+                    ? 'Failed to load orders.\n${snapshot.error}'
+                    : 'No orders found.',
                 onRetry: _loadData,
               );
             }
 
-            final orders = snapshot.data ?? [];
+            final dataList = snapshot.data!;
+            final orders = (dataList.isNotEmpty ? dataList[0] : []) as List<dynamic>? ?? [];
+            final enrollments = (dataList.length > 1 ? dataList[1] : []) as List<dynamic>? ?? [];
+
             final productOrders = orders.where((o) {
               final items = o['items'] as List<dynamic>? ?? [];
               return items.any((it) => !_isProgramItem(it));
             }).toList();
 
-            if (productOrders.isEmpty) {
+            if (productOrders.isEmpty && enrollments.isEmpty) {
               return const _EmptyState(
                 icon: Icons.shopping_bag_outlined,
-                title: 'No Product Orders Found',
-                subtitle: 'You haven\'t ordered any books or products yet.',
+                title: 'No Orders or Payments Found',
+                subtitle: 'You haven\'t ordered any books or programs yet.',
               );
             }
 
             return ListView(
               padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
               children: [
-                ...productOrders.map((order) {
-                  final orderId = order['id'] ?? '';
-                  final orderDate = order['createdAt'] ?? '';
-                  final totalAmount = order['totalAmount'] ?? 0;
-                  final paymentStatus = order['paymentStatus'] ?? 'PENDING';
-                  final orderStatus = order['orderStatus'] ?? 'PROCESSING';
-                  final items = order['items'] as List<dynamic>? ?? [];
+                // 1. Book Orders (if any)
+                if (productOrders.isNotEmpty) ...[
+                  const Text(
+                    'Book Orders',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textLight, letterSpacing: 1),
+                  ),
+                  const SizedBox(height: 10),
+                  ...productOrders.map((order) {
+                    final orderId = order['id'] ?? '';
+                    final orderDate = order['createdAt'] ?? '';
+                    final totalAmount = order['totalAmount'] ?? 0;
+                    final paymentStatus = order['paymentStatus'] ?? 'PENDING';
+                    final orderStatus = order['orderStatus'] ?? 'PROCESSING';
+                    final items = order['items'] as List<dynamic>? ?? [];
 
-                  final productItems = items.where((it) => !_isProgramItem(it)).toList();
-                  final firstItem = productItems.isNotEmpty ? productItems[0] : null;
-                  final book = firstItem != null ? firstItem['book'] ?? {} : {};
-                  final imageUrl = book['imageUrl'] ?? firstItem?['bookTitle'] ?? '';
+                    final productItems = items.where((it) => !_isProgramItem(it)).toList();
+                    final firstItem = productItems.isNotEmpty ? productItems[0] : null;
+                    final book = firstItem != null ? firstItem['book'] ?? {} : {};
+                    final imageUrl = book['imageUrl'] ?? firstItem?['bookTitle'] ?? '';
 
-                  final orderTitle = productItems.map((it) {
-                    final b = it['book'] ?? {};
-                    final title = b['title'] ?? it['bookTitle'] ?? it['name'] ?? 'Product';
-                    return '$title (x${it['quantity']})';
-                  }).join(', ');
+                    final orderTitle = productItems.map((it) {
+                      final b = it['book'] ?? {};
+                      final title = b['title'] ?? it['bookTitle'] ?? it['name'] ?? 'Product';
+                      return '$title (x${it['quantity']})';
+                    }).join(', ');
 
-                  return GestureDetector(
-                    onTap: () {
-                      context.push('/order/$orderId');
-                    },
-                    child: Card(
-                      elevation: 1.5,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      color: Colors.white,
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Top Web-styled Purple Border
-                          Container(height: 4, color: AppColors.purple),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.purple.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
+                    return GestureDetector(
+                      onTap: () {
+                        context.push('/order/$orderId');
+                      },
+                      child: Card(
+                        elevation: 1.5,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        color: Colors.white,
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Top Web-styled Purple Border
+                            Container(height: 4, color: AppColors.purple),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.purple.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Text(
+                                          'Gigi Book Order',
+                                          style: TextStyle(
+                                            color: AppColors.purple,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
-                                      child: const Text(
-                                        'Gigi Book Order',
-                                        style: TextStyle(
-                                          color: AppColors.purple,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textLight),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _formatDate(orderDate),
+                                            style: const TextStyle(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w600),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textLight),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          _formatDate(orderDate),
-                                          style: const TextStyle(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w600),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: 50,
+                                        height: 60,
+                                        margin: const EdgeInsets.only(right: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[100],
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: Colors.grey[200] ?? const Color(0xFFEEEEEE)),
                                         ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                     Container(
-                                       width: 50,
-                                       height: 60,
-                                       margin: const EdgeInsets.only(right: 12),
-                                       decoration: BoxDecoration(
-                                         color: Colors.grey[100],
-                                         borderRadius: BorderRadius.circular(8),
-                                         border: Border.all(color: Colors.grey[200] ?? const Color(0xFFEEEEEE)),
-                                       ),
-                                       child: imageUrl.toString().startsWith('http')
-                                           ? ClipRRect(
-                                               borderRadius: BorderRadius.circular(8),
-                                               child: Image.network(
-                                                 imageUrl.toString(),
-                                                 fit: BoxFit.cover,
-                                                 errorBuilder: (_, _, _) => const Icon(Icons.book, color: AppColors.textLight),
-                                               ),
-                                             )
-                                           : const Icon(Icons.book, color: AppColors.textLight),
-                                     ),
-                                     Expanded(
-                                       child: Column(
-                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                         children: [
-                                           Text(
-                                             orderTitle.isEmpty ? 'Product Order' : orderTitle,
-                                             style: const TextStyle(
-                                               fontSize: 15,
-                                               fontWeight: FontWeight.bold,
-                                               color: AppColors.textDark,
-                                             ),
-                                           ),
-                                           const SizedBox(height: 4),
-                                           Row(
-                                             children: [
-                                               const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textLight),
-                                               const SizedBox(width: 2),
-                                               Text(
-                                                 order['city'] ?? 'N/A',
-                                                 style: const TextStyle(fontSize: 11, color: AppColors.textLight),
-                                               ),
-                                             ],
-                                           ),
-                                         ],
-                                       ),
-                                     ),
-                                     const SizedBox(width: 8),
-                                     Column(
-                                       crossAxisAlignment: CrossAxisAlignment.end,
-                                       children: [
-                                         Text(
-                                           '₹$totalAmount',
-                                           style: const TextStyle(
-                                             fontSize: 16,
-                                             fontWeight: FontWeight.bold,
-                                             color: AppColors.textDark,
-                                           ),
-                                         ),
-                                         const SizedBox(height: 2),
-                                         Text(
-                                           paymentStatus == 'COMPLETED' ? 'Paid successfully' : paymentStatus,
-                                           style: TextStyle(
-                                             color: paymentStatus == 'COMPLETED' ? Colors.green : Colors.amber[800],
-                                             fontSize: 9,
-                                             fontWeight: FontWeight.bold,
-                                           ),
-                                         ),
-                                       ],
-                                     ),
-                                   ],
-                                 ),
-                                const Divider(height: 24, thickness: 0.5),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'ORDER ID',
-                                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          orderId.toString().length > 12 
-                                              ? '${orderId.toString().substring(0, 12)}...' 
-                                              : orderId.toString(),
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark, fontFamily: 'monospace'),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'ORDER STATUS',
-                                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
+                                        child: imageUrl.toString().startsWith('http')
+                                            ? ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: Image.network(
+                                                  imageUrl.toString(),
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (_, _, _) => const Icon(Icons.book, color: AppColors.textLight),
+                                                ),
+                                              )
+                                            : const Icon(Icons.book, color: AppColors.textLight),
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            const Icon(Icons.shopping_bag_outlined, size: 12, color: AppColors.purple),
-                                            const SizedBox(width: 4),
                                             Text(
-                                              orderStatus,
+                                              orderTitle.isEmpty ? 'Product Order' : orderTitle,
                                               style: const TextStyle(
-                                                color: AppColors.textDark,
-                                                fontSize: 11,
+                                                fontSize: 15,
                                                 fontWeight: FontWeight.bold,
+                                                color: AppColors.textDark,
                                               ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textLight),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  order['city'] ?? 'N/A',
+                                                  style: const TextStyle(fontSize: 11, color: AppColors.textLight),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF5F3FF),
-                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      const SizedBox(width: 8),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            'Track Order',
-                                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.purple),
+                                            '₹$totalAmount',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textDark,
+                                            ),
                                           ),
-                                          SizedBox(width: 4),
-                                          Icon(Icons.arrow_forward, size: 12, color: AppColors.purple),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            paymentStatus == 'COMPLETED' ? 'Paid successfully' : paymentStatus,
+                                            style: TextStyle(
+                                              color: paymentStatus == 'COMPLETED' ? Colors.green : Colors.amber[800],
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                  const Divider(height: 24, thickness: 0.5),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'ORDER ID',
+                                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            orderId.toString().length > 12 
+                                                ? '${orderId.toString().substring(0, 12)}...' 
+                                                : orderId.toString(),
+                                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark, fontFamily: 'monospace'),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'ORDER STATUS',
+                                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.shopping_bag_outlined, size: 12, color: AppColors.purple),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                orderStatus,
+                                                style: const TextStyle(
+                                                  color: AppColors.textDark,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF5F3FF),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Track Order',
+                                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.purple),
+                                            ),
+                                            SizedBox(width: 4),
+                                            Icon(Icons.arrow_forward, size: 12, color: AppColors.purple),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
+                  const SizedBox(height: 20),
+                ],
+ 
+                // 2. Program Payments (if any)
+                if (enrollments.isNotEmpty) ...[
+                  const Text(
+                    'Program Payments',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textLight, letterSpacing: 1),
+                  ),
+                  const SizedBox(height: 10),
+                  ...enrollments.map((enr) {
+                    final prog = enr['program'] ?? {};
+                    final pricePaid = enr['pricePaid'] ?? enr['price'] ?? 0;
+                    final registrationId = enr['id'] ?? '';
+                    final datePaid = enr['createdAt'] ?? '';
+                    final status = enr['status'] ?? 'ACTIVE';
+ 
+                    return GestureDetector(
+                      onTap: () {
+                        context.push('/program-payment/$registrationId');
+                      },
+                      child: Card(
+                        elevation: 1.5,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        color: Colors.white,
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Top Web-styled Purple Border
+                            Container(height: 4, color: AppColors.purple),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.purple.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Text(
+                                          '1:1 Private Mentoring',
+                                          style: TextStyle(
+                                            color: AppColors.purple,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textLight),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _formatDate(datePaid),
+                                            style: const TextStyle(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w600),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '${prog['title'] ?? 'Program'} Program',
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textDark),
+                                        ),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            '₹$pricePaid',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textDark,
+                                            ),
+                                          ),
+                                          const Text(
+                                            'Paid successfully',
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const Divider(height: 24, thickness: 0.5),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'REGISTRATION ID',
+                                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            registrationId.toString().length > 12 
+                                                ? '${registrationId.toString().substring(0, 12)}...' 
+                                                : registrationId.toString(),
+                                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark, fontFamily: 'monospace'),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'ENROLLMENT STATUS',
+                                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.verified, size: 12, color: Colors.green),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                status.toString().toUpperCase(),
+                                                style: const TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      ElevatedButton.icon(
+                                        onPressed: () => InvoicePdfHelper.generateAndPrintInvoice(type: 'PROGRAM', data: enr),
+                                        icon: const Icon(Icons.file_present, size: 12, color: AppColors.textDark),
+                                        label: const Text('Invoice', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: AppColors.textDark,
+                                          elevation: 0,
+                                          side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          minimumSize: const Size(0, 0),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ],
               ],
             );
           },

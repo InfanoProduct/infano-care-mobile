@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:infano_care_mobile/features/expert/services/expert_service.dart';
 import 'package:intl/intl.dart';
 
@@ -47,6 +48,13 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
             child: IconButton(
               icon: Icon(Icons.logout_rounded, color: AppColors.purple),
               onPressed: () async {
+                // Unregister FCM token from backend so logged out experts don't receive notifications
+                try {
+                  await NotificationService().unregisterToken();
+                } catch (e) {
+                  debugPrint('Logout: Could not unregister FCM token: $e');
+                }
+
                 await widget.storage.clearAuthTokens();
                 if (context.mounted) {
                   context.go('/splash');

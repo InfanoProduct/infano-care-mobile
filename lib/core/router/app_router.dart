@@ -8,6 +8,7 @@ import 'package:infano_care_mobile/features/account/screens/family_settings_scre
 import 'package:infano_care_mobile/features/account/screens/notification_preferences_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/data_rights_privacy_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/saved_articles_screen.dart';
+import 'package:infano_care_mobile/features/account/screens/settings_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/path_selector_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/name_pronouns_screen.dart';
 import 'package:infano_care_mobile/screens/connect/peerline_topic_selection_screen.dart';
@@ -151,9 +152,15 @@ GoRouter createRouter(LocalStorageService storage) {
         // Enforce onboarding flow
         final target = getRouteForStep(step ?? '0', periodStatus: storage.periodStatus);
         
-        if (path != target && !path.contains('tracker') && !path.contains('expert') && path != '/onboarding/welcome' && path != '/chat') {
+        if (path != target && 
+            !path.contains('tracker') && 
+            !path.contains('expert') && 
+            path != '/onboarding/welcome' && 
+            path != '/chat' && 
+            path != '/settings' && 
+            path != '/account' && 
+            path != '/orders') {
           if (!onOnboarding) return target;
-          if (path == '/home' || path == '/account') return target;
         }
       }
 
@@ -162,6 +169,7 @@ GoRouter createRouter(LocalStorageService storage) {
     routes: [
       GoRoute(path: '/splash',   builder: (_, _) => const LandingScreen()),
       GoRoute(path: '/account',  builder: (_, _) => AccountScreen(storage: storage)),
+      GoRoute(path: '/settings',  builder: (_, _) => const SettingsScreen()),
       GoRoute(path: '/account/notifications', builder: (_, _) => const NotificationPreferencesScreen()),
       GoRoute(path: '/account/data-rights', builder: (_, _) => const DataRightsPrivacyScreen()),
       GoRoute(path: '/account/saved', builder: (_, _) => const SavedArticlesScreen()),
@@ -319,10 +327,7 @@ GoRouter createRouter(LocalStorageService storage) {
         path: '/learning/programs',
         builder: (_, _) => LearningProgramsScreen(storage: storage),
       ),
-      GoRoute(
-        path: '/payments',
-        builder: (_, _) => MyPaymentsScreen(storage: storage),
-      ),
+
       GoRoute(
         path: '/orders',
         builder: (_, _) => MyOrdersScreen(storage: storage),
@@ -331,6 +336,13 @@ GoRouter createRouter(LocalStorageService storage) {
         path: '/order/:id',
         builder: (_, state) => MyOrderDetailsScreen(
           orderId: state.pathParameters['id']!,
+          storage: storage,
+        ),
+      ),
+      GoRoute(
+        path: '/program-payment/:id',
+        builder: (_, state) => MyProgramPaymentDetailsScreen(
+          enrollmentId: state.pathParameters['id']!,
           storage: storage,
         ),
       ),

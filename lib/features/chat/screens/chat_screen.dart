@@ -81,11 +81,13 @@ class _ChatScreenState extends State<ChatScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.purple.withValues(alpha: 0.12),
+                color: Colors.white,
                 shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text('🌟', style: TextStyle(fontSize: 20)),
+                border: Border.all(color: AppColors.purple.withValues(alpha: 0.15), width: 1.5),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/gigi_avatar.png'),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -249,12 +251,25 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Lottie.network(
-                'https://assets9.lottiefiles.com/packages/lf20_m6cu9mfc.json',
-                width: 180,
-                height: 180,
-                errorBuilder: (_, _, _) =>
-                    const Text('🌟', style: TextStyle(fontSize: 60)),
+              Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.purple.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.2), width: 3),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/gigi_avatar.png'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
