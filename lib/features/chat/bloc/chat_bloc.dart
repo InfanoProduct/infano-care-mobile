@@ -172,17 +172,24 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   Future<void> _onCreateSession(CreateSession event, Emitter<ChatState> emit) async {
+    final sessions = state is ChatSuccess ? (state as ChatSuccess).sessions : const <dynamic>[];
 
-    emit(ChatLoading());
+    final optimisticMsg = {
+      'id': 'temp-id-${DateTime.now().millisecondsSinceEpoch}',
+      'content': event.initialMessage,
+      'sender': 'USER',
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+
+    emit(ChatSuccess(
+      messages: [optimisticMsg],
+      isSending: true,
+      sessions: sessions,
+      hasReachedMax: true,
+    ));
+
     try {
       final result = await _repo.sendMessage(event.initialMessage, moodCode: event.moodCode);
-
-      final optimisticMsg = {
-        'id': 'temp-id-${DateTime.now().millisecondsSinceEpoch}',
-        'content': event.initialMessage,
-        'sender': 'USER',
-        'createdAt': DateTime.now().toIso8601String(),
-      };
 
       final updatedSessions = await _repo.getSessions();
 

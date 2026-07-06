@@ -195,8 +195,40 @@ class _ChatScreenState extends State<ChatScreen> {
                       
                       final msg = state.messages[adjustedIndex];
                       final isMe = msg['sender'] == 'USER';
-                      return _buildMessageBubble(
-                          msg['content'] as String, isMe);
+                      final isLastMessage = adjustedIndex == state.messages.length - 1;
+
+                      if (isMe) {
+                        return _buildMessageBubble(msg['content'] as String, isMe);
+                      } else {
+                        final parsed = _parseGigiMessage(msg['content'] as String);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildMessageBubble(parsed.cleanedText, isMe),
+                            if (parsed.links.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: parsed.links.map((link) => _buildActionLink(link)).toList(),
+                                ),
+                              ),
+                            ],
+                            if (isLastMessage && parsed.options.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: parsed.options.map((opt) => _buildOptionChip(opt.label, opt.value)).toList(),
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
+                      }
                     },
                   );
                 }
@@ -370,7 +402,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
 
-    final parsed = _ParsedChatMessage.parse(text);
+    final parsed = ParsedMessage.parse(text);
 
     return Align(
       alignment: Alignment.centerLeft,
@@ -433,7 +465,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildOptionButton(_ChatOption opt) {
+  Widget _buildOptionButton(ChatOption opt) {
     return InkWell(
       onTap: () => _handleOptionTap(opt.value),
       borderRadius: BorderRadius.circular(20),
@@ -497,30 +529,61 @@ class _ChatScreenState extends State<ChatScreen> {
       targetPath = '/learning/programs';
     }
 
-    if (targetPath == '/home') {
-      label = 'Go to Tracker';
-      icon = Icons.calendar_today_rounded;
-    } else if (targetPath == '/onboarding/avatar') {
+    final uri = Uri.parse(targetPath);
+    final cleanPath = uri.path;
+    final tab = uri.queryParameters['tab'];
+
+    if (cleanPath == '/home') {
+      if (tab == '1') {
+        label = 'Explore Learning Journeys';
+        icon = Icons.explore_outlined;
+      } else if (tab == '2') {
+        label = 'Go to Period Tracker';
+        icon = Icons.calendar_today_rounded;
+      } else if (tab == '3') {
+        label = 'Daily Quests & Mindfulness';
+        icon = Icons.auto_awesome_rounded;
+      } else if (tab == '4') {
+        label = 'PeerLine Support Circles';
+        icon = Icons.people_outline_rounded;
+      } else {
+        label = 'Go to Home';
+        icon = Icons.home_rounded;
+      }
+    } else if (cleanPath == '/onboarding/avatar') {
       label = 'Personalize Look';
       icon = Icons.face_retouching_natural_rounded;
-    } else if (targetPath == '/account') {
+    } else if (cleanPath == '/account') {
       label = 'Account Settings';
       icon = Icons.settings_rounded;
-    } else if (targetPath == '/onboarding/goals') {
+    } else if (cleanPath == '/onboarding/goals') {
       label = 'Check My Goals';
       icon = Icons.star_rounded;
-    } else if (targetPath == '/onboarding/interests') {
+    } else if (cleanPath == '/onboarding/interests') {
       label = 'Update Interests';
       icon = Icons.topic_rounded;
-    } else if (targetPath == '/learning/journeys') {
-      label = 'Explore Journeys';
-      icon = Icons.map_rounded;
-    } else if (targetPath == '/learning/programs') {
-      label = 'My Enrolled Programs';
-      icon = Icons.school_rounded;
+    } else if (cleanPath == '/tracker/log') {
+      label = 'Log Mood & Symptoms';
+      icon = Icons.edit_note_rounded;
+    } else if (cleanPath == '/tracker/calendar') {
+      label = 'View Period Calendar';
+      icon = Icons.calendar_month_outlined;
+    } else if (cleanPath == '/tracker/doctor-summary' || cleanPath == '/tracker/doctor-connect') {
+      label = 'Doctor Connect Summary';
+      icon = Icons.assignment_rounded;
+    } else if (cleanPath == '/learning/programs') {
+      label = 'View Learning Programs';
+      icon = Icons.school_outlined;
+    } else if (cleanPath == '/learning/journeys') {
+      label = 'Explore Learning Journeys';
+      icon = Icons.explore_outlined;
+    } else if (cleanPath == '/quests') {
+      label = 'Daily Quests & Mindfulness';
+      icon = Icons.auto_awesome_rounded;
     } else if (targetPath == '/expert/list') {
       label = 'Talk to an Expert';
       icon = Icons.support_agent_rounded;
+    }
     }
 
     return InkWell(
@@ -528,7 +591,7 @@ class _ChatScreenState extends State<ChatScreen> {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         margin: const EdgeInsets.only(top: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.purple,
           borderRadius: BorderRadius.circular(12),
@@ -693,6 +756,49 @@ class _ChatScreenState extends State<ChatScreen> {
       context.read<ChatBloc>().add(CreateSession(text));
     }
     _controller.clear();
+  }
+
+  ParsedMessage _parseGigiMessage(String text) {
+    return ParsedMessage.parse(text);
+  }
+
+  void _sendOption(String optionValue) {
+    final state = context.read<ChatBloc>().state;
+    if (state is ChatSuccess && state.sessionId != null) {
+      context.read<ChatBloc>().add(SendChatMessage(optionValue, state.sessionId!));
+    } else {
+      context.read<ChatBloc>().add(CreateSession(optionValue));
+    }
+  }
+
+  Widget _buildOptionChip(String label, String value) {
+    return InkWell(
+      onTap: () => _handleOptionTap(value),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppColors.purple, width: 1.5),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.purple.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.purple,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -953,28 +1059,28 @@ class _BouncingDotState extends State<_BouncingDot>
   }
 }
 
-class _ChatOption {
+class ChatOption {
   final String label;
   final String value;
-  _ChatOption(this.label, this.value);
+  ChatOption(this.label, this.value);
 }
 
-class _ParsedChatMessage {
+class ParsedMessage {
   final String cleanedText;
-  final List<_ChatOption> options;
+  final List<ChatOption> options;
   final List<String> links;
 
-  _ParsedChatMessage({
+  ParsedMessage({
     required this.cleanedText,
     required this.options,
     required this.links,
   });
 
-  static _ParsedChatMessage parse(String text) {
+  static ParsedMessage parse(String text) {
     final optionRegex = RegExp(r'\[\s*option\s*:\s*([^\]]+?)\s*\]');
     final linkRegex = RegExp(r'\[\s*link\s*:\s*([^\]]+?)\s*\]');
 
-    final options = <_ChatOption>[];
+    final options = <ChatOption>[];
     final links = <String>[];
 
     // Find options
@@ -984,7 +1090,7 @@ class _ParsedChatMessage {
       final parts = raw.split('|');
       final label = parts[0].trim();
       final value = parts.length > 1 ? parts[1].trim() : label;
-      options.add(_ChatOption(label, value));
+      options.add(ChatOption(label, value));
     }
 
     // Find links
@@ -997,10 +1103,18 @@ class _ParsedChatMessage {
     var cleaned = text.replaceAll(optionRegex, '').trim();
     cleaned = cleaned.replaceAll(linkRegex, '').trim();
 
-    return _ParsedChatMessage(
+    return ParsedMessage(
       cleanedText: cleaned,
       options: options,
       links: links,
     );
   }
 }
+
+class ParsedMessage {
+  final String cleanedText;
+  final List<ChatOption> options;
+  ParsedMessage(this.cleanedText, this.options);
+}
+
+>>>>>>> Stashed changes
