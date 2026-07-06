@@ -184,7 +184,7 @@ class _ProgramSessionsScreenState extends State<ProgramSessionsScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -207,8 +207,8 @@ class _ProgramSessionsScreenState extends State<ProgramSessionsScreen> {
                             filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
                             child: Container(
                               color: isScheduled
-                                  ? const Color(0xFFF3E8FF).withOpacity(0.85)
-                                  : Colors.white.withOpacity(0.92),
+                                  ? const Color(0xFFF3E8FF).withValues(alpha: 0.85)
+                                  : Colors.white.withValues(alpha: 0.92),
                             ),
                           ),
                         ),
@@ -240,8 +240,8 @@ class _ProgramSessionsScreenState extends State<ProgramSessionsScreen> {
                                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
                                               color: isCompleted
-                                                  ? AppColors.success.withOpacity(0.1)
-                                                  : (isScheduled ? Colors.purple.withOpacity(0.1) : Colors.grey.withOpacity(0.1)),
+                                                  ? AppColors.success.withValues(alpha: 0.1)
+                                                  : (isScheduled ? Colors.purple.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1)),
                                               borderRadius: BorderRadius.circular(6),
                                             ),
                                             child: Text(
@@ -368,7 +368,7 @@ class _ProgramSessionsScreenState extends State<ProgramSessionsScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: Colors.purple.withOpacity(0.1),
+                                        color: Colors.purple.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: const Text(

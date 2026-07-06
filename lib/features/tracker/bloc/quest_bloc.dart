@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../data/models/quest_models.dart';
@@ -56,7 +57,7 @@ class QuestBloc extends Bloc<QuestEvent, QuestState> {
         // Refresh to get updated quest statuses
         await _loadAll(emit, previousState: currentState);
       } catch (e) {
-        print('[QUEST_BLOC] Error accepting quest: $e');
+        debugPrint('[QUEST_BLOC] Error accepting quest: $e');
         // Don't emit error — keep showing the current quests
         // The user can try tapping Start again
       }
@@ -65,18 +66,18 @@ class QuestBloc extends Bloc<QuestEvent, QuestState> {
 
   Future<void> _loadAll(Emitter<QuestState> emit, {_Loaded? previousState}) async {
     try {
-      print('[QUEST_BLOC] Starting _loadAll data fetch...');
+      debugPrint('[QUEST_BLOC] Starting _loadAll data fetch...');
       final results = await Future.wait([
         _repository.getDailyQuests().catchError((e) {
-          print('[QUEST_BLOC] Daily Quests error: $e');
+          debugPrint('[QUEST_BLOC] Daily Quests error: $e');
           throw Exception('Daily Quests: $e');
         }),
         _repository.getProgress().catchError((e) {
-          print('[QUEST_BLOC] Progress error: $e');
+          debugPrint('[QUEST_BLOC] Progress error: $e');
           throw Exception('Progress: $e');
         }),
         _repository.getBadges().catchError((e) {
-          print('[QUEST_BLOC] Badges error: $e');
+          debugPrint('[QUEST_BLOC] Badges error: $e');
           throw Exception('Badges: $e');
         }),
       ]);
@@ -85,7 +86,7 @@ class QuestBloc extends Bloc<QuestEvent, QuestState> {
       final progress = results[1] as UserQuestProgress;
       final badges = results[2] as List<Badge>;
 
-      print('[QUEST_BLOC] Loaded ${dailyQuests.length} quests, ${badges.length} badges');
+      debugPrint('[QUEST_BLOC] Loaded ${dailyQuests.length} quests, ${badges.length} badges');
 
       final currentState = state;
       UserQuest? completedQuest;
@@ -117,7 +118,7 @@ class QuestBloc extends Bloc<QuestEvent, QuestState> {
         lastLevel: prevLevel,
       ));
     } catch (e) {
-      print('[QUEST_BLOC] Error in _loadAll: $e');
+      debugPrint('[QUEST_BLOC] Error in _loadAll: $e');
       // On error: if we have a previous loaded state, keep it visible
       // instead of showing a blank error screen
       if (previousState != null) {

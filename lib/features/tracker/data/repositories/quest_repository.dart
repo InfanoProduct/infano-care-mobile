@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../models/quest_models.dart';
 
@@ -7,13 +8,13 @@ class QuestRepository {
   QuestRepository(this._dio);
 
   Future<List<UserQuest>> getDailyQuests() async {
-    print('[QUEST] API CALL: /quest/daily');
+    debugPrint('[QUEST] API CALL: /quest/daily');
     final response = await _dio.get('/quest/daily');
-    print('[QUEST] API RESPONSE received. Success: ${response.data['success']}');
+    debugPrint('[QUEST] API RESPONSE received. Success: ${response.data['success']}');
     
     if (response.data['success']) {
       final data = response.data['data'] as List;
-      print('[QUEST] Found ${data.length} quests in response');
+      debugPrint('[QUEST] Found ${data.length} quests in response');
       return data
           .map((json) => UserQuest.fromJson(json))
           .toList();

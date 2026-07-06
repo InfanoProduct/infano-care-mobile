@@ -20,8 +20,10 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final Color accentColor = Color(int.parse(widget.circle.accentColor.replaceAll('#', '0xFF')));
-    
+    final Color accentColor = Color(
+      int.parse(widget.circle.accentColor.replaceAll('#', '0xFF')),
+    );
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.9,
@@ -59,9 +61,17 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                       children: [
                         _buildAvatarStack(),
                         if (widget.circle.isJoined)
-                          _buildBadge('Joined', const Color(0xFF2DD4BF), Icons.check_circle_rounded)
+                          _buildBadge(
+                            'Joined',
+                            const Color(0xFF2DD4BF),
+                            Icons.check_circle_rounded,
+                          )
                         else if (widget.circle.isPrivate)
-                          _buildBadge('Premium', Colors.amber, Icons.lock_rounded),
+                          _buildBadge(
+                            'Premium',
+                            Colors.amber,
+                            Icons.lock_rounded,
+                          ),
                       ],
                     ),
                     const SizedBox(height: 28),
@@ -95,29 +105,50 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                     const SizedBox(height: 24),
                     const Text(
                       'About this Circle',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A2E),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      widget.circle.description ?? 'A safe space to connect, share, and grow with others who understand your journey.',
-                      style: TextStyle(fontSize: 15, color: Colors.grey.shade700, height: 1.6),
+                      widget.circle.description ??
+                          'A safe space to connect, share, and grow with others who understand your journey.',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey.shade700,
+                        height: 1.6,
+                      ),
                     ),
-                    
+
                     const SizedBox(height: 32),
                     const Text(
                       'What you\'ll get',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A2E),
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    _buildBenefitItem('Expert-led discussions and Q&A sessions'),
-                    _buildBenefitItem('24/7 safe and moderated community space'),
+                    _buildBenefitItem(
+                      'Expert-led discussions and Q&A sessions',
+                    ),
+                    _buildBenefitItem(
+                      '24/7 safe and moderated community space',
+                    ),
                     _buildBenefitItem('Weekly challenges to help you grow'),
                     _buildBenefitItem('Connect with peers on similar journeys'),
-                    
+
                     const SizedBox(height: 32),
                     const Text(
                       'Meet your Moderator',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A2E),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Container(
@@ -131,7 +162,9 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                         children: [
                           const CircleAvatar(
                             radius: 28,
-                            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=moderator_1'),
+                            backgroundImage: NetworkImage(
+                              'https://i.pravatar.cc/150?u=moderator_1',
+                            ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -140,16 +173,28 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                               children: [
                                 const Text(
                                   'Dr. Sarah Chen',
-                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF1A1A2E)),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                    color: Color(0xFF1A1A2E),
+                                  ),
                                 ),
                                 const Text(
                                   'Community Specialist',
-                                  style: TextStyle(color: Color(0xFF2DD4BF), fontSize: 12, fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                    color: Color(0xFF2DD4BF),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   '"Welcome! I\'m here to ensure this remains a supportive and kind space for everyone."',
-                                  style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey.shade600, fontSize: 13),
+                                  style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
@@ -157,11 +202,15 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
                     const Text(
                       'This Week\'s Challenge',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A2E),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Container(
@@ -169,7 +218,10 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [accentColor.withValues(alpha: 0.8), accentColor],
+                          colors: [
+                            accentColor.withValues(alpha: 0.8),
+                            accentColor,
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -187,21 +239,39 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                         children: [
                           const Text(
                             'SELF-CARE SUNDAY',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.2,
+                              fontSize: 12,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           const Text(
                             'Share your favorite morning ritual that helps you feel grounded.',
-                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700, height: 1.4),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              height: 1.4,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              const Icon(Icons.people_outline, color: Colors.white70, size: 16),
+                              const Icon(
+                                Icons.people_outline,
+                                color: Colors.white70,
+                                size: 16,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 '124 members participating',
-                                style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.w600),
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ),
@@ -215,22 +285,30 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: widget.circle.isJoined 
-                ? SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.purple,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        elevation: 0,
+              child: widget.circle.isJoined
+                  ? SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.purple,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Visit Community',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
-                      child: const Text('Visit Community', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                    ),
-                  )
-                : _buildActionButton(),
+                    )
+                  : _buildActionButton(),
             ),
           ],
         ),
@@ -257,7 +335,11 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
             const SizedBox(height: 12),
             const Text(
               'Premium Circle',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A1A2E)),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Color(0xFF1A1A2E),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -277,7 +359,10 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text('Unlock with Premium', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Unlock with Premium',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -303,7 +388,9 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
               child: CircleAvatar(
                 radius: 16,
                 backgroundColor: Colors.grey.shade200,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=${widget.circle.id}_$index'),
+                backgroundImage: NetworkImage(
+                  'https://i.pravatar.cc/150?u=${widget.circle.id}_$index',
+                ),
               ),
             ),
           );
@@ -318,7 +405,11 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
           ),
           child: Text(
             '+${widget.circle.memberCount ?? 0}',
-            style: const TextStyle(color: Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
       ],
@@ -340,7 +431,11 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
           const SizedBox(width: 6),
           Text(
             text,
-            style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w800),
+            style: TextStyle(
+              color: color,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ],
       ),
@@ -353,12 +448,20 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF2DD4BF), size: 20),
+          const Icon(
+            Icons.check_circle_outline_rounded,
+            color: Color(0xFF2DD4BF),
+            size: 20,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 14, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -369,7 +472,8 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
   Widget _buildSwipeButton() {
     final double buttonWidth = MediaQuery.of(context).size.width - 48;
     const double handleWidth = 56;
-    final double maxPosition = buttonWidth - handleWidth - 4; // 4 is for padding
+    final double maxPosition =
+        buttonWidth - handleWidth - 4; // 4 is for padding
 
     return Container(
       width: buttonWidth,
@@ -391,7 +495,11 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
           const Center(
             child: Text(
               'Swipe to Join Circle',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
           Positioned(
@@ -401,7 +509,8 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                 setState(() {
                   _swipePosition += details.delta.dx;
                   if (_swipePosition < 0) _swipePosition = 0;
-                  if (_swipePosition > maxPosition) _swipePosition = maxPosition;
+                  if (_swipePosition > maxPosition)
+                    _swipePosition = maxPosition;
                 });
               },
               onHorizontalDragEnd: (details) async {
@@ -411,7 +520,10 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                     _isJoining = true;
                   });
                   try {
-                    final api = Provider.of<CommunityApi>(context, listen: false);
+                    final api = Provider.of<CommunityApi>(
+                      context,
+                      listen: false,
+                    );
                     await api.joinCircle(widget.circle.id);
                     if (mounted) {
                       Navigator.pop(context, true);
@@ -447,8 +559,19 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
                 ),
                 child: Center(
                   child: _isJoining
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.purple))
-                      : const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.purple, size: 20),
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.purple,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: AppColors.purple,
+                          size: 20,
+                        ),
                 ),
               ),
             ),

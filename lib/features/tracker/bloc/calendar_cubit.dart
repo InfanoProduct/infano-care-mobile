@@ -200,7 +200,7 @@ class CalendarCubit extends Cubit<CalendarState> {
       // 2. Guard against 15-day minimum gap for NEW ranges.
       // We check if this date is too close (<15 days) to any existing period, 
       // UNLESS it falls within a ±14 day window of an existing cycle start (meaning we are updating it).
-      final MIN_GAP_DAYS = 15;
+      const minGapDays = 15;
       
       // Find if we are updating an existing cycle
       final updateWindowStart = dateOnly.subtract(const Duration(days: 14));
@@ -222,7 +222,7 @@ class CalendarCubit extends Cubit<CalendarState> {
         
         final rStart = DateUtils.dateOnly(r.periodStartDate);
         final gap = (dateOnly.difference(rStart).inDays).abs();
-        if (gap < MIN_GAP_DAYS) {
+        if (gap < minGapDays) {
           violatesGap = true;
           break;
         }
