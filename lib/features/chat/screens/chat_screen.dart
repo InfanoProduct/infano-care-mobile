@@ -584,7 +584,6 @@ class _ChatScreenState extends State<ChatScreen> {
       label = 'Talk to an Expert';
       icon = Icons.support_agent_rounded;
     }
-    }
 
     return InkWell(
       onTap: () => context.push(targetPath),
@@ -760,15 +759,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   ParsedMessage _parseGigiMessage(String text) {
     return ParsedMessage.parse(text);
-  }
-
-  void _sendOption(String optionValue) {
-    final state = context.read<ChatBloc>().state;
-    if (state is ChatSuccess && state.sessionId != null) {
-      context.read<ChatBloc>().add(SendChatMessage(optionValue, state.sessionId!));
-    } else {
-      context.read<ChatBloc>().add(CreateSession(optionValue));
-    }
   }
 
   Widget _buildOptionChip(String label, String value) {
@@ -1110,11 +1100,3 @@ class ParsedMessage {
     );
   }
 }
-
-class ParsedMessage {
-  final String cleanedText;
-  final List<ChatOption> options;
-  ParsedMessage(this.cleanedText, this.options);
-}
-
->>>>>>> Stashed changes

@@ -508,9 +508,12 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
               onHorizontalDragUpdate: (details) {
                 setState(() {
                   _swipePosition += details.delta.dx;
-                  if (_swipePosition < 0) _swipePosition = 0;
-                  if (_swipePosition > maxPosition)
+                  if (_swipePosition < 0) {
+                    _swipePosition = 0;
+                  }
+                  if (_swipePosition > maxPosition) {
                     _swipePosition = maxPosition;
+                  }
                 });
               },
               onHorizontalDragEnd: (details) async {
