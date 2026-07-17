@@ -4,6 +4,7 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 class CircleDetailsSheet extends StatefulWidget {
   final Circle circle;
@@ -352,7 +353,8 @@ class _CircleDetailsSheetState extends State<CircleDetailsSheet> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Navigate to subscription screen
+                  Navigator.pop(context);
+                  context.push('/learning/programs');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber.shade700,
