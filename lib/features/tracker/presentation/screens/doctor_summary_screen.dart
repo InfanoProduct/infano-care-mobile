@@ -18,7 +18,7 @@ class DoctorSummaryScreen extends StatelessWidget {
     return BlocBuilder<TrackerBloc, TrackerState>(
       builder: (context, state) {
         return state.maybeWhen(
-          loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) {
+          loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, pointsEarned, isRefreshing) {
             return Scaffold(
               backgroundColor: const Color(0xFFF8FAFC), // Clinical light grey
               appBar: AppBar(

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -36,6 +37,22 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
   bool _isDragging = false;
   late AnimationController _fadeController;
   late AnimationController _waveController;
+  Timer? _autoRotateTimer;
+
+  void _startAutoRotate() {
+    _autoRotateTimer?.cancel();
+    _autoRotateTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (mounted) {
+        setState(() {
+          _centerDataIndex = (_centerDataIndex + 1) % 3;
+        });
+      }
+    });
+  }
+
+  void _resetAutoRotate() {
+    _startAutoRotate();
+  }
 
   @override
   void initState() {
@@ -62,19 +79,26 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     } else {
       _selectedDaySmooth = 1.0;
     }
+
+    _startAutoRotate();
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
     _waveController.dispose();
+    _autoRotateTimer?.cancel();
     super.dispose();
   }
 
   @override
   void didUpdateWidget(CycleRing oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.profile != widget.profile) {
+    
+    final bool refreshFinished = oldWidget.isRefreshing && !widget.isRefreshing;
+    final bool profileChanged = oldWidget.profile != widget.profile;
+    
+    if (profileChanged || refreshFinished) {
       if (widget.profile.lastPeriodStart != null) {
         final now = DateTime.now();
         final todayDate = DateTime(now.year, now.month, now.day);
@@ -85,6 +109,11 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
         
         setState(() {
           _selectedDaySmooth = localCurrentDay.toDouble();
+          _viewingCycleIndex = 0;
+        });
+      } else {
+        setState(() {
+          _selectedDaySmooth = 1.0;
           _viewingCycleIndex = 0;
         });
       }
@@ -131,6 +160,7 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
        setState(() {
          _centerDataIndex = (_centerDataIndex + 1) % 3;
        });
+       _resetAutoRotate();
        return;
     }
 
@@ -161,10 +191,28 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     angle = (angle + pi / 2) % (2 * pi);
     
     final avgLength = widget.profile.avgCycleLength;
-    final percent = angle / (2 * pi);
-    final day = (percent * avgLength) + 1; // Keep as double for smoothness
     
-    final clampedDay = day.clamp(1.0, avgLength.toDouble());
+    // Compute localCurrentDay for delay check
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final lastStart = widget.profile.lastPeriodStart ?? now;
+    final startDate = DateTime(lastStart.year, lastStart.month, lastStart.day);
+    int localCurrentDay = todayDate.difference(startDate).inDays + 1;
+    if (localCurrentDay < 1) localCurrentDay = 1;
+
+    final bool isTodayDelayed = localCurrentDay > avgLength;
+    final double maxDay = isTodayDelayed ? localCurrentDay.toDouble() : avgLength.toDouble();
+
+    final percent = angle / (2 * pi);
+    final day = (percent * maxDay) + 1; // Scale smoothly to maxDay
+    
+    final clampedDay = day.clamp(1.0, maxDay);
+    if (_selectedDaySmooth != null) {
+      final double diff = (clampedDay - _selectedDaySmooth!).abs();
+      if (isTodayDelayed && diff > maxDay / 2) {
+        return; // Block wrap-around in delayed phase to prevent forward rotation
+      }
+    }
     if (clampedDay != _selectedDaySmooth) {
       setState(() {
         _selectedDaySmooth = clampedDay;
@@ -201,12 +249,20 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTapUp: (details) => _handleTap(details, constraints),
-              onPanStart: (details) => _handlePanUpdate(DragUpdateDetails(
+              onVerticalDragStart: (details) => _handlePanUpdate(DragUpdateDetails(
                 globalPosition: details.globalPosition,
                 localPosition: details.localPosition,
               ), constraints),
-              onPanUpdate: (details) => _handlePanUpdate(details, constraints),
-              onPanEnd: (details) {
+              onVerticalDragUpdate: (details) => _handlePanUpdate(details, constraints),
+              onHorizontalDragStart: (details) => _handlePanUpdate(DragUpdateDetails(
+                globalPosition: details.globalPosition,
+                localPosition: details.localPosition,
+              ), constraints),
+              onHorizontalDragUpdate: (details) => _handlePanUpdate(details, constraints),
+              onVerticalDragEnd: (details) {
+                _handlePanEnd();
+              },
+              onHorizontalDragEnd: (details) {
                 _handleSwipe(details);
                 _handlePanEnd();
               },
@@ -258,7 +314,9 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     final selectedPhase = _calculatePhase(displayDay, avgLength);
     
     // Get color for the inner background based on selected phase
-    final phaseColor = phases.firstWhere((p) => p.id == selectedPhase, orElse: () => phases.first).gradient[0];
+    final phaseColor = selectedPhase == 'delayed'
+        ? const Color(0xFFFEF2F2)
+        : phases.firstWhere((p) => p.id == selectedPhase, orElse: () => phases.first).gradient[0];
 
     return AnimatedBuilder(
       animation: _waveController,
@@ -286,17 +344,33 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     final innerR = size * 0.36;
     final avgLength = widget.profile.avgCycleLength;
     final displayDay = _selectedDaySmooth?.round() ?? widget.profile.currentCycleDay ?? 1;
+
+    // Compute localCurrentDay for comparison
+    final now = DateTime.now();
+    final lastStart = widget.profile.lastPeriodStart ?? now;
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final startDate = DateTime(lastStart.year, lastStart.month, lastStart.day);
+    int localCurrentDay = todayDate.difference(startDate).inDays + 1;
+    if (localCurrentDay < 1) localCurrentDay = 1;
+
     final selectedPhase = _calculatePhase(displayDay, avgLength);
     final nextPhaseInfo = _calculateNextPhase(displayDay, avgLength);
     
     // Formatting date
-    final now = DateTime.now();
-    final lastStart = widget.profile.lastPeriodStart ?? now;
     final absoluteDate = lastStart.add(Duration(days: displayDay - 1));
     final dayStr = DateFormat('d').format(absoluteDate);
     final monthStr = DateFormat('MMMM').format(absoluteDate).toLowerCase();
 
-    return IgnorePointer( // Let taps pass to the ring gesture detector
+    final bool isTodayDelayed = localCurrentDay > avgLength;
+    final bool isFutureDate = displayDay > localCurrentDay;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        setState(() {
+          _centerDataIndex = (_centerDataIndex + 1) % 3;
+        });
+      },
       child: Container(
         width: innerR * 2,
         height: innerR * 2,
@@ -339,11 +413,35 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
                   ),
                 ],
               )
-            : _centerDataIndex == 0 
-              ? _buildSetOne(dayStr, monthStr, selectedPhase, displayDay, nextPhaseInfo)
-              : _centerDataIndex == 1
-                ? _buildSetTwo(selectedPhase)
-                : _buildSetThree(),
+            : (isTodayDelayed && isFutureDate)
+              ? Column(
+                  key: const ValueKey('future_delayed_notice'),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 10),
+                    Text(dayStr, style: GoogleFonts.nunito(fontSize: 32, fontWeight: FontWeight.w300, color: AppColors.textDark)),
+                    Text(monthStr, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.textMedium)),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'Log your periods and get your next period prediction.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.purple,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : _centerDataIndex == 0 
+                ? _buildSetOne(dayStr, monthStr, selectedPhase, displayDay, nextPhaseInfo)
+                : _centerDataIndex == 1
+                  ? _buildSetTwo(selectedPhase, displayDay)
+                  : _buildSetThree(),
         ),
       ),
     );
@@ -352,15 +450,129 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
   Widget _buildSetOne(String day, String month, String phase, int cycleDay, Map<String, dynamic> nextPhase) {
     final nextPhaseName = nextPhase['name'] as String?;
     final daysUntilNextPhase = nextPhase['daysLeft'] as int?;
+    final avgLength = widget.profile.avgCycleLength;
     
+    if (phase == 'delayed') {
+      final int daysLate = cycleDay - avgLength.toInt();
+      final bool isExpectedToday = daysLate == 1;
+
+      if (isExpectedToday) {
+        return Column(
+          key: const ValueKey('set_one_expected_today'),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('🩸', style: TextStyle(fontSize: 48)),
+            const SizedBox(height: 10),
+            Text(
+              'Periods Expected Today',
+              style: GoogleFonts.nunito(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: Colors.redAccent,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: widget.onCenterTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.purple,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(120, 36),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: Text(
+                'Mark Today as Period Day',
+                style: GoogleFonts.nunito(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
+      return Column(
+        key: const ValueKey('set_one_delayed'),
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 6),
+          Text(
+            'Late for ${daysLate - 1} ${daysLate - 1 == 1 ? 'day' : 'days'}',
+            style: GoogleFonts.nunito(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.redAccent,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_getPhaseEmoji(phase), style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 6),
+              Text(
+                _getPhaseName(phase),
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            'Cycle day $cycleDay',
+            style: GoogleFonts.nunito(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMedium,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: widget.onCenterTap,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.purple,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(120, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: Text(
+              'Mark Today as Period Day',
+              style: GoogleFonts.nunito(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       key: const ValueKey('set_one'),
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(height: 10),
-        Text(day, style: GoogleFonts.nunito(fontSize: 32, fontWeight: FontWeight.w300, color: AppColors.textDark)),
-        Text(month, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.textMedium)),
-        const SizedBox(height: 12),
+        // 1. Cycle day 1
+        Text(
+          'Cycle day $cycleDay',
+          style: GoogleFonts.nunito(
+            fontSize: 26, 
+            fontWeight: FontWeight.w900, 
+            color: AppColors.pink,
+          ),
+        ),
+        const SizedBox(height: 4),
+        // 2. Phase Icon and name
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -368,15 +580,18 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
             const SizedBox(width: 6),
             Text(
               _getPhaseName(phase),
-              style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark),
+              style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
             ),
           ],
         ),
+        const SizedBox(height: 6),
+        // 3. Date
         Text(
-          'Cycle day $cycleDay',
-          style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark),
+          '$day ${month[0].toUpperCase()}${month.substring(1)}',
+          style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textMedium),
         ),
         const SizedBox(height: 8),
+        // 4. Number of days left for the next phase
         if (nextPhaseName != null && daysUntilNextPhase != null)
           Text(
             daysUntilNextPhase == 0 
@@ -388,15 +603,67 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSetTwo(String phase) {
+  Widget _buildSetTwo(String phase, int displayDay) {
     final avgLength = widget.profile.avgCycleLength;
     final avgPeriod = widget.profile.avgPeriodDuration;
-    
-    // Calculate days until period
-    int daysToPeriod = 0;
+
+    // Calculate days until period relative to the selected displayDay
+    int daysToPeriod = 999;
     if (widget.prediction?.predictedStart != null) {
-      daysToPeriod = widget.prediction!.predictedStart.difference(DateTime.now()).inDays;
-      if (daysToPeriod < 0) daysToPeriod = 0;
+      final now = DateTime.now();
+      final lastStart = widget.profile.lastPeriodStart ?? now;
+      final absoluteDate = lastStart.add(Duration(days: displayDay - 1));
+      
+      final selectedDate = DateTime(absoluteDate.year, absoluteDate.month, absoluteDate.day);
+      final predictedDate = DateTime(
+        widget.prediction!.predictedStart.year,
+        widget.prediction!.predictedStart.month,
+        widget.prediction!.predictedStart.day,
+      );
+      
+      daysToPeriod = predictedDate.difference(selectedDate).inDays;
+    }
+
+    // If in delayed phase OR if we've reached/passed the predicted period date (daysToPeriod <= 0),
+    // show the helpful period logging prompt instead of a countdown.
+    if (phase == 'delayed' || daysToPeriod <= 0) {
+      return Column(
+        key: const ValueKey('set_two_delayed'),
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('📋', style: TextStyle(fontSize: 32)),
+          const SizedBox(height: 12),
+          Text(
+            'Log Your Period',
+            style: GoogleFonts.nunito(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: AppColors.purple,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'to get accurate predictions',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMedium,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatItem('Avg. Cycle', '$avgLength'),
+              _buildStatItem('Avg. Period', '${avgPeriod.round()}'),
+            ],
+          ),
+        ],
+      );
     }
 
     String pregnancyChance = 'Low';
@@ -496,15 +763,25 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
 
 
   String _calculatePhase(int day, int avgLength) {
-    if (day <= 5) return 'menstrual';
+    int periodDuration = 5;
+    if (widget.profile.lastPeriodEnd != null && widget.profile.lastPeriodStart != null) {
+      periodDuration = widget.profile.lastPeriodEnd!.difference(widget.profile.lastPeriodStart!).inDays + 1;
+    }
+
+    if (day <= periodDuration) return 'menstrual';
     if (day <= avgLength * 0.45) return 'follicular';
     if (day <= avgLength * 0.55) return 'ovulation';
     if (day <= avgLength) return 'luteal';
-    return 'waiting';
+    return 'delayed';
   }
 
   Map<String, dynamic> _calculateNextPhase(int day, int avgLength) {
-    final follicularStart = 6;
+    int periodDuration = 5;
+    if (widget.profile.lastPeriodEnd != null && widget.profile.lastPeriodStart != null) {
+      periodDuration = widget.profile.lastPeriodEnd!.difference(widget.profile.lastPeriodStart!).inDays + 1;
+    }
+
+    final follicularStart = periodDuration + 1;
     final ovulationStart = (avgLength * 0.45).floor() + 1;
     final lutealStart = (avgLength * 0.55).floor() + 1;
     final periodStart = avgLength + 1;
@@ -518,19 +795,24 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
 
   List<CyclePhaseData> _getPhasesForCurrentMode() {
     final avgLength = widget.profile.avgCycleLength;
+    int periodDuration = 5;
+    if (widget.profile.lastPeriodEnd != null && widget.profile.lastPeriodStart != null) {
+      periodDuration = widget.profile.lastPeriodEnd!.difference(widget.profile.lastPeriodStart!).inDays + 1;
+    }
+
     // New requested color scheme
     return [
       CyclePhaseData(
         id: 'menstrual',
         name: 'Menstrual',
         startPercent: 0.0,
-        endPercent: 5 / avgLength,
+        endPercent: periodDuration / avgLength,
         gradient: [const Color(0xFFC026D3), const Color(0xFFDB2777)], // Dark Pink
       ),
       CyclePhaseData(
         id: 'follicular',
         name: 'Follicular',
-        startPercent: 5 / avgLength,
+        startPercent: periodDuration / avgLength,
         endPercent: (avgLength * 0.45) / avgLength,
         gradient: [const Color(0xFFFDE047), const Color(0xFFEAB308)], // Yellow
       ),
@@ -557,11 +839,13 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
       case 'follicular': return '🌱';
       case 'ovulation': return '🥚';
       case 'luteal': return '🌙';
+      case 'delayed': return '⏰';
       default: return '🌱';
     }
   }
 
   String _getPhaseName(String? phase) {
+    if (phase == 'delayed') return 'Period Delayed';
     if (phase == null || phase == 'waiting') return 'Preparing';
     return phase[0].toUpperCase() + phase.substring(1);
   }

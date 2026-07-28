@@ -9,6 +9,7 @@ class CycleProfileModel with _$CycleProfileModel {
     required String userId,
     required String trackerMode, // 'active', 'watching_waiting', 'irregular'
     required DateTime? lastPeriodStart,
+    DateTime? lastPeriodEnd,
     required int avgCycleLength,
     required int avgPeriodDuration,
     required int currentLogStreak,

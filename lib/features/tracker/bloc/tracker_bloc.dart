@@ -28,6 +28,7 @@ class TrackerState with _$TrackerState {
     @Default([]) List<DailyInsight> dailyInsights,
     @Default([]) List<Map<String, String>> recommendedArticles,
     String? milestone,
+    @Default(0) int pointsEarned,
     @Default(false) bool isRefreshing,
   }) = _Loaded;
   const factory TrackerState.notStarted() = _NotStarted;
@@ -94,6 +95,9 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
 
       try {
         final result = await _repository.logDaily(event.data);
+        await _repository.invalidatePredictionCache();
+        await _repository.invalidateCyclesCache();
+        
         final profile = await _repository.getProfile();
         final prediction = await _repository.getPrediction();
         final logs = await _repository.getLogs();
@@ -108,6 +112,7 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
             dailyInsights: currentState.dailyInsights,
             recommendedArticles: currentState.recommendedArticles,
             milestone: result['milestone'],
+            pointsEarned: (result['points_earned'] as num?)?.toInt() ?? 0,
           ));
         }
       } catch (e) {

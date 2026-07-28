@@ -22,9 +22,20 @@ class CalendarUtils {
     final diff = d.difference(lastStart).inDays;
     final cycleDay = (diff % (profile.avgCycleLength > 0 ? profile.avgCycleLength : 28)) + 1;
 
+    if (profile.lastPeriodEnd != null) {
+      final lastEnd = DateUtils.dateOnly(profile.lastPeriodEnd!);
+      if (d.isAfter(lastEnd)) {
+        if (cycleDay < (profile.avgCycleLength > 0 ? profile.avgCycleLength : 28) / 2) {
+          return CyclePhase.follicular;
+        } else {
+          return CyclePhase.luteal;
+        }
+      }
+    }
+
     if (cycleDay <= profile.avgPeriodDuration) {
       return CyclePhase.menstrual;
-    } else if (cycleDay < profile.avgCycleLength / 2) {
+    } else if (cycleDay < (profile.avgCycleLength > 0 ? profile.avgCycleLength : 28) / 2) {
       return CyclePhase.follicular;
     } else {
       return CyclePhase.luteal;
