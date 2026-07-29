@@ -214,10 +214,12 @@ class _LoadedViewState extends State<_LoadedView> {
             );
             
             final editState = notifier.state;
-            
-            return SafeArea(
-              child: Column(
-                children: [
+
+            return Stack(
+              children: [
+                SafeArea(
+                  child: Column(
+                    children: [
                   // Header
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
@@ -271,23 +273,33 @@ class _LoadedViewState extends State<_LoadedView> {
                                   final v = details.primaryVelocity ?? 0;
                                   if (v.abs() > 200) widget.onSwipe(v);
                                 },
-                                child: CalendarGrid(
-                                  month: viewMonth_,
-                                  logs: widget.logs,
-                                  phaseMap: widget.phaseMap,
-                                  predictionDates: widget.predictionDates,
-                                  existingPeriodDates: widget.existingPeriodDates,
-                                  fertilityDates: widget.fertilityDates,
-                                  predictedCycles: widget.predictedCycles,
-                                  selectedDate: widget.selectedDate,
-                                  isEditMode: widget.isEditMode,
-                                  editStartDate: widget.editStartDate,
-                                  editEndDate: widget.editEndDate,
-                                  onDayTap: (date) {
-                                    final key = PredictionWindowsComputer.toKey(date);
-                                    cubit.selectDate(key);
-                                    notifier.selectDate(key);
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 350),
+                                  transitionBuilder: (child, animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    );
                                   },
+                                  child: CalendarGrid(
+                                    key: ValueKey('${widget.viewYear}-${widget.viewMonth}-${widget.isEditMode}-${widget.isSavingRange}-${widget.logs.length}'),
+                                    month: viewMonth_,
+                                    logs: widget.logs,
+                                    phaseMap: widget.phaseMap,
+                                    predictionDates: widget.predictionDates,
+                                    existingPeriodDates: widget.existingPeriodDates,
+                                    fertilityDates: widget.fertilityDates,
+                                    predictedCycles: widget.predictedCycles,
+                                    selectedDate: widget.selectedDate,
+                                    isEditMode: widget.isEditMode,
+                                    editStartDate: widget.editStartDate,
+                                    editEndDate: widget.editEndDate,
+                                    onDayTap: (date) {
+                                      final key = PredictionWindowsComputer.toKey(date);
+                                      cubit.selectDate(key);
+                                      notifier.selectDate(key);
+                                    },
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -323,7 +335,10 @@ class _LoadedViewState extends State<_LoadedView> {
                               
                               const SizedBox(height: 24),
                               
-                              PredictionWindowCard(profile: widget.profile),
+                              PredictionWindowCard(
+                                profile: widget.profile,
+                                prediction: widget.prediction,
+                              ),
 
                               const SizedBox(height: 24),
 
@@ -352,6 +367,38 @@ class _LoadedViewState extends State<_LoadedView> {
                   ),
                 ],
               ),
+            ),
+            if (widget.isSavingRange)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: CircularProgressIndicator(
+                                color: AppColors.purple,
+                                strokeWidth: 3.5,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Saving Period Range...',
+                              style: GoogleFonts.nunito(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.purple,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             );
           },
         ),
@@ -387,9 +434,16 @@ class _LoadedViewState extends State<_LoadedView> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDF2F8),
+        color: const Color(0xFFF5F3FF), // Soft Lavender Pastel
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFCE7F3)),
+        border: Border.all(color: const Color(0xFFEDE9FE), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -398,7 +452,7 @@ class _LoadedViewState extends State<_LoadedView> {
             style: GoogleFonts.nunito(
               fontWeight: FontWeight.w900,
               fontSize: 16,
-              color: const Color(0xFF9D174D),
+              color: const Color(0xFF5B21B6), // Deep rich purple
             ),
           ),
           const SizedBox(height: 4),
@@ -408,7 +462,8 @@ class _LoadedViewState extends State<_LoadedView> {
                 : 'Select start & end dates on the calendar',
             style: GoogleFonts.nunito(
               fontSize: 13,
-              color: const Color(0xFFBE185D),
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF7C3AED), // Primary purple
             ),
           ),
           const SizedBox(height: 16),
@@ -417,7 +472,13 @@ class _LoadedViewState extends State<_LoadedView> {
               Expanded(
                 child: TextButton(
                   onPressed: () => cubit.toggleEditMode(),
-                  child: Text('Cancel', style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: Colors.grey[600])),
+                  child: Text(
+                    'Cancel', 
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.bold, 
+                      color: Colors.grey[600],
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -427,14 +488,20 @@ class _LoadedViewState extends State<_LoadedView> {
                       ? () => cubit.confirmEditRange()
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBE185D),
+                    backgroundColor: AppColors.purple,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.purple.withValues(alpha: 0.4),
+                    disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: widget.isSavingRange 
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Save Range'),
+                      : Text(
+                          'Save Range',
+                          style: GoogleFonts.nunito(fontWeight: FontWeight.w900),
+                        ),
                 ),
               ),
             ],

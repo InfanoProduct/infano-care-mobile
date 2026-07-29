@@ -1,4 +1,6 @@
 import 'package:infano_care_mobile/features/tracker/presentation/screens/article_detail_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/all_articles_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/all_insights_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/phase_info_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/first_period_celebration_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/daily_log_sheet.dart';
@@ -37,7 +39,7 @@ class TrackScreen extends StatelessWidget {
         body: BlocListener<TrackerBloc, TrackerState>(
           listener: (context, state) {
             state.maybeWhen(
-              loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) {
+              loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, pointsEarned, isRefreshing) {
                 debugPrint('[TrackScreen] Listener receivedLoaded. Milestone: $milestone');
                 if (milestone == 'first_period') {
                   debugPrint('[TrackScreen] Milestone detected. Navigating with Navigator.push...');
@@ -56,7 +58,7 @@ class TrackScreen extends StatelessWidget {
                 loading: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
                 error: (msg) => _buildErrorState(context, msg),
                 notStarted: () => _buildNotStartedState(context),
-                loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, isRefreshing) {
+                loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, pointsEarned, isRefreshing) {
                   if (profile.trackerMode == 'watching_waiting' && profile.lastPeriodStart == null) {
                     return _buildNotStartedState(context);
                   }
@@ -125,7 +127,7 @@ class TrackScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildDailyInsightsSection(context, dailyInsights),
               const SizedBox(height: 24),
-              _buildGoodToKnowSection(profile.currentPhase ?? 'menstrual', articles),
+              _buildGoodToKnowSection(context, profile.currentPhase ?? 'menstrual', articles),
               const SizedBox(height: 32),
             ],
           ),
@@ -199,6 +201,12 @@ class TrackScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
+                    image: storage.avatarUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(storage.avatarUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.purple.withValues(alpha: 0.15),
@@ -207,7 +215,9 @@ class TrackScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Center(child: Text('👤', style: TextStyle(fontSize: 28))),
+                  child: storage.avatarUrl == null
+                      ? const Center(child: Text('👤', style: TextStyle(fontSize: 28)))
+                      : null,
                 ),
               ),
             ],
@@ -321,16 +331,24 @@ class TrackScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.purple, AppColors.pink],
+          colors: [
+            Color(0xFFE5DEFF), // Richer pastel lavender
+            Color(0xFFFCDDEC), // Richer pastel pink
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFFC084FC).withValues(alpha: 0.35), // Visible boundary
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.purple.withValues(alpha: 0.2),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.12), // Subtle deep shadow
+            blurRadius: 18,
+            spreadRadius: 1,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -342,7 +360,11 @@ class TrackScreen extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.auto_awesome, color: Colors.white, size: 32),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: Color(0xFF7C3AED), // Match brand purple
+              size: 32,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -352,7 +374,7 @@ class TrackScreen extends StatelessWidget {
                 Text(
                   'Bloom Journey',
                   style: GoogleFonts.nunito(
-                    color: Colors.white,
+                    color: const Color(0xFF1E1B4B), // High contrast dark text
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
                   ),
@@ -360,9 +382,9 @@ class TrackScreen extends StatelessWidget {
                 Text(
                   'Complete quests to level up!',
                   style: GoogleFonts.nunito(
-                    color: Colors.white70,
+                    color: const Color(0xFF4B5563), // High contrast medium text
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -371,11 +393,14 @@ class TrackScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () => context.read<DashboardCubit>().setTab(3),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.purple,
+              backgroundColor: const Color(0xFF7C3AED), // Primary dark purple CTA color
+              foregroundColor: Colors.white,
               minimumSize: const Size(80, 40),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             child: Text(
               'View Quests',
@@ -540,7 +565,7 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGoodToKnowSection(String phase, List<Map<String, String>> articles) {
+  Widget _buildGoodToKnowSection(BuildContext context, String phase, List<Map<String, String>> articles) {
     if (articles.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -574,7 +599,11 @@ class TrackScreen extends StatelessWidget {
               ],
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AllArticlesScreen(articles: articles),
+                ),
+              ),
               child: Text('See All', style: GoogleFonts.nunito(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 13)),
             ),
           ],
@@ -592,7 +621,7 @@ class TrackScreen extends StatelessWidget {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => ArticleDetailScreen(article: art)),
                 ),
-                child: _buildArticleCard(art),
+                child: _buildArticleCard(art, index),
               );
             },
           ),
@@ -601,13 +630,33 @@ class TrackScreen extends StatelessWidget {
     ).animate().fadeIn(delay: 800.ms);
   }
 
-  Widget _buildArticleCard(Map<String, String> art) {
+  Widget _buildArticleCard(Map<String, String> art, int index) {
+    final backgrounds = [
+      const Color(0xFFEEF2FF), // Soft Indigo
+      const Color(0xFFFDF2F8), // Soft Pink
+      const Color(0xFFECFDF5), // Soft Mint
+      const Color(0xFFFFFBEB), // Soft Amber
+      const Color(0xFFF5F3FF), // Soft Violet
+    ];
+    
+    final borders = [
+      const Color(0xFFC7D2FE),
+      const Color(0xFFFBCFE8),
+      const Color(0xFFA7F3D0),
+      const Color(0xFFFDE68A),
+      const Color(0xFFDDD6FE),
+    ];
+
+    final colorIndex = index % backgrounds.length;
+    final bgColor = backgrounds[colorIndex];
+    final borderColor = borders[colorIndex];
+
     return Container(
       width: 160,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
@@ -620,7 +669,7 @@ class TrackScreen extends StatelessWidget {
             child: Container(
               height: 90,
               width: double.infinity,
-              color: AppColors.purpleLight.withValues(alpha: 0.1),
+              color: Colors.white.withValues(alpha: 0.4),
               child: Center(child: Text(art['emoji'] ?? '📖', style: const TextStyle(fontSize: 32))),
             ),
           ),
@@ -687,7 +736,11 @@ class TrackScreen extends StatelessWidget {
               ],
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AllInsightsScreen(insights: insights),
+                ),
+              ),
               child: Text('See All', style: GoogleFonts.nunito(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 13)),
             ),
           ],
@@ -705,7 +758,7 @@ class TrackScreen extends StatelessWidget {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => StoryScreen(insight: insight)),
                 ),
-                child: _buildInsightCard(insight),
+                child: _buildInsightCard(insight, index),
               );
             },
           ),
@@ -714,13 +767,33 @@ class TrackScreen extends StatelessWidget {
     ).animate().fadeIn(delay: 700.ms);
   }
 
-  Widget _buildInsightCard(DailyInsight insight) {
+  Widget _buildInsightCard(DailyInsight insight, int index) {
+    final backgrounds = [
+      const Color(0xFFEEF2FF), // Soft Indigo
+      const Color(0xFFFDF2F8), // Soft Pink
+      const Color(0xFFECFDF5), // Soft Mint
+      const Color(0xFFFFFBEB), // Soft Amber
+      const Color(0xFFF5F3FF), // Soft Violet
+    ];
+    
+    final borders = [
+      const Color(0xFFC7D2FE),
+      const Color(0xFFFBCFE8),
+      const Color(0xFFA7F3D0),
+      const Color(0xFFFDE68A),
+      const Color(0xFFDDD6FE),
+    ];
+
+    final colorIndex = index % backgrounds.length;
+    final bgColor = backgrounds[colorIndex];
+    final borderColor = borders[colorIndex];
+
     return Container(
       width: 120,
       decoration: BoxDecoration(
-        color: Color(int.parse(insight.previewColorHex.replaceFirst('#', '0xFF'))).withValues(alpha: 0.1),
+        color: bgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Color(int.parse(insight.previewColorHex.replaceFirst('#', '0xFF'))).withValues(alpha: 0.3)),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
