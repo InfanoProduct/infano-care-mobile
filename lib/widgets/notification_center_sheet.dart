@@ -118,6 +118,24 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
         return Icons.update_rounded;
       case 'sessionReminder15Min':
         return Icons.alarm_rounded;
+      case 'PERIOD_PREDICTION':
+        return Icons.water_drop_outlined;
+      case 'DAILY_LOG_REMINDER':
+        return Icons.edit_note_rounded;
+      case 'STREAK_AT_RISK':
+        return Icons.local_fire_department_rounded;
+      case 'LATE_PERIOD':
+        return Icons.warning_amber_rounded;
+      case 'PHASE_CHANGE':
+        return Icons.track_changes_rounded;
+      case 'SYMPTOM_PATTERN':
+        return Icons.insights_rounded;
+      case 'DOCTOR_CONNECT':
+        return Icons.medical_services_outlined;
+      case 'CYCLE_MILESTONE':
+        return Icons.emoji_events_outlined;
+      case 'MONTHLY_INSIGHTS':
+        return Icons.analytics_outlined;
       default:
         return Icons.notifications_none_outlined;
     }
@@ -137,6 +155,24 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
         return Colors.blue;
       case 'sessionReminder15Min':
         return Colors.orange;
+      case 'PERIOD_PREDICTION':
+        return Colors.pink;
+      case 'DAILY_LOG_REMINDER':
+        return AppColors.purple;
+      case 'STREAK_AT_RISK':
+        return Colors.orange;
+      case 'LATE_PERIOD':
+        return Colors.red;
+      case 'PHASE_CHANGE':
+        return Colors.green;
+      case 'SYMPTOM_PATTERN':
+        return Colors.indigo;
+      case 'DOCTOR_CONNECT':
+        return Colors.teal;
+      case 'CYCLE_MILESTONE':
+        return Colors.amber;
+      case 'MONTHLY_INSIGHTS':
+        return Colors.blue;
       default:
         return AppColors.purple;
     }
