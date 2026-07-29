@@ -58,3 +58,6 @@ pubspec.lock
 /windows/flutter/generated_plugin_registrant.cc
 /macos/Flutter/ephemeral/
 /macos/Flutter/GeneratedPluginRegistrant.swift
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugin_registrant.h

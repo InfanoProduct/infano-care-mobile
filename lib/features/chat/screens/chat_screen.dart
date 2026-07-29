@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import '../bloc/chat_bloc.dart';
 
@@ -196,8 +195,40 @@ class _ChatScreenState extends State<ChatScreen> {
                       
                       final msg = state.messages[adjustedIndex];
                       final isMe = msg['sender'] == 'USER';
-                      return _buildMessageBubble(
-                          msg['content'] as String, isMe);
+                      final isLastMessage = adjustedIndex == state.messages.length - 1;
+
+                      if (isMe) {
+                        return _buildMessageBubble(msg['content'] as String, isMe);
+                      } else {
+                        final parsed = _parseGigiMessage(msg['content'] as String);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildMessageBubble(parsed.cleanedText, isMe),
+                            if (parsed.links.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: parsed.links.map((link) => _buildActionLink(link)).toList(),
+                                ),
+                              ),
+                            ],
+                            if (isLastMessage && parsed.options.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: parsed.options.map((opt) => _buildOptionChip(opt.label, opt.value)).toList(),
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
+                      }
                     },
                   );
                 }
@@ -335,22 +366,48 @@ class _ChatScreenState extends State<ChatScreen> {
   // ─── Message Bubble ───────────────────────────────────────────────────────
 
   Widget _buildMessageBubble(String text, bool isMe) {
-    // Check for [link:/path] pattern
-    final linkRegex = RegExp(r'\[link:(/.*?)\]');
-    final match = linkRegex.firstMatch(text);
-    
-    String displayText = text;
-    String? linkPath;
-    
-    if (match != null) {
-      linkPath = match.group(1);
-      displayText = text.replaceFirst(linkRegex, '').trim();
+    if (isMe) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          constraints:
+              BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+          decoration: BoxDecoration(
+            color: AppColors.purple,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+              bottomRight: Radius.circular(4),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              height: 1.4,
+            ),
+          ),
+        ),
+      );
     }
 
+    final parsed = ParsedMessage.parse(text);
+
     return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             margin: const EdgeInsets.symmetric(vertical: 4),
@@ -358,12 +415,12 @@ class _ChatScreenState extends State<ChatScreen> {
             constraints:
                 BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
             decoration: BoxDecoration(
-              color: isMe ? AppColors.purple : AppColors.surfaceCard,
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(18),
-                topRight: const Radius.circular(18),
-                bottomLeft: Radius.circular(isMe ? 18 : 4),
-                bottomRight: Radius.circular(isMe ? 4 : 18),
+              color: AppColors.surfaceCard,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(18),
               ),
               boxShadow: [
                 BoxShadow(
@@ -373,56 +430,167 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayText,
-                  style: TextStyle(
-                    color: isMe ? Colors.white : AppColors.textDark,
-                    fontSize: 15,
-                    height: 1.4,
-                  ),
-                ),
-                if (!isMe && linkPath != null) ...[
-                  const SizedBox(height: 12),
-                  _buildActionLink(linkPath),
-                ],
-              ],
+            child: Text(
+              parsed.cleanedText,
+              style: const TextStyle(
+                color: AppColors.textDark,
+                fontSize: 15,
+                height: 1.4,
+              ),
             ),
           ),
+          if (parsed.links.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: parsed.links.map((link) => _buildActionLink(link)).toList(),
+              ),
+            ),
+          ],
+          if (parsed.options.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.only(left: 4, right: 16),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: parsed.options.map((opt) => _buildOptionButton(opt)).toList(),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Widget _buildOptionButton(ChatOption opt) {
+    return InkWell(
+      onTap: () => _handleOptionTap(opt.value),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.purple.withValues(alpha: 0.35)),
+          borderRadius: BorderRadius.circular(20),
+          color: AppColors.purple.withValues(alpha: 0.06),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              opt.label,
+              style: const TextStyle(
+                color: AppColors.purple,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 14,
+              color: AppColors.purple,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleOptionTap(String value) {
+    if (value.startsWith('/')) {
+      String targetPath = value;
+      if (value == '/dashboard/learning-journeys') {
+        targetPath = '/learning/journeys';
+      } else if (value == '/dashboard/enrolled-programs') {
+        targetPath = '/learning/programs';
+      }
+      context.push(targetPath);
+    } else {
+      final state = context.read<ChatBloc>().state;
+      if (state is ChatSuccess && state.sessionId != null) {
+        context.read<ChatBloc>().add(SendChatMessage(value, state.sessionId!));
+      } else {
+        context.read<ChatBloc>().add(CreateSession(value));
+      }
+    }
   }
 
   Widget _buildActionLink(String path) {
     String label = 'Open';
     IconData icon = Icons.open_in_new_rounded;
 
-    if (path == '/home') {
-      label = 'Go to Tracker';
-      icon = Icons.calendar_today_rounded;
-    } else if (path == '/onboarding/avatar') {
+    String targetPath = path;
+    if (path == '/dashboard/learning-journeys') {
+      targetPath = '/learning/journeys';
+    } else if (path == '/dashboard/enrolled-programs') {
+      targetPath = '/learning/programs';
+    }
+
+    final uri = Uri.parse(targetPath);
+    final cleanPath = uri.path;
+    final tab = uri.queryParameters['tab'];
+
+    if (cleanPath == '/home') {
+      if (tab == '1') {
+        label = 'Explore Learning Journeys';
+        icon = Icons.explore_outlined;
+      } else if (tab == '2') {
+        label = 'Go to Period Tracker';
+        icon = Icons.calendar_today_rounded;
+      } else if (tab == '3') {
+        label = 'Daily Quests & Mindfulness';
+        icon = Icons.auto_awesome_rounded;
+      } else if (tab == '4') {
+        label = 'PeerLine Support Circles';
+        icon = Icons.people_outline_rounded;
+      } else {
+        label = 'Go to Home';
+        icon = Icons.home_rounded;
+      }
+    } else if (cleanPath == '/onboarding/avatar') {
       label = 'Personalize Look';
       icon = Icons.face_retouching_natural_rounded;
-    } else if (path == '/account') {
+    } else if (cleanPath == '/account') {
       label = 'Account Settings';
       icon = Icons.settings_rounded;
-    } else if (path == '/onboarding/goals') {
+    } else if (cleanPath == '/onboarding/goals') {
       label = 'Check My Goals';
       icon = Icons.star_rounded;
-    } else if (path == '/onboarding/interests') {
+    } else if (cleanPath == '/onboarding/interests') {
       label = 'Update Interests';
       icon = Icons.topic_rounded;
+    } else if (cleanPath == '/tracker/log') {
+      label = 'Log Mood & Symptoms';
+      icon = Icons.edit_note_rounded;
+    } else if (cleanPath == '/tracker/calendar') {
+      label = 'View Period Calendar';
+      icon = Icons.calendar_month_outlined;
+    } else if (cleanPath == '/tracker/doctor-summary' || cleanPath == '/tracker/doctor-connect') {
+      label = 'Doctor Connect Summary';
+      icon = Icons.assignment_rounded;
+    } else if (cleanPath == '/learning/programs') {
+      label = 'View Learning Programs';
+      icon = Icons.school_outlined;
+    } else if (cleanPath == '/learning/journeys') {
+      label = 'Explore Learning Journeys';
+      icon = Icons.explore_outlined;
+    } else if (cleanPath == '/quests') {
+      label = 'Daily Quests & Mindfulness';
+      icon = Icons.auto_awesome_rounded;
+    } else if (targetPath == '/expert/list') {
+      label = 'Talk to an Expert';
+      icon = Icons.support_agent_rounded;
     }
 
     return InkWell(
-      onTap: () => context.push(path),
+      onTap: () => context.push(targetPath),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         margin: const EdgeInsets.only(top: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.purple,
           borderRadius: BorderRadius.circular(12),
@@ -587,6 +755,40 @@ class _ChatScreenState extends State<ChatScreen> {
       context.read<ChatBloc>().add(CreateSession(text));
     }
     _controller.clear();
+  }
+
+  ParsedMessage _parseGigiMessage(String text) {
+    return ParsedMessage.parse(text);
+  }
+
+  Widget _buildOptionChip(String label, String value) {
+    return InkWell(
+      onTap: () => _handleOptionTap(value),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppColors.purple, width: 1.5),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.purple.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.purple,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -843,6 +1045,58 @@ class _BouncingDotState extends State<_BouncingDot>
           ),
         ),
       ),
+    );
+  }
+}
+
+class ChatOption {
+  final String label;
+  final String value;
+  ChatOption(this.label, this.value);
+}
+
+class ParsedMessage {
+  final String cleanedText;
+  final List<ChatOption> options;
+  final List<String> links;
+
+  ParsedMessage({
+    required this.cleanedText,
+    required this.options,
+    required this.links,
+  });
+
+  static ParsedMessage parse(String text) {
+    final optionRegex = RegExp(r'\[\s*option\s*:\s*([^\]]+?)\s*\]');
+    final linkRegex = RegExp(r'\[\s*link\s*:\s*([^\]]+?)\s*\]');
+
+    final options = <ChatOption>[];
+    final links = <String>[];
+
+    // Find options
+    final optionMatches = optionRegex.allMatches(text);
+    for (final match in optionMatches) {
+      final raw = match.group(1)!.trim();
+      final parts = raw.split('|');
+      final label = parts[0].trim();
+      final value = parts.length > 1 ? parts[1].trim() : label;
+      options.add(ChatOption(label, value));
+    }
+
+    // Find links
+    final linkMatches = linkRegex.allMatches(text);
+    for (final match in linkMatches) {
+      links.add(match.group(1)!.trim());
+    }
+
+    // Clean text by removing option patterns and link patterns
+    var cleaned = text.replaceAll(optionRegex, '').trim();
+    cleaned = cleaned.replaceAll(linkRegex, '').trim();
+
+    return ParsedMessage(
+      cleanedText: cleaned,
+      options: options,
+      links: links,
     );
   }
 }

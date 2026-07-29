@@ -74,14 +74,12 @@ class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
   final String description;
-  final bool isPredicted;
   final bool isToday;
 
   const _LegendItem({
     required this.color,
     required this.label,
     required this.description,
-    this.isPredicted = false,
     this.isToday = false,
   });
 
@@ -115,7 +113,6 @@ class _LegendItem extends StatelessWidget {
             children: [
               _IndicatorShape(
                 color: color,
-                isPredicted: isPredicted,
                 isToday: isToday,
               ),
               const SizedBox(width: 6),
@@ -139,12 +136,10 @@ class _LegendItem extends StatelessWidget {
 
 class _IndicatorShape extends StatelessWidget {
   final Color color;
-  final bool isPredicted;
   final bool isToday;
 
   const _IndicatorShape({
     required this.color,
-    required this.isPredicted,
     required this.isToday,
   });
 
@@ -182,50 +177,6 @@ class _IndicatorShape extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Custom painter for the 8x8 dashed square (Predicted phase indicator).
-class _DashedSquarePainter extends CustomPainter {
-  final Color color;
-  const _DashedSquarePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    final fillPaint = Paint()
-      ..color = color.withValues(alpha: 0.12)
-      ..style = PaintingStyle.fill;
-
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(1)),
-      fillPaint,
-    );
-
-    const dashWidth = 2.0;
-    const dashSpace = 1.5;
-    final path = Path()
-      ..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(1)));
-
-    for (final metric in path.computeMetrics()) {
-      double distance = 0.0;
-      while (distance < metric.length) {
-        canvas.drawPath(
-          metric.extractPath(distance, distance + dashWidth),
-          paint,
-        );
-        distance += dashWidth + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedSquarePainter oldDelegate) =>
-      oldDelegate.color != color;
 }
 
 class _Gap extends StatelessWidget {

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -381,16 +380,15 @@ class _DayCellContent extends StatelessWidget {
               fontWeight: textWeight,
             ),
           ),
-          if (icon != null)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Icon(
-                icon,
-                size: 14,
-                color: iconColor,
-              ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Icon(
+              icon,
+              size: 14,
+              color: iconColor,
             ),
+          ),
         ],
       ),
     );
@@ -622,63 +620,6 @@ class _DateNumber extends StatelessWidget {
       textAlign: TextAlign.center,
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// _PhaseDashedBorderPainter
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Draws a dashed rounded-rect border at the specified [color].
-/// Used for predicted phase days since Flutter has no native dashed border.
-class _PhaseDashedBorderPainter extends CustomPainter {
-  final Color color;
-  final double borderRadius;
-
-  const _PhaseDashedBorderPainter({
-    required this.color,
-    this.borderRadius = 10,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    const dashLen   = 1.0;
-    const gapLen    = 2.0;
-    const inset     = 2.0; // more breathing room
-
-    final path = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(inset, inset,
-              size.width - inset * 2, size.height - inset * 2),
-          Radius.circular(borderRadius),
-        ),
-      );
-
-    for (final metric in path.computeMetrics()) {
-      double pos = 0;
-      bool draw = true;
-      while (pos < metric.length) {
-        final segLen = draw ? dashLen : gapLen;
-        if (draw) {
-          canvas.drawPath(
-            metric.extractPath(pos, math.min(pos + segLen, metric.length)),
-            paint,
-          );
-        }
-        pos += segLen;
-        draw = !draw;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_PhaseDashedBorderPainter old) =>
-      old.color != color || old.borderRadius != borderRadius;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

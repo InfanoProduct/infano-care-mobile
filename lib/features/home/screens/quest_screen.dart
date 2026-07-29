@@ -230,7 +230,7 @@ class _HeaderBackground extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(_levelIcon(level),
@@ -264,7 +264,7 @@ class _HeaderBackground extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
                   value: pct,
-                  backgroundColor: Colors.white.withOpacity(0.3),
+                  backgroundColor: Colors.white.withValues(alpha: 0.3),
                   valueColor:
                       const AlwaysStoppedAnimation<Color>(AppColors.bloom),
                   minHeight: 10,
@@ -311,7 +311,7 @@ class _DailyTab extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.auto_awesome,
-                size: 64, color: AppColors.purple.withOpacity(0.3)),
+                size: 64, color: AppColors.purple.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             Text(
               'No quests available yet.\nPull down to refresh.',
@@ -327,7 +327,7 @@ class _DailyTab extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: quests.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final quest = quests[index];
         return _QuestCard(
@@ -392,12 +392,12 @@ class _QuestCard extends StatelessWidget {
 
     return Card(
       elevation: isCompleted ? 0 : 2,
-      color: isCompleted ? AppColors.success.withOpacity(0.05) : Colors.white,
+      color: isCompleted ? AppColors.success.withValues(alpha: 0.05) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: isCompleted
-              ? AppColors.success.withOpacity(0.3)
+              ? AppColors.success.withValues(alpha: 0.3)
               : Colors.transparent,
         ),
       ),
@@ -408,7 +408,7 @@ class _QuestCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(_categoryIcon(template.category),
@@ -553,7 +553,7 @@ class _BadgesTab extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.shield_outlined,
-                size: 64, color: AppColors.purple.withOpacity(0.3)),
+                size: 64, color: AppColors.purple.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             Text('Complete quests to earn badges!',
                 style: GoogleFonts.nunito(
@@ -634,7 +634,7 @@ class _BadgeDetailSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: _rarityColor(badge.rarity).withOpacity(0.1),
+                color: _rarityColor(badge.rarity).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -662,7 +662,7 @@ class _BadgeDetailSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -686,9 +686,9 @@ class _BadgeDetailSheet extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.purple.withOpacity(0.05),
+                color: AppColors.purple.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+                border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -756,7 +756,7 @@ class _BadgeDetailSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
                       value: badge.progressPercentage / 100,
-                      backgroundColor: AppColors.purple.withOpacity(0.1),
+                      backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                       valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
                       minHeight: 10,
                     ),
@@ -826,10 +826,10 @@ class _BadgeLargeIcon extends StatelessWidget {
       width: 100,
       height: 100,
       decoration: BoxDecoration(
-        color: earned ? AppColors.purple.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+        color: earned ? AppColors.purple.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
         shape: BoxShape.circle,
         border: Border.all(
-          color: earned ? AppColors.purple.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+          color: earned ? AppColors.purple.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.2),
           width: 2,
         ),
       ),
@@ -841,7 +841,7 @@ class _BadgeLargeIcon extends StatelessWidget {
             child: (url != null && url.isNotEmpty)
                 ? Image.network(
                     url,
-                    errorBuilder: (_, __, ___) => Icon(
+                    errorBuilder: (_, _, _) => Icon(
                       Icons.shield_outlined,
                       color: earned ? AppColors.purple : AppColors.textLight,
                       size: 48,
@@ -854,7 +854,7 @@ class _BadgeLargeIcon extends StatelessWidget {
                   ),
           ),
           if (!earned)
-            Icon(Icons.lock_outline, color: Colors.white.withOpacity(0.8), size: 32),
+            Icon(Icons.lock_outline, color: Colors.white.withValues(alpha: 0.8), size: 32),
         ],
       ),
     );
@@ -876,13 +876,13 @@ class _BadgePin extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: earned
-                  ? AppColors.purple.withOpacity(0.1)
-                  : Colors.grey.withOpacity(0.1),
+                  ? AppColors.purple.withValues(alpha: 0.1)
+                  : Colors.grey.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: earned
-                    ? AppColors.purple.withOpacity(0.3)
-                    : Colors.grey.withOpacity(0.2),
+                    ? AppColors.purple.withValues(alpha: 0.3)
+                    : Colors.grey.withValues(alpha: 0.2),
               ),
             ),
             child: Stack(
@@ -893,7 +893,7 @@ class _BadgePin extends StatelessWidget {
                   child: (url != null && url.isNotEmpty)
                       ? Image.network(
                           url,
-                          errorBuilder: (_, __, ___) => Icon(
+                          errorBuilder: (_, _, _) => Icon(
                             Icons.shield_outlined,
                             color: earned
                                 ? AppColors.purple
@@ -911,7 +911,7 @@ class _BadgePin extends StatelessWidget {
                 if (!earned)
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Center(
