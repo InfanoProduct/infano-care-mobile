@@ -87,7 +87,7 @@ class _PathCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOut,
-        transform: Matrix4.identity()..scale(selected ? 1.04 : 1.0),
+        transform: Matrix4.diagonal3Values(selected ? 1.04 : 1.0, selected ? 1.04 : 1.0, 1.0),
         transformAlignment: Alignment.center,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -97,7 +97,7 @@ class _PathCard extends StatelessWidget {
             color: selected ? AppColors.purple : const Color(0xFFE9D5FF),
             width: selected ? 2.5 : 1.5,
           ),
-          boxShadow: selected ? [BoxShadow(color: AppColors.purple.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 8))] : null,
+          boxShadow: selected ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8))] : null,
         ),
         child: Row(
           children: [

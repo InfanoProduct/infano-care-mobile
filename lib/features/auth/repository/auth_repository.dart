@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 
@@ -59,12 +60,44 @@ class AuthRepository {
   AuthRepository(this._storage) : _dio = ApiService.instance.dio;
 
   // ── Send OTP ────────────────────────────────────────────────────────────────
-  Future<void> sendOtp(String phone, {String? appHash}) async {
+  Future<OtpVerifyResult?> sendOtp(String phone, {String? appHash}) async {
     try {
-      await _dio.post('/auth/otp/send', data: {
+      final resp = await _dio.post('/auth/otp/send', data: {
         'phone': phone,
-        if (appHash != null) 'appHash': appHash,
+        'appHash': ?appHash,
       });
+
+      final data = resp.data as Map<String, dynamic>;
+      if (data.containsKey('autoLogin') && data['autoLogin'] != null) {
+        final loginData = data['autoLogin'] as Map<String, dynamic>;
+        final result = OtpVerifyResult(
+          tempToken:             loginData['tempToken']             as String? ?? '',
+          isNewUser:             loginData['isNewUser']             as bool? ?? false,
+          onboardingStep:        loginData['onboardingStep']        as int? ?? 0,
+          accountStatus:         loginData['accountStatus']         as String? ?? '',
+          isOnboardingCompleted: loginData['isOnboardingCompleted'] as bool? ?? false,
+          accessToken:           loginData['accessToken']           as String?,
+          refreshToken:          loginData['refreshToken']          as String?,
+          role:                  loginData['role']                  as String?,
+          userId:                loginData['userId']                as String?,
+          contentTier:           loginData['contentTier']           as String?,
+          profile:               loginData['profile']               as Map<String, dynamic>?,
+        );
+
+        // Persist tokens if available
+        if (result.accessToken != null) await _storage.setAuthToken(result.accessToken!);
+        if (result.refreshToken != null) await _storage.setRefreshToken(result.refreshToken!);
+        if (result.role != null) await _storage.setRole(result.role!);
+        if (result.userId != null) await _storage.setUserId(result.userId!);
+        
+        await _storage.setTempToken(result.tempToken);
+        await _storage.setPhone(phone);
+        await _storage.setStepComplete(result.onboardingStep.toString());
+        await _storage.setIsOnboarded(result.isOnboardingCompleted);
+
+        return result;
+      }
+      return null;
     } on DioException catch (e) {
       throw _extractError(e, 'Failed to send OTP.');
     }
@@ -102,10 +135,13 @@ class AuthRepository {
       if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
       if (result.profile != null) {
         final p = result.profile!;
-        if (p['displayName'] != null) await _storage.setDisplayName(p['displayName']);
+        if (p['displayName'] != null && p['displayName'].toString().trim().isNotEmpty) {
+          await _storage.setDisplayName(p['displayName']);
+        }
         if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
         if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
         if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+        await _storage.setAvatarUrl(p['avatarUrl']?.toString());
       }
       await _storage.setTempToken(result.tempToken);
       await _storage.setPhone(phone);
@@ -145,10 +181,13 @@ class AuthRepository {
       if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
       if (result.profile != null) {
         final p = result.profile!;
-        if (p['displayName'] != null) await _storage.setDisplayName(p['displayName']);
+        if (p['displayName'] != null && p['displayName'].toString().trim().isNotEmpty) {
+          await _storage.setDisplayName(p['displayName']);
+        }
         if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
         if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
         if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+        await _storage.setAvatarUrl(p['avatarUrl']?.toString());
       }
       
       return result;
@@ -162,6 +201,7 @@ class AuthRepository {
     try {
       final resp = await _dio.get('/user/me');
       final data = resp.data as Map<String, dynamic>;
+      debugPrint('[syncProfile] Raw API Response from /user/me: $data');
       
       final contentTier = data['contentTier'] as String?;
       final profile = data['profile'] as Map<String, dynamic>?;
@@ -171,12 +211,15 @@ class AuthRepository {
       if (contentTier != null) await _storage.setContentTier(contentTier);
       
       if (profile != null) {
-        if (profile['displayName'] != null) await _storage.setDisplayName(profile['displayName']);
+        if (profile['displayName'] != null && profile['displayName'].toString().trim().isNotEmpty) {
+          await _storage.setDisplayName(profile['displayName']);
+        }
         if (profile['pronouns'] != null) await _storage.setPronouns(profile['pronouns']);
         if (profile['birthYear'] != null) {
           await _storage.setBirthDate(profile['birthMonth'] ?? 1, profile['birthYear']);
         }
         if (profile['totalPoints'] != null) await _storage.setPoints(profile['totalPoints']);
+        await _storage.setAvatarUrl(profile['avatarUrl']?.toString());
       }
     } on DioException catch (e) {
       throw _extractError(e, 'Failed to sync profile.');

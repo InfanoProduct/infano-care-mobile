@@ -5,7 +5,7 @@ import 'package:infano_care_mobile/models/circle.dart';
 class CircleCard extends StatefulWidget {
   final Circle circle;
 
-  const CircleCard({Key? key, required this.circle}) : super(key: key);
+  const CircleCard({super.key, required this.circle});
 
   @override
   State<CircleCard> createState() => _CircleCardState();
@@ -70,7 +70,7 @@ class _CircleCardState extends State<CircleCard> with SingleTickerProviderStateM
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -130,7 +130,7 @@ class _CircleCardState extends State<CircleCard> with SingleTickerProviderStateM
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0D9488).withOpacity(0.12), // teal
+                              color: const Color(0xFF0D9488).withValues(alpha: 0.12), // teal
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
-import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
@@ -100,7 +98,18 @@ class _LandingScreenState extends State<LandingScreen> {
                         }
                       },
                     ).animate().slideY(begin: 0.5, duration: 400.ms, delay: 1200.ms, curve: Curves.easeOut),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () async {
+                        await storage.clearAll();
+                        if (context.mounted) {
+                          context.read<OnboardingBloc>().add(const SyncFromStorage());
+                          context.go('/splash'); // Refresh the splash screen state
+                        }
+                      },
+                      child: const Text('Reset App Data', style: TextStyle(color: Colors.white54, decoration: TextDecoration.underline)),
+                    ).animate().fadeIn(delay: 1400.ms),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -118,7 +127,7 @@ class _LogoWheel extends StatelessWidget {
     return Container(
       width: 120, height: 120,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         shape: BoxShape.circle,
       ),
       child: const Center(

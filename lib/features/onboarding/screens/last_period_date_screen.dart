@@ -15,7 +15,7 @@ class LastPeriodDateScreen extends StatefulWidget {
 }
 
 class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
-  DateTime? _selected;
+  DateTime? _selected = DateTime.now();
   bool _dontRemember = false;
 
   @override
@@ -43,7 +43,8 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
               final bloc = context.read<OnboardingBloc>();
               bloc.add(const SkipTracker());
               await bloc.stream.firstWhere((state) => !state.isLoading);
-              if (mounted) context.go('/home');
+              if (!context.mounted) return;
+              context.go('/home');
             },
             child: const Text("I'll do this later", style: TextStyle(color: AppColors.textLight)),
           ),
@@ -66,7 +67,7 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
                   colorScheme: const ColorScheme.light(primary: AppColors.purple),
                 ),
                 child: CalendarDatePicker(
-                  initialDate: _selected ?? DateTime.now().subtract(const Duration(days: 14)),
+                  initialDate: _selected ?? DateTime.now(),
                   firstDate: DateTime.now().subtract(const Duration(days: 90)),
                   lastDate: DateTime.now(),
                   onDateChanged: (d) => setState(() { _selected = d; _dontRemember = false; }),

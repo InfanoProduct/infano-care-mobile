@@ -1,16 +1,20 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/screens/phone_entry_screen.dart';
 import 'package:infano_care_mobile/features/auth/screens/otp_verify_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/landing_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/account_screen.dart';
+import 'package:infano_care_mobile/features/account/screens/family_settings_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/notification_preferences_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/data_rights_privacy_screen.dart';
+import 'package:infano_care_mobile/features/account/screens/saved_articles_screen.dart';
+import 'package:infano_care_mobile/features/account/screens/settings_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/path_selector_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/name_pronouns_screen.dart';
-import 'package:infano_care_mobile/screens/connect/peerline_request_screen.dart';
+import 'package:infano_care_mobile/screens/connect/peerline_topic_selection_screen.dart';
+import 'package:infano_care_mobile/screens/connect/peerline_results_screen.dart';
 import 'package:infano_care_mobile/screens/connect/peerline_chat_screen.dart';
+import 'package:infano_care_mobile/screens/connect/friend_chat_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/birthday_input_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/parental_consent_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/consent_waiting_screen.dart';
@@ -32,9 +36,14 @@ import 'package:infano_care_mobile/features/tracker/presentation/screens/doctor_
 import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_insights_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_settings_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/first_period_celebration_screen.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/screens/cycle_ring_screen.dart';
+import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/calendar_screen.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/calendar_cubit.dart';
+import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
+import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
+import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
@@ -52,6 +61,9 @@ import 'package:infano_care_mobile/features/learning/application/journey_list_bl
 import 'package:infano_care_mobile/features/learning/application/journey_detail_bloc.dart';
 import 'package:infano_care_mobile/features/learning/application/episode_player_bloc.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
+import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
+import 'package:infano_care_mobile/features/learning/screens/payments_and_orders_screens.dart';
+import 'package:infano_care_mobile/features/learning/screens/order_details_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/journey_detail_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/episode_player_screen.dart';
 import 'package:infano_care_mobile/features/learning/models/learning_models.dart';
@@ -140,25 +152,34 @@ GoRouter createRouter(LocalStorageService storage) {
         // Enforce onboarding flow
         final target = getRouteForStep(step ?? '0', periodStatus: storage.periodStatus);
         
-        if (path != target && !path.contains('tracker') && !path.contains('expert') && path != '/onboarding/welcome' && path != '/chat') {
+        if (path != target && 
+            !path.contains('tracker') && 
+            !path.contains('expert') && 
+            path != '/onboarding/welcome' && 
+            path != '/chat' && 
+            path != '/settings' && 
+            path != '/account' && 
+            path != '/orders') {
           if (!onOnboarding) return target;
-          if (path == '/home' || path == '/account') return target;
         }
       }
 
       return null;
     },
     routes: [
-      GoRoute(path: '/splash',   builder: (_, __) => const LandingScreen()),
-      GoRoute(path: '/account',  builder: (_, __) => AccountScreen(storage: storage)),
-      GoRoute(path: '/account/notifications', builder: (_, __) => const NotificationPreferencesScreen()),
-      GoRoute(path: '/account/data-rights', builder: (_, __) => const DataRightsPrivacyScreen()),
+      GoRoute(path: '/splash',   builder: (_, _) => const LandingScreen()),
+      GoRoute(path: '/account',  builder: (_, _) => AccountScreen(storage: storage)),
+      GoRoute(path: '/settings',  builder: (_, _) => const SettingsScreen()),
+      GoRoute(path: '/account/notifications', builder: (_, _) => const NotificationPreferencesScreen()),
+      GoRoute(path: '/account/data-rights', builder: (_, _) => const DataRightsPrivacyScreen()),
+      GoRoute(path: '/account/saved', builder: (_, _) => const SavedArticlesScreen()),
+      GoRoute(path: '/account/family', builder: (_, _) => FamilySettingsScreen(storage: storage)),
       
       // Expert Dashboard
-      GoRoute(path: '/expert/dashboard', builder: (_, __) => ExpertDashboardScreen(storage: storage)),
+      GoRoute(path: '/expert/dashboard', builder: (_, _) => ExpertDashboardScreen(storage: storage)),
       
       // Expert Chat
-      GoRoute(path: '/expert/list', builder: (_, __) => ExpertListScreen(storage: storage)),
+      GoRoute(path: '/expert/list', builder: (_, _) => ExpertListScreen(storage: storage)),
       GoRoute(
         path: '/expert/chat/:sessionId', 
         builder: (_, state) {
@@ -174,7 +195,7 @@ GoRouter createRouter(LocalStorageService storage) {
       // Gigi assistant
       GoRoute(
         path: '/chat',
-        builder: (_, __) => BlocProvider(
+        builder: (_, _) => BlocProvider(
           create: (context) => ChatBloc(chatRepo)..add(LoadSessions()),
           child: const ChatScreen(),
         ),
@@ -198,35 +219,41 @@ GoRouter createRouter(LocalStorageService storage) {
       ),
 
       // Onboarding
-      GoRoute(path: '/onboarding/path',           builder: (_, __) => const PathSelectorScreen()),
-      GoRoute(path: '/onboarding/name',            builder: (_, __) => const NamePronounsScreen()),
-      GoRoute(path: '/onboarding/birthday',        builder: (_, __) => const BirthdayInputScreen()),
-      GoRoute(path: '/onboarding/consent/send',    builder: (_, __) => const ParentalConsentScreen()),
-      GoRoute(path: '/onboarding/consent/waiting', builder: (_, __) => const ConsentWaitingScreen()),
-      GoRoute(path: '/onboarding/terms',           builder: (_, __) => const AssentTermsScreen()),
-      GoRoute(path: '/onboarding/goals',           builder: (_, __) => const GoalsSelectionScreen()),
-      GoRoute(path: '/onboarding/period-comfort',  builder: (_, __) => const PeriodComfortScreen()),
-      GoRoute(path: '/onboarding/period-status',   builder: (_, __) => const PeriodExperienceScreen()),
-      GoRoute(path: '/onboarding/interests',       builder: (_, __) => const InterestTopicsScreen()),
-      GoRoute(path: '/onboarding/avatar',          builder: (_, __) => const AvatarBuilderScreen()),
-      GoRoute(path: '/onboarding/journey-name',    builder: (_, __) => const JourneyNameScreen()),
-      GoRoute(path: '/onboarding/welcome',         builder: (_, __) => const WelcomeWorldScreen()),
-      GoRoute(path: '/onboarding/tracker/date',    builder: (_, __) => const LastPeriodDateScreen()),
-      GoRoute(path: '/onboarding/tracker/details', builder: (_, __) => const CycleDetailsScreen()),
-      GoRoute(path: '/onboarding/tracker/done',    builder: (_, __) => const TrackerActivatedScreen()),
+      GoRoute(path: '/onboarding/path',           builder: (_, _) => const PathSelectorScreen()),
+      GoRoute(path: '/onboarding/name',            builder: (_, _) => const NamePronounsScreen()),
+      GoRoute(path: '/onboarding/birthday',        builder: (_, _) => const BirthdayInputScreen()),
+      GoRoute(path: '/onboarding/consent/send',    builder: (_, _) => const ParentalConsentScreen()),
+      GoRoute(path: '/onboarding/consent/waiting', builder: (_, _) => const ConsentWaitingScreen()),
+      GoRoute(path: '/onboarding/terms',           builder: (_, _) => const AssentTermsScreen()),
+      GoRoute(path: '/onboarding/goals',           builder: (_, _) => const GoalsSelectionScreen()),
+      GoRoute(path: '/onboarding/period-comfort',  builder: (_, _) => const PeriodComfortScreen()),
+      GoRoute(path: '/onboarding/period-status',   builder: (_, _) => const PeriodExperienceScreen()),
+      GoRoute(path: '/onboarding/interests',       builder: (_, _) => const InterestTopicsScreen()),
+      GoRoute(path: '/onboarding/avatar',          builder: (_, _) => const AvatarBuilderScreen()),
+      GoRoute(path: '/onboarding/journey-name',    builder: (_, _) => const JourneyNameScreen()),
+      GoRoute(path: '/onboarding/welcome',         builder: (_, _) => const WelcomeWorldScreen()),
+      GoRoute(path: '/onboarding/tracker/date',    builder: (_, _) => const LastPeriodDateScreen()),
+      GoRoute(path: '/onboarding/tracker/details', builder: (_, _) => const CycleDetailsScreen()),
+      GoRoute(path: '/onboarding/tracker/done',    builder: (_, _) => const TrackerActivatedScreen()),
 
       // Deep Link Routes for Notifications
-      GoRoute(path: '/tracker/log', builder: (_, __) => const CycleRingScreen()), // Placeholder for direct log sheet
-      GoRoute(path: '/tracker/prediction', builder: (_, __) => const CycleRingScreen()),
-      GoRoute(path: '/tracker/phase', builder: (_, __) => const CycleRingScreen()), // Placeholder
-      GoRoute(path: '/tracker/doctor-connect', builder: (_, __) => const DoctorSummaryScreen()),
+      GoRoute(path: '/tracker/log', builder: (_, _) => const TrackScreen()), // Placeholder for direct log sheet
+      GoRoute(path: '/tracker/prediction', builder: (_, _) => const TrackScreen()),
+      GoRoute(path: '/tracker/phase', builder: (_, _) => const TrackScreen()), // Placeholder
+      GoRoute(path: '/tracker/doctor-connect', builder: (_, _) => const DoctorSummaryScreen()),
 
       // Tracker Reporting
-      GoRoute(path: '/tracker/ring', builder: (_, __) => const CycleRingScreen()),
-      GoRoute(path: '/tracker/doctor-summary', builder: (_, __) => const DoctorSummaryScreen()),
-      GoRoute(path: '/tracker/settings', builder: (_, __) => const CycleSettingsScreen()),
-      GoRoute(path: '/tracker/calendar', builder: (_, __) => const CalendarScreen()),
-      GoRoute(path: '/tracker/milestone/first-period', builder: (_, __) => const FirstPeriodCelebrationScreen()),
+
+      GoRoute(path: '/tracker/doctor-summary', builder: (_, _) => const DoctorSummaryScreen()),
+      GoRoute(path: '/tracker/settings', builder: (_, _) => const CycleSettingsScreen()),
+      GoRoute(
+        path: '/tracker/calendar', 
+        builder: (context, _) => BlocProvider(
+          create: (_) => CalendarCubit(context.read<TrackerRepository>())..loadCalendarData(),
+          child: const CalendarScreen(),
+        ),
+      ),
+      GoRoute(path: '/tracker/milestone/first-period', builder: (_, _) => const FirstPeriodCelebrationScreen()),
       GoRoute(
         path: '/tracker/insights', 
         builder: (_, state) {
@@ -234,34 +261,90 @@ GoRouter createRouter(LocalStorageService storage) {
           return CycleInsightsScreen(
             profile: extra['profile'] as CycleProfileModel,
             logs: extra['logs'] as List<CycleLogModel>,
+            history: (extra['history'] as List<CycleRecordModel>?) ?? [],
           );
         }
       ),
+      GoRoute(
+        path: '/quests',
+        builder: (_, _) {
+          final repo = QuestRepository(ApiService.instance.dio);
+          return BlocProvider(
+            create: (context) => QuestBloc(repo)..add(const QuestEvent.load()),
+            child: const QuestScreen(),
+          );
+        },
+      ),
 
       // PeerLine Focus
-      GoRoute(path: '/peerline/request', builder: (_, __) => const PeerLineRequestScreen()),
+      GoRoute(path: '/peerline/request', builder: (_, _) => const PeerLineTopicSelectionScreen()),
+      GoRoute(
+        path: '/peerline/results', 
+        builder: (_, state) {
+          final topics = state.extra as List<String>? ?? [];
+          return PeerLineResultsScreen(selectedTopics: topics);
+        }
+      ),
       GoRoute(
         path: '/peerline/chat/:sessionId',
         builder: (_, state) => PeerLineChatScreen(
           sessionId: state.pathParameters['sessionId']!,
         ),
       ),
+      GoRoute(
+        path: '/friends/chat/:matchId',
+        builder: (_, state) => FriendChatScreen(
+          matchId: state.pathParameters['matchId']!,
+        ),
+      ),
 
       // Community Circles
       GoRoute(path: '/community/circle', builder: (_, state) => CircleScreen(circle: state.extra as Circle)),
       // Home
-      GoRoute(path: '/home', builder: (_, __) => DashboardScreen(storage: storage)),
+      GoRoute(
+        path: '/home', 
+        builder: (_, state) {
+          final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+          final subtab = int.tryParse(state.uri.queryParameters['subtab'] ?? '2') ?? 2;
+          return DashboardScreen(storage: storage, initialTab: tab, initialSubTab: subtab);
+        }
+
+      ),
+
 
       // Learning Journey Module
       GoRoute(
         path: '/learning/journeys',
-        builder: (_, __) {
+        builder: (_, _) {
           final repo = LearningRepository(ApiService.instance.dio);
           return BlocProvider(
             create: (context) => JourneyListBloc(repo),
             child: const JourneyExplorerScreen(),
           );
         },
+      ),
+      GoRoute(
+        path: '/learning/programs',
+        builder: (_, _) => LearningProgramsScreen(storage: storage),
+      ),
+
+      GoRoute(
+        path: '/orders',
+        builder: (_, _) => MyOrdersScreen(storage: storage),
+      ),
+      GoRoute(
+        path: '/order/:id',
+        builder: (_, state) => MyOrderDetailsScreen(
+          orderId: state.pathParameters['id']!,
+          storage: storage,
+        ),
+      ),
+      GoRoute(
+        path: '/program-payment/:id',
+        builder: (_, state) => MyProgramPaymentDetailsScreen(
+          enrollmentId: state.pathParameters['id']!,
+          storage: storage,
+        ),
       ),
       GoRoute(
         path: '/journey/:id',

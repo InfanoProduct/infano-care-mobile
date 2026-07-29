@@ -24,11 +24,11 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
+    gh.lazySingleton<_i721.TrackerRepository>(
+      () => _i721.TrackerRepository(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i48.PrivacyService>(
       () => _i48.PrivacyService(gh<_i558.FlutterSecureStorage>()),
-    );
-    gh.lazySingleton<_i721.TrackerRepository>(
-      () => _i721.TrackerRepository(gh<_i361.Dio>(), gh<_i48.PrivacyService>()),
     );
     return this;
   }

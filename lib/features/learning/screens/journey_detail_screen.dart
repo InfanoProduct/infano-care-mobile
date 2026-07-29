@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../application/journey_detail_bloc.dart';
 import '../models/learning_models.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_theme.dart';
+
 
 class JourneyDetailScreen extends StatefulWidget {
   final String journeyId;
@@ -176,9 +176,9 @@ class _JourneyDetailScreenState extends State<JourneyDetailScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.3),
+                    Colors.black.withValues(alpha: 0.3),
                     Colors.transparent,
-                    Colors.black.withOpacity(0.7),
+                    Colors.black.withValues(alpha: 0.7),
                   ],
                 ),
               ),
@@ -196,7 +196,7 @@ class _JourneyDetailScreenState extends State<JourneyDetailScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -222,7 +222,7 @@ class _JourneyDetailScreenState extends State<JourneyDetailScreen> {
                       height: 8,
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.greenAccent),
                       ),
                     ),
@@ -261,13 +261,13 @@ class _EpisodeListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: isUnlocked ? Colors.deepPurple.withOpacity(0.1) : Colors.grey.shade300,
+          color: isUnlocked ? Colors.deepPurple.withValues(alpha: 0.1) : Colors.grey.shade300,
           width: 1,
         ),
       ),
@@ -285,7 +285,7 @@ class _EpisodeListItem extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: _getStatusColor().withOpacity(0.1),
+                    color: _getStatusColor().withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(

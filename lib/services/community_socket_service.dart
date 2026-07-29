@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/models/peerline_session.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class CommunitySocketService {
   final LocalStorageService _storage;
-  IO.Socket? _socket;
-  IO.Socket? _eventsSocket;
+  io.Socket? _socket;
+  io.Socket? _eventsSocket;
   final ValueNotifier<Map<String, int>> unreadUpdates = ValueNotifier({});
   final ValueNotifier<MentorAvailability?> availabilityUpdates = ValueNotifier(null);
   final ValueNotifier<Map<String, dynamic>?> queueUpdates = ValueNotifier(null);
@@ -44,18 +44,18 @@ class CommunitySocketService {
 
     if (_socket?.connected == true) return;
 
-    final baseUrl = ApiService.instance.dio.options.baseUrl.replaceAll('/api', '');
+    final baseUrl = ApiService.instance.dio.options.baseUrl.split('/api')[0];
     debugPrint('[CommunitySocket] Connecting to components...');
     
     // Core/PeerLine Namespace
-    _socket = IO.io('$baseUrl/peerline', <String, dynamic>{
+    _socket = io.io('$baseUrl/peerline', <String, dynamic>{
       'transports': ['websocket', 'polling'],
       'forceNew': true,
       'auth': {'token': token},
     });
 
     // Events Namespace
-    _eventsSocket = IO.io('$baseUrl/events', <String, dynamic>{
+    _eventsSocket = io.io('$baseUrl/events', <String, dynamic>{
       'transports': ['websocket', 'polling'],
       'forceNew': true,
       'auth': {'token': token},
@@ -154,14 +154,17 @@ class CommunitySocketService {
     _socket?.emit('unsubscribe_mentor_updates');
   }
 
-  void sendMessage(String sessionId, String content, String senderRole, {String? clientId}) {
+  void sendMessage(String sessionId, String? content, String senderRole, {String? messageType, String? mediaUrl, String? clientId}) {
     _socket?.emit('send_message', {
       'sessionId': sessionId,
       'content': content,
       'senderRole': senderRole,
+      'messageType': messageType,
+      'mediaUrl': mediaUrl,
       'clientId': clientId,
     });
   }
+
 
   void unsendMessage(String sessionId, String messageId) {
     _socket?.emit('delete_message', {

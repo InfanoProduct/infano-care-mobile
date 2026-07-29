@@ -4,17 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:infano_care_mobile/core/services/calendar_sqflite_cache.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
-import 'package:infano_care_mobile/core/services/privacy_service.dart';
-
 @lazySingleton
 class TrackerRepository {
   final Dio _dio;
-  final PrivacyService _privacyService;
 
   /// Singleton SQLite cache shared across all calls.
   final CalendarSqfliteCache _cache = CalendarSqfliteCache();
 
-  TrackerRepository(this._dio, this._privacyService);
+  TrackerRepository(this._dio);
 
   // ── Connectivity helper ────────────────────────────────────────────────────
 
@@ -32,8 +29,11 @@ class TrackerRepository {
         return CycleProfileModel.fromJson(response.data);
       }
       return null;
-    } catch (e) {
-      return null;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return null; // Profile truly doesn't exist
+      }
+      rethrow; // Auth or network error
     }
   }
 
@@ -114,7 +114,6 @@ class TrackerRepository {
           var logs = (response.data as List)
               .map((j) => CycleLogModel.fromJson(j))
               .toList();
-          if (logs.isEmpty && (_isDemoMode())) logs = _getDummyLogsForMonth(y, mo);
           await _cache.putLogs(y, mo, logs);
           debugPrint('[Repo] 🌐 Logs $y/$mo from network (${logs.length} items)');
           merged.addAll(logs);
@@ -125,8 +124,6 @@ class TrackerRepository {
         final stale = await _cache.getLogs(y, mo);
         if (stale != null) {
           merged.addAll(stale);
-        } else {
-          merged.addAll(_getDummyLogsForMonth(y, mo));
         }
       }
     }
@@ -138,17 +135,15 @@ class TrackerRepository {
   Future<List<CycleLogModel>> getLogs({String? from, String? to}) async {
     try {
       final response = await _dio.get('/tracker/logs', queryParameters: {
-        if (from != null) 'from': from,
-        if (to != null) 'to': to,
-      });
-
-      var logs = (response.data as List)
+        'from': from,
+        'to': to,
+      }..removeWhere((_, v) => v == null));
+      return (response.data as List)
           .map((json) => CycleLogModel.fromJson(json))
           .toList();
-      if (logs.isEmpty) logs = _getDummyLogs();
-      return logs;
     } catch (e) {
-      return _getDummyLogs();
+      debugPrint('[Repo] ⚠️ getLogs failed: $e');
+      return [];
     }
   }
 
@@ -174,16 +169,15 @@ class TrackerRepository {
         final cycles = (response.data as List)
             .map((j) => CycleRecordModel.fromJson(j))
             .toList();
-        final result = cycles.isEmpty ? _getDummyHistory() : cycles;
-        await _cache.putCycles(result);
-        return result;
+        await _cache.putCycles(cycles);
+        return cycles;
       }
     } catch (e) {
       debugPrint('[Repo] ⚠️ Cycles fetch failed: $e');
     }
 
     // Stale cache fallback
-    return (await _cache.getCycles()) ?? _getDummyHistory();
+    return (await _cache.getCycles()) ?? [];
   }
 
   /// Legacy getHistory kept for TrackerBloc compatibility.
@@ -191,17 +185,30 @@ class TrackerRepository {
     try {
       final response = await _dio.get('/tracker/history');
       if (response.statusCode == 200 && response.data != null) {
-        var history = (response.data as List)
+        return (response.data as List)
             .map((json) => CycleRecordModel.fromJson(json))
             .toList();
-        if (history.isEmpty) history = _getDummyHistory();
-        return history;
       }
-      return _getDummyHistory();
+      return [];
     } catch (e) {
-      return _getDummyHistory();
+      debugPrint('[Repo] ⚠️ getHistory failed: $e');
+      return [];
     }
   }
+
+  Future<Map<String, dynamic>> getDailyInsights() async {
+    try {
+      final response = await _dio.get('/tracker/daily-insights');
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data;
+      }
+      return {'insights': [], 'articles': []};
+    } catch (e) {
+      debugPrint('[Repo] ⚠️ Daily insights fetch failed: $e');
+      return {'insights': [], 'articles': []};
+    }
+  }
+
 
   // ── Write operations ───────────────────────────────────────────────────────
 
@@ -298,10 +305,8 @@ class TrackerRepository {
 
   Future<void> updatePeriodRange(DateTime start, DateTime end) async {
     try {
-      final startStr =
-          "${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}";
-      final endStr =
-          "${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}";
+      final startStr = DateTime.utc(start.year, start.month, start.day).toIso8601String();
+      final endStr = DateTime.utc(end.year, end.month, end.day).toIso8601String();
 
       await _dio.post('/tracker/period-range', data: {
         'startDate': startStr,
@@ -313,91 +318,10 @@ class TrackerRepository {
       await invalidateCyclesCache();
       await invalidatePredictionCache();
     } on DioException catch (e) {
-      throw Exception(
-          e.response?.data['message'] ?? 'Failed to update period range');
+      final msg = e.response?.data['error'] ?? 
+                 e.response?.data['message'] ?? 
+                 'Failed to update period range';
+      throw Exception(msg);
     }
-  }
-
-  // ── Demo / Dummy data ──────────────────────────────────────────────────────
-
-  bool _isDemoMode() => false; // Disabled to use real seeded data
-
-  List<CycleLogModel> _getDummyLogsForMonth(int year, int month) {
-    final from = DateTime(year, month, 1);
-    final to = DateTime(year, month + 1, 0);
-    final now = DateTime.now();
-    final logs = <CycleLogModel>[];
-
-    for (var d = from;
-        !d.isAfter(to) && !d.isAfter(now);
-        d = d.add(const Duration(days: 1))) {
-      final dayOfCycle = d.difference(now).inDays.abs() % 28;
-      String? flow;
-      if (dayOfCycle >= 0 && dayOfCycle < 5) {
-        flow = dayOfCycle == 0 || dayOfCycle == 4 ? 'light' : 'medium';
-      }
-      String? mood;
-      if (d.day % 3 == 0) mood = 'Happy';
-      if (d.day % 7 == 0) mood = 'Calm';
-
-      logs.add(CycleLogModel(
-        id: 'dummy_${d.year}_${d.month}_${d.day}',
-        date: d,
-        flow: flow,
-        moodPrimary: mood,
-        isRetroactive: d.isBefore(now.subtract(const Duration(days: 1))),
-      ));
-    }
-    return logs;
-  }
-
-  List<CycleLogModel> _getDummyLogs() {
-    final now = DateTime.now();
-    final logs = <CycleLogModel>[];
-    for (int i = 0; i < 90; i++) {
-      final date = now.subtract(Duration(days: i));
-      final dayOfCycle = i % 28;
-      String? flow;
-      if (dayOfCycle >= 0 && dayOfCycle < 5) {
-        flow = dayOfCycle == 0 || dayOfCycle == 4 ? 'light' : 'medium';
-      }
-      String? mood;
-      if (i % 3 == 0) mood = 'Happy';
-      if (i % 7 == 0) mood = 'Calm';
-      logs.add(CycleLogModel(
-        id: 'dummy_$i',
-        date: date,
-        flow: flow,
-        moodPrimary: mood,
-        isRetroactive: i > 0,
-      ));
-    }
-    return logs;
-  }
-
-  List<CycleRecordModel> _getDummyHistory() {
-    final now = DateTime.now();
-    return [
-      CycleRecordModel(
-        id: 'h1',
-        cycleNumber: 1,
-        startDate: now.subtract(const Duration(days: 28)),
-        periodStartDate: now.subtract(const Duration(days: 28)),
-        periodEndDate: now.subtract(const Duration(days: 23)),
-        cycleLengthDays: 28,
-        periodDurationDays: 5,
-        isComplete: true,
-      ),
-      CycleRecordModel(
-        id: 'h2',
-        cycleNumber: 2,
-        startDate: now.subtract(const Duration(days: 56)),
-        periodStartDate: now.subtract(const Duration(days: 56)),
-        periodEndDate: now.subtract(const Duration(days: 51)),
-        cycleLengthDays: 28,
-        periodDurationDays: 5,
-        isComplete: true,
-      ),
-    ];
   }
 }

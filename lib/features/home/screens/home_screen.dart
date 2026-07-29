@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

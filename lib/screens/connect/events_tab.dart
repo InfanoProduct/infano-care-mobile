@@ -5,10 +5,13 @@ import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/widgets/event_card.dart';
 import 'package:infano_care_mobile/widgets/challenge_banner.dart';
 import 'package:infano_care_mobile/screens/connect/live_event_screen.dart';
+import 'package:infano_care_mobile/services/mindful_api.dart';
+import 'package:infano_care_mobile/models/mindful_activity.dart';
+import 'package:infano_care_mobile/screens/connect/mindful_detail_screen.dart';
 import 'package:provider/provider.dart';
 
 class EventsTab extends StatefulWidget {
-  const EventsTab({Key? key}) : super(key: key);
+  const EventsTab({super.key});
 
   @override
   State<EventsTab> createState() => _EventsTabState();
@@ -20,6 +23,7 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
   late Future<List<CommunityEvent>> _liveEventsFuture;
   late Future<List<CommunityEvent>> _pastEventsFuture;
   late Future<WeeklyChallenge> _challengeFuture;
+  late Future<List<MindfulActivity>> _mindfulActivitiesFuture;
   late AnimationController _pulseController;
 
   @override
@@ -46,6 +50,7 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
       _liveEventsFuture = _api.getCommunityEvents(status: 'live');
       _pastEventsFuture = _api.getCommunityEvents(status: 'past');
       _challengeFuture = _api.getWeeklyChallenge();
+      _mindfulActivitiesFuture = Provider.of<MindfulApi>(context, listen: false).getActivities();
     });
   }
 
@@ -61,6 +66,8 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
           _buildLiveBannerSection(),
           _buildWeeklyChallengeSection(),
           _buildCulturalCalendar(),
+          const SizedBox(height: 32),
+          _buildMindfulSection(),
           const SizedBox(height: 32),
           _buildSectionHeader('Live & Upcoming', Icons.event_available),
           const SizedBox(height: 16),
@@ -94,7 +101,7 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.error.withOpacity(0.3),
+                    color: AppColors.error.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -174,7 +181,7 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.purple.withOpacity(0.05)),
+                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.05)),
                 ),
                 child: Row(
                   children: [
@@ -248,9 +255,9 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.shade50.withOpacity(0.5),
+        color: Colors.blueGrey.shade50.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blueGrey.shade100.withOpacity(0.5)),
+        border: Border.all(color: Colors.blueGrey.shade100.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
@@ -260,7 +267,7 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blueGrey.shade100.withOpacity(0.3)),
+              border: Border.all(color: Colors.blueGrey.shade100.withValues(alpha: 0.3)),
             ),
             child: Icon(Icons.history, color: Colors.blueGrey.shade300),
           ),
@@ -287,6 +294,205 @@ class _EventsTabState extends State<EventsTab> with SingleTickerProviderStateMix
           ),
           const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMindfulSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Mindful Minutes', Icons.self_improvement_rounded),
+        const SizedBox(height: 4),
+        const Text(
+          'Take a moment to breathe and earn rewards',
+          style: TextStyle(color: AppColors.textMedium, fontSize: 13),
+        ),
+        const SizedBox(height: 20),
+        FutureBuilder<List<MindfulActivity>>(
+          future: _mindfulActivitiesFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(height: 240, child: Center(child: CircularProgressIndicator()));
+            }
+            final activities = snapshot.data ?? [];
+            if (activities.isEmpty) return const SizedBox.shrink();
+
+            return SizedBox(
+              height: 260,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(bottom: 20),
+                itemCount: activities.length,
+                itemBuilder: (context, index) {
+                  final activity = activities[index];
+                  return _buildMindfulCard(activity);
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMindfulCard(MindfulActivity activity) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MindfulDetailScreen(activity: activity),
+          ),
+        ).then((_) => _refreshData());
+      },
+      child: Container(
+        width: 280,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.purple.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                      child: activity.thumbnailUrl != null
+                          ? Image.network(
+                              activity.thumbnailUrl!,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              color: AppColors.purple.withValues(alpha: 0.1),
+                              child: const Icon(Icons.video_library_rounded, color: AppColors.purple, size: 40),
+                            ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.4),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        activity.category.toUpperCase(),
+                        style: const TextStyle(color: AppColors.purple, fontSize: 10, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.bloom,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.bloom.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                          )
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.bolt, color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${activity.points}',
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                          )
+                        ],
+                      ),
+                      child: const Icon(Icons.play_arrow_rounded, color: AppColors.purple, size: 32),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activity.title,
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.textDark),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'With ${activity.expertName ?? "Infano Expert"} • ${activity.duration}m',
+                      style: const TextStyle(color: AppColors.textMedium, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        const Text(
+                          'Watch & Earn',
+                          style: TextStyle(color: AppColors.purple, fontSize: 13, fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_forward_rounded, color: AppColors.purple, size: 14),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -8,11 +8,13 @@ import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.d
 class CycleInsightsScreen extends StatelessWidget {
   final CycleProfileModel profile;
   final List<CycleLogModel> logs;
+  final List<CycleRecordModel> history;
 
   const CycleInsightsScreen({
     super.key, 
     required this.profile, 
-    required this.logs
+    required this.logs,
+    required this.history,
   });
 
   @override
@@ -40,7 +42,7 @@ class CycleInsightsScreen extends StatelessWidget {
             const SizedBox(height: 4),
             Text('Uncovering patterns in your unique body.', style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 14)),
             const SizedBox(height: 32),
-            TrackerInsights(profile: profile, logs: logs),
+            TrackerInsights(profile: profile, logs: logs, history: history),
             const SizedBox(height: 32),
             Center(
               child: TextButton.icon(

@@ -11,11 +11,10 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
 import 'package:infano_care_mobile/core/router/app_router.dart';
-import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 
 class OtpVerifyScreen extends StatefulWidget {
-  OtpVerifyScreen({
+  const OtpVerifyScreen({
     super.key,
     required this.phone,
     required this.storage,
@@ -175,10 +174,6 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
   }
 
   Widget _buildBody(BuildContext context) {
-    final rawPhone = widget.phone.replaceAll(' ', '');
-    final maskedPhone = rawPhone.length > 6
-      ? '${rawPhone.substring(0, rawPhone.length - 4).replaceAll(RegExp(r'\d'), '*')}${rawPhone.substring(rawPhone.length - 4)}' 
-      : rawPhone;
 
     return BlocBuilder<OnboardingBloc, OnboardingState>(
         builder: (context, state) {
@@ -252,7 +247,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: AppColors.error.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.error.withOpacity(0.2))),
+                  decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.error.withValues(alpha: 0.2))),
                   child: Row(
                     children: [
                       const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
@@ -279,9 +274,9 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
                   height: 54,
                   decoration: BoxDecoration(
                     gradient: (_otp.length == 4 && !state.sessionExpired) ? AppGradients.brand : null, 
-                    color: (_otp.length == 4 && !state.sessionExpired) ? null : AppColors.textLight.withOpacity(0.3),
+                    color: (_otp.length == 4 && !state.sessionExpired) ? null : AppColors.textLight.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(100),
-                    boxShadow: (_otp.length == 4) ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))] : [],
+                    boxShadow: (_otp.length == 4) ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))] : [],
                   ),
                   child: Center(
                     child: _loading

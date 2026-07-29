@@ -3,7 +3,9 @@ class ChatMessage {
   final String sessionId;
   final String? senderId;
   final String senderRole; // 'mentee' | 'mentor' | 'system'
-  final String content;
+  final String? content;
+  final String? mediaUrl;
+  final String messageType; // 'TEXT' | 'VOICE' | 'IMAGE'
   final bool crisisFlag;
   final bool isRead;
   final DateTime sentAt;
@@ -13,7 +15,9 @@ class ChatMessage {
     required this.sessionId,
     this.senderId,
     required this.senderRole,
-    required this.content,
+    this.content,
+    this.mediaUrl,
+    this.messageType = 'TEXT',
     this.crisisFlag = false,
     this.isRead = false,
     required this.sentAt,
@@ -26,11 +30,14 @@ class ChatMessage {
       senderId: json['senderId'],
       senderRole: json['senderRole'],
       content: json['content'],
+      mediaUrl: json['mediaUrl'],
+      messageType: json['messageType'] ?? 'TEXT',
       crisisFlag: json['crisisFlag'] ?? false,
       isRead: json['isRead'] ?? false,
       sentAt: DateTime.parse(json['sentAt']),
     );
   }
+
 
   bool isMe(String currentUserId) {
     return senderId == currentUserId;

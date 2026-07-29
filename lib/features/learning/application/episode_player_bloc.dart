@@ -317,10 +317,10 @@ class EpisodePlayerBloc extends Bloc<EpisodePlayerEvent, EpisodePlayerState> {
     } catch (_) {}
     // Defaults (fallback only – authoritative values come from backend on complete).
     return const {
-      'story': 30,
-      'knowledgeCheck': 20,
-      'reflection': 10,
-      'summary': 25,
+      'story': 0,
+      'knowledgeCheck': 0,
+      'reflection': 0,
+      'summary': 75,
     };
   }
 }

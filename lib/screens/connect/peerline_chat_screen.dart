@@ -12,11 +12,16 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:intl/intl.dart';
+import 'package:record/record.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 class PeerLineChatScreen extends StatefulWidget {
   final String sessionId;
 
-  const PeerLineChatScreen({Key? key, required this.sessionId}) : super(key: key);
+  const PeerLineChatScreen({super.key, required this.sessionId});
 
   @override
   State<PeerLineChatScreen> createState() => _PeerLineChatScreenState();
@@ -36,8 +41,15 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
   CommunitySocketService? _socketService;
   StreamSubscription? _socketSubscription;
   String? _piiError;
-  String? _currentUserId;
   String? _myRole;
+
+  
+  // Voice recording state
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  bool _isRecording = false;
+  String? _recordingPath;
+  Timer? _recordingTimer;
+  int _recordingDuration = 0;
 
   @override
   void initState() {
@@ -46,6 +58,97 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
     _startTimer();
     _setupSocket();
   }
+
+  Future<void> _startRecording() async {
+    try {
+      if (await Permission.microphone.request().isGranted) {
+        final directory = await getTemporaryDirectory();
+        _recordingPath = '${directory.path}/voice_note_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        
+        const config = RecordConfig();
+        await _audioRecorder.start(config, path: _recordingPath!);
+        
+        setState(() {
+          _isRecording = true;
+          _recordingDuration = 0;
+        });
+        
+        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          setState(() {
+            _recordingDuration++;
+          });
+        });
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Microphone permission is required to record voice notes.')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error starting recording: $e');
+    }
+  }
+
+  Future<void> _stopRecording({bool cancel = false}) async {
+    try {
+      _recordingTimer?.cancel();
+      final path = await _audioRecorder.stop();
+      
+      setState(() {
+        _isRecording = false;
+      });
+
+      if (!cancel && path != null) {
+        _sendVoiceNote(path);
+      }
+    } catch (e) {
+      debugPrint('Error stopping recording: $e');
+    }
+  }
+
+  Future<void> _sendVoiceNote(String path) async {
+    try {
+      final api = Provider.of<CommunityApi>(context, listen: false);
+      
+      // Show optimistic UI for voice note
+      final String clientId = 'client-voice-${DateTime.now().millisecondsSinceEpoch}';
+      final tempMessage = ChatMessage(
+        id: clientId,
+        sessionId: widget.sessionId,
+        senderRole: _myRole ?? 'mentee',
+        messageType: 'VOICE',
+        mediaUrl: path, // Local path for now
+        sentAt: DateTime.now(),
+      );
+
+      setState(() {
+        _messages.add(tempMessage);
+        _showIntroCard = false;
+      });
+      _scrollToBottom();
+
+      // Upload file
+      final mediaUrl = await api.uploadMedia(path);
+      
+      // Send via socket
+      _socketService?.sendMessage(
+        widget.sessionId,
+        null,
+        _myRole ?? 'mentee',
+        messageType: 'VOICE',
+        mediaUrl: mediaUrl,
+        clientId: clientId,
+      );
+    } catch (e) {
+      debugPrint('Error sending voice note: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send voice note: $e')),
+        );
+      }
+    }
+  }
+
 
   void _setupSocket() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -91,11 +194,6 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         final String? clientId = event['clientId'];
         
         setState(() {
-          // Check if we have an optimistic message matching this clientId
-          final int existingIndex = clientId != null 
-              ? _messages.indexWhere((m) => m.id.startsWith('temp-') && m.content == newMessage.content) // Fallback content match if ID system differs
-              : -1;
-
           // More reliable: if we have clientId, find and replace
           final int clientMatchIndex = clientId != null 
               ? _messages.indexWhere((m) => m.id == clientId) 
@@ -136,7 +234,9 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         break;
       case 'session_ended':
         _sessionTimer?.cancel();
-        context.pushReplacement('/peerline/feedback/${widget.sessionId}');
+        if (mounted) {
+          _showSessionEndedBanner();
+        }
         break;
       case 'session_paused':
         setState(() {
@@ -174,6 +274,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       final api = Provider.of<CommunityApi>(context, listen: false);
       final session = await api.getSession(widget.sessionId);
 
+      if (!mounted) return;
       final storage = Provider.of<LocalStorageService>(context, listen: false);
       final userId = storage.userId;
       final myRole = session.menteeId == userId ? 'mentee' : 'mentor';
@@ -183,7 +284,6 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           _session = session;
           _messages.clear();
           _messages.addAll(session.messages);
-          _currentUserId = userId;
           _myRole = myRole;
           _isLoading = false;
         });
@@ -289,7 +389,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: AppColors.purple.withOpacity(0.1),
+                    backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                     child: Text(
                       (_session?.mentorName ?? 'M')[0],
                       style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold),
@@ -339,7 +439,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
               onPressed: () => _showEndSessionDialog(),
               child: Text(
                 'End session', 
-                style: GoogleFonts.outfit(color: AppColors.textLight.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)
+                style: GoogleFonts.outfit(color: AppColors.textLight.withValues(alpha: 0.7), fontSize: 13, fontWeight: FontWeight.w500)
               ),
             ),
           ],
@@ -390,7 +490,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)],
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -415,9 +515,9 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -481,9 +581,10 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            msg.content,
+            msg.content ?? "",
             style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey.shade600),
           ),
+
         ),
       );
     }
@@ -494,7 +595,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         child: Column(
           crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            if (index % 10 == 0 || index == 0) // Show date divider for very first message or interval
+            if (index % 10 == 0 || index == 0) 
                Center(
                  child: Padding(
                    padding: const EdgeInsets.symmetric(vertical: 16),
@@ -510,8 +611,8 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
               decoration: BoxDecoration(
                 color: isMe 
-                    ? const Color(0xFFFFF1F2) // Soft Rose Pink for mentee
-                    : const Color(0xFFF5F3FF), // Soft Lavender for mentor
+                    ? const Color(0xFFFFF1F2)
+                    : const Color(0xFFF5F3FF),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(22),
                   topRight: const Radius.circular(22),
@@ -526,14 +627,17 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    msg.content,
-                    style: GoogleFonts.outfit(
-                      color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), 
-                      fontSize: 15,
-                      height: 1.4,
+                  if (msg.messageType == 'VOICE' && msg.mediaUrl != null)
+                    VoiceMessageBubble(url: msg.mediaUrl!, isMe: isMe)
+                  else
+                    Text(
+                      msg.content ?? "",
+                      style: GoogleFonts.outfit(
+                        color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), 
+                        fontSize: 15,
+                        height: 1.4,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -563,6 +667,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         ),
       ),
     );
+
   }
 
   void _showUnsendDialog(String messageId) {
@@ -607,56 +712,99 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
               decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
               child: Text(_piiError!, style: TextStyle(color: Colors.red.shade700, fontSize: 12)),
             ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.pause_circle_outline, color: Colors.grey),
-                onPressed: () {
-                  _socketService?.pauseSession(widget.sessionId);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Session paused.')));
-                },
+          if (_isRecording)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: AppColors.purple.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(24),
               ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(24),
+              child: Row(
+                children: [
+                  const Icon(Icons.mic, color: Colors.red, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Recording... ${_recordingDuration ~/ 60}:${(_recordingDuration % 60).toString().padLeft(2, '0')}',
+                    style: GoogleFonts.outfit(color: Colors.red, fontWeight: FontWeight.bold),
                   ),
-                  child: TextField(
-                    controller: _messageController,
-                    maxLines: null,
-                    maxLength: 500,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: (val) {
-                      _sendTyping(val.isNotEmpty);
-                      if (_piiError != null) setState(() => _piiError = null);
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Send a message...',
-                      border: InputBorder.none,
-                      counterText: "",
-                      hintStyle: TextStyle(fontSize: 14),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => _stopRecording(cancel: true),
+                    child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.send_rounded, color: AppColors.purple),
+                    onPressed: () => _stopRecording(),
+                  ),
+                ],
+              ),
+            )
+          else
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.pause_circle_outline, color: Colors.grey),
+                  onPressed: () {
+                    _socketService?.pauseSession(widget.sessionId);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Session paused.')));
+                  },
+                ),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: TextField(
+                      controller: _messageController,
+                      maxLines: null,
+                      maxLength: 500,
+                      textCapitalization: TextCapitalization.sentences,
+                      onChanged: (val) {
+                        _sendTyping(val.isNotEmpty);
+                        if (_piiError != null) setState(() => _piiError = null);
+                      },
+                      decoration: const InputDecoration(
+                        hintText: 'Send a message...',
+                        border: InputBorder.none,
+                        counterText: "",
+                        hintStyle: TextStyle(fontSize: 14),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              ValueListenableBuilder<TextEditingValue>(
-                valueListenable: _messageController,
-                builder: (context, value, _) {
-                  final canSend = value.text.trim().isNotEmpty;
-                  return CircleAvatar(
-                    backgroundColor: canSend ? AppColors.purple : Colors.grey.shade200,
-                    child: IconButton(
-                      icon: Icon(Icons.send_rounded, color: canSend ? Colors.white : Colors.grey, size: 20),
-                      onPressed: canSend ? _sendMessage : null,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+                const SizedBox(width: 8),
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _messageController,
+                  builder: (context, value, _) {
+                    final isTextEmpty = value.text.trim().isEmpty;
+                    return CircleAvatar(
+                      backgroundColor: isTextEmpty ? Colors.grey.shade200 : AppColors.purple,
+                      child: isTextEmpty
+                        ? GestureDetector(
+                            onLongPress: _startRecording,
+                            onLongPressUp: () => _stopRecording(),
+                            child: IconButton(
+                              icon: const Icon(Icons.mic, color: Colors.grey),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Hold to record voice note')),
+                                );
+                              },
+                            ),
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                            onPressed: _sendMessage,
+                          ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -681,6 +829,198 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
     );
   }
 
+  void _showSessionEndedBanner() {
+    int selectedRating = 0;
+    final TextEditingController noteController = TextEditingController();
+    bool isSubmitting = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 28,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Handle bar
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Emoji + title
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(child: Text('💜', style: TextStyle(fontSize: 36))),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Session Complete!',
+                      style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'How was your session with ${_session?.mentorName ?? 'your mentor'}?',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(fontSize: 14, color: AppColors.textMedium, height: 1.4),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Star rating
+                    Text(
+                      'Rate your experience',
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (i) {
+                        final starIndex = i + 1;
+                        return GestureDetector(
+                          onTap: () => setSheetState(() => selectedRating = starIndex),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            child: Icon(
+                              starIndex <= selectedRating ? Icons.star_rounded : Icons.star_outline_rounded,
+                              size: 44,
+                              color: starIndex <= selectedRating ? Colors.amber : Colors.grey.shade300,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    if (selectedRating > 0) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        ['', 'Not helpful', 'It was okay', 'Pretty good', 'Really helpful', 'Amazing! 🌟'][selectedRating],
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: selectedRating >= 4 ? const Color(0xFF10B981) : AppColors.purple,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+
+                    // Optional note
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: TextField(
+                        controller: noteController,
+                        maxLines: 3,
+                        maxLength: 200,
+                        textCapitalization: TextCapitalization.sentences,
+                        style: GoogleFonts.outfit(fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: 'Share any thoughts (optional)…',
+                          hintStyle: GoogleFonts.outfit(color: Colors.grey.shade400, fontSize: 14),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
+                          counterStyle: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Submit button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: (selectedRating == 0 || isSubmitting) ? null : () async {
+                          setSheetState(() => isSubmitting = true);
+                          try {
+                            final api = Provider.of<CommunityApi>(context, listen: false);
+                            await api.submitPeerLineFeedback(
+                              sessionId: widget.sessionId,
+                              role: _myRole ?? 'mentee',
+                              rating: selectedRating,
+                              note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+                            );
+                          } catch (_) {
+                            // Feedback failure is non-blocking
+                          }
+                          if (sheetContext.mounted) {
+                            Navigator.pop(sheetContext);
+                          }
+                          if (mounted) {
+                            context.go('/home?tab=4&subtab=1');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.purple,
+                          disabledBackgroundColor: Colors.grey.shade100,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 0,
+                        ),
+                        child: isSubmitting
+                          ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text(
+                              selectedRating == 0 ? 'Select a rating to continue' : 'Submit & Go Home',
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: selectedRating == 0 ? Colors.grey.shade400 : Colors.white,
+                              ),
+                            ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Skip link
+                    TextButton(
+                      onPressed: isSubmitting ? null : () {
+                        Navigator.pop(sheetContext);
+                        context.go('/home?tab=4&subtab=1');
+                      },
+
+                      child: Text(
+                        'Skip for now',
+                        style: GoogleFonts.outfit(color: Colors.grey.shade400, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+
   void _showEndSessionDialog() {
     final parentContext = context;
     showDialog(
@@ -694,17 +1034,16 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
-              // Optimistic socket end
               _socketService?.endSession(widget.sessionId, 'user_ended');
               
               try {
                 final api = Provider.of<CommunityApi>(parentContext, listen: false);
                 await api.endSession(widget.sessionId);
                 if (mounted) {
-                  parentContext.pushReplacement('/peerline/feedback/${widget.sessionId}');
+                  _showSessionEndedBanner();
                 }
               } catch (e) {
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(parentContext).showSnackBar(
                     SnackBar(content: Text('Could not end session: ${e.toString()}')),
                   );
@@ -718,3 +1057,119 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
     );
   }
 }
+
+class VoiceMessageBubble extends StatefulWidget {
+  final String url;
+  final bool isMe;
+
+  const VoiceMessageBubble({super.key, required this.url, required this.isMe});
+
+  @override
+  State<VoiceMessageBubble> createState() => _VoiceMessageBubbleState();
+}
+
+class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
+  final AudioPlayer _player = AudioPlayer();
+  bool _isPlaying = false;
+  Duration _duration = Duration.zero;
+  Duration _position = Duration.zero;
+  StreamSubscription? _durationSub;
+  StreamSubscription? _positionSub;
+  StreamSubscription? _playerSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupPlayer();
+  }
+
+  void _setupPlayer() {
+    _durationSub = _player.onDurationChanged.listen((d) => setState(() => _duration = d));
+    _positionSub = _player.onPositionChanged.listen((p) => setState(() => _position = p));
+    _playerSub = _player.onPlayerComplete.listen((_) => setState(() => _isPlaying = false));
+  }
+
+  @override
+  void dispose() {
+    _durationSub?.cancel();
+    _positionSub?.cancel();
+    _playerSub?.cancel();
+    _player.dispose();
+    super.dispose();
+  }
+
+  Future<void> _togglePlay() async {
+    if (_isPlaying) {
+      await _player.pause();
+      setState(() => _isPlaying = false);
+    } else {
+      if (widget.url.startsWith('http')) {
+        await _player.play(UrlSource(widget.url));
+      } else {
+        await _player.play(DeviceFileSource(widget.url));
+      }
+      setState(() => _isPlaying = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6);
+    
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled, color: color, size: 32),
+          onPressed: _togglePlay,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight: 2,
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+                  activeTrackColor: color,
+                  inactiveTrackColor: color.withValues(alpha: 0.2),
+                  thumbColor: color,
+                ),
+                child: Slider(
+                  value: _position.inMilliseconds.toDouble(),
+                  max: _duration.inMilliseconds.toDouble() > 0 ? _duration.inMilliseconds.toDouble() : 1.0,
+                  onChanged: (val) => _player.seek(Duration(milliseconds: val.toInt())),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _formatDuration(_position),
+                      style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.6)),
+                    ),
+                    Text(
+                      _formatDuration(_duration),
+                      style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.6)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDuration(Duration d) {
+    return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+  }
+}
+

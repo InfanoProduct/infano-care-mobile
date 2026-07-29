@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -70,7 +70,7 @@ class _EpisodePlayerScreenState extends State<EpisodePlayerScreen> {
             const SizedBox(height: 16),
             const Text('Episode Complete!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('+$points XP earned', style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600, fontSize: 18)),
+            Text('+$points Pts earned', style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600, fontSize: 18)),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -122,7 +122,7 @@ class _EpisodePlayerScreenState extends State<EpisodePlayerScreen> {
           },
           loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
           error: (msg) => Scaffold(body: Center(child: Text(msg))),
-          completed: (_, __) => const Scaffold(body: SizedBox.shrink()),
+          completed: (_, _) => const Scaffold(body: SizedBox.shrink()),
           loaded: (Episode episode, int index, int correct, int answered, String mode, String? content, bool isCompleting, List<int> completedIndices, Map<String, dynamic> history, Map<String, int> segmentPoints) {
             final isHook = index == 0;
             final activePageController = _pageController ??= PageController(initialPage: index);
@@ -197,14 +197,15 @@ class _TopBar extends StatelessWidget {
     int total = 0;
     for (int i = 0; i < completedIndices.length; i++) {
       final idx = completedIndices[i];
-      if (idx >= 1 && idx <= 3) total += segmentPoints[keys[idx - 1]] ?? 0;
+      if (idx >= 1 && idx <= 3) {
+        total += segmentPoints[keys[idx - 1]] ?? 0;
+      }
     }
     return total;
   }
 
   @override
   Widget build(BuildContext context) {
-    final onDark = false; // Set to false to make it opaque and consistent like other activities
     final bgColor = Colors.white;
     final iconColor = AppColors.textDark;
     final titleColor = AppColors.textDark;
@@ -226,7 +227,7 @@ class _TopBar extends StatelessWidget {
           color: bgColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 10,
               offset: const Offset(0, 2),
             )
@@ -272,9 +273,7 @@ class _TopBar extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: onDark
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : AppColors.bloom.withValues(alpha: 0.15),
+                  color: AppColors.bloom.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -283,11 +282,11 @@ class _TopBar extends StatelessWidget {
                     const Text('⚡', style: TextStyle(fontSize: 12)),
                     const SizedBox(width: 3),
                     Text(
-                      '$_earnedXP XP',
-                      style: TextStyle(
+                      '$_earnedXP Pts',
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: onDark ? Colors.white : const Color(0xFFB45309),
+                        color: Color(0xFFB45309),
                       ),
                     ),
                   ],
@@ -300,9 +299,7 @@ class _TopBar extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: onDark
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : AppColors.purple.withValues(alpha: 0.08),
+                    color: AppColors.purple.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.menu_rounded, color: iconColor, size: 22),
@@ -399,7 +396,7 @@ class _SegmentDrawer extends StatelessWidget {
                         border: Border.all(color: AppColors.bloom.withValues(alpha: 0.4)),
                       ),
                       child: Text(
-                        '⚡ ${episode.points} XP total',
+                        '⚡ ${episode.points} Pts total',
                         style: const TextStyle(
                           color: AppColors.bloom,
                           fontSize: 12,
@@ -506,7 +503,7 @@ class _SegmentDrawer extends StatelessWidget {
                                   ),
                                   if (pts > 0)
                                     Text(
-                                      '+$pts XP',
+                                      '+$pts Pts',
                                       style: TextStyle(
                                         color: isCompleted
                                             ? AppColors.success.withValues(alpha: 0.8)
@@ -725,7 +722,7 @@ class _HookSegmentState extends State<_HookSegment> with SingleTickerProviderSta
               duration: 1500.ms,
               layoutBuilder: (current, previous) => Stack(
                 alignment: Alignment.center,
-                children: [...previous, if (current != null) current],
+                children: [...previous, ?current],
               ),
               transitionBuilder: (child, animation) {
                 final isIncoming = child.key == ValueKey(_showCTA ? 'cta' : _narrativeTexts[_currentIndex]);
@@ -994,7 +991,7 @@ class _StorySegmentState extends State<_StorySegment> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -1144,7 +1141,9 @@ class _QuizSegmentState extends State<_QuizSegment> {
 
   void _handleAnswer(int index, bool alreadyAnswered) {
     debugPrint('[_QuizSegment] _handleAnswer: index=$index, alreadyAnswered=$alreadyAnswered');
-    if (alreadyAnswered) return;
+    if (alreadyAnswered) {
+      return;
+    }
 
     final isCorrect = index == _questions[_currentQuestionIndex].correctIndex;
     
@@ -1309,9 +1308,9 @@ class _QuizSegmentState extends State<_QuizSegment> {
 
     return BlocBuilder<EpisodePlayerBloc, EpisodePlayerState>(
       builder: (context, state) {
-        final correctCount = state.maybeWhen(loaded: (_, __, c, ___, ____, _____, ______, _______, ________, _________) => c, orElse: () => 0);
+        final correctCount = state.maybeWhen(loaded: (_, _, c, _, _, _, _, _, _, _) => c, orElse: () => 0);
         
-        final history = state.maybeWhen(loaded: (_, __, ___, ____, _____, ______, _______, ________, h, _________) => h, orElse: () => {});
+        final history = state.maybeWhen(loaded: (_, _, _, _, _, _, _, _, h, _) => h, orElse: () => {});
         final quizAnswersRaw = history['quiz_answers'] as Map<String, dynamic>? ?? {};
         
         // Robust parsing of keys and values
@@ -1379,7 +1378,7 @@ class _QuizSegmentState extends State<_QuizSegment> {
                       child: ListView.separated(
                         padding: EdgeInsets.zero,
                         itemCount: currentQuestion.options.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (context, i) => _buildOption(i, currentQuestion, quizAnswers, hasAnswered),
                       ),
                     ),
@@ -1474,7 +1473,7 @@ class _QuizSegmentState extends State<_QuizSegment> {
                 ),
               ),
             ),
-            if (trailing != null) trailing,
+            ?trailing,
           ],
         ),
       ),
@@ -1557,14 +1556,11 @@ class _QuizSegmentState extends State<_QuizSegment> {
 }
 
 // ────────────────────────────────────────────────────────────
-//  Segment 4: Reflection
-// ────────────────────────────────────────────────────────────
-// ────────────────────────────────────────────────────────────
 //  Segment 4: Reflection Journal
 // ────────────────────────────────────────────────────────────
 class _ReflectionSegment extends StatefulWidget {
   final Episode episode;
-  const _ReflectionSegment({super.key, required this.episode});
+  const _ReflectionSegment({required this.episode});
 
   @override
   State<_ReflectionSegment> createState() => _ReflectionSegmentState();
@@ -1614,7 +1610,7 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
   void _syncState() {
     final updatedHistory = Map<String, dynamic>.from(
       context.read<EpisodePlayerBloc>().state.maybeWhen(
-            loaded: (_, __, ___, ____, _____, ______, _______, ________, history, _________) => history,
+            loaded: (_, _, _, _, _, _, _, _, history, _) => history,
             orElse: () => {},
           ),
     );
@@ -1627,10 +1623,6 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
       'currentStep': _currentStep,
     };
 
-    // We don't have a specific event for this, but we can reuse UpdateReflection or just update progress
-    // For now, I'll just update the local history and rely on the next progress sync, 
-    // but better to add a dedicated event.
-    // Actually, I'll just update the reflection content draft too.
     context.read<EpisodePlayerBloc>().add(
       EpisodePlayerEvent.updateReflection(
         mode: _mode,
@@ -1642,8 +1634,12 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
   String _generateBuffer() {
     final buffer = StringBuffer();
     buffer.writeln("Draft Journal Entry");
-    if (_textAnswers.isNotEmpty) buffer.writeln("Answers: $_textAnswers");
-    if (_selectedEmotions.isNotEmpty) buffer.writeln("Emotions: $_selectedEmotions");
+    if (_textAnswers.isNotEmpty) {
+      buffer.writeln("Answers: $_textAnswers");
+    }
+    if (_selectedEmotions.isNotEmpty) {
+      buffer.writeln("Emotions: $_selectedEmotions");
+    }
     return buffer.toString();
   }
 
@@ -1654,8 +1650,6 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
       
       if (dynContent is Map) {
         content = Map<String, dynamic>.from(dynContent);
-      } else if (dynContent is String) {
-        // Maybe it's double-encoded string?
       }
 
       final sections = content?['reflectionJournal']?['sections'] as List<dynamic>?;
@@ -1718,11 +1712,6 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
 
   @override
   Widget build(BuildContext context) {
-    // ATOMIC SIMPLIFICATION:
-    // 1. No Row for buttons (source of infinite width crash)
-    // 2. No ElevatedButton (source of complex constraint failure)
-    // 3. Simple ListView (source of bounded constraints)
-    
     final topPad = MediaQuery.of(context).padding.top + 130.0;
     
     return Container(
@@ -1749,7 +1738,7 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
           const SizedBox(height: 16),
           LinearProgressIndicator(
             value: (_totalSteps > 0) ? (_currentStep + 1) / (_totalSteps + 1) : 0.2,
-            backgroundColor: Colors.indigo.withOpacity(0.1),
+            backgroundColor: Colors.indigo.withValues(alpha: 0.1),
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.indigo),
             minHeight: 4,
           ),
@@ -1846,33 +1835,7 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
     );
   }
 
-  Widget _buildNavigationRow() {
-    if (_currentStep == 5) return const SizedBox.shrink(); // Closing screen handles its own
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        if (_currentStep > 0)
-          TextButton(
-            onPressed: _prevStep,
-            child: const Text('BACK', style: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.bold)),
-          )
-        else
-          const SizedBox.shrink(),
-        
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.purple,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          onPressed: _nextStep,
-          child: const Text('CONTINUE', style: TextStyle(fontWeight: FontWeight.bold)),
-        ),
-      ],
-    );
-  }
 
   Widget _buildDynamicSection(dynamic section) {
     final String type = section['type'] ?? 'text';
@@ -1911,12 +1874,16 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
                     selected: isSelected,
                     onSelected: (val) {
                       setState(() {
-                        if (val) _selectedEmotions.add(label);
-                        else _selectedEmotions.remove(label);
+                        if (val) {
+                          _selectedEmotions.add(label);
+                        }
+                        else {
+                          _selectedEmotions.remove(label);
+                        }
                       });
                     },
                     backgroundColor: Colors.white,
-                    selectedColor: Colors.indigo.withOpacity(0.1),
+                    selectedColor: Colors.indigo.withValues(alpha: 0.1),
                     checkmarkColor: Colors.indigo,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -2023,8 +1990,12 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
                 selected: isSelected,
                 onSelected: (val) {
                   setState(() {
-                    if (val) _selectedEmotions.add(e['label']!);
-                    else _selectedEmotions.remove(e['label']);
+                    if (val) {
+                      _selectedEmotions.add(e['label']!);
+                    }
+                    else {
+                      _selectedEmotions.remove(e['label']);
+                    }
                   });
                 },
                 backgroundColor: Colors.white,
@@ -2197,7 +2168,7 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
   Widget _buildMicroLearning(String text) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: Colors.indigo.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2206,27 +2177,6 @@ class _ReflectionSegmentState extends State<_ReflectionSegment> {
           Expanded(child: Text(text, style: const TextStyle(fontSize: 13, color: Colors.indigo, fontWeight: FontWeight.w600, height: 1.4))),
         ],
       ),
-    );
-  }
-}
-
-class _ReactionChip extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final Color bgColor;
-  final Color textColor;
-  const _ReactionChip({required this.emoji, required this.label, required this.bgColor, required this.textColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(28)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
-        const SizedBox(width: 6),
-        Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 13)),
-      ]),
     );
   }
 }
@@ -2383,7 +2333,7 @@ class _SummarySegmentState extends State<_SummarySegment> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: isSel ? AppColors.purple.withOpacity(0.05) : Colors.white,
+                      color: isSel ? AppColors.purple.withValues(alpha: 0.05) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: isSel ? AppColors.purple : Colors.grey.shade300, width: isSel ? 2 : 1),
                     ),
@@ -2538,8 +2488,8 @@ class _SummarySegmentState extends State<_SummarySegment> {
       key: const ValueKey('rewards_screen'),
       builder: (context, state) {
         final summaryPts = state.maybeWhen(
-          loaded: (ep, i, c, a, m, rc, comp, ci, h, sp) => sp['summary'] ?? 25,
-          orElse: () => 25,
+          loaded: (ep, i, c, a, m, rc, comp, ci, h, sp) => sp['summary'] ?? 75,
+          orElse: () => 75,
         );
 
         return SingleChildScrollView(
@@ -2550,9 +2500,9 @@ class _SummarySegmentState extends State<_SummarySegment> {
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: AppColors.purple.withOpacity(0.1),
+                  color: AppColors.purple.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.purple.withOpacity(0.2), width: 2),
+                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.2), width: 2),
                 ),
                 child: const Text('🌟', style: TextStyle(fontSize: 64)),
               ).animate().scale(curve: Curves.elasticOut),
@@ -2574,7 +2524,7 @@ class _SummarySegmentState extends State<_SummarySegment> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10)),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 10)),
                   ],
                 ),
                 child: Row(
@@ -2582,7 +2532,7 @@ class _SummarySegmentState extends State<_SummarySegment> {
                   children: [
                     const Icon(Icons.stars_rounded, color: Colors.amber, size: 32),
                     const SizedBox(width: 12),
-                    Text('+$summaryPts XP', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                    Text('+$summaryPts Pts earned', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                   ],
                 ),
               ),
@@ -2602,7 +2552,7 @@ class _SummarySegmentState extends State<_SummarySegment> {
                     opacity: 0.25,
                   ),
                   boxShadow: [
-                    BoxShadow(color: AppColors.purple.withOpacity(0.2), blurRadius: 30, offset: const Offset(0, 15)),
+                    BoxShadow(color: AppColors.purple.withValues(alpha: 0.2), blurRadius: 30, offset: const Offset(0, 15)),
                   ],
                 ),
                 child: Column(
@@ -2610,7 +2560,7 @@ class _SummarySegmentState extends State<_SummarySegment> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
@@ -2663,63 +2613,4 @@ class _SummarySegmentState extends State<_SummarySegment> {
   }
 }
 
-class _PointRow extends StatelessWidget {
-  final String label;
-  final String pts;
-  final bool isBold;
-  const _PointRow({required this.label, required this.pts, this.isBold = false});
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(color: Colors.white, fontSize: isBold ? 16 : 14, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
-          Text(pts, style: TextStyle(color: Colors.white, fontSize: isBold ? 18 : 14, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-}
-
-// ────────────────────────────────────────────────────────────
-//  Mode Card (Private / Community toggle)
-// ────────────────────────────────────────────────────────────
-class _ModeCard extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ModeCard({required this.title, this.subtitle, required this.icon, required this.isSelected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: 250.ms,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.purple.withValues(alpha: 0.09) : Colors.white,
-          border: Border.all(color: isSelected ? AppColors.purple : Colors.grey.shade200, width: isSelected ? 2 : 1),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: isSelected ? AppColors.purple : Colors.grey.shade400, size: 22),
-            const SizedBox(height: 6),
-            Text(title, style: TextStyle(color: isSelected ? AppColors.purple : Colors.grey.shade400, fontWeight: FontWeight.bold, fontSize: 13)),
-            if (subtitle != null) ...[
-              const SizedBox(height: 2),
-              Text(subtitle!, style: TextStyle(color: isSelected ? AppColors.purple : Colors.grey.shade400, fontSize: 11, fontWeight: FontWeight.w600)),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -9,11 +9,7 @@ class EventCard extends StatefulWidget {
   final CommunityEvent event;
   final VoidCallback onTap;
 
-  const EventCard({
-    Key? key,
-    required this.event,
-    required this.onTap,
-  }) : super(key: key);
+  const EventCard({super.key, required this.event, required this.onTap});
 
   @override
   State<EventCard> createState() => _EventCardState();
@@ -35,12 +31,12 @@ class _EventCardState extends State<EventCard> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isLive ? AppColors.purple.withOpacity(0.2) : AppColors.purple.withOpacity(0.05),
+            color: isLive ? AppColors.purple.withValues(alpha: 0.2) : AppColors.purple.withValues(alpha: 0.05),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: isLive ? AppColors.purple.withOpacity(0.12) : AppColors.purple.withOpacity(0.06),
+              color: isLive ? AppColors.purple.withValues(alpha: 0.12) : AppColors.purple.withValues(alpha: 0.06),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -54,7 +50,7 @@ class _EventCardState extends State<EventCard> {
               padding: const EdgeInsets.all(20),
               width: double.infinity,
               decoration: BoxDecoration(
-                color: isLive ? AppColors.purple.withOpacity(0.08) : AppColors.purple.withOpacity(0.04),
+                color: isLive ? AppColors.purple.withValues(alpha: 0.08) : AppColors.purple.withValues(alpha: 0.04),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
@@ -142,7 +138,7 @@ class _EventCardState extends State<EventCard> {
         decoration: BoxDecoration(
           color: _isReminderSet ? AppColors.purple : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _isReminderSet ? AppColors.purple : AppColors.purple.withOpacity(0.2)),
+          border: Border.all(color: _isReminderSet ? AppColors.purple : AppColors.purple.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -170,7 +166,7 @@ class _EventCardState extends State<EventCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

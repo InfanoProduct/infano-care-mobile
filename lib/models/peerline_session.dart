@@ -11,6 +11,9 @@ class PeerLineSession {
   final String? summary;
   final List<String> topicIds;
   final int? menteeRating;
+  final String? menteeNote;
+  final int? mentorRating;
+  final String? mentorNote;
   final List<ChatMessage> messages;
   final int unreadCount;
 
@@ -25,6 +28,9 @@ class PeerLineSession {
     this.summary,
     this.topicIds = const [],
     this.menteeRating,
+    this.menteeNote,
+    this.mentorRating,
+    this.mentorNote,
     this.messages = const [],
     this.unreadCount = 0,
   });
@@ -59,6 +65,9 @@ class PeerLineSession {
       summary: json['summary'],
       topicIds: json['topicIds'] != null ? List<String>.from(json['topicIds']) : [],
       menteeRating: json['menteeRating'],
+      menteeNote: json['menteeNote'],
+      mentorRating: json['mentorRating'],
+      mentorNote: json['mentorNote'],
       messages: parsedMessages,
       unreadCount: json['unread_count'] ?? json['unreadCount'] ?? 0,
     );

@@ -4,7 +4,9 @@ import '../application/journey_list_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class JourneyExplorerScreen extends StatefulWidget {
-  const JourneyExplorerScreen({super.key});
+  const JourneyExplorerScreen({super.key, this.isEmbedded = false});
+
+  final bool isEmbedded;
 
   @override
   State<JourneyExplorerScreen> createState() => _JourneyExplorerScreenState();
@@ -20,9 +22,11 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Learning Journeys', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+      appBar: widget.isEmbedded
+          ? null
+          : AppBar(
+              title: const Text('Learning Journeys', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
       body: BlocBuilder<JourneyListBloc, JourneyListState>(
         builder: (context, state) {
           return state.when(
@@ -67,7 +71,7 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
                                   height: 160,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                                  errorBuilder: (_, _, _) => _buildPlaceholder(),
                                 )
                               else
                                 _buildPlaceholder(),
@@ -78,7 +82,7 @@ class _JourneyExplorerScreenState extends State<JourneyExplorerScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.9),
+                                      color: Colors.green.withValues(alpha: 0.9),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: const Row(

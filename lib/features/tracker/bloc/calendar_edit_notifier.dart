@@ -19,10 +19,10 @@ class CalendarEditState {
   final bool isOffline;
 
   /// Non-null while a "new period start?" confirmation is pending.
-  final _NewPeriodPrompt? newPeriodPrompt;
+  final NewPeriodPrompt? newPeriodPrompt;
 
   /// Non-null while an "early period" notification is active.
-  final _EarlyPeriodPrompt? earlyPeriodPrompt;
+  final EarlyPeriodPrompt? earlyPeriodPrompt;
 
   const CalendarEditState({
     this.selectedDate,
@@ -40,9 +40,9 @@ class CalendarEditState {
     bool clearPendingFlow = false,
     bool? isSaving,
     bool? isOffline,
-    _NewPeriodPrompt? newPeriodPrompt,
+    NewPeriodPrompt? newPeriodPrompt,
     bool clearNewPeriodPrompt = false,
-    _EarlyPeriodPrompt? earlyPeriodPrompt,
+    EarlyPeriodPrompt? earlyPeriodPrompt,
     bool clearEarlyPeriodPrompt = false,
   }) {
     return CalendarEditState(
@@ -80,17 +80,17 @@ class CalendarEditState {
 // ── Mini value objects for prompt data ────────────────────────────────────────
 
 @immutable
-class _NewPeriodPrompt {
+class NewPeriodPrompt {
   final String dateStr;     // "YYYY-MM-DD"
   final FlowLevel flow;
-  const _NewPeriodPrompt({required this.dateStr, required this.flow});
+  const NewPeriodPrompt({required this.dateStr, required this.flow});
 }
 
 @immutable
-class _EarlyPeriodPrompt {
+class EarlyPeriodPrompt {
   final String dateStr;
   final int daysEarly;
-  const _EarlyPeriodPrompt({required this.dateStr, required this.daysEarly});
+  const EarlyPeriodPrompt({required this.dateStr, required this.daysEarly});
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -213,10 +213,11 @@ class CalendarEditNotifier extends ChangeNotifier {
           : 0;
       _emit(_state.copyWith(
         earlyPeriodPrompt:
-            _EarlyPeriodPrompt(dateStr: dateStr, daysEarly: daysEarly),
+            EarlyPeriodPrompt(dateStr: dateStr, daysEarly: daysEarly),
       ));
       // Show early period notification, then proceed
       await _showEarlyPeriodNotice(context, daysEarly);
+      if (!context.mounted) return;
       _emit(_state.copyWith(clearEarlyPeriodPrompt: true));
       // Fall through — proceed with save
     }
@@ -226,9 +227,10 @@ class CalendarEditNotifier extends ChangeNotifier {
       if (_isNewPeriodStart(date)) {
         _emit(_state.copyWith(
           newPeriodPrompt:
-              _NewPeriodPrompt(dateStr: dateStr, flow: flow),
+              NewPeriodPrompt(dateStr: dateStr, flow: flow),
         ));
         final confirmed = await _showNewPeriodDialog(context, dateStr);
+        if (!context.mounted) return;
         if (!confirmed) {
           // User cancelled — revert pendingFlow
           _emit(_state.copyWith(
@@ -288,8 +290,8 @@ class CalendarEditNotifier extends ChangeNotifier {
     );
 
     final apiPayload = <String, dynamic>{
-      'log_date': dateStr,
-      'period_flow': flow.name,
+      'date': date.toUtc().toIso8601String(),
+      'flow': flow.name,
     };
 
     _emit(_state.copyWith(isSaving: true));

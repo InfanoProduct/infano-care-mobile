@@ -1,74 +1,193 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 import 'package:infano_care_mobile/features/home/screens/home_screen.dart';
-import 'package:infano_care_mobile/features/home/screens/learn_screen.dart';
+
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/local_storage_service.dart';
+import 'package:infano_care_mobile/core/services/notification_service.dart';
+import 'package:infano_care_mobile/widgets/notification_center_sheet.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/screens/connect/connect_screen.dart';
-import 'package:infano_care_mobile/core/services/local_storage_service.dart';
-import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
-import 'package:infano_care_mobile/services/community_socket_service.dart';
+import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
-import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
-import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key, required this.storage});
+  const DashboardScreen({super.key, required this.storage, this.initialTab = 0, this.initialSubTab = 2});
 
   final LocalStorageService storage;
+  final int initialTab;
+  final int initialSubTab;
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+
+
 class _DashboardScreenState extends State<DashboardScreen> {
+  bool _isExpanded = true;
+  Timer? _collapseTimer;
+  Timer? _notificationsTimer;
+  bool _hasUnreadNotifications = false;
+
   @override
   void initState() {
     super.initState();
     // Ensure native splash is removed if we land here directly
     FlutterNativeSplash.remove();
+    _syncProfile();
+    _startCollapseTimer();
+
+    // Periodically poll for unread notifications to dynamically update the Bell badge
+    _notificationsTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _checkUnreadNotifications();
+    });
+    _checkUnreadNotifications();
+  }
+
+  void _startCollapseTimer() {
+    _collapseTimer?.cancel();
+    _collapseTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        setState(() {
+          _isExpanded = false;
+        });
+      }
+    });
+  }
+
+  Future<void> _checkUnreadNotifications() async {
+    final authToken = widget.storage.authToken;
+    if (authToken == null) return;
+
+    try {
+      final res = await ApiService.instance.dio.get('/parent/notifications');
+      final list = res.data as List<dynamic>;
+      if (mounted) {
+        setState(() {
+          _hasUnreadNotifications = list.isNotEmpty;
+        });
+      }
+    } catch (e) {
+      debugPrint('[DashboardScreen] Error checking notifications: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _collapseTimer?.cancel();
+    _notificationsTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _syncProfile() async {
+    debugPrint('[DashboardScreen] Starting background profile sync. Current local displayName: "${widget.storage.displayName}"');
+    try {
+      final repo = AuthRepository(widget.storage);
+      await repo.syncProfile();
+      debugPrint('[DashboardScreen] Background profile sync completed successfully ✅ Stored displayName after sync: "${widget.storage.displayName}"');
+    } catch (e) {
+      debugPrint('[DashboardScreen] Background profile sync failed ❌: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final storage = context.watch<LocalStorageService>();
     return BlocProvider(
-      create: (context) => DashboardCubit(),
+      create: (context) => DashboardCubit(initialIndex: widget.initialTab),
+
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {
           final screens = [
             const HomeScreen(),
-            BlocProvider(
-              create: (context) => JourneyListBloc(LearningRepository(ApiService.instance.dio)),
-              child: const JourneyExplorerScreen(),
-            ),
+            LearnHubScreen(storage: storage),
             const TrackScreen(),
-            const QuestScreen(),
-            const ConnectScreen(),
+            BlocProvider(
+              create: (context) => QuestBloc(QuestRepository(ApiService.instance.dio)),
+              child: const QuestScreen(),
+            ),
+            ConnectScreen(initialTab: widget.initialSubTab),
           ];
 
+
           return Scaffold(
-            appBar: AppBar(
-              title: Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
-              backgroundColor: Colors.white,
-              elevation: 0,
-              iconTheme: const IconThemeData(color: AppColors.purple),
-            ),
-            drawer: _buildDrawer(context),
-            body: SafeArea(
-              child: screens[state.selectedIndex],
+            backgroundColor: const Color(0xFFF5F4F7),
+            appBar: (state.selectedIndex == 2 || state.selectedIndex == 4) 
+              ? null // Hide main AppBar for Track and Connect modules
+              : AppBar(
+                  title: const Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  iconTheme: const IconThemeData(color: AppColors.purple),
+                  actions: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications_none_outlined),
+                          onPressed: () async {
+                            await NotificationCenterSheet.show(context);
+                            _checkUnreadNotifications();
+                          },
+                        ),
+                        if (_hasUnreadNotifications)
+                          Positioned(
+                            right: 12,
+                            top: 12,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+            drawer: (state.selectedIndex == 2 || state.selectedIndex == 4) ? null : _buildDrawer(context, storage),
+            body: NotificationListener<ScrollNotification>(
+              onNotification: (scrollNotification) {
+                if (scrollNotification is ScrollUpdateNotification) {
+                  if (scrollNotification.scrollDelta != null && scrollNotification.scrollDelta! > 2.0) {
+                    if (_isExpanded) {
+                      setState(() {
+                        _isExpanded = false;
+                      });
+                    }
+                  } else if (scrollNotification.scrollDelta != null && scrollNotification.scrollDelta! < -2.0) {
+                    if (!_isExpanded) {
+                      setState(() {
+                        _isExpanded = true;
+                      });
+                    }
+                  }
+                }
+                return false;
+              },
+              child: SafeArea(
+                child: screens[state.selectedIndex],
+              ),
             ),
             bottomNavigationBar: Container(
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 20,
                     offset: const Offset(0, -5),
                   ),
@@ -76,7 +195,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: BottomNavigationBar(
                 currentIndex: state.selectedIndex,
-                onTap: (index) => context.read<DashboardCubit>().setTab(index),
+                onTap: (index) {
+                  setState(() {
+                    _isExpanded = true;
+                  });
+                  _startCollapseTimer();
+                  context.read<DashboardCubit>().setTab(index);
+                },
                 type: BottomNavigationBarType.fixed,
                 backgroundColor: Colors.white,
                 selectedItemColor: AppColors.purple,
@@ -131,12 +256,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => context.push('/chat'),
-              backgroundColor: AppColors.purple,
-              icon: const Icon(Icons.auto_awesome, color: Colors.white),
-              label: const Text('Talk to Gigi', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
+            floatingActionButton: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) 
+              ? null 
+              : Stack(
+                  alignment: Alignment.bottomRight,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Pulse ring behind the button (only shown when collapsed)
+                    if (!_isExpanded)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Color(0xFFE9D5FF), Color(0xFFFBCFE8)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                        )
+                        .animate(onPlay: (controller) => controller.repeat())
+                        .scale(begin: const Offset(1, 1), end: const Offset(1.5, 1.5), duration: 2.seconds, curve: Curves.easeOut)
+                        .fadeOut(duration: 2.seconds),
+                      ),
+                    
+                    // Main Gigi floating button
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.fastOutSlowIn,
+                      clipBehavior: Clip.antiAlias, // Clip the sliding text!
+                      height: 56,
+                      width: _isExpanded ? 160 : 56,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE9D5FF), Color(0xFFFBCFE8)], // from-purple-200 to-pink-200
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFD8B4FE).withValues(alpha: 0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: const Color(0xFFD8B4FE).withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => context.push('/chat'),
+                          borderRadius: BorderRadius.circular(28),
+                          child: SizedBox.expand(
+                            child: Stack(
+                              alignment: Alignment.centerLeft,
+                              children: [
+                                // 1. Avatar Image
+                                Positioned(
+                                  left: 6, // 6px padding on left matches center position when collapsed: (56-44)/2 = 6
+                                  child: Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 2,
+                                          offset: Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child: _isExpanded
+                                          ? Image.asset(
+                                              'assets/images/gigi_avatar.png',
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.asset(
+                                              'assets/images/gigi_avatar.png',
+                                              fit: BoxFit.cover,
+                                            )
+                                            .animate(onPlay: (controller) => controller.repeat())
+                                            .shake(delay: 3.seconds, duration: 800.ms, hz: 4),
+                                    ),
+                                  ),
+                                ),
+                                
+                                // 2. Text (only visible when expanded)
+                                if (_isExpanded)
+                                  const Positioned(
+                                    left: 58,
+                                    child: Text(
+                                      'Talk to Gigi',
+                                      style: TextStyle(
+                                        color: Color(0xFF4C1D95), // text-purple-950
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+                .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                .slideY(begin: 0.0, end: -0.12, duration: 1500.ms, curve: Curves.easeInOut),
           );
         },
       ),
@@ -200,7 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .scaleXY(begin: 1.15, end: 1.0, duration: 1000.ms);
   }
 
-  Widget _buildDrawer(BuildContext context) {
+  Widget _buildDrawer(BuildContext context, LocalStorageService storage) {
     return Drawer(
       child: Column(
         children: [
@@ -208,12 +446,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: const BoxDecoration(
               gradient: AppGradients.brandDiagonal,
             ),
-            accountName: Text(widget.storage.displayName ?? 'Infano User', 
+            accountName: Text(storage.displayName ?? 'Infano User', 
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            accountEmail: Text(widget.storage.phone ?? ''),
+            accountEmail: Text(storage.phone ?? ''),
             currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.3),
-              child: const Text('👤', style: TextStyle(fontSize: 32)),
+              backgroundColor: Colors.white.withValues(alpha: 0.3),
+              backgroundImage: storage.avatarUrl != null ? NetworkImage(storage.avatarUrl!) : null,
+              child: storage.avatarUrl == null
+                  ? const Text('👤', style: TextStyle(fontSize: 32))
+                  : null,
             ),
           ),
           ListTile(
@@ -225,9 +466,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.people_alt_outlined, color: AppColors.purple),
+            title: Text(storage.role == 'TEEN' ? 'Link Parent' : (storage.role == 'PARENT' || storage.role == 'GUARDIAN' ? 'Link Daughter' : 'Link Family')),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/account/family');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.workspace_premium_outlined, color: AppColors.purple),
+            title: const Text('Enrolled Programs'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/learning/programs');
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.shopping_bag_outlined, color: AppColors.purple),
+            title: const Text('My Orders'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/orders');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.settings_outlined, color: AppColors.purple),
-            title: const Text('Profile Settings'),
-            onTap: () => Navigator.pop(context),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/settings');
+            },
           ),
           ListTile(
             leading: const Icon(Icons.help_outline, color: AppColors.purple),
@@ -264,20 +533,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     if (confirmed == true) {
-      // If mentor, clear availability on server before clearing local storage
-      try {
-        final api = Provider.of<CommunityApi>(context, listen: false);
-        final status = await api.getMentorStatus();
-        if (status['is_certified'] == true) {
-          await api.updateMentorAvailability(false);
-        }
-      } catch (e) {
-        debugPrint('Logout: Could not clear availability: $e');
-      }
-
-      await widget.storage.clearAll();
       if (context.mounted) {
-        context.go('/splash');
+        // If mentor, clear availability on server before clearing local storage
+        try {
+          final api = Provider.of<CommunityApi>(context, listen: false);
+          final status = await api.getMentorStatus();
+          if (status['is_certified'] == true) {
+            await api.updateMentorAvailability(false);
+          }
+        } catch (e) {
+          debugPrint('Logout: Could not clear availability: $e');
+        }
+
+        // Unregister FCM token from backend so logged out users don't receive notifications
+        try {
+          await NotificationService().unregisterToken();
+        } catch (e) {
+          debugPrint('Logout: Could not unregister FCM token: $e');
+        }
+
+        await widget.storage.clearAll();
+        if (context.mounted) {
+          context.go('/splash');
+        }
       }
     }
   }

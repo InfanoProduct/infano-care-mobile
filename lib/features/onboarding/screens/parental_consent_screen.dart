@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 
@@ -14,7 +16,6 @@ class ParentalConsentScreen extends StatefulWidget {
 
 class _ParentalConsentScreenState extends State<ParentalConsentScreen> {
   final _emailController = TextEditingController();
-  bool _loading = false;
   String? _error;
 
   bool get _validEmail {
@@ -23,15 +24,16 @@ class _ParentalConsentScreenState extends State<ParentalConsentScreen> {
   }
 
   Future<void> _sendNote() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() { _error = null; });
     try {
-      // TODO: call repository.sendConsentEmail
-      await Future.delayed(const Duration(seconds: 1));  // simulate
-      if (mounted) context.go('/onboarding/consent/waiting');
+      final email = _emailController.text.trim();
+      context.read<OnboardingBloc>().add(SendConsentEmail(email));
+      
+      // Navigate to waiting screen
+      if (!mounted) return;
+      context.go('/onboarding/consent/waiting');
     } catch (e) {
       setState(() { _error = 'Failed to send email. Please try again.'; });
-    } finally {
-      if (mounted) setState(() => _loading = false);
     }
   }
 

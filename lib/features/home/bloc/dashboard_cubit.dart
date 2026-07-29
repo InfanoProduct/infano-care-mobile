@@ -43,7 +43,8 @@ class DashboardState extends Equatable {
 }
 
 class DashboardCubit extends Cubit<DashboardState> {
-  DashboardCubit() : super(const DashboardState());
+  DashboardCubit({int initialIndex = 0}) : super(DashboardState(selectedIndex: initialIndex));
+
 
   void setTab(int index) {
     emit(state.copyWith(selectedIndex: index));

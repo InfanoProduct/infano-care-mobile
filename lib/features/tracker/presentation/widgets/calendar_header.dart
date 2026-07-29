@@ -82,7 +82,7 @@ class CalendarHeader extends StatelessWidget {
                         height: 10,
                         child: CircularProgressIndicator(
                           strokeWidth: 1.5,
-                          color: AppColors.purple.withOpacity(0.5),
+                          color: AppColors.purple.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -121,7 +121,7 @@ class _NavButton extends StatelessWidget {
       label: semanticLabel,
       button: true,
       child: Material(
-        color: AppColors.purple.withOpacity(0.06),
+        color: AppColors.purple.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,

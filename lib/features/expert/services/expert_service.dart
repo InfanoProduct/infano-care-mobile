@@ -3,12 +3,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class ExpertService {
   final Dio _dio = ApiService.instance.dio;
   final LocalStorageService _storage;
-  IO.Socket? _socket;
+  io.Socket? _socket;
   final ValueNotifier<bool> connectionStatus = ValueNotifier(false);
 
   ExpertService(this._storage);
@@ -71,7 +71,7 @@ class ExpertService {
     final socketUrl = _dio.options.baseUrl.replaceAll('/api', '');
     debugPrint('[Socket] Attempting connection to: $socketUrl (Session: $sessionId)');
 
-    _socket = IO.io(socketUrl, <String, dynamic>{
+    _socket = io.io(socketUrl, <String, dynamic>{
       'transports': ['websocket', 'polling'],
       'forceNew': true,
       'multiplex': false,

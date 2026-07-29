@@ -9,12 +9,15 @@ class CycleProfileModel with _$CycleProfileModel {
     required String userId,
     required String trackerMode, // 'active', 'watching_waiting', 'irregular'
     required DateTime? lastPeriodStart,
+    DateTime? lastPeriodEnd,
     required int avgCycleLength,
     required int avgPeriodDuration,
     required int currentLogStreak,
     required int longestLogStreak,
     required DateTime? lastLogDate,
     required String? currentPhase,
+    String? nextPhase,
+    int? daysUntilNextPhase,
     required int? currentCycleDay,
     required DateTime? predictedNextStart,
     required DateTime? predictionWindowEarly,
@@ -43,6 +46,7 @@ class CycleLogModel with _$CycleLogModel {
     @Default([]) List<String> nutritionTags,
     @Default([]) List<String> activityTags,
     bool? isRetroactive,
+    String? vaginalDischarge, // shown only when not on period
   }) = _CycleLogModel;
 
   factory CycleLogModel.fromJson(Map<String, dynamic> json) =>
@@ -61,6 +65,8 @@ class PredictionResultModel with _$PredictionResultModel {
     required String confidenceLevel,
     required int daysUntilPrediction,
     required String currentPhase,
+    String? nextPhase,
+    int? daysUntilNextPhase,
     required int cycleDay,
     @Default(0.0) double coefficientOfVar,
     @Default(0) int cyclesLogged,

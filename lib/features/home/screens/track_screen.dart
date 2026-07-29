@@ -1,10 +1,11 @@
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/insight_card.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/tracker_calendar.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/tracker_insights.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/article_detail_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/all_articles_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/all_insights_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/phase_info_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/first_period_celebration_screen.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/daily_log_sheet.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/widgets/cycle_ring_painter.dart';
+import 'package:infano_care_mobile/features/tracker/data/models/insight_models.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/story_screen.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
@@ -12,13 +13,13 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:infano_care_mobile/core/services/privacy_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/cycle_ring.dart';
 import 'package:infano_care_mobile/features/tracker/application/character_greeting_service.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
+import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 
 class TrackScreen extends StatelessWidget {
   const TrackScreen({super.key});
@@ -29,16 +30,16 @@ class TrackScreen extends StatelessWidget {
       create: (context) => TrackerBloc(
         TrackerRepository(
           ApiService.instance.dio,
-          PrivacyService(const FlutterSecureStorage()),
         ),
+        context.read<LocalStorageService>(),
       )..add(const TrackerEvent.load()),
 
       child: Scaffold(
-        backgroundColor: const Color(0xFF130F26), // Premium Dark Background
+        backgroundColor: const Color(0xFFF5F4F7),
         body: BlocListener<TrackerBloc, TrackerState>(
           listener: (context, state) {
             state.maybeWhen(
-              loaded: (profile, prediction, logs, history, milestone) {
+              loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, pointsEarned, isRefreshing) {
                 debugPrint('[TrackScreen] Listener receivedLoaded. Milestone: $milestone');
                 if (milestone == 'first_period') {
                   debugPrint('[TrackScreen] Milestone detected. Navigating with Navigator.push...');
@@ -57,8 +58,21 @@ class TrackScreen extends StatelessWidget {
                 loading: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
                 error: (msg) => _buildErrorState(context, msg),
                 notStarted: () => _buildNotStartedState(context),
-                loaded: (profile, prediction, logs, history, milestone) => 
-                    _buildRedesignedDashboard(context, profile, prediction, logs, history),
+                loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, pointsEarned, isRefreshing) {
+                  if (profile.trackerMode == 'watching_waiting' && profile.lastPeriodStart == null) {
+                    return _buildNotStartedState(context);
+                  }
+                  return _buildRedesignedDashboard(
+                    context, 
+                    profile, 
+                    prediction, 
+                    logs, 
+                    history, 
+                    dailyInsights, 
+                    articles,
+                    isRefreshing,
+                  );
+                },
               );
             },
           ),
@@ -67,116 +81,65 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRedesignedDashboard(BuildContext context, CycleProfileModel profile, PredictionResultModel? prediction, List<CycleLogModel> logs, List<CycleRecordModel> history) {
+  Widget _buildRedesignedDashboard(
+    BuildContext context, 
+    CycleProfileModel profile, 
+    PredictionResultModel? prediction, 
+    List<CycleLogModel> logs, 
+    List<CycleRecordModel> history,
+    List<DailyInsight> dailyInsights,
+    List<Map<String, String>> articles,
+    bool isRefreshing,
+  ) {
     final mode = profile.trackerMode;
     final char = CharacterGreetingService.getCharacter(mode);
-    final hasLoggedToday = prediction?.hasLoggedToday ?? false;
+    // Use the actual logs list to determine if today is logged, 
+    // which is more reliable than server-side 'today' due to timezone differences.
+    final hasLoggedToday = logs.any((l) => DateUtils.isSameDay(l.date, DateTime.now()));
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1A132C), Color(0xFF130F26)],
-        ),
-      ),
+      color: const Color(0xFFF5F4F7),
       child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-              _buildTopBar(context, profile.trackerMode),
-              const SizedBox(height: 12),
-              _buildPhasePill(profile),
-              const SizedBox(height: 24),
-              _buildGigiHeader(char),
-              const SizedBox(height: 16),
-              _buildGreetingBubble(profile, prediction, char),
-              const SizedBox(height: 48),
-              _buildCycleRing(context, profile, prediction, history),
-              const SizedBox(height: 12),
-              _buildRingContextCTA(context),
-              const SizedBox(height: 48),
+
+        child: RefreshIndicator(
+          color: AppColors.purple,
+          onRefresh: () async {
+            context.read<TrackerBloc>().add(const TrackerEvent.load(isRefresh: true));
+            await Future.delayed(const Duration(milliseconds: 1500));
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                _buildRichHeader(context, profile, prediction, char),
+                const SizedBox(height: 32),
+                _buildCycleRing(context, profile, prediction, history, isRefreshing),
+                const SizedBox(height: 12),
+              _buildActionButtons(context, profile, logs, history),
+              const SizedBox(height: 32),
               _buildPrimaryActions(context, profile, logs, hasLoggedToday),
               if (mode != 'watching_waiting') ...[
-                const SizedBox(height: 24),
-                _buildStreakInfo(prediction?.currentLogStreak ?? 0),
+                const SizedBox(height: 20),
+                _buildQuestEntryCard(context, prediction?.currentLogStreak ?? 0),
               ],
-              const SizedBox(height: 40),
+              const SizedBox(height: 24),
+              _buildDailyInsightsSection(context, dailyInsights),
+              const SizedBox(height: 24),
+              _buildGoodToKnowSection(context, profile.currentPhase ?? 'menstrual', articles),
+              const SizedBox(height: 32),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTopBar(BuildContext context, String? mode) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        if (mode != 'watching_waiting') ...[
-          IconButton(
-            icon: const Icon(Icons.calendar_today_outlined, color: Colors.white54, size: 24),
-            onPressed: () => context.push('/tracker/calendar'),
-            tooltip: 'View Full Calendar',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.white54, size: 28),
-            onPressed: () async {
-              final updated = await context.push('/tracker/settings');
-              if (updated == true && context.mounted) {
-                context.read<TrackerBloc>().add(const TrackerEvent.load());
-              }
-            },
-            tooltip: 'Tracker Settings',
-          ),
-        ]
-        else
-          const SizedBox(height: 48), // Maintain spacing without showing the gear
-      ],
-    );
-  }
-
-  Widget _buildPhasePill(profile) {
-    String dayText = profile.currentCycleDay != null ? 'Day ${profile.currentCycleDay}' : '';
-    String phaseText = profile.currentPhase != null ? ' · ${profile.currentPhase[0].toUpperCase()}${profile.currentPhase.substring(1)}' : '';
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFD946EF).withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD946EF).withOpacity(0.3)),
-      ),
-      child: Text(
-        '$dayText$phaseText',
-        style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: const Color(0xFFF472B6), fontSize: 13),
-      ),
-    ).animate().fadeIn().scale();
-  }
-
-  Widget _buildGigiHeader(TrackerCharacter char) {
-    return Row(
-      children: [
-        Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFFD946EF).withOpacity(0.2),
-          ),
-          child: Center(child: Text(char.emoji, style: const TextStyle(fontSize: 20))),
         ),
-        const SizedBox(width: 12),
-        Text(
-          char.name,
-          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: const Color(0xFFD946EF), fontSize: 18),
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildGreetingBubble(profile, prediction, TrackerCharacter char) {
+  Widget _buildRichHeader(BuildContext context, CycleProfileModel profile, PredictionResultModel? prediction, TrackerCharacter char) {
+    final storage = context.watch<LocalStorageService>();
+    final userName = storage.displayName ?? 'Friend';
     final greeting = CharacterGreetingService.getGreeting(
       mode: profile.trackerMode,
       phase: profile.currentPhase ?? 'menstrual',
@@ -187,29 +150,102 @@ class TrackScreen extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1B4B).withOpacity(0.6),
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(24),
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.purple.withValues(alpha: 0.08),
+            AppColors.pink.withValues(alpha: 0.08),
+          ],
         ),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: Colors.white, width: 2),
       ),
-      child: Text(
-        '"$greeting"',
-        style: GoogleFonts.nunito(
-          color: Colors.white.withOpacity(0.9),
-          fontSize: 15,
-          fontStyle: FontStyle.italic,
-          height: 1.5,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome back,',
+                      style: GoogleFonts.nunito(
+                        fontSize: 16,
+                        color: AppColors.textMedium,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      userName,
+                      style: GoogleFonts.nunito(
+                        fontSize: 28,
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () => context.push('/account'),
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    image: storage.avatarUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(storage.avatarUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.purple.withValues(alpha: 0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: storage.avatarUrl == null
+                      ? const Center(child: Text('👤', style: TextStyle(fontSize: 28)))
+                      : null,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '"$greeting"',
+              style: GoogleFonts.nunito(
+                color: AppColors.textDark.withValues(alpha: 0.8),
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
-    ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0);
+    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildCycleRing(BuildContext context, CycleProfileModel profile, PredictionResultModel? prediction, List<CycleRecordModel> history) {
+  Widget _buildCycleRing(BuildContext context, CycleProfileModel profile, PredictionResultModel? prediction, List<CycleRecordModel> history, bool isRefreshing) {
     return Center(
       child: Container(
         width: 320, height: 320, // Increased size for the new technical specs
@@ -217,9 +253,9 @@ class TrackScreen extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFD946EF).withOpacity(0.05),
+              color: const Color(0xFFD946EF).withValues(alpha: 0.1),
               blurRadius: 40,
-              spreadRadius: 10,
+              spreadRadius: 2,
             ),
           ],
         ),
@@ -227,6 +263,7 @@ class TrackScreen extends StatelessWidget {
           profile: profile,
           prediction: prediction,
           history: history,
+          isRefreshing: isRefreshing,
           onCenterTap: () => _openDailyLog(context, DateTime.now()),
           onSegmentTap: (phaseId) => showModalBottomSheet(
             context: context,
@@ -240,75 +277,139 @@ class TrackScreen extends StatelessWidget {
   }
 
   Widget _buildPrimaryActions(BuildContext context, profile, logs, bool alreadyLogged) {
-    final mode = profile.trackerMode;
     return Column(
       children: [
-        SizedBox(
+        Container(
           width: double.infinity,
-          height: 56,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: const LinearGradient(
-                colors: [Color(0xFFE84393), Color(0xFFA855F7)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFA855F7).withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                )
-              ],
+          height: 60,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              colors: [AppColors.purple, Color(0xFF9333EA)],
             ),
-            child: ElevatedButton(
-              onPressed: () => _openDailyLog(context, DateTime.now()),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.purple.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
-              child: Text(
-                alreadyLogged ? 'Edit Today\'s Log ✦' : 'Log Today\'s Day ✦',
-                style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16),
-              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: () => _openDailyLog(context, DateTime.now()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  alreadyLogged ? 'Edit Today\'s Log' : 'Log Today\'s Day',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w900, 
+                    color: Colors.white, 
+                    fontSize: 17,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text('✦', style: TextStyle(color: Colors.white, fontSize: 18)),
+              ],
             ),
           ),
         ),
-        if (mode != 'watching_waiting') ...[
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: OutlinedButton(
-              onPressed: () => context.push('/tracker/insights', extra: {'profile': profile, 'logs': logs}),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF312E81), width: 1),
-                backgroundColor: const Color(0xFF1E1B4B).withOpacity(0.4),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              child: Text(
-                'View Cycle Insights →',
-                style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: Colors.white70, fontSize: 15),
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }
 
-  Widget _buildStreakInfo(int streak) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text('🔥', style: TextStyle(fontSize: 18)),
-        const SizedBox(width: 8),
-        Text(
-          '$streak-day streak',
-          style: GoogleFonts.nunito(color: Colors.white54, fontWeight: FontWeight.w600, fontSize: 14),
+  Widget _buildQuestEntryCard(BuildContext context, int streak) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFE5DEFF), // Richer pastel lavender
+            Color(0xFFFCDDEC), // Richer pastel pink
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-      ],
-    );
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFFC084FC).withValues(alpha: 0.35), // Visible boundary
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.12), // Subtle deep shadow
+            blurRadius: 18,
+            spreadRadius: 1,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.7),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: Color(0xFF7C3AED), // Match brand purple
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bloom Journey',
+                  style: GoogleFonts.nunito(
+                    color: const Color(0xFF1E1B4B), // High contrast dark text
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  'Complete quests to level up!',
+                  style: GoogleFonts.nunito(
+                    color: const Color(0xFF4B5563), // High contrast medium text
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => context.read<DashboardCubit>().setTab(3),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7C3AED), // Primary dark purple CTA color
+              foregroundColor: Colors.white,
+              minimumSize: const Size(80, 40),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: Text(
+              'View Quests',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2);
   }
 
   void _openDailyLog(BuildContext context, DateTime date) {
@@ -324,17 +425,17 @@ class TrackScreen extends StatelessWidget {
 
   Widget _buildErrorState(BuildContext context, String msg) {
     return Container(
-      color: const Color(0xFF130F26),
+      color: const Color(0xFFF5F4F7),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('📅', style: TextStyle(fontSize: 60)),
             const SizedBox(height: 24),
-            Text('Hmm, something went wrong', style: GoogleFonts.nunito(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            Text('Hmm, something went wrong', style: GoogleFonts.nunito(color: AppColors.textDark, fontSize: 20, fontWeight: FontWeight.bold)),
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Text(msg, style: GoogleFonts.nunito(color: Colors.white70, fontSize: 14), textAlign: TextAlign.center),
+              child: Text(msg, style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 14), textAlign: TextAlign.center),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -350,14 +451,19 @@ class TrackScreen extends StatelessWidget {
 
   Widget _buildNotStartedState(BuildContext context) {
     return Container(
-      color: const Color(0xFF130F26),
+      color: const Color(0xFFF5F4F7),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('🌸', style: TextStyle(fontSize: 80)).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+              Image.asset(
+                'assets/images/period_onboarding.png',
+                height: 180,
+                fit: BoxFit.contain,
+              ).animate(onPlay: (c) => c.repeat(reverse: true))
+               .scaleXY(begin: 0.95, end: 1.05, duration: 1500.ms, curve: Curves.easeInOut),
               const SizedBox(height: 24),
               Text(
                 'Your Bloom Tracker awaits! ✨',
@@ -365,7 +471,7 @@ class TrackScreen extends StatelessWidget {
                 style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w900,
                   fontSize: 24,
-                  color: Colors.white,
+                  color: AppColors.textDark,
                 ),
               ),
               const SizedBox(height: 16),
@@ -374,7 +480,7 @@ class TrackScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.nunito(
                   fontSize: 16,
-                  color: Colors.white70,
+                  color: AppColors.textMedium,
                   height: 1.5,
                 ),
               ),
@@ -384,7 +490,7 @@ class TrackScreen extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    gradient: const LinearGradient(colors: [Color(0xFFE84393), Color(0xFFA855F7)]),
+                    color: AppColors.purple,
                   ),
                   child: ElevatedButton(
                     onPressed: () => context.push('/onboarding/tracker/date'),
@@ -409,58 +515,319 @@ class TrackScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, String title, String subtitle, Color color) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
-            child: Icon(Icons.star_outline, color: color),
+
+
+  Widget _buildActionButtons(BuildContext context, profile, logs, history) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (profile.trackerMode != 'watching_waiting') ...[
+          _buildSmallActionBtn(
+            context, 
+            'Cycle Insights', 
+            Icons.auto_graph_outlined, 
+            () => context.push('/tracker/insights', extra: {'profile': profile, 'logs': logs, 'history': history})
           ),
-          const SizedBox(width: 16),
-          Expanded(
+          const SizedBox(width: 12),
+        ],
+        _buildSmallActionBtn(
+          context, 
+          'View Calendar', 
+          Icons.calendar_month_outlined, 
+          () => context.push('/tracker/calendar').then((_) {
+            if (context.mounted) {
+              context.read<TrackerBloc>().add(const TrackerEvent.load(isRefresh: true));
+            }
+          })
+        ),
+      ],
+    ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0);
+  }
+
+  Widget _buildSmallActionBtn(BuildContext context, String label, IconData icon, VoidCallback onTap) {
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, color: AppColors.textMedium, size: 16),
+      label: Text(
+        label, 
+        style: GoogleFonts.nunito(
+          color: AppColors.textMedium, 
+          fontWeight: FontWeight.w700,
+          fontSize: 13,
+        )
+      ),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+      ),
+    );
+  }
+
+  Widget _buildGoodToKnowSection(BuildContext context, String phase, List<Map<String, String>> articles) {
+    if (articles.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.purple,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Good to Know',
+                  style: GoogleFonts.nunito(
+                    fontSize: 20, 
+                    fontWeight: FontWeight.w900, 
+                    color: AppColors.textDark,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AllArticlesScreen(articles: articles),
+                ),
+              ),
+              child: Text('See All', style: GoogleFonts.nunito(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 13)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 185,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: articles.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              final art = articles[index];
+              return GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => ArticleDetailScreen(article: art)),
+                ),
+                child: _buildArticleCard(art, index),
+              );
+            },
+          ),
+        ),
+      ],
+    ).animate().fadeIn(delay: 800.ms);
+  }
+
+  Widget _buildArticleCard(Map<String, String> art, int index) {
+    final backgrounds = [
+      const Color(0xFFEEF2FF), // Soft Indigo
+      const Color(0xFFFDF2F8), // Soft Pink
+      const Color(0xFFECFDF5), // Soft Mint
+      const Color(0xFFFFFBEB), // Soft Amber
+      const Color(0xFFF5F3FF), // Soft Violet
+    ];
+    
+    final borders = [
+      const Color(0xFFC7D2FE),
+      const Color(0xFFFBCFE8),
+      const Color(0xFFA7F3D0),
+      const Color(0xFFFDE68A),
+      const Color(0xFFDDD6FE),
+    ];
+
+    final colorIndex = index % backgrounds.length;
+    final bgColor = backgrounds[colorIndex];
+    final borderColor = borders[colorIndex];
+
+    return Container(
+      width: 160,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Container(
+              height: 90,
+              width: double.infinity,
+              color: Colors.white.withValues(alpha: 0.4),
+              child: Center(child: Text(art['emoji'] ?? '📖', style: const TextStyle(fontSize: 32))),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white)),
-                Text(subtitle, style: GoogleFonts.nunito(fontSize: 13, color: Colors.white70)),
+                Text(
+                  art['title'] ?? '',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textDark),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, size: 12, color: AppColors.textMedium),
+                    const SizedBox(width: 4),
+                    Text(
+                      art['time'] ?? '3 min read',
+                      style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: color.withOpacity(0.5)),
+        ],
+      ),
+    );
+  }
+  Widget _buildDailyInsightsSection(BuildContext context, List<DailyInsight> insights) {
+    if (insights.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.pink,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'My Daily Insights',
+                  style: GoogleFonts.nunito(
+                    fontSize: 20, 
+                    fontWeight: FontWeight.w900, 
+                    color: AppColors.textDark,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AllInsightsScreen(insights: insights),
+                ),
+              ),
+              child: Text('See All', style: GoogleFonts.nunito(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 13)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 140,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: insights.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              final insight = insights[index];
+              return GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => StoryScreen(insight: insight)),
+                ),
+                child: _buildInsightCard(insight, index),
+              );
+            },
+          ),
+        ),
+      ],
+    ).animate().fadeIn(delay: 700.ms);
+  }
+
+  Widget _buildInsightCard(DailyInsight insight, int index) {
+    final backgrounds = [
+      const Color(0xFFEEF2FF), // Soft Indigo
+      const Color(0xFFFDF2F8), // Soft Pink
+      const Color(0xFFECFDF5), // Soft Mint
+      const Color(0xFFFFFBEB), // Soft Amber
+      const Color(0xFFF5F3FF), // Soft Violet
+    ];
+    
+    final borders = [
+      const Color(0xFFC7D2FE),
+      const Color(0xFFFBCFE8),
+      const Color(0xFFA7F3D0),
+      const Color(0xFFFDE68A),
+      const Color(0xFFDDD6FE),
+    ];
+
+    final colorIndex = index % backgrounds.length;
+    final bgColor = backgrounds[colorIndex];
+    final borderColor = borders[colorIndex];
+
+    return Container(
+      width: 120,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+              ],
+            ),
+            child: Text(insight.previewEmoji, style: const TextStyle(fontSize: 32)),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              insight.previewTitle,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w800, 
+                fontSize: 13, 
+                color: AppColors.textDark,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildRingContextCTA(BuildContext context) {
-    return Center(
-      child: TextButton.icon(
-        onPressed: () => context.push('/tracker/ring'),
-        icon: const Icon(Icons.center_focus_strong_outlined, color: Colors.white70, size: 20),
-        label: Text(
-          'View Cycle Signature', 
-          style: GoogleFonts.nunito(
-            color: Colors.white70, 
-            fontWeight: FontWeight.w700,
-            fontSize: 14,
-            letterSpacing: 0.5
-          )
-        ),
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          backgroundColor: Colors.white.withOpacity(0.03),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        ),
-      ),
-    ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2, end: 0);
-  }
 }
+
+

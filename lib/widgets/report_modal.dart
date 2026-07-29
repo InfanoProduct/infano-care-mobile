@@ -7,10 +7,10 @@ class ReportModal extends StatefulWidget {
   final Function(String category, String? note) onSubmit;
 
   const ReportModal({
-    Key? key,
+    super.key,
     required this.postId,
     required this.onSubmit,
-  }) : super(key: key);
+  });
 
   @override
   State<ReportModal> createState() => _ReportModalState();
@@ -72,15 +72,23 @@ class _ReportModalState extends State<ReportModal> {
             style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4),
           ),
           const SizedBox(height: 24),
-          ..._categories.map((cat) => RadioListTile<String>(
-                title: Text(cat['label']!, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-                value: cat['id']!,
-                groupValue: _selectedCategory,
-                activeColor: AppColors.purple,
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                onChanged: (val) => setState(() => _selectedCategory = val!),
-              )),
+          RadioGroup<String>(
+            groupValue: _selectedCategory,
+            onChanged: (val) {
+              if (val != null) {
+                setState(() => _selectedCategory = val);
+              }
+            },
+            child: Column(
+              children: _categories.map((cat) => RadioListTile<String>(
+                    title: Text(cat['label']!, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                    value: cat['id']!,
+                    activeColor: AppColors.purple,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  )).toList(),
+            ),
+          ),
           const SizedBox(height: 16),
           TextField(
             controller: _noteController,
@@ -90,7 +98,7 @@ class _ReportModalState extends State<ReportModal> {
               hintText: 'Anything else to add? (Optional)',
               hintStyle: const TextStyle(fontSize: 14),
               filled: true,
-              fillColor: AppColors.background.withOpacity(0.5),
+              fillColor: AppColors.background.withValues(alpha: 0.5),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,

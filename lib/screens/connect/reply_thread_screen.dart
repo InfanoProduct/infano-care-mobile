@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 class ReplyThreadScreen extends StatefulWidget {
   final CommunityPost post;
 
-  const ReplyThreadScreen({Key? key, required this.post}) : super(key: key);
+  const ReplyThreadScreen({super.key, required this.post});
 
   @override
   State<ReplyThreadScreen> createState() => _ReplyThreadScreenState();
@@ -25,9 +25,47 @@ class _ReplyThreadScreenState extends State<ReplyThreadScreen> {
   String? _replyingToName;
   int _replyingToDepth = 1;
 
-  final Map<String, bool> _localBookmarkState = {};
-  final Map<String, Map<String, int>> _localReactionCounts = {};
-  final Map<String, Map<String, bool>> _localUserReactions = {};
+  // For the original post
+  String? _localPostReaction;
+  bool? _localPostBookmarked;
+  final Map<String, int> _localPostReactionDelta = {};
+
+  Future<void> _togglePostReaction(String reaction) async {
+    final oldReaction = _localPostReaction ?? widget.post.myReaction;
+    setState(() {
+      if (oldReaction == reaction) {
+        _localPostReaction = null;
+        _localPostReactionDelta[reaction] = (_localPostReactionDelta[reaction] ?? 0) - 1;
+      } else {
+        if (oldReaction != null) {
+          _localPostReactionDelta[oldReaction] = (_localPostReactionDelta[oldReaction] ?? 0) - 1;
+        }
+        _localPostReaction = reaction;
+        _localPostReactionDelta[reaction] = (_localPostReactionDelta[reaction] ?? 0) + 1;
+      }
+    });
+
+    try {
+      await _api.toggleReaction(widget.post.id, reaction, contentType: 'post');
+    } catch (e) {
+      // Revert on error
+      setState(() {
+        _localPostReaction = oldReaction;
+        _localPostReactionDelta.clear();
+      });
+    }
+  }
+
+  Future<void> _togglePostBookmark() async {
+    final current = _localPostBookmarked ?? widget.post.isBookmarked;
+    setState(() => _localPostBookmarked = !current);
+    try {
+      final res = await _api.toggleBookmark(widget.post.id, contentType: 'post');
+      setState(() => _localPostBookmarked = res['bookmarked']);
+    } catch (e) {
+      setState(() => _localPostBookmarked = current);
+    }
+  }
 
   @override
   void initState() {
@@ -106,9 +144,18 @@ class _ReplyThreadScreenState extends State<ReplyThreadScreen> {
                   // Level 0: The Original Post
                   SliverToBoxAdapter(
                     child: PostCard(
-                      post: widget.post,
+                      post: widget.post.copyWith(
+                        myReaction: _localPostReaction ?? widget.post.myReaction,
+                        isBookmarked: _localPostBookmarked ?? widget.post.isBookmarked,
+                        reactionHeart: widget.post.reactionHeart + (_localPostReactionDelta['heart'] ?? 0),
+                        reactionHug: widget.post.reactionHug + (_localPostReactionDelta['hug'] ?? 0),
+                        reactionBulb: widget.post.reactionBulb + (_localPostReactionDelta['bulb'] ?? 0),
+                        reactionFist: widget.post.reactionFist + (_localPostReactionDelta['fist'] ?? 0),
+                      ),
                       isDetailView: true,
-                      onTap: () {}, // Already here
+                      onTap: () {},
+                      onReact: (r) => _togglePostReaction(r),
+                      onBookmark: _togglePostBookmark,
                     ),
                   ),
                   const SliverToBoxAdapter(child: Divider(height: 1)),
@@ -180,8 +227,8 @@ class _ReplyThreadScreenState extends State<ReplyThreadScreen> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.softAmber.withOpacity(0.1),
-          border: Border(top: BorderSide(color: AppColors.softAmber.withOpacity(0.3))),
+          color: AppColors.softAmber.withValues(alpha: 0.1),
+          border: Border(top: BorderSide(color: AppColors.softAmber.withValues(alpha: 0.3))),
         ),
         child: Column(
           children: [
@@ -213,7 +260,7 @@ class _ReplyThreadScreenState extends State<ReplyThreadScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -335,7 +382,7 @@ class _ReplyNode extends StatefulWidget {
 class _ReplyNodeState extends State<_ReplyNode> {
   late bool _isBookmarked;
   late Map<String, int> _reactionCounts;
-  late Map<String, bool> _userReactions;
+  String? _myReaction;
 
   @override
   void initState() {
@@ -347,8 +394,9 @@ class _ReplyNodeState extends State<_ReplyNode> {
       'bulb': widget.reply.reactionBulb,
       'fist': widget.reply.reactionFist,
     };
-    // Placeholder for user reactions per reply if backend supports it
-    _userReactions = {}; 
+    // In a real app, this should come from the model (e.g. widget.reply.myReaction)
+    // For now, we initialize to null as it's not in the current CommunityReply model
+    _myReaction = null; 
   }
 
   Color _getBorderColor(int depth) {
@@ -361,10 +409,23 @@ class _ReplyNodeState extends State<_ReplyNode> {
   }
 
   Future<void> _toggleReaction(String reaction) async {
-    final isAdding = !(_userReactions[reaction] ?? false);
+    final oldReaction = _myReaction;
+    
     setState(() {
-      _userReactions[reaction] = isAdding;
-      _reactionCounts[reaction] = (_reactionCounts[reaction] ?? 0) + (isAdding ? 1 : -1);
+      if (oldReaction == reaction) {
+        // Toggle off
+        _myReaction = null;
+        _reactionCounts[reaction] = (_reactionCounts[reaction] ?? 0) - 1;
+      } else {
+        // Replace or add new
+        if (oldReaction != null) {
+          // Decrement old
+          _reactionCounts[oldReaction] = (_reactionCounts[oldReaction] ?? 0) - 1;
+        }
+        // Increment new
+        _myReaction = reaction;
+        _reactionCounts[reaction] = (_reactionCounts[reaction] ?? 0) + 1;
+      }
     });
 
     try {
@@ -372,12 +433,21 @@ class _ReplyNodeState extends State<_ReplyNode> {
         widget.reply.id, 
         reaction, 
         contentType: 'reply', 
-        action: isAdding ? 'add' : 'remove'
+        action: 'add' // Backend handles logic
       );
     } catch (e) {
+      // Revert on error
       setState(() {
-        _userReactions[reaction] = !isAdding;
-        _reactionCounts[reaction] = (_reactionCounts[reaction] ?? 0) + (isAdding ? -1 : 1);
+        if (oldReaction == reaction) {
+          _myReaction = reaction;
+          _reactionCounts[reaction] = (_reactionCounts[reaction] ?? 0) + 1;
+        } else {
+          if (oldReaction != null) {
+            _reactionCounts[oldReaction] = (_reactionCounts[oldReaction] ?? 0) + 1;
+          }
+          _myReaction = oldReaction;
+          _reactionCounts[reaction] = (_reactionCounts[reaction] ?? 0) - 1;
+        }
       });
     }
   }
@@ -450,7 +520,7 @@ class _ReplyNodeState extends State<_ReplyNode> {
   Widget _buildActionBar() {
     return Row(
       children: [
-        _buildReactionItem('❤️', 'heart'),
+        _buildReactionItem('💜', 'heart'),
         _buildReactionItem('🤗', 'hug'),
         _buildReactionItem('💡', 'bulb'),
         _buildReactionItem('👊', 'fist'),
@@ -498,15 +568,21 @@ class _ReplyNodeState extends State<_ReplyNode> {
 
   Widget _buildReactionItem(String emoji, String type) {
     final count = _reactionCounts[type] ?? 0;
-    final isSelected = _userReactions[type] ?? false;
+    final isSelected = _myReaction == type;
     
     return GestureDetector(
       onTap: () => _toggleReaction(type),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        margin: const EdgeInsets.only(right: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.purple.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 14)),
+            Text(emoji, style: TextStyle(fontSize: 14, color: isSelected ? null : Colors.grey)),
             if (count > 0) ...[
               const SizedBox(width: 4),
               Text(
@@ -526,9 +602,9 @@ class _ReplyNodeState extends State<_ReplyNode> {
   String _formatTimeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inMinutes < 1) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m back';
+    if (diff.inHours < 24) return '${diff.inHours}h back';
+    if (diff.inDays < 7) return '${diff.inDays}d back';
     return DateFormat('MMM d').format(dt);
   }
 }

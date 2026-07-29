@@ -38,7 +38,9 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
     context.read<OnboardingBloc>().add(SetPeriodComfort(i + 1));
     setState(() { _selected = i; _showPoints = true; });
     Future.delayed(const Duration(milliseconds: 1800), () {
-      if (mounted) context.go('/onboarding/period-status');
+      if (mounted) {
+        context.go('/onboarding/period-status');
+      }
     });
   }
 
@@ -48,7 +50,7 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
       currentStep: 6,
       totalSteps: 13,
       onBack: () => context.go('/onboarding/goals'),
-      bottomBar: _selected != null ? PointsBurst(points: 10, onComplete: () => setState(() => _showPoints = false)) : null,
+      bottomBar: _showPoints ? PointsBurst(points: 10, onComplete: () => setState(() => _showPoints = false)) : null,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
@@ -68,7 +70,7 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
                     onTap: () => _select(e.key),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      transform: Matrix4.identity()..scale(isSelected ? 1.35 : 1.0),
+                      transform: Matrix4.diagonal3Values(isSelected ? 1.35 : 1.0, isSelected ? 1.35 : 1.0, 1.0),
                       transformAlignment: Alignment.center,
                       child: Column(
                         children: [

@@ -37,6 +37,9 @@ class CalendarState with _$CalendarState {
     /// The 5 computed future cycle windows (from PredictionWindowsProvider).
     @Default([]) List<PredictedCycle> predictedCycles,
 
+    /// Dates that have an existing period log flow recorded (used for highlighting in edit mode)
+    @Default({}) Set<String> existingPeriodDates,
+
     /// Currently tapped date (shown in DayDetailPanel)
     String? selectedDate,
 
@@ -77,9 +80,9 @@ class CalendarCubit extends Cubit<CalendarState> {
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
-  Future<void> loadCalendarData() async {
+  Future<void> loadCalendarData({bool forceRefresh = false}) async {
     emit(const CalendarState.loading());
-    await _fetchAndEmit(_viewYear, _viewMonth);
+    await _fetchAndEmit(_viewYear, _viewMonth, forceRefresh: forceRefresh);
   }
 
   /// Navigate month by [delta] (+1 = forward, -1 = back).
@@ -172,7 +175,7 @@ class CalendarCubit extends Cubit<CalendarState> {
         isSavingRange: false,
       ));
     } else {
-      emit(s.copyWith(isEditMode: true));
+      emit(s.copyWith(isEditMode: true, selectedDate: null));
     }
   }
 
@@ -181,14 +184,64 @@ class CalendarCubit extends Cubit<CalendarState> {
     if (s is! _Loaded) return;
 
     final dateOnly = DateUtils.dateOnly(date);
+    final today = DateUtils.dateOnly(DateTime.now());
+
+    // 1. Guard against future or today dates
+    if (!dateOnly.isBefore(today)) {
+      // Typically we'd emit a failure side effect (like a stream) to show a snackbar,
+      // but for now we just silently reject or could add an error message field.
+      // Easiest is to throw a specific error and catch it in the UI, or simply return.
+      return;
+    }
 
     if (s.editStartDate == null) {
       // First tap: Select starting date + default duration
+      
+      // 2. Guard against 15-day minimum gap for NEW ranges.
+      // We check if this date is too close (<15 days) to any existing period, 
+      // UNLESS it falls within a ±14 day window of an existing cycle start (meaning we are updating it).
+      final MIN_GAP_DAYS = 15;
+      
+      // Find if we are updating an existing cycle
+      final updateWindowStart = dateOnly.subtract(const Duration(days: 14));
+      final updateWindowEnd = dateOnly.add(const Duration(days: 14));
+      
+      CycleRecordModel? nearestRecord;
+      for (final r in s.cycles) {
+        final rs = DateUtils.dateOnly(r.periodStartDate);
+        if ((rs.isAtSameMomentAs(updateWindowStart) || rs.isAfter(updateWindowStart)) &&
+            (rs.isAtSameMomentAs(updateWindowEnd) || rs.isBefore(updateWindowEnd))) {
+          nearestRecord = r;
+          break;
+        }
+      }
+
+      bool violatesGap = false;
+      for (final r in s.cycles) {
+        if (nearestRecord != null && r.id == nearestRecord.id) continue;
+        
+        final rStart = DateUtils.dateOnly(r.periodStartDate);
+        final gap = (dateOnly.difference(rStart).inDays).abs();
+        if (gap < MIN_GAP_DAYS) {
+          violatesGap = true;
+          break;
+        }
+      }
+
+      if (violatesGap) {
+        // Validation failed, silently reject or could add error state
+        return;
+      }
+
       final duration = s.profile.avgPeriodDuration;
       final endDate = dateOnly.add(Duration(days: duration - 1));
+      
+      // Prevent the auto-calculated endDate from going into the future
+      final finalEndDate = endDate.isBefore(today) ? endDate : today.subtract(const Duration(days: 1));
+      
       emit(s.copyWith(
         editStartDate: dateOnly,
-        editEndDate: endDate,
+        editEndDate: finalEndDate,
       ));
     } else {
       final start = DateUtils.dateOnly(s.editStartDate!);
@@ -235,6 +288,8 @@ class CalendarCubit extends Cubit<CalendarState> {
   /// Call this after a successful POST /logs to invalidate & reload.
   Future<void> refreshAfterLog() async {
     await _repository.invalidateLogsCache();
+    await _repository.invalidateCyclesCache();
+    await _repository.invalidatePredictionCache();
     await _fetchAndEmit(_viewYear, _viewMonth, forceRefresh: true);
   }
 
@@ -291,6 +346,11 @@ class CalendarCubit extends Cubit<CalendarState> {
         ovulationDate: prediction?.ovulationDate,
       );
 
+      final existingPeriodDates = logs
+          .where((l) => l.flow != null && l.flow != 'none' && l.flow != 'ended')
+          .map((l) => PredictionWindowsComputer.toKey(l.date))
+          .toSet();
+
       final prev = state;
       final prevSelected = prev is _Loaded ? prev.selectedDate : null;
 
@@ -305,6 +365,7 @@ class CalendarCubit extends Cubit<CalendarState> {
         predictionDates: predictionDates,
         fertilityDates: fertilityDates,
         predictedCycles: predictedCycles,
+        existingPeriodDates: existingPeriodDates,
         selectedDate: prevSelected,
         isRefreshing: false,
       ));

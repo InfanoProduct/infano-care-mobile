@@ -7,7 +7,7 @@ import 'package:infano_care_mobile/widgets/post_card.dart';
 import 'package:infano_care_mobile/screens/connect/reply_thread_screen.dart';
 
 class BookmarksScreen extends StatefulWidget {
-  const BookmarksScreen({Key? key}) : super(key: key);
+  const BookmarksScreen({super.key});
 
   @override
   State<BookmarksScreen> createState() => _BookmarksScreenState();

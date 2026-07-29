@@ -10,6 +10,8 @@ class Circle {
   final int? memberCount;
   final int? unreadCount;
   final bool userHasPosted;
+  final bool isJoined;
+  final bool isPrivate;
 
   Circle({
     required this.id,
@@ -23,6 +25,8 @@ class Circle {
     this.memberCount,
     this.unreadCount,
     this.userHasPosted = false,
+    this.isJoined = false,
+    this.isPrivate = false,
   });
 
   factory Circle.fromJson(Map<String, dynamic> json) {
@@ -38,6 +42,8 @@ class Circle {
       memberCount: json['memberCount'] ?? json['member_count'],
       unreadCount: json['unreadCount'] ?? json['unread_count'],
       userHasPosted: json['userHasPosted'] ?? json['user_has_posted'] ?? false,
+      isJoined: json['isJoined'] ?? json['is_joined'] ?? false,
+      isPrivate: json['isPrivate'] ?? json['is_private'] ?? false,
     );
   }
 }

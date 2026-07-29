@@ -8,11 +8,11 @@ class AppealModal extends StatefulWidget {
   final Function(String reason) onSubmit;
 
   const AppealModal({
-    Key? key,
+    super.key,
     required this.contentId,
     required this.contentType,
     required this.onSubmit,
-  }) : super(key: key);
+  });
 
   @override
   State<AppealModal> createState() => _AppealModalState();
@@ -73,7 +73,7 @@ class _AppealModalState extends State<AppealModal> {
               hintText: 'Explain why your post should be restored...',
               hintStyle: const TextStyle(fontSize: 14),
               filled: true,
-              fillColor: AppColors.background.withOpacity(0.5),
+              fillColor: AppColors.background.withValues(alpha: 0.5),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,

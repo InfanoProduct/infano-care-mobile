@@ -28,6 +28,8 @@ class DayCell extends StatefulWidget {
   /// Edit mode props
   final bool isEditMode;
   final bool isInEditRange;
+  final bool isPreviousPeriod;
+  final bool isFutureDate;
 
   /// Pass `true` when this date is the *first* day of a new phase segment
   /// so the [PhaseIcon] renders.
@@ -52,6 +54,8 @@ class DayCell extends StatefulWidget {
     required this.isOtherMonth,
     this.isEditMode = false,
     this.isInEditRange = false,
+    this.isPreviousPeriod = false,
+    this.isFutureDate = false,
     this.isFirstDayOfPhase = false,
     this.streakAnimation,
     this.isStreakStatic = false,
@@ -135,6 +139,8 @@ class _DayCellState extends State<DayCell>
                 isOtherMonth: widget.isOtherMonth,
                 isEditMode: widget.isEditMode,
                 isInEditRange: widget.isInEditRange,
+                isPreviousPeriod: widget.isPreviousPeriod,
+                isFutureDate: widget.isFutureDate,
                 isFirstDayOfPhase: widget.isFirstDayOfPhase,
                 streakProgress: widget.streakAnimation?.value ?? (widget.isStreakStatic ? 1.0 : 0.0),
               ),
@@ -178,6 +184,8 @@ class _DayCellContent extends StatelessWidget {
 
   final bool isEditMode;
   final bool isInEditRange;
+  final bool isPreviousPeriod;
+  final bool isFutureDate;
 
   /// 0.0 to 1.0 progress of the streak animation. 
   /// 1.0 means the cell is permanently in the amber "streak realized" state.
@@ -194,6 +202,8 @@ class _DayCellContent extends StatelessWidget {
     required this.isFirstDayOfPhase,
     required this.isEditMode,
     required this.isInEditRange,
+    required this.isPreviousPeriod,
+    required this.isFutureDate,
     this.streakProgress = 0.0,
   });
 
@@ -208,22 +218,34 @@ class _DayCellContent extends StatelessWidget {
     switch (phase) {
       case PhaseType.menstrual:
         return const _PhaseStyle(
-          bg: Color(0xFFFFEBEB), border: Color(0xFFEF4444));
+          bg: Color(0xFFFFE4E6), // Soft Rose
+          border: Color(0xFFFDA4AF),
+        );
       case PhaseType.follicular:
         return const _PhaseStyle(
-          bg: Color(0xFFF5F3FF), border: Color(0xFFDDD6FE)); // Lavender
+          bg: Color(0xFFF0FDFA), // Soft Mint
+          border: Color(0xFF5EEAD4),
+        );
       case PhaseType.fertile:
         return const _PhaseStyle(
-          bg: Color(0xFFFFF7ED), border: Color(0xFFFFEDD5)); // Lighter Orange
+          bg: Color(0xFFFEFCE8), // Soft Amber
+          border: Color(0xFFFDE68A),
+        );
       case PhaseType.ovulation:
         return const _PhaseStyle(
-          bg: Color(0xFFFFFBEB), border: Color(0xFFF59E0B)); // Light Cream/Orange
+          bg: Color(0xFFFFAE8A), // Specific Peach Orange
+          border: Color(0xFFEA580C), // Saturated Orange Border
+        );
       case PhaseType.luteal:
         return const _PhaseStyle(
-          bg: Color(0xFFEFF6FF), border: Color(0xFFDBEAFE)); // Light Blue
+          bg: Color(0xFFEFF6FF), // Soft Blue
+          border: Color(0xFFBFDBFE),
+        );
       case PhaseType.unknown:
         return const _PhaseStyle(
-          bg: Colors.transparent, border: Colors.transparent);
+          bg: Colors.transparent,
+          border: Colors.transparent,
+        );
     }
   }
 
@@ -242,6 +264,11 @@ class _DayCellContent extends StatelessWidget {
 
     if (isToday) {
       cell = _buildTodayCell();
+    } else if (isEditMode) {
+      cell = _buildEditCell();
+    } else if (phaseInfo != null && phaseInfo!.phase != PhaseType.unknown) {
+      // Prioritize phase coloring only if NOT in edit mode
+      cell = _buildPhaseCell(isPeriodFlow);
     } else if (isOtherMonth) {
       cell = _buildOtherMonthCell();
     } else if (isEditMode) {
@@ -288,8 +315,14 @@ class _DayCellContent extends StatelessWidget {
   // ── Other month cell ───────────────────────────────────────────────────────
 
   Widget _buildOtherMonthCell() {
+    final isUnknown = phaseInfo?.phase == PhaseType.unknown;
+    
     return Container(
       margin: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: isUnknown ? Colors.transparent : const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Center(
         child: _DateNumber(
           day: date.day,
@@ -303,33 +336,61 @@ class _DayCellContent extends StatelessWidget {
   // ── Edit mode cell ─────────────────────────────────────────────────────────
 
   Widget _buildEditCell() {
+    Color bgColor = Colors.transparent;
+    Color borderColor = Colors.grey.withValues(alpha: 0.1);
+    Color textColor = AppColors.textMedium;
+    FontWeight textWeight = FontWeight.normal;
+    IconData? icon;
+    Color iconColor = Colors.grey.withValues(alpha: 0.3);
+
+    if (isFutureDate) {
+      textColor = Colors.grey.withValues(alpha: 0.3);
+      icon = Icons.lock_rounded;
+      iconColor = Colors.grey.withValues(alpha: 0.2);
+    } else if (isInEditRange) {
+      bgColor = AppColors.purple.withValues(alpha: 0.12);
+      borderColor = AppColors.purple.withValues(alpha: 0.3);
+      textColor = AppColors.purple;
+      textWeight = FontWeight.w700;
+      icon = Icons.check_circle_rounded;
+      iconColor = AppColors.purple;
+    } else if (isPreviousPeriod) {
+      bgColor = const Color(0xFFFDF2F8); // Very soft pink
+      borderColor = const Color(0xFFFBCFE8); // Pink border
+      textColor = const Color(0xFF9D174D);
+      textWeight = FontWeight.w600;
+      icon = Icons.radio_button_unchecked_rounded;
+      iconColor = const Color(0xFFFBCFE8);
+    } else {
+      icon = Icons.radio_button_unchecked_rounded;
+    }
+
     return Container(
       margin: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color: isInEditRange ? AppColors.purple.withOpacity(0.12) : Colors.transparent,
+        color: bgColor,
         borderRadius: BorderRadius.circular(10),
-        border: isInEditRange 
-            ? Border.all(color: AppColors.purple.withOpacity(0.3), width: 1.5)
-            : Border.all(color: Colors.grey.withOpacity(0.1), width: 1),
+        border: Border.all(color: borderColor, width: isInEditRange ? 1.5 : 1.0),
       ),
       child: Stack(
         children: [
           Center(
             child: _DateNumber(
               day: date.day,
-              color: isInEditRange ? AppColors.purple : AppColors.textMedium,
-              fontWeight: isInEditRange ? FontWeight.w700 : FontWeight.normal,
+              color: textColor,
+              fontWeight: textWeight,
             ),
           ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: Icon(
-              isInEditRange ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-              size: 14,
-              color: isInEditRange ? AppColors.purple : Colors.grey.withOpacity(0.3),
+          if (icon != null)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Icon(
+                icon,
+                size: 14,
+                color: iconColor,
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -344,41 +405,43 @@ class _DayCellContent extends StatelessWidget {
         : const _PhaseStyle(
             bg: Colors.transparent, border: Colors.transparent);
 
-    // Background colour — apply opacity for predicted days
-    // Ensure transparent base stays transparent (to avoid the "black blocks" issue)
-    final styleBg = info == null || style.bg.alpha == 0
+    // Background colour — solid even for predicted days
+    final styleBg = info == null || style.bg.a == 0
         ? Colors.transparent
-        : (info.isPredicted
-            ? style.bg.withAlpha((info.opacity * 255).round())
-            : style.bg);
+        : style.bg; // No more opacity-based fading for predicted days
     
-    // Streak interpolation
+    // Streak interpolation (Make it much subtler so it doesn't hide the phase)
     const streakBg = Color(0xFFFFFBEB);
-    final bgColor = Color.lerp(styleBg, streakBg, streakProgress);
+    final bgColor = streakProgress > 0 
+        ? Color.lerp(styleBg, streakBg, streakProgress * 0.3) // Only 30% yellow overlay for streak
+        : styleBg;
 
     final numColor = info?.isPredicted == true
         ? _kPredictedNum
         : (info?.phase == PhaseType.unknown || info == null 
             ? const Color(0xFF6B7280) // Muted grey for non-cycle dates
-            : const Color(0xFF1E1B4B));
+            : const Color(0xFF1F2937)); // Darker gray
 
-    // Lighter red for predicted menstrual background
-    final baseBg = (info?.isPredicted == true && info?.phase == PhaseType.menstrual)
-        ? const Color(0xFFFFF1F2)
+    // Predicted days now have the same border as active days
+    final borderColor = streakProgress > 0.8 ? const Color(0xFFFDE68A) : style.border;
+
+    var baseBg = (info?.isPredicted == true)
+        ? const Color(0xFFFFE4E6) // Soft Rose for the entire window
         : bgColor;
 
-    const streakBorder = Color(0xFFFDE68A);
-    final baseBorder = style.border;
-    final borderColor = streakProgress > 0.8 ? streakBorder : baseBorder;
+    // If it's a day from another month, keep the color but make it slightly more pastel/faded
+    if (isOtherMonth) {
+      baseBg = baseBg?.withValues(alpha: 0.5);
+    }
 
     Widget inner = Container(
       margin: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         color: baseBg,
         borderRadius: BorderRadius.circular(10),
-        border: info?.isPredicted != true && info?.phase != PhaseType.unknown
-            ? Border.all(color: borderColor, width: 1)
-            : null, 
+        border: info != null && info.phase != PhaseType.unknown && !info.isPredicted
+            ? Border.all(color: borderColor, width: 1.2)
+            : Border.all(color: Colors.grey.withValues(alpha: 0.05), width: 1), 
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -398,26 +461,6 @@ class _DayCellContent extends StatelessWidget {
         ],
       ),
     );
-
-    // Overlay dashed border for predicted days
-    if (info?.isPredicted == true) {
-      inner = Stack(
-        children: [
-          inner,
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: CustomPaint(
-                painter: _PhaseDashedBorderPainter(
-                  color: style.border,
-                  borderRadius: 10,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
 
     return inner;
   }

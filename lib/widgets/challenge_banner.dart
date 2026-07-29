@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/models/event.dart';
 
 class ChallengeBanner extends StatelessWidget {
@@ -7,10 +6,10 @@ class ChallengeBanner extends StatelessWidget {
   final VoidCallback onTap;
 
   const ChallengeBanner({
-    Key? key,
+    super.key,
     required this.challenge,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +27,7 @@ class ChallengeBanner extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFBBF24).withOpacity(0.3),
+              color: const Color(0xFFFBBF24).withValues(alpha: 0.3),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -43,7 +42,7 @@ class ChallengeBanner extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
@@ -69,14 +68,14 @@ class ChallengeBanner extends StatelessWidget {
                   Text(
                     challenge.description,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 13,
                     ),
                   ),
                   const SizedBox(height: 12),
                   LinearProgressIndicator(
                     value: challenge.completionProgress / 100,
-                    backgroundColor: Colors.white.withOpacity(0.3),
+                    backgroundColor: Colors.white.withValues(alpha: 0.3),
                     valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -97,7 +96,7 @@ class ChallengeBanner extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.emoji_events, color: Colors.white, size: 32),

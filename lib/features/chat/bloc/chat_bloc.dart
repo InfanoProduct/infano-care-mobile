@@ -172,8 +172,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   Future<void> _onCreateSession(CreateSession event, Emitter<ChatState> emit) async {
-    final sessions =
-        state is ChatSuccess ? (state as ChatSuccess).sessions : const <dynamic>[];
+
     emit(ChatLoading());
     try {
       final result = await _repo.sendMessage(event.initialMessage, moodCode: event.moodCode);
@@ -185,14 +184,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         'createdAt': DateTime.now().toIso8601String(),
       };
 
+      final updatedSessions = await _repo.getSessions();
+
       emit(ChatSuccess(
         messages: [optimisticMsg, result['message']],
-        sessionId: result['sessionId'],
-        sessions: sessions,
+        sessionId: result['sessionId'] as String,
+        sessions: updatedSessions,
         hasReachedMax: true, // It’s a brand new session, so no older history exists yet
       ));
-
-      _refreshSessions(result['sessionId'] as String);
     } catch (e) {
       emit(ChatError(e.toString()));
     }
@@ -323,12 +322,4 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
-  void _refreshSessions(String currentSessionId) {
-    _repo.getSessions().then((sessions) {
-      if (state is ChatSuccess) {
-        final s = state as ChatSuccess;
-        emit(s.copyWith(sessions: sessions));
-      }
-    }).catchError((_) {});
-  }
 }

@@ -116,7 +116,7 @@ class _PeriodEditorSheetState extends State<PeriodEditorSheet> {
             title: 'Is this a period day?',
             trailing: Switch.adaptive(
               value: _isPeriodDay,
-              activeColor: AppColors.pink,
+              activeThumbColor: AppColors.pink,
               onChanged: _isSaving ? null : _togglePeriodDay,
             ),
           ),

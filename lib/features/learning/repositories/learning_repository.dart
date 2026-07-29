@@ -8,7 +8,7 @@ class LearningRepository {
 
   Future<List<LearningJourney>> listJourneys({String? ageBand}) async {
     final response = await _dio.get('/learning/journeys', queryParameters: {
-      if (ageBand != null) 'ageBand': ageBand,
+      'ageBand': ageBand,
     });
     return (response.data as List).map((json) => LearningJourney.fromJson(json)).toList();
   }
@@ -47,8 +47,8 @@ class LearningRepository {
       '/learning/episodes/$episodeId/progress',
       data: {
         'completedItems': completedSegments,
-        if (lastViewedItemId != null) 'lastViewedItemId': lastViewedItemId,
-        if (history != null) 'history': history,
+        'lastViewedItemId': lastViewedItemId,
+        'history': history,
       },
     );
   }
@@ -86,5 +86,29 @@ class LearningRepository {
     return (response.data as List)
         .map((json) => UserProgress.fromJson(json))
         .toList();
+  }
+
+  /// Fetch all active learning programs.
+  Future<List<dynamic>> listActivePrograms() async {
+    final response = await _dio.get('/programs');
+    return response.data['data'] as List;
+  }
+
+  /// Fetch user enrolled programs (including programs linked via parent).
+  Future<List<dynamic>> getMyProgramEnrollments() async {
+    final response = await _dio.get('/programs/me');
+    return response.data['data'] as List;
+  }
+
+  /// Fetch user book orders and their payment/shipping status.
+  Future<List<dynamic>> getMyBookOrders() async {
+    final response = await _dio.get('/shop/orders/me');
+    return response.data as List;
+  }
+
+  /// Book a new program demo session
+  Future<Map<String, dynamic>> bookDemoSession(Map<String, dynamic> data) async {
+    final response = await _dio.post('/programs/demo/book', data: data);
+    return response.data as Map<String, dynamic>;
   }
 }

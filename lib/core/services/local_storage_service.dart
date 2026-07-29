@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:infano_care_mobile/core/utils/url_utils.dart';
 
 /// Typed wrapper around SharedPreferences for onboarding state persistence.
 class LocalStorageService extends ChangeNotifier {
@@ -9,10 +10,6 @@ class LocalStorageService extends ChangeNotifier {
   static const _role           = 'user_role';
   static const _points         = 'ob_points';
   static const _stepComplete   = 'ob_step_complete';
-  static const _personalization = 'ob_personalization';
-  static const _avatar         = 'ob_avatar';
-  static const _journeyName    = 'ob_journey_name';
-  static const _trackerSetup   = 'ob_tracker_setup';
   static const _authToken      = 'auth_token';
   static const _refreshToken   = 'refresh_token';
   static const _userId         = 'user_id';
@@ -27,6 +24,10 @@ class LocalStorageService extends ChangeNotifier {
   static const _periodStatus    = 'ob_period_status';
   static const _calendarVisited = 'ob_calendar_visited';
   static const _contentTier     = 'user_content_tier';
+  static const _savedArticles   = 'saved_articles_list';
+  static const _predictionBannerDismissedAt = 'ob_prediction_banner_dismissed_at';
+  static const _isFriendOnboarded = 'ob_is_friend_onboarded';
+  static const _avatarUrl         = 'user_avatar_url';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -49,6 +50,12 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool get isFriendOnboarded => _prefs.getBool(_isFriendOnboarded) ?? false;
+  Future<void> setIsFriendOnboarded(bool value) async {
+    await _prefs.setBool(_isFriendOnboarded, value);
+    notifyListeners();
+  }
+
   // ── Identity ──────────────────────────────────────────────────────────────
   String? get userType          => _prefs.getString(_userType);
   String? get displayName       => _prefs.getString(_displayName);
@@ -56,6 +63,7 @@ class LocalStorageService extends ChangeNotifier {
   String? get phone             => _prefs.getString(_phone);
   String? get role              => _prefs.getString(_role);
   String? get contentTier       => _prefs.getString(_contentTier);
+  String? get avatarUrl         => UrlUtils.sanitizeUrl(_prefs.getString(_avatarUrl));
 
   Future<void> setUserType(String t) async {
     await _prefs.setString(_userType, t);
@@ -65,9 +73,20 @@ class LocalStorageService extends ChangeNotifier {
     await _prefs.setString(_displayName, n);
     notifyListeners();
   }
+  Future<void> setAvatarUrl(String? url) async {
+    if (url != null) {
+      await _prefs.setString(_avatarUrl, url);
+    } else {
+      await _prefs.remove(_avatarUrl);
+    }
+    notifyListeners();
+  }
   Future<void> setPronouns(String? p) async {
-    if (p != null) await _prefs.setString(_pronouns, p);
-    else await _prefs.remove(_pronouns);
+    if (p != null) {
+      await _prefs.setString(_pronouns, p);
+    } else {
+      await _prefs.remove(_pronouns);
+    }
     notifyListeners();
   }
   Future<void> setPhone(String p) async {
@@ -164,6 +183,24 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Prediction Banner ─────────────────────────────────────────────────────
+  bool get isPredictionBannerDismissedToday {
+    final dismissedAtStr = _prefs.getString(_predictionBannerDismissedAt);
+    if (dismissedAtStr == null) return false;
+    final dismissedAt = DateTime.tryParse(dismissedAtStr);
+    if (dismissedAt == null) return false;
+    
+    final now = DateTime.now();
+    return dismissedAt.year == now.year && 
+           dismissedAt.month == now.month && 
+           dismissedAt.day == now.day;
+  }
+
+  Future<void> setPredictionBannerDismissed() async {
+    await _prefs.setString(_predictionBannerDismissedAt, DateTime.now().toIso8601String());
+    notifyListeners();
+  }
+
   // ── Streak Animation Persistence ──────────────────────────────────────────
 
   /// Check if a 7-day streak row has already played its animation.
@@ -174,6 +211,22 @@ class LocalStorageService extends ChangeNotifier {
   /// Mark a 7-day streak row as animated.
   Future<void> setWeekStreakAnimated(String weekKey) async {
     await _prefs.setBool('streak_animated_$weekKey', true);
+    notifyListeners();
+  }
+
+  // ── Saved Articles ────────────────────────────────────────────────────────
+  List<String> get savedArticles => _prefs.getStringList(_savedArticles) ?? [];
+
+  bool isArticleSaved(String title) => savedArticles.contains(title);
+
+  Future<void> toggleSavedArticle(String title) async {
+    final current = savedArticles.toList();
+    if (current.contains(title)) {
+      current.remove(title);
+    } else {
+      current.add(title);
+    }
+    await _prefs.setStringList(_savedArticles, current);
     notifyListeners();
   }
 }

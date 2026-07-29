@@ -8,7 +8,7 @@ import 'dart:async';
 
 class LiveEventScreen extends StatefulWidget {
   final CommunityEvent event;
-  const LiveEventScreen({Key? key, required this.event}) : super(key: key);
+  const LiveEventScreen({super.key, required this.event});
 
   @override
   State<LiveEventScreen> createState() => _LiveEventScreenState();
@@ -128,6 +128,7 @@ class _LiveEventScreenState extends State<LiveEventScreen> {
           _questionController.clear();
         });
         _scrollToTop();
+        _showSubmissionConfirmation();
       }
     } catch (e) {
       if (mounted) {
@@ -205,12 +206,18 @@ class _LiveEventScreenState extends State<LiveEventScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               itemCount: _questions.length + 3, // Expert card, header, spacer, and questions
               itemBuilder: (context, index) {
-                if (index == 0) return _buildExpertCard();
-                if (index == 1) return const SizedBox(height: 24);
-                if (index == 2) return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildQAHeader(),
-                );
+                if (index == 0) {
+                  return _buildExpertCard();
+                }
+                if (index == 1) {
+                  return const SizedBox(height: 24);
+                }
+                if (index == 2) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _buildQAHeader(),
+                  );
+                }
                 
                 final question = _questions[index - 3];
                 return _buildQuestionCard(question);
@@ -227,7 +234,7 @@ class _LiveEventScreenState extends State<LiveEventScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8),
-      color: AppColors.error.withOpacity(0.1),
+      color: AppColors.error.withValues(alpha: 0.1),
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -247,9 +254,9 @@ class _LiveEventScreenState extends State<LiveEventScreen> {
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.purple.withOpacity(0.05),
+        color: AppColors.purple.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.purple.withOpacity(0.1)),
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -259,7 +266,7 @@ class _LiveEventScreenState extends State<LiveEventScreen> {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: AppColors.purple.withOpacity(0.1),
+                  backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                   backgroundImage: widget.event.expertPhotoUrl != null ? NetworkImage(widget.event.expertPhotoUrl!) : null,
                   child: widget.event.expertPhotoUrl == null ? const Icon(Icons.person, color: AppColors.purple) : null,
                 ),
@@ -310,7 +317,7 @@ class _LiveEventScreenState extends State<LiveEventScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.1),
+            color: Colors.green.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -385,7 +392,7 @@ class _LiveEventScreenState extends State<LiveEventScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5)),
         ],
       ),
       child: SafeArea(

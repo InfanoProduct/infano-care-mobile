@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 class CommunityPulseStrip extends StatefulWidget {
   final List<Circle> circles;
 
-  const CommunityPulseStrip({Key? key, required this.circles}) : super(key: key);
+  const CommunityPulseStrip({super.key, required this.circles});
 
   @override
   State<CommunityPulseStrip> createState() => _CommunityPulseStripState();

@@ -6,6 +6,7 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
 import 'package:infano_care_mobile/shared/widgets/points_burst.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class NamePronounsScreen extends StatefulWidget {
   const NamePronounsScreen({super.key});
@@ -19,6 +20,23 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
   String? _pronoun;
   bool _showPoints = false;
   bool _pointsAwarded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final storage = context.read<LocalStorageService>();
+    if (storage.displayName != null && storage.displayName!.isNotEmpty) {
+      _controller.text = storage.displayName!;
+      _pointsAwarded = true;
+    }
+    _pronoun = storage.pronouns;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   static const _pronouns = ['She / Her', 'She / They', 'They / Them'];
 

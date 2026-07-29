@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/utils/calendar_types.dart';
 import 'package:intl/intl.dart';
+import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DayDetailPanel
@@ -19,7 +20,7 @@ class DayDetailPanel extends StatefulWidget {
   /// ISO date string `"YYYY-MM-DD"`, or null when nothing is selected.
   final String? selectedDate;
   final PhaseInfo? phaseInfo;
-  final FlowLevel? existingFlow;
+  final CycleLogModel? log;
   final bool isFutureDay;
   final bool isPredictedPeriodDay;
 
@@ -29,17 +30,19 @@ class DayDetailPanel extends StatefulWidget {
   /// Called when the user taps the Save button.
   final Future<void> Function() onSave;
   final bool isSaving;
+  final bool isEditMode;
 
   const DayDetailPanel({
     super.key,
     required this.selectedDate,
     required this.phaseInfo,
-    required this.existingFlow,
+    required this.log,
     required this.isFutureDay,
     required this.isPredictedPeriodDay,
     required this.onFlowChange,
     required this.onSave,
     required this.isSaving,
+    required this.isEditMode,
   });
 
   @override
@@ -97,12 +100,13 @@ class _DayDetailPanelState extends State<DayDetailPanel>
           child: _PanelBody(
             selectedDate: widget.selectedDate!,
             phaseInfo: widget.phaseInfo,
-            existingFlow: widget.existingFlow,
+            log: widget.log,
             isFutureDay: widget.isFutureDay,
             isPredictedPeriodDay: widget.isPredictedPeriodDay,
             onFlowChange: widget.onFlowChange,
             onSave: widget.onSave,
             isSaving: widget.isSaving,
+            isEditMode: widget.isEditMode,
           ),
         ),
       ),
@@ -125,22 +129,24 @@ class _DayDetailPanelState extends State<DayDetailPanel>
 class _PanelBody extends StatelessWidget {
   final String selectedDate;
   final PhaseInfo? phaseInfo;
-  final FlowLevel? existingFlow;
+  final CycleLogModel? log;
   final bool isFutureDay;
   final bool isPredictedPeriodDay;
   final void Function(FlowLevel) onFlowChange;
   final Future<void> Function() onSave;
   final bool isSaving;
+  final bool isEditMode;
 
   const _PanelBody({
     required this.selectedDate,
     required this.phaseInfo,
-    required this.existingFlow,
+    required this.log,
     required this.isFutureDay,
     required this.isPredictedPeriodDay,
     required this.onFlowChange,
     required this.onSave,
     required this.isSaving,
+    required this.isEditMode,
   });
 
   @override
@@ -153,10 +159,10 @@ class _PanelBody extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: style.borderColor.withAlpha(51), width: 1.2),
+        border: Border.all(color: style.borderColor.withValues(alpha: 0.2), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: style.accentColor.withAlpha(18),
+            color: style.accentColor.withValues(alpha: 0.07),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -184,9 +190,9 @@ class _PanelBody extends StatelessWidget {
                 ],
 
                 // ── 3. Flow pills (past / today only) ───────────────────────
-                if (!isFutureDay) ...[
+                if (!isFutureDay && isEditMode) ...[
                   _FlowPillRow(
-                    selected: existingFlow ?? FlowLevel.none,
+                    selected: log != null ? flowLevelFromString(log!.flow) : FlowLevel.none,
                     phase: phase,
                     style: style,
                     onSelect: onFlowChange,
@@ -194,10 +200,17 @@ class _PanelBody extends StatelessWidget {
                   const SizedBox(height: 14),
                 ],
 
-                // ── 4. Save button ───────────────────────────────────────────
-                _SaveButton(isSaving: isSaving, onSave: onSave),
+                // ── 4. Log Details (if any) ──────────────────────────────────
+                if (log != null) ...[
+                  _LogDetailsBox(log: log!),
+                  const SizedBox(height: 14),
+                ],
 
-                // ── 5. Phase tip ─────────────────────────────────────────────
+                // ── 5. Save button ───────────────────────────────────────────
+                if (isEditMode)
+                  _SaveButton(isSaving: isSaving, onSave: onSave),
+
+                // ── 6. Phase tip ─────────────────────────────────────────────
                 const SizedBox(height: 10),
                 _PhaseTip(phase: phase),
               ],
@@ -206,6 +219,83 @@ class _PanelBody extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ── Log Details Box ─────────────────────────────────────────────────────────
+
+class _LogDetailsBox extends StatelessWidget {
+  final CycleLogModel log;
+  const _LogDetailsBox({required this.log});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasMood = log.moodPrimary != null && log.moodPrimary!.isNotEmpty;
+    final hasSymptoms = log.symptoms.isNotEmpty;
+    final hasSleep = log.sleepHours != null;
+    final hasDischarge = log.vaginalDischarge != null && log.vaginalDischarge!.isNotEmpty;
+
+    if (!hasMood && !hasSymptoms && !hasSleep && !hasDischarge) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[100]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasMood) ...[
+            _detailRow('Mood', log.moodPrimary!, isMood: true),
+            const SizedBox(height: 8),
+          ],
+          if (hasSymptoms) ...[
+            _detailRow('Symptoms', log.symptoms.map((s) => _formatSymptom(s)).join(', ')),
+            const SizedBox(height: 8),
+          ],
+          if (hasSleep) ...[
+            _detailRow('Sleep', '${log.sleepHours} hrs (${log.sleepQuality}/5 quality)'),
+            const SizedBox(height: 8),
+          ],
+          if (hasDischarge) ...[
+            _detailRow('Discharge', log.vaginalDischarge!),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value, {bool isMood = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 70,
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.w600),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            isMood ? value.toUpperCase() : value,
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              color: AppColors.textDark,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatSymptom(String id) {
+    return id.replaceAll('_', ' ').split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '').join(' ');
   }
 }
 
@@ -238,7 +328,7 @@ class _Header extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
       decoration: BoxDecoration(
-        color: style.bgColor.withAlpha(90),
+        color: style.bgColor.withValues(alpha: 0.35),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Row(
@@ -283,11 +373,11 @@ class _PhaseChipBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: phaseInfo.isPredicted
             ? Colors.white
-            : style.accentColor.withAlpha(26),
+            : style.accentColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
         border: phaseInfo.isPredicted
             ? null // dashed painted separately
-            : Border.all(color: style.accentColor.withAlpha(77), width: 1),
+            : Border.all(color: style.accentColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Text(
         label,
@@ -465,7 +555,7 @@ class _FlowPill extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
-                  ? style.accentColor.withAlpha(180)
+                  ? style.accentColor.withValues(alpha: 0.7)
                   : const Color(0xFFE5E7EB),
               width: isSelected ? 1.5 : 1,
             ),
@@ -504,12 +594,13 @@ class _SaveButton extends StatelessWidget {
             ? null
             : () async {
                 await onSave();
-                if (context.mounted) {
-                  SemanticsService.announce(
-                    'Log saved and prediction updated.',
-                    ui.TextDirection.ltr,
-                  );
-                }
+                if (!context.mounted) return;
+                final view = View.of(context);
+                SemanticsService.sendAnnouncement(
+                  view,
+                  'Log saved and prediction updated.',
+                  ui.TextDirection.ltr,
+                );
               },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
