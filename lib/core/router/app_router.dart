@@ -52,6 +52,7 @@ import 'package:infano_care_mobile/features/chat/bloc/chat_bloc.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_dashboard_screen.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_list_screen.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_chat_screen.dart';
+import 'package:infano_care_mobile/features/chat/screens/my_chats_screen.dart';
 
 // Learning Journey Imports
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -180,6 +181,7 @@ GoRouter createRouter(LocalStorageService storage) {
       
       // Expert Chat
       GoRoute(path: '/expert/list', builder: (_, _) => ExpertListScreen(storage: storage)),
+      GoRoute(path: '/my-chats', builder: (_, _) => const MyChatsScreen()),
       GoRoute(
         path: '/expert/chat/:sessionId', 
         builder: (_, state) {

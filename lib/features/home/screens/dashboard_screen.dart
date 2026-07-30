@@ -474,6 +474,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.chat_bubble_outline, color: AppColors.purple),
+            title: const Text('My Chats'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/my-chats');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.workspace_premium_outlined, color: AppColors.purple),
             title: const Text('Enrolled Programs'),
             onTap: () {
