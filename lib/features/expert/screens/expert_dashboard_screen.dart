@@ -105,76 +105,121 @@ class _ExpertHomeTabState extends State<_ExpertHomeTab> {
                   const SizedBox(height: 20),
 
                   // Expert Management Quick Action Cards
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () => context.push('/expert/consultations'),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [AppColors.purple.withValues(alpha: 0.12), AppColors.purple.withValues(alpha: 0.05)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.purple.withValues(alpha: 0.2)),
+                      // Program Sessions Banner Card
+                      InkWell(
+                        onTap: () => context.push('/expert/program-sessions'),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4F46E5), Color(0xFF6366F1)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            child: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(color: const Color(0xFF4F46E5).withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 3)),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+                                child: Icon(Icons.layers_rounded, color: Colors.white, size: 20),
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(Icons.video_call_rounded, color: AppColors.purple, size: 22),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.purple),
+                                    Text('Program Sessions Workspace', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                                    SizedBox(height: 2),
+                                    Text('Curriculum timelines & session meet links', style: TextStyle(fontSize: 11, color: Colors.white70)),
                                   ],
                                 ),
-                                SizedBox(height: 10),
-                                Text('1:1 Consultations', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
-                                SizedBox(height: 2),
-                                Text('Manage links & schedule', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
-                              ],
-                            ),
+                              ),
+                              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.white),
+                            ],
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () => context.push('/expert/calendar'),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [const Color(0xFFEC4899).withValues(alpha: 0.12), const Color(0xFFEC4899).withValues(alpha: 0.05)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => context.push('/expert/consultations'),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFEC4899).withValues(alpha: 0.2)),
-                            ),
-                            child: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [AppColors.purple.withValues(alpha: 0.12), AppColors.purple.withValues(alpha: 0.05)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.2)),
+                                ),
+                                child: const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(Icons.calendar_month_rounded, color: Color(0xFFEC4899), size: 22),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFEC4899)),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.video_call_rounded, color: AppColors.purple, size: 22),
+                                        Spacer(),
+                                        Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.purple),
+                                      ],
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text('1:1 Consultations', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+                                    SizedBox(height: 2),
+                                    Text('Manage links & schedule', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
                                   ],
                                 ),
-                                SizedBox(height: 10),
-                                Text('My Availability', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
-                                SizedBox(height: 2),
-                                Text('Set slots & block dates', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => context.push('/expert/calendar'),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [const Color(0xFFEC4899).withValues(alpha: 0.12), const Color(0xFFEC4899).withValues(alpha: 0.05)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: const Color(0xFFEC4899).withValues(alpha: 0.2)),
+                                ),
+                                child: const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.calendar_month_rounded, color: Color(0xFFEC4899), size: 22),
+                                        Spacer(),
+                                        Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFEC4899)),
+                                      ],
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text('My Availability', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+                                    SizedBox(height: 2),
+                                    Text('Set slots & block dates', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -194,12 +239,19 @@ class _ExpertHomeTabState extends State<_ExpertHomeTab> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator(color: AppColors.purple)),
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: CircularProgressIndicator(color: AppColors.purple),
+                    ),
+                  ),
                 );
               }
 
               if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
                 return SliverFillRemaining(
+                  hasScrollBody: false,
                   child: _EmptyConsultations(onRefresh: () => setState(() {
                     _sessionsFuture = _expertService.getMySessions();
                   })),
@@ -219,18 +271,19 @@ class _ExpertHomeTabState extends State<_ExpertHomeTab> {
                           ? profile['displayName'] as String
                           : 'Anonymous User';
                       final messages = session['messages'] as List?;
+                      final scheduledAt = session['scheduledAt'] as String?;
                       final lastMsg = (messages != null && messages.isNotEmpty)
                           ? messages[0]['content'] as String? ?? 'Consultation started'
-                          : 'Consultation started';
+                          : (scheduledAt != null ? '1:1 Scheduled Appointment' : 'Consultation started');
                       final lastTime = (messages != null && messages.isNotEmpty)
                           ? _formatTime(messages[0]['createdAt'] as String?)
-                          : '';
+                          : _formatTime(scheduledAt);
                       return _SessionCard(
                         userName: userName,
                         lastMessage: lastMsg,
                         lastTime: lastTime,
                         unreadCount: session['unreadCount'] as int? ?? 0,
-                        onTap: () => context.push('/expert/chat/${session['id']}', extra: {'expertName': userName}),
+                        onTap: () => context.push('/expert/consultations'),
                       );
                     },
                     childCount: sessions.length,
@@ -480,6 +533,11 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
           ),
           const SizedBox(height: 4),
           ListTile(
+            leading: const Icon(Icons.layers_outlined, color: AppColors.purple),
+            title: const Text('Program Sessions Workspace'),
+            onTap: () { Navigator.pop(context); context.push('/expert/program-sessions'); },
+          ),
+          ListTile(
             leading: const Icon(Icons.video_call_outlined, color: AppColors.purple),
             title: const Text('1:1 Direct Consultations'),
             onTap: () { Navigator.pop(context); context.push('/expert/consultations'); },
@@ -643,12 +701,13 @@ class _EmptyConsultations extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(28),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColors.purple.withValues(alpha: 0.08), AppColors.purple.withValues(alpha: 0.03)],
@@ -657,26 +716,26 @@ class _EmptyConsultations extends StatelessWidget {
                 ),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.chat_bubble_outline_rounded, size: 52, color: AppColors.purple),
+              child: const Icon(Icons.chat_bubble_outline_rounded, size: 44, color: AppColors.purple),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             const Text('Patiently Waiting 🌸',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-            const SizedBox(height: 12),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+            const SizedBox(height: 8),
             const Text(
               'No active consultations yet.\nWhen a user reaches out, they\'ll appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.textLight, height: 1.6),
+              style: TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.5),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 20),
             OutlinedButton.icon(
               onPressed: onRefresh,
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text('Refresh'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.purple,
                 side: const BorderSide(color: AppColors.purple),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
             ),

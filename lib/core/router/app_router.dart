@@ -52,6 +52,8 @@ import 'package:infano_care_mobile/features/expert/screens/expert_list_screen.da
 import 'package:infano_care_mobile/features/expert/screens/expert_chat_screen.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_consultations_screen.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_calendar_screen.dart';
+import 'package:infano_care_mobile/features/expert/screens/expert_program_sessions_screen.dart';
+import 'package:infano_care_mobile/features/expert/screens/expert_enrollment_detail_screen.dart';
 
 // Learning Journey Imports
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -159,6 +161,14 @@ GoRouter createRouter(LocalStorageService storage) {
       
       // Expert Dashboard & Tools
       GoRoute(path: '/expert/dashboard', builder: (_, _) => ExpertDashboardScreen(storage: storage)),
+      GoRoute(path: '/expert/program-sessions', builder: (_, _) => ExpertProgramSessionsScreen(storage: storage)),
+      GoRoute(
+        path: '/expert/enrollment-details/:id',
+        builder: (_, state) => ExpertEnrollmentDetailScreen(
+          enrollmentId: state.pathParameters['id']!,
+          storage: storage,
+        ),
+      ),
       GoRoute(path: '/expert/consultations', builder: (_, _) => ExpertConsultationsScreen(storage: storage)),
       GoRoute(path: '/expert/calendar', builder: (_, _) => ExpertCalendarScreen(storage: storage)),
       

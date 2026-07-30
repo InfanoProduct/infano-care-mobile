@@ -24,10 +24,10 @@ class ExpertService {
     }
   }
 
-  /// Fetch active chat consultations for the human expert (for Expert side)
+  /// Fetch active consultations for the human expert (for Expert side)
   Future<List<dynamic>> getMySessions() async {
     try {
-      final response = await _dio.get('/expert/my-sessions');
+      final response = await _dio.get('/expert/sessions');
       return response.data as List<dynamic>;
     } catch (e) {
       debugPrint('[ExpertService] Error fetching expert sessions: $e');
@@ -43,6 +43,68 @@ class ExpertService {
     } catch (e) {
       debugPrint('[ExpertService] Error fetching direct sessions: $e');
       return [];
+    }
+  }
+
+  /// Fetch list of program enrollments (for Expert side)
+  Future<List<dynamic>> getEnrollments() async {
+    try {
+      final response = await _dio.get('/expert/enrollments');
+      debugPrint('[ExpertService] getEnrollments status: ${response.statusCode}, data: ${response.data}');
+      if (response.data is List) {
+        return response.data as List<dynamic>;
+      } else if (response.data is Map && response.data['data'] is List) {
+        return response.data['data'] as List<dynamic>;
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[ExpertService] Error fetching enrollments: $e');
+      return [];
+    }
+  }
+
+  /// Fetch enrollment details and session timeline
+  Future<Map<String, dynamic>?> getEnrollmentDetails(String id) async {
+    try {
+      final response = await _dio.get('/expert/enrollments/$id');
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('[ExpertService] Error fetching enrollment details: $e');
+      return null;
+    }
+  }
+
+  /// Schedule a program session for a student
+  Future<bool> scheduleProgramSession({
+    required String userId,
+    required String programId,
+    required int sessionNumber,
+    required String scheduledAt,
+    required String meetLink,
+  }) async {
+    try {
+      final response = await _dio.post('/expert/sessions', data: {
+        'userId': userId,
+        'programId': programId,
+        'sessionNumber': sessionNumber,
+        'scheduledAt': scheduledAt,
+        'meetLink': meetLink,
+      });
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('[ExpertService] Error scheduling program session: $e');
+      return false;
+    }
+  }
+
+  /// Mark a program session as complete
+  Future<bool> completeProgramSession(String sessionId) async {
+    try {
+      final response = await _dio.patch('/expert/sessions/$sessionId/complete');
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[ExpertService] Error completing program session: $e');
+      return false;
     }
   }
 
