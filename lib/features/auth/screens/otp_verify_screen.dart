@@ -3,14 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sms_autofill/sms_autofill.dart';
-import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 import 'package:infano_care_mobile/core/services/permission_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
-import 'package:infano_care_mobile/core/router/app_router.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 
 class OtpVerifyScreen extends StatefulWidget {
@@ -79,7 +76,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
           _error = null;
         });
         // Auto-verify if session is not expired
-        if (!context.read<OnboardingBloc>().state.sessionExpired) {
+        if (_countdown > 0) {
           _verify();
         }
       }
@@ -112,28 +109,20 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
 
       if (!mounted) return;
 
-      // Resumption Logic:
-      if (result.onboardingStep == 0) {
-        // Brand new user: Start at path selection
-        final bloc = context.read<OnboardingBloc>();
-        bloc.add(SetPhone(widget.phone));
-        if (mounted) context.go('/onboarding/path');
+      // Route based on what the backend told us: role + onboardingCompleted
+      if (result.isOnboardingCompleted) {
+        context.go('/home');
+        return;
+      }
+
+      // Not yet onboarded — set userType from role and go to onboarding
+      final role = result.role ?? widget.storage.role;
+      if (role != null) {
+        widget.storage.setUserType(role.toLowerCase());
+        context.go('/onboarding/name');
       } else {
-        // Returning or partially onboarded user:
-        if (result.accessToken == null) {
-          await _repo.login(result.tempToken);
-        }
-        
-        // Sync full profile data from server so local storage is populated (birthYear, contentTier, etc.)
-        await _repo.syncProfile();
-        
-        final target = getRouteForStep(
-          widget.storage.stepComplete ?? '0', 
-          periodStatus: widget.storage.periodStatus,
-        );
-        debugPrint('🚀 OTP Verified. Navigating to: $target');
-        
-        if (mounted) context.go(target);
+        // Truly new user with no role yet — show path selector
+        context.go('/onboarding/path');
       }
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); });
@@ -174,144 +163,140 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
   }
 
   Widget _buildBody(BuildContext context) {
-
-    return BlocBuilder<OnboardingBloc, OnboardingState>(
-        builder: (context, state) {
-      return SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    final sessionExpired = _countdown == 0;
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            if (!widget.fromOnboarding)
+              GestureDetector(
+                onTap: () => context.go('/auth/phone'),
+                child: Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5)),
+                  child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.textDark),
+                ),
+              ),
+            const SizedBox(height: 32),
+            Text('Verify it\'s you 🔐', style: Theme.of(context).textTheme.headlineLarge),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text('Code sent to ', style: Theme.of(context).textTheme.bodyLarge),
+                Text(widget.phone, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.purple)),
+              ],
+            ),
+            const SizedBox(height: 48),
+            PinCodeTextField(
+              appContext: context,
+              length: 4,
+              animationType: AnimationType.scale,
+              pinTheme: PinTheme(
+                shape: PinCodeFieldShape.box, 
+                borderRadius: BorderRadius.circular(16),
+                fieldHeight: 64, fieldWidth: 54,
+                activeFillColor: Colors.white, 
+                inactiveFillColor: AppColors.surfaceCard,
+                selectedFillColor: Colors.white, 
+                activeColor: AppColors.purple,
+                inactiveColor: const Color(0xFFE9D5FF), 
+                selectedColor: AppColors.purple,
+                borderWidth: 2,
+              ),
+              cursorColor: AppColors.purple,
+              enableActiveFill: true,
+              keyboardType: TextInputType.number,
+              controller: _pinController,
+              onChanged: (v) => setState(() { _otp = v; _error = null; }),
+              onCompleted: (_) => _verify(),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _otp.isEmpty && _countdown > 45
+                  ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.purple)),
+                        SizedBox(width: 8),
+                        Text('Waiting for SMS...', style: TextStyle(color: AppColors.textLight, fontSize: 13)),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+              ),
+            ),
+            if (_error != null) ...[
               const SizedBox(height: 16),
-              if (!widget.fromOnboarding)
-                GestureDetector(
-                  onTap: () => context.go('/auth/phone'),
-                  child: Container(
-                    width: 44, height: 44,
-                    decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5)),
-                    child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.textDark),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.error.withValues(alpha: 0.2))),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.w500))),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 32),
+            Center(
+              child: _countdown > 0
+                ? Text('Resend code in ${_countdown}s', style: const TextStyle(color: AppColors.textLight))
+                : TextButton(
+                    onPressed: _resendOtp, 
+                    child: const Text('Resend OTP 📩', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w700, fontSize: 15)),
                   ),
+            ),
+            const SizedBox(height: 48),
+            GestureDetector(
+              onTap: _otp.length == 4 && !_loading && !sessionExpired ? _verify : null,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 54,
+                decoration: BoxDecoration(
+                  gradient: (_otp.length == 4 && !sessionExpired) ? AppGradients.brand : null, 
+                  color: (_otp.length == 4 && !sessionExpired) ? null : AppColors.textLight.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(100),
+                  boxShadow: (_otp.length == 4) ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))] : [],
                 ),
-              const SizedBox(height: 32),
-              Text('Verify it\'s you 🔐', style: Theme.of(context).textTheme.headlineLarge),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text('Code sent to ', style: Theme.of(context).textTheme.bodyLarge),
-                  Text(widget.phone, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.purple)),
-                ],
-              ),
-              const SizedBox(height: 48),
-              PinCodeTextField(
-                appContext: context,
-                length: 4,
-                animationType: AnimationType.scale,
-                pinTheme: PinTheme(
-                  shape: PinCodeFieldShape.box, 
-                  borderRadius: BorderRadius.circular(16),
-                  fieldHeight: 64, fieldWidth: 54,
-                  activeFillColor: Colors.white, 
-                  inactiveFillColor: AppColors.surfaceCard,
-                  selectedFillColor: Colors.white, 
-                  activeColor: AppColors.purple,
-                  inactiveColor: const Color(0xFFE9D5FF), 
-                  selectedColor: AppColors.purple,
-                  borderWidth: 2,
-                ),
-                cursorColor: AppColors.purple,
-                enableActiveFill: true,
-                keyboardType: TextInputType.number,
-                controller: _pinController,
-                onChanged: (v) => setState(() { _otp = v; _error = null; }),
-                onCompleted: (_) => _verify(),
-              ),
-              const SizedBox(height: 12),
-              // Hint/Status for Auto-fill
-              Center(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: _otp.isEmpty && _countdown > 45
+                child: Center(
+                  child: _loading
                     ? const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.purple)),
-                          SizedBox(width: 8),
-                          Text('Waiting for SMS...', style: TextStyle(color: AppColors.textLight, fontSize: 13)),
+                          SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                          SizedBox(width: 12),
+                          Text('Verifying...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
                         ],
                       )
-                    : const SizedBox.shrink(),
+                    : const Text('Verify & Continue ✨', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
                 ),
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.error.withValues(alpha: 0.2))),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(child: Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.w500))),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 32),
+            ),
+            const SizedBox(height: 32),
+            if (kDebugMode)
               Center(
-                child: _countdown > 0
-                  ? Text('Resend code in ${_countdown}s', style: const TextStyle(color: AppColors.textLight))
-                  : TextButton(
-                      onPressed: _resendOtp, 
-                      child: const Text('Resend OTP 📩', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w700, fontSize: 15)),
-                    ),
-              ),
-              const SizedBox(height: 48),
-              GestureDetector(
-                onTap: _otp.length == 4 && !_loading && !state.sessionExpired ? _verify : null,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  height: 54,
-                  decoration: BoxDecoration(
-                    gradient: (_otp.length == 4 && !state.sessionExpired) ? AppGradients.brand : null, 
-                    color: (_otp.length == 4 && !state.sessionExpired) ? null : AppColors.textLight.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(100),
-                    boxShadow: (_otp.length == 4) ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))] : [],
-                  ),
-                  child: Center(
-                    child: _loading
-                      ? const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                            SizedBox(width: 12),
-                            Text('Verifying...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
-                          ],
-                        )
-                      : const Text('Verify & Continue ✨', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
-                  ),
+                child: FutureBuilder<String?>(
+                  future: SmsAutoFill().getAppSignature,
+                  builder: (context, snapshot) {
+                    return Opacity(
+                      opacity: 0.4,
+                      child: Text(
+                        'Debug Hash: ${snapshot.data ?? "..."}',
+                        style: const TextStyle(fontSize: 10, color: AppColors.textLight),
+                      ),
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: 32),
-              if (kDebugMode)
-                Center(
-                  child: FutureBuilder<String?>(
-                    future: SmsAutoFill().getAppSignature,
-                    builder: (context, snapshot) {
-                      return Opacity(
-                        opacity: 0.4,
-                        child: Text(
-                          'Debug Hash: ${snapshot.data ?? "..."}',
-                          style: const TextStyle(fontSize: 10, color: AppColors.textLight),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-            ],
-          ).animate().fadeIn(duration: 400.ms),
-        ),
-      );
-    });
+          ],
+        ).animate().fadeIn(duration: 400.ms),
+      ),
+    );
   }
 }

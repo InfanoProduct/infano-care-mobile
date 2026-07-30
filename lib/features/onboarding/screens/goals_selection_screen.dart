@@ -65,7 +65,7 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
 
     return OnboardingScaffold(
       currentStep: 5,
-      totalSteps: 13,
+      totalSteps: 11,
       onBack: () => context.go(isUnder13 ? '/onboarding/consent/send' : '/onboarding/birthday'),
       bottomBar: Stack(
         clipBehavior: Clip.none,

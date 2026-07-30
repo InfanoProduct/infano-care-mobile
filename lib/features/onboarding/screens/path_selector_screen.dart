@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
 
 class PathSelectorScreen extends StatefulWidget {
   const PathSelectorScreen({super.key});
@@ -17,8 +18,17 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
 
   Future<void> _select(int index) async {
     setState(() => _selected = index);
+    
+    final cleanRole = (index == 0) ? 'TEEN' : 'PARENT';
+    try {
+      await ApiService.instance.dio.patch('/user/role', data: {'role': cleanRole});
+    } catch (e) {
+      debugPrint('[PathSelectorScreen] Failed to update role: $e');
+    }
+
     final storage = await LocalStorageService.create();
     await storage.setUserType(index == 0 ? 'teen' : 'parent');
+    await storage.setRole(cleanRole);
     await storage.setStepComplete('0.5');
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
@@ -34,7 +44,7 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
   Widget build(BuildContext context) {
     return OnboardingScaffold(
       currentStep: 1,
-      totalSteps: 13,
+      totalSteps: 11,
       onBack: () => context.go('/splash'),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),

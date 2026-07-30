@@ -58,7 +58,7 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
         // If we found a profile, the user IS onboarded for the tracker
         if (!_storage.isOnboarded) {
           await _storage.setIsOnboarded(true);
-          await _storage.setStepComplete('13'); // Completed all steps
+          await _storage.setStepComplete('11'); // Completed all steps
         }
 
         final prediction = await _repository.getPrediction();

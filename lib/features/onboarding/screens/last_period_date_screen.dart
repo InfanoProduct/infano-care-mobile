@@ -21,8 +21,8 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 12,
-      totalSteps: 13,
+      currentStep: 10,
+      totalSteps: 11,
       onBack: () => context.go('/onboarding/terms'),
       bottomBar: Column(
         mainAxisSize: MainAxisSize.min,

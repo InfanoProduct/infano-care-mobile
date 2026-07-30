@@ -25,8 +25,6 @@ import 'package:infano_care_mobile/features/onboarding/screens/goals_selection_s
 import 'package:infano_care_mobile/features/onboarding/screens/period_comfort_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/period_experience_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/interest_topics_screen.dart';
-import 'package:infano_care_mobile/features/onboarding/screens/avatar_builder_screen.dart';
-import 'package:infano_care_mobile/features/onboarding/screens/journey_name_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/welcome_world_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/last_period_date_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/cycle_details_screen.dart';
@@ -52,6 +50,8 @@ import 'package:infano_care_mobile/features/chat/bloc/chat_bloc.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_dashboard_screen.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_list_screen.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_chat_screen.dart';
+import 'package:infano_care_mobile/features/expert/screens/expert_consultations_screen.dart';
+import 'package:infano_care_mobile/features/expert/screens/expert_calendar_screen.dart';
 
 // Learning Journey Imports
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -68,7 +68,11 @@ import 'package:infano_care_mobile/features/learning/screens/journey_detail_scre
 import 'package:infano_care_mobile/features/learning/screens/episode_player_screen.dart';
 import 'package:infano_care_mobile/features/learning/models/learning_models.dart';
 
-String getRouteForStep(String step, {String? periodStatus}) {
+String getRouteForStep(String step, {String? periodStatus, String? role}) {
+  if (role != null && step == '0') {
+    return '/onboarding/name';
+  }
+
   final routes = {
     '0':  '/onboarding/path',
     '1':  '/onboarding/name',
@@ -78,21 +82,17 @@ String getRouteForStep(String step, {String? periodStatus}) {
     '5':  '/onboarding/period-comfort',
     '6':  '/onboarding/period-status',
     '7':  '/onboarding/interests',
-    '8':  '/onboarding/avatar',
-    '9':  '/onboarding/journey-name',
-    '10': '/onboarding/terms',
-    '11': '/onboarding/tracker/date',
-    '12': '/onboarding/tracker/details',
+    '8':  '/onboarding/terms',
+    '9':  '/onboarding/tracker/date',
+    '10': '/onboarding/tracker/details',
   };
 
-  // Conditional skip: If period status is not active, skip tracker setup (11, 12)
+  // Skip tracker setup if period status is not active
   if (periodStatus != null && periodStatus != 'active') {
-    if (step == '11' || step == '12') {
-      return '/home';
-    }
+    if (step == '9' || step == '10') return '/home';
   }
 
-  return routes[step] ?? '/onboarding/path';
+  return routes[step] ?? (role != null ? '/onboarding/name' : '/onboarding/path');
 }
 
 // Expert creation helper functions...
@@ -103,68 +103,50 @@ GoRouter createRouter(LocalStorageService storage) {
   return GoRouter(
     initialLocation: '/home',
     refreshListenable: storage,
-    debugLogDiagnostics: true, // Enable logs for easier debugging of redirects
     redirect: (context, state) {
       final token = storage.authToken;
       final role = storage.role;
-      final tempToken = storage.tempToken;
       final step = storage.stepComplete;
       final path = state.uri.path;
 
       final onAuth = path.startsWith('/auth') || path == '/splash';
 
-      // 1. Not Authenticated
+      // 1. Not authenticated — send to splash/auth
       if (token == null) {
-        if (tempToken != null) {
-          if (path.startsWith('/onboarding') || onAuth) return null;
-          return '/onboarding/path';
-        }
-        // No tokens: allow auth/splash, otherwise force splash (Landing Page)
         if (onAuth) return null;
         return '/splash';
       }
 
-      // 2. Expert Redirect
-      if (role == 'EXPERT') {
-        if (path == '/home' || path == '/splash' || path.startsWith('/onboarding')) {
-          return '/expert/dashboard';
-        }
-        return null; // Let them access expert routes
-      }
-
-      // 3. Authenticated (token != null)
-      final bool onOnboarding = path.startsWith('/onboarding');
-      // step is already declared above via storage.stepComplete
-
-      // OPTIMIZATION: If fully onboarded, jump to home immediately
+      // 2. Fully onboarded
       if (storage.isOnboarded) {
-        if (onAuth || (onOnboarding && !path.contains('tracker'))) return '/home';
+        // Experts go to their dashboard
+        if (role == 'EXPERT') {
+          if (path == '/home' || path == '/splash' || path.startsWith('/onboarding')) {
+            return '/expert/dashboard';
+          }
+          return null;
+        }
+        // Others go home
+        if (onAuth || (path.startsWith('/onboarding') && !path.contains('tracker'))) return '/home';
         return null;
       }
 
-      // 4. Authenticated but NOT Onboarded
+      // 3. Not fully onboarded — enforce onboarding flow
+      // If they land on splash/auth after login, send to their step
       if (path == '/splash' || path == '/auth/otp' || path == '/auth/phone') {
-        // After login, send them to their next step
-        return getRouteForStep(step ?? '0', periodStatus: storage.periodStatus);
+        if (role != null) return '/onboarding/name';
+        return '/onboarding/path';
       }
 
-      if (!storage.isOnboarded) {
-        // Enforce onboarding flow
-        final target = getRouteForStep(step ?? '0', periodStatus: storage.periodStatus);
-        
-        if (path != target && 
-            !path.contains('tracker') && 
-            !path.contains('expert') && 
-            path != '/onboarding/welcome' && 
-            path != '/chat' && 
-            path != '/settings' && 
-            path != '/account' && 
-            path != '/orders') {
-          if (!onOnboarding) return target;
-        }
+      // Allow onboarding screens and tracker screens freely
+      if (path.startsWith('/onboarding') || path.contains('tracker') ||
+          path == '/settings' || path == '/account' || path == '/chat') {
+        return null;
       }
 
-      return null;
+      // Any other screen while not onboarded → redirect to correct step
+      final target = getRouteForStep(step ?? '0', periodStatus: storage.periodStatus, role: role);
+      return target;
     },
     routes: [
       GoRoute(path: '/splash',   builder: (_, _) => const LandingScreen()),
@@ -175,8 +157,10 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(path: '/account/saved', builder: (_, _) => const SavedArticlesScreen()),
       GoRoute(path: '/account/family', builder: (_, _) => FamilySettingsScreen(storage: storage)),
       
-      // Expert Dashboard
+      // Expert Dashboard & Tools
       GoRoute(path: '/expert/dashboard', builder: (_, _) => ExpertDashboardScreen(storage: storage)),
+      GoRoute(path: '/expert/consultations', builder: (_, _) => ExpertConsultationsScreen(storage: storage)),
+      GoRoute(path: '/expert/calendar', builder: (_, _) => ExpertCalendarScreen(storage: storage)),
       
       // Expert Chat
       GoRoute(path: '/expert/list', builder: (_, _) => ExpertListScreen(storage: storage)),
@@ -229,8 +213,8 @@ GoRouter createRouter(LocalStorageService storage) {
       GoRoute(path: '/onboarding/period-comfort',  builder: (_, _) => const PeriodComfortScreen()),
       GoRoute(path: '/onboarding/period-status',   builder: (_, _) => const PeriodExperienceScreen()),
       GoRoute(path: '/onboarding/interests',       builder: (_, _) => const InterestTopicsScreen()),
-      GoRoute(path: '/onboarding/avatar',          builder: (_, _) => const AvatarBuilderScreen()),
-      GoRoute(path: '/onboarding/journey-name',    builder: (_, _) => const JourneyNameScreen()),
+      // GoRoute(path: '/onboarding/avatar',          builder: (_, _) => const AvatarBuilderScreen()),
+      // GoRoute(path: '/onboarding/journey-name',    builder: (_, _) => const JourneyNameScreen()),
       GoRoute(path: '/onboarding/welcome',         builder: (_, _) => const WelcomeWorldScreen()),
       GoRoute(path: '/onboarding/tracker/date',    builder: (_, _) => const LastPeriodDateScreen()),
       GoRoute(path: '/onboarding/tracker/details', builder: (_, _) => const CycleDetailsScreen()),

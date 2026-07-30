@@ -70,6 +70,9 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
     
     // Initialize notifications
     NotificationService().initialize(_navigatorKey, storage: widget.storage);
+
+    // Ensure native splash is removed once the router is ready
+    FlutterNativeSplash.remove();
   }
 
   @override

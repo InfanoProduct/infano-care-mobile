@@ -223,11 +223,11 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   void _onSetConsent(SetConsent e, Emitter<OnboardingState> emit) {
     emit(state.copyWith(termsAccepted: e.terms, privacyAccepted: e.privacy, marketingOptIn: e.marketing));
     _storage.setConsents(terms: e.terms, privacy: e.privacy, marketing: e.marketing);
-    // If they are on the AssentTermsScreen (age >= 13 or caught up), they are at step 11
+    // If they are on the AssentTermsScreen (age >= 13 or caught up), they are at step 9
     final currentStep = _storage.stepComplete;
-    if (currentStep != null && int.parse(currentStep) >= 10) {
-      _storage.setStepComplete('11');
-      _repo.updateStep(11);
+    if (currentStep != null && int.parse(currentStep) >= 8) {
+      _storage.setStepComplete('9');
+      _repo.updateStep(9);
     } else {
       _storage.setStepComplete('4'); 
       _repo.updateStep(4);
@@ -266,8 +266,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(journeyName: e.name));
   }
   void _onSetTrackerDetails(SetTrackerDetails e, Emitter<OnboardingState> emit) {
-    _storage.setStepComplete('12');
-    _repo.updateStep(12);
+    _storage.setStepComplete('10');
+    _repo.updateStep(10);
     emit(state.copyWith(periodLength: e.periodDays, cycleLength: e.cycleDays, lastPeriod: e.lastPeriod));
   }
   
@@ -376,7 +376,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       );
       await _repo.completeOnboarding();
       await _storage.setIsOnboarded(true);
-      _repo.updateStep(13);
+      _repo.updateStep(11);
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -388,7 +388,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       await _repo.completeOnboarding();
       await _storage.setIsOnboarded(true);
-      _repo.updateStep(13);
+      _repo.updateStep(11);
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));

@@ -21,8 +21,8 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      currentStep: 13,
-      totalSteps: 13,
+      currentStep: 11,
+      totalSteps: 11,
       onBack: () => context.go('/onboarding/tracker/date'),
       bottomBar: BlocBuilder<OnboardingBloc, OnboardingState>(
         builder: (context, state) {

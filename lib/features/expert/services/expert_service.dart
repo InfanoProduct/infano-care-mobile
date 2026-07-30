@@ -24,7 +24,7 @@ class ExpertService {
     }
   }
 
-  /// Fetch active consultations for the human expert (for Expert side)
+  /// Fetch active chat consultations for the human expert (for Expert side)
   Future<List<dynamic>> getMySessions() async {
     try {
       final response = await _dio.get('/expert/my-sessions');
@@ -32,6 +32,72 @@ class ExpertService {
     } catch (e) {
       debugPrint('[ExpertService] Error fetching expert sessions: $e');
       return [];
+    }
+  }
+
+  /// Fetch 1:1 Video/Direct Scheduled Consultations for Expert
+  Future<List<dynamic>> getDirectSessions() async {
+    try {
+      final response = await _dio.get('/expert/sessions');
+      return response.data as List<dynamic>;
+    } catch (e) {
+      debugPrint('[ExpertService] Error fetching direct sessions: $e');
+      return [];
+    }
+  }
+
+  /// Update meeting link for a consultation
+  Future<bool> updateMeetLink(String sessionId, String meetLink) async {
+    try {
+      final response = await _dio.patch('/expert/sessions/$sessionId/meet-link', data: {'meetLink': meetLink});
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[ExpertService] Error updating meet link: $e');
+      return false;
+    }
+  }
+
+  /// Update consultation status (SCHEDULED, COMPLETED, CANCELLED, etc.)
+  Future<bool> updateSessionStatus(String sessionId, String status) async {
+    try {
+      final response = await _dio.patch('/expert/sessions/$sessionId/status', data: {'status': status});
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[ExpertService] Error updating status: $e');
+      return false;
+    }
+  }
+
+  /// Reschedule consultation
+  Future<bool> rescheduleSession(String sessionId, String scheduledAt) async {
+    try {
+      final response = await _dio.patch('/expert/sessions/$sessionId/reschedule', data: {'scheduledAt': scheduledAt});
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[ExpertService] Error rescheduling session: $e');
+      return false;
+    }
+  }
+
+  /// Get Expert Calendar Availability & Settings
+  Future<Map<String, dynamic>> getCalendarSettings() async {
+    try {
+      final response = await _dio.get('/expert/calendar');
+      return (response.data as Map<String, dynamic>?) ?? {};
+    } catch (e) {
+      debugPrint('[ExpertService] Error fetching calendar settings: $e');
+      return {};
+    }
+  }
+
+  /// Update Expert Calendar Availability & Settings
+  Future<bool> updateCalendarSettings(Map<String, dynamic> settings) async {
+    try {
+      final response = await _dio.put('/expert/calendar', data: settings);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[ExpertService] Error updating calendar settings: $e');
+      return false;
     }
   }
 

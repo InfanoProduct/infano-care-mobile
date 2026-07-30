@@ -90,6 +90,19 @@ class AuthRepository {
         if (result.role != null) await _storage.setRole(result.role!);
         if (result.userId != null) await _storage.setUserId(result.userId!);
         
+        // Sync profile details if present
+        if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
+        if (result.profile != null) {
+          final p = result.profile!;
+          if (p['displayName'] != null && p['displayName'].toString().trim().isNotEmpty) {
+            await _storage.setDisplayName(p['displayName']);
+          }
+          if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
+          if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
+          if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
+          await _storage.setAvatarUrl(p['avatarUrl']?.toString());
+        }
+
         await _storage.setTempToken(result.tempToken);
         await _storage.setPhone(phone);
         await _storage.setStepComplete(result.onboardingStep.toString());

@@ -48,7 +48,7 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
   Widget build(BuildContext context) {
     return OnboardingScaffold(
       currentStep: 6,
-      totalSteps: 13,
+      totalSteps: 11,
       onBack: () => context.go('/onboarding/goals'),
       bottomBar: _showPoints ? PointsBurst(points: 10, onComplete: () => setState(() => _showPoints = false)) : null,
       body: Padding(

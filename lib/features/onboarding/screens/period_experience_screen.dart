@@ -35,7 +35,7 @@ class _PeriodExperienceScreenState extends State<PeriodExperienceScreen> {
   Widget build(BuildContext context) {
     return OnboardingScaffold(
       currentStep: 7,
-      totalSteps: 13,
+      totalSteps: 11,
       onBack: () => context.go('/onboarding/period-comfort'),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),

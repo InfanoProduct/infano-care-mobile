@@ -20,6 +20,16 @@ class _BirthdayInputScreenState extends State<BirthdayInputScreen> {
   int _selectedMonth = 6;  // 0-based index
   int _selectedYear  = DateTime.now().year - 15;
 
+  @override
+  void initState() {
+    super.initState();
+    final storage = context.read<LocalStorageService>();
+    if (storage.birthYear != null) {
+      _selectedYear = storage.birthYear!;
+      _selectedMonth = (storage.birthMonth ?? 7) - 1;
+    }
+  }
+
   int get _age {
     final now = DateTime.now();
     int age = now.year - _selectedYear;
@@ -69,7 +79,7 @@ class _BirthdayInputScreenState extends State<BirthdayInputScreen> {
 
     return OnboardingScaffold(
       currentStep: 3,
-      totalSteps: 13,
+      totalSteps: 11,
       onBack: () => context.go('/onboarding/name'),
       bottomBar: GradientButton(label: 'Continue', onPressed: _proceed, enabled: _age >= 6),
       body: SingleChildScrollView(

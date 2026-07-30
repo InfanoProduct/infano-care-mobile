@@ -49,7 +49,7 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
   Widget build(BuildContext context) {
     return OnboardingScaffold(
       currentStep: 8,
-      totalSteps: 13,
+      totalSteps: 11,
       onBack: () => context.go('/onboarding/period-status'),
       bottomBar: Stack(
         clipBehavior: Clip.none,
@@ -68,7 +68,7 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
                 await bloc.stream.firstWhere((state) => !state.isLoading);
                 
                 if (context.mounted) {
-                  context.go('/onboarding/avatar');
+                  context.go('/onboarding/terms');
                 }
               }
             },

@@ -67,11 +67,15 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
       final result = await _repo.sendOtp(phone, appHash: signature);
       if (mounted) {
         if (result != null) {
-          // Auto-logged in! Navigate to home or onboarding
+          // Auto-logged in. Route based on role + onboarding status from backend.
           if (result.isOnboardingCompleted) {
             context.go('/home');
           } else {
-            context.go('/onboarding?step=${result.onboardingStep}');
+            final role = result.role ?? widget.storage.role;
+            if (role != null) {
+              widget.storage.setUserType(role.toLowerCase());
+            }
+            context.go('/onboarding/name');
           }
         } else {
           context.go('/auth/otp?phone=${Uri.encodeComponent(phone)}&fromOnboarding=${widget.fromOnboarding}');
