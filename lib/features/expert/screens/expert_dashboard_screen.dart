@@ -553,6 +553,16 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
             onTap: () { Navigator.pop(context); context.push('/account'); },
           ),
           ListTile(
+            leading: const Icon(Icons.chat_bubble_outline, color: AppColors.purple),
+            title: const Text('My Chats'),
+            onTap: () { Navigator.pop(context); context.push('/my-chats'); },
+          ),
+          ListTile(
+            leading: const Icon(Icons.smart_toy_outlined, color: AppColors.purple),
+            title: const Text('AI Assistant (Gigi)'),
+            onTap: () { Navigator.pop(context); context.push('/chat'); },
+          ),
+          ListTile(
             leading: const Icon(Icons.settings_outlined, color: AppColors.purple),
             title: const Text('Settings'),
             onTap: () { Navigator.pop(context); context.push('/settings'); },

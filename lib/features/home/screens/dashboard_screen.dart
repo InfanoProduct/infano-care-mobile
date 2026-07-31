@@ -23,7 +23,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key, required this.storage, this.initialTab = 0, this.initialSubTab = 2});
+  const DashboardScreen({super.key, required this.storage, this.initialTab = 0, this.initialSubTab = 1});
 
   final LocalStorageService storage;
   final int initialTab;
@@ -463,6 +463,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onTap: () {
               Navigator.pop(context);
               context.push('/account');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.chat_bubble_outline, color: AppColors.purple),
+            title: const Text('My Chats'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/my-chats');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.smart_toy_outlined, color: AppColors.purple),
+            title: const Text('AI Assistant (Gigi)'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/chat');
             },
           ),
           ListTile(

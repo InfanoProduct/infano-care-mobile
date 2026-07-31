@@ -94,7 +94,7 @@ class _FriendSwipeCardsState extends State<FriendSwipeCards> {
         onExploreCircles: widget.onExploreCircles ?? () {
           try {
             final tabController = Provider.of<TabController>(context, listen: false);
-            tabController.animateTo(0); // Index 0 is Circles
+            tabController.animateTo(2); // Index 2 is Circles
           } catch (e) {
             debugPrint('Error navigating to circles: $e');
           }

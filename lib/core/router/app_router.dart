@@ -45,6 +45,7 @@ import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
+import 'package:infano_care_mobile/features/chat/screens/my_chats_screen.dart';
 import 'package:infano_care_mobile/features/chat/data/chat_repository.dart';
 import 'package:infano_care_mobile/features/chat/bloc/chat_bloc.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_dashboard_screen.dart';
@@ -174,6 +175,7 @@ GoRouter createRouter(LocalStorageService storage) {
       
       // Expert Chat
       GoRoute(path: '/expert/list', builder: (_, _) => ExpertListScreen(storage: storage)),
+      GoRoute(path: '/my-chats', builder: (_, _) => const MyChatsScreen()),
       GoRoute(
         path: '/expert/chat/:sessionId', 
         builder: (_, state) {
@@ -299,7 +301,7 @@ GoRouter createRouter(LocalStorageService storage) {
         path: '/home', 
         builder: (_, state) {
           final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
-          final subtab = int.tryParse(state.uri.queryParameters['subtab'] ?? '2') ?? 2;
+          final subtab = int.tryParse(state.uri.queryParameters['subtab'] ?? '1') ?? 1;
           return DashboardScreen(storage: storage, initialTab: tab, initialSubTab: subtab);
         }
 

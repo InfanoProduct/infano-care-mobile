@@ -5,7 +5,6 @@ import 'match_celebration_screen.dart';
 import 'circles_tab.dart';
 import 'peerline_tab.dart';
 import 'events_tab.dart';
-import 'friends_tab.dart';
 import '../../services/friends_api.dart';
 import '../../core/services/api_service.dart';
 import 'my_feed_tab.dart';
@@ -13,7 +12,7 @@ import '../../services/community_api.dart';
 import '../../core/theme/app_theme.dart';
 
 class ConnectScreen extends StatefulWidget {
-  const ConnectScreen({super.key, this.initialTab = 2});
+  const ConnectScreen({super.key, this.initialTab = 1});
   final int initialTab;
 
   @override
@@ -28,7 +27,8 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this, initialIndex: widget.initialTab);
+    final initialIndex = widget.initialTab.clamp(0, 3);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: initialIndex);
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
@@ -80,8 +80,8 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
       final hasJoined = circles.any((c) => c.isJoined);
       
       if (circles.isNotEmpty && !hasJoined && mounted) {
-        // Automatically navigate to Circles tab (index 3) if none joined
-        _tabController.animateTo(3);
+        // Automatically navigate to Circles tab (index 2) if none joined
+        _tabController.animateTo(2);
         
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -134,15 +134,13 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Row(
                   children: [
-                    _buildTabItem(0, 'Friends', Icons.people_alt_rounded),
+                    _buildTabItem(0, 'PeerLine', Icons.favorite_rounded),
                     const SizedBox(width: 12),
-                    _buildTabItem(1, 'PeerLine', Icons.favorite_rounded),
+                    _buildTabItem(1, 'My Feed', Icons.newspaper_rounded),
                     const SizedBox(width: 12),
-                    _buildTabItem(2, 'My Feed', Icons.newspaper_rounded),
+                    _buildTabItem(2, 'Circles', Icons.groups_rounded),
                     const SizedBox(width: 12),
-                    _buildTabItem(3, 'Circles', Icons.groups_rounded),
-                    const SizedBox(width: 12),
-                    _buildTabItem(4, 'Events', Icons.event_available_rounded),
+                    _buildTabItem(3, 'Events', Icons.event_available_rounded),
                   ],
                 ),
               ),
@@ -156,7 +154,6 @@ class _ConnectScreenState extends State<ConnectScreen> with SingleTickerProvider
         child: TabBarView(
           controller: _tabController,
           children: const [
-            FriendsTab(),
             PeerLineTab(),
             MyFeedTab(),
             CirclesTab(),

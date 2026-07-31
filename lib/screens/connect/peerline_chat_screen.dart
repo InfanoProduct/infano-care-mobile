@@ -975,7 +975,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                             Navigator.pop(sheetContext);
                           }
                           if (mounted) {
-                            context.go('/home?tab=4&subtab=1');
+                            context.go('/home?tab=4&subtab=0');
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -1002,7 +1002,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                     TextButton(
                       onPressed: isSubmitting ? null : () {
                         Navigator.pop(sheetContext);
-                        context.go('/home?tab=4&subtab=1');
+                        context.go('/home?tab=4&subtab=0');
                       },
 
                       child: Text(
