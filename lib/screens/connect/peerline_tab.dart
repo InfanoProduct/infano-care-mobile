@@ -87,24 +87,43 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
     _socketSubscription?.cancel();
     final socketService = Provider.of<CommunitySocketService>(context, listen: false);
     _socketSubscription = socketService.chatEvents.listen((event) {
-      if (event['type'] == 'session_ready' && mounted) {
+      if (!mounted) return;
+      final String type = event['type'] ?? '';
+
+      if (type == 'connection_accepted') {
+        // Teen's connection request was accepted — refresh list and navigate to chat
+        _refreshData();
+        final connectionId = event['connectionId'] as String?;
+        if (connectionId != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('Your peer mentor accepted your request! 💜', style: GoogleFonts.outfit())),
+                ],
+              ),
+              backgroundColor: AppColors.purple,
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'Open Chat',
+                textColor: Colors.white,
+                onPressed: () => context.push('/peerline/chat/$connectionId'),
+              ),
+            ),
+          );
+        }
+      } else if (type == 'connection_request') {
+        // Peer mentor received a new request — just refresh the list
+        _refreshData();
+      } else if (type == 'connection_declined') {
+        // Teen's connection was declined — refresh so they can try again
         _refreshData();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.celebration, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(child: Text('A mentor is ready to chat with you!', style: GoogleFonts.outfit())),
-              ],
-            ),
-            backgroundColor: AppColors.purple,
+            content: Text('Your connection request was not accepted. You can try another mentor.', style: GoogleFonts.outfit()),
             behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(
-              label: 'Go to Chat',
-              textColor: Colors.white,
-              onPressed: () => context.push('/peerline/chat/${event['sessionId']}'),
-            ),
           ),
         );
       }
@@ -251,7 +270,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Expert Peer Mentors',
+                  'Peer Mentors',
                   style: GoogleFonts.outfit(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -553,7 +572,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
             ),
             const SizedBox(height: 6),
             Text(
-              'Request a session with a peer mentor to get started.',
+              'Request a chat with a peer mentor to get started.',
               textAlign: TextAlign.center,
               style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 13, height: 1.4),
             ),
@@ -991,16 +1010,13 @@ class _TopMentorCardState extends State<_TopMentorCard> {
     try {
       final api = Provider.of<CommunityApi>(context, listen: false);
       final profile = widget.mentor['profile'] ?? {};
-      final List<String> topicIds = List<String>.from(profile['certifiedTopicIds'] ?? []);
-      
-      // If no topics, use a fallback or show error
-      if (topicIds.isEmpty) {
-        throw Exception('This mentor has no certified topics.');
-      }
+      final List<String> topicIds = List<String>.from(
+        widget.mentor['certifiedTopicIds'] ?? profile['certifiedTopicIds'] ?? []
+      );
 
-      await api.requestPeerLineSession(
+      await api.requestConnection(
+        mentorId: widget.mentor['id'],
         topicIds: topicIds,
-        requestedMentorId: widget.mentor['id'],
       );
 
       if (mounted) {
@@ -1034,16 +1050,16 @@ class _TopMentorCardState extends State<_TopMentorCard> {
     final bool isOnline = widget.mentor['isOnline'] == true || widget.mentor['profile']?['isAvailable'] == true;
     final List certifiedTopics = widget.mentor['certifiedTopics'] ?? widget.mentor['topics'] ?? [];
     
-    String category = 'Expert Mentor';
+    String category = 'Peer Mentor';
     List<String> topics = [];
     if (certifiedTopics.isNotEmpty) {
       if (certifiedTopics.first is Map) {
-        category = certifiedTopics.first['category']?['name'] ?? 'Expert Mentor';
+        category = certifiedTopics.first['category']?['name'] ?? 'Peer Mentor';
         topics = certifiedTopics.map<String>((t) => t['name'].toString()).toList();
       } else {
         topics = certifiedTopics.map<String>((t) => t.toString()).toList();
         // Use the first topic as the primary category
-        category = topics.isNotEmpty ? topics.first : 'Expert Mentor';
+        category = topics.isNotEmpty ? topics.first : 'Peer Mentor';
       }
     }
 
@@ -1210,7 +1226,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Expertise in:',
+                  'Topics:',
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -1270,7 +1286,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
                       : Text(
-                          _isRequested ? 'Request Sent' : 'Request Session',
+                          _isRequested ? 'Request Sent' : 'Request Chat',
                           style: GoogleFonts.outfit(
                             color: _isRequested ? Colors.grey : Colors.white,
                             fontWeight: FontWeight.bold,

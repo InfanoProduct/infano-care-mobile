@@ -126,6 +126,27 @@ class CommunityApi {
     return response.data as Map<String, dynamic>;
   }
 
+  /// NEW: Teen sends a connection request to a specific peer mentor.
+  /// Returns the connection record (status: MATCHING = pending).
+  Future<PeerLineSession> requestConnection({
+    required String mentorId,
+    List<String> topicIds = const [],
+    String? message,
+  }) async {
+    final dataMap = <String, dynamic>{
+      'mentorId': mentorId,
+      'topicIds': topicIds,
+      if (message != null && message.isNotEmpty) 'message': message,
+    };
+    final response = await _dio.post('peerline/connections/request', data: dataMap);
+    final Map<String, dynamic> data = response.data;
+    if (data.containsKey('session')) {
+      return PeerLineSession.fromJson(data['session'] as Map<String, dynamic>);
+    }
+    return PeerLineSession.fromJson(data);
+  }
+
+  /// LEGACY: still supported by the API. Use requestConnection for new code.
   Future<PeerLineSession> requestPeerLineSession({required List<String> topicIds, bool requestVerified = false, String? requestedMentorId}) async {
     final dataMap = <String, dynamic>{
       'topicIds': topicIds,
@@ -134,7 +155,6 @@ class CommunityApi {
     if (requestedMentorId != null) {
       dataMap['requestedMentorId'] = requestedMentorId;
     }
-    
     final response = await _dio.post('peerline/sessions/request', data: dataMap);
     final Map<String, dynamic> data = response.data;
     if (data.containsKey('session')) {
@@ -143,6 +163,22 @@ class CommunityApi {
     return PeerLineSession.fromJson(data);
   }
 
+  /// NEW: Peer mentor accepts a teen's connection request.
+  Future<PeerLineSession> acceptConnection(String connectionId) async {
+    final response = await _dio.post('peerline/connections/$connectionId/accept');
+    final Map<String, dynamic> data = response.data;
+    if (data.containsKey('session')) {
+      return PeerLineSession.fromJson(data['session'] as Map<String, dynamic>);
+    }
+    return PeerLineSession.fromJson(data);
+  }
+
+  /// NEW: Peer mentor declines a teen's connection request.
+  Future<void> declineConnection(String connectionId) async {
+    await _dio.post('peerline/connections/$connectionId/decline');
+  }
+
+  /// LEGACY: still works via the old route.
   Future<PeerLineSession> acceptPeerLineSession(String sessionId) async {
     final response = await _dio.post('peerline/mentor/sessions/$sessionId/accept');
     final Map<String, dynamic> data = response.data;
@@ -152,10 +188,10 @@ class CommunityApi {
     return PeerLineSession.fromJson(data);
   }
 
+  /// Get all connections/sessions for the current user.
   Future<List<PeerLineSession>> getPeerLineSessions({String role = 'mentee', String? status}) async {
     final Map<String, dynamic> query = {'role': role};
     if (status != null) query['status'] = status;
-    
     final response = await _dio.get('peerline/sessions', queryParameters: query);
     final data = response.data as Map<String, dynamic>;
     return (data['sessions'] as List)
@@ -172,20 +208,6 @@ class CommunityApi {
     return PeerLineSession.fromJson(data);
   }
 
-  Future<void> cancelPeerLineSession(String sessionId) async {
-    await _dio.post('peerline/sessions/$sessionId/cancel');
-  }
-
-  Future<void> endSession(String sessionId) async {
-    await _dio.post('peerline/sessions/$sessionId/end');
-  }
-
-
-  Future<Map<String, dynamic>> getQueuePosition(String sessionId) async {
-    final response = await _dio.get('peerline/sessions/$sessionId/queue');
-    return response.data as Map<String, dynamic>;
-  }
-
   Future<List<ChatMessage>> getChatMessages(String sessionId) async {
     final response = await _dio.get('peerline/sessions/$sessionId/messages');
     final List messagesJson = response.data['messages'] ?? [];
@@ -198,56 +220,9 @@ class CommunityApi {
     });
   }
 
-  Future<void> submitPeerLineFeedback({
-    required String sessionId,
-    required String role,
-    required int rating,
-    String? note,
-    int? mentorSelfRating,
-    bool? wellbeingOk,
-    bool? needsSupport,
-    bool? readyForNext,
-    bool? flagForModeration,
-  }) async {
-    await _dio.post('peerline/sessions/$sessionId/feedback', data: {
-      'role': role,
-      'rating': rating,
-      'note': note,
-      'mentorSelfRating': mentorSelfRating,
-      'wellbeingOk': wellbeingOk,
-      'needsSupport': needsSupport,
-      'readyForNext': readyForNext,
-      'flagForModeration': flagForModeration,
-    });
-  }
-
   Future<Map<String, dynamic>> getMentorStats() async {
     final response = await _dio.get('peerline/mentor/stats');
     return response.data as Map<String, dynamic>;
-  }
-
-  Future<Map<String, dynamic>> updateMentorAvailability(bool isAvailable) async {
-    final response = await _dio.patch('peerline/mentor/availability', data: {
-      'isAvailable': isAvailable,
-    });
-    return response.data as Map<String, dynamic>;
-  }
-
-  Future<Map<String, dynamic>> updateMentorExpertise(Map<String, List<String>> expertise) async {
-    final response = await _dio.patch('peerline/mentor/expertise', data: {
-      'expertise': expertise,
-    });
-    return response.data as Map<String, dynamic>;
-  }
-
-
-  Future<PeerLineSession> claimNextSession() async {
-    final response = await _dio.post('peerline/mentor/claim');
-    final Map<String, dynamic> data = response.data;
-    if (data.containsKey('session')) {
-      return PeerLineSession.fromJson(data['session'] as Map<String, dynamic>);
-    }
-    return PeerLineSession.fromJson(data);
   }
 
   Future<String> uploadMedia(String filePath, {String folder = 'peerline'}) async {

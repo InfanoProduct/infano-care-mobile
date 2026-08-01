@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/services/community_socket_service.dart';
 
 class MyChatsScreen extends StatefulWidget {
   const MyChatsScreen({super.key});
@@ -14,11 +18,29 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
   bool _isLoading = true;
   List<dynamic> _chats = [];
   String? _error;
+  StreamSubscription? _socketSub;
 
   @override
   void initState() {
     super.initState();
     _fetchChats();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final socket = Provider.of<CommunitySocketService>(context, listen: false);
+      _socketSub = socket.chatEvents.listen((event) {
+        if (mounted) {
+          final type = event['type'];
+          if (type == 'session_ready' || type == 'message' || type == 'session_ended') {
+            _fetchChats();
+          }
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _socketSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchChats() async {
@@ -51,7 +73,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Chats', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('My Chats', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -88,10 +110,17 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     }
 
     if (_chats.isEmpty) {
-      return const Center(
-        child: Text(
-          'No active chats found.',
-          style: TextStyle(color: AppColors.textMedium, fontSize: 16),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.forum_outlined, size: 56, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No active chats found.',
+              style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 16),
+            ),
+          ],
         ),
       );
     }
@@ -108,11 +137,20 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
           final String lastMessage = chat['lastMessage'] ?? '';
           final int unreadCount = chat['unreadCount'] ?? 0;
           final String? avatarUrl = chat['avatarUrl'];
+          final bool isActive = chat['isActive'] == true || chat['status'] == 'ACTIVE' || chat['status'] == 'MATCHING';
+          final String statusStr = (chat['status'] ?? '').toString().toUpperCase();
 
           return Card(
-            elevation: 2,
+            elevation: isActive ? 4 : 1,
             margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            color: isActive ? AppColors.purple.withValues(alpha: 0.04) : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: isActive ? AppColors.purple : Colors.grey.shade200,
+                width: isActive ? 1.5 : 1,
+              ),
+            ),
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               leading: Stack(
@@ -128,6 +166,20 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                           )
                         : null,
                   ),
+                  if (isActive)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
                   if (type == 'expert')
                     Positioned(
                       bottom: 0,
@@ -143,9 +195,33 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                     ),
                 ],
               ),
-              title: Text(
-                name,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isActive)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.purple,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        statusStr == 'MATCHING' ? 'CONNECTING' : 'ACTIVE',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               subtitle: Padding(
                 padding: const EdgeInsets.only(top: 4.0),
@@ -159,8 +235,11 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                   ),
                 ),
               ),
-              trailing: unreadCount > 0
-                  ? Container(
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (unreadCount > 0)
+                    Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
                         color: AppColors.purple,
@@ -175,12 +254,18 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                         ),
                       ),
                     )
-                  : const SizedBox.shrink(),
+                  else
+                    Icon(
+                      Icons.chevron_right,
+                      color: isActive ? AppColors.purple : Colors.grey.shade400,
+                    ),
+                ],
+              ),
               onTap: () {
                 if (type == 'expert') {
                   context.push('/expert/chat/${chat['id']}', extra: {'expertName': name});
                 } else if (type == 'peer') {
-                  context.push('/peerline/chat/${chat['id']}');
+                  context.push('/peerline/chat/${chat['id']}').then((_) => _fetchChats());
                 }
               },
             ),

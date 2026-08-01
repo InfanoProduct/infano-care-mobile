@@ -19,6 +19,8 @@ import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repo
 import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -37,6 +39,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isExpanded = true;
+  StreamSubscription? _peerlineSocketSub;
   Timer? _collapseTimer;
   Timer? _notificationsTimer;
   bool _hasUnreadNotifications = false;
@@ -54,6 +57,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _checkUnreadNotifications();
     });
     _checkUnreadNotifications();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final socket = Provider.of<CommunitySocketService>(context, listen: false);
+      _peerlineSocketSub = socket.chatEvents.listen((event) {
+        if (event['type'] == 'session_ready' && mounted) {
+          final sessionId = event['sessionId']?.toString();
+          if (sessionId != null) {
+            _showSessionReadyDialog(sessionId);
+          }
+        }
+      });
+    });
+  }
+
+  void _showSessionReadyDialog(String sessionId) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.purple.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.forum_rounded, color: AppColors.purple),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Mentor Connected!',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'A peer mentor has accepted your chat request and is waiting for you in chat.',
+          style: GoogleFonts.outfit(color: Colors.grey.shade700, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Dismiss', style: GoogleFonts.outfit(color: Colors.grey.shade600)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.push('/peerline/chat/$sessionId');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.purple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: Text('Join Chat Now', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _startCollapseTimer() {
@@ -86,6 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    _peerlineSocketSub?.cancel();
     _collapseTimer?.cancel();
     _notificationsTimer?.cancel();
     super.dispose();
@@ -132,6 +200,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   elevation: 0,
                   iconTheme: const IconThemeData(color: AppColors.purple),
                   actions: [
+                    IconButton(
+                      icon: const Icon(Icons.chat_bubble_outline),
+                      tooltip: 'My Chats',
+                      onPressed: () => context.push('/my-chats'),
+                    ),
                     Stack(
                       alignment: Alignment.center,
                       children: [
@@ -463,14 +536,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onTap: () {
               Navigator.pop(context);
               context.push('/account');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.chat_bubble_outline, color: AppColors.purple),
-            title: const Text('My Chats'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/my-chats');
             },
           ),
           ListTile(

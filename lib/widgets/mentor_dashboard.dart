@@ -633,7 +633,19 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => context.push('/peerline/chat/${session.id}').then((_) => _loadStats()),
+                    onPressed: () async {
+                      if (session.status.toUpperCase() == 'MATCHING' || session.status.toUpperCase() == 'QUEUED') {
+                        try {
+                          final api = Provider.of<CommunityApi>(context, listen: false);
+                          await api.acceptSession(session.id);
+                        } catch (e) {
+                          debugPrint('Error accepting session: $e');
+                        }
+                      }
+                      if (context.mounted) {
+                        context.push('/peerline/chat/${session.id}').then((_) => _loadStats());
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.purple,
                       foregroundColor: Colors.white,
@@ -642,7 +654,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     child: Text(
-                      session.status.toUpperCase() == 'MATCHING' ? 'Start Chat' : 'Return to Chat',
+                      session.status.toUpperCase() == 'MATCHING' || session.status.toUpperCase() == 'QUEUED' ? 'Accept & Start Chat' : 'Return to Chat',
                       style: GoogleFonts.outfit(fontWeight: FontWeight.bold)
                     ),
                   ),

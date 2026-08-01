@@ -11,9 +11,9 @@ class CommunitySocketService {
   io.Socket? _eventsSocket;
   final ValueNotifier<Map<String, int>> unreadUpdates = ValueNotifier({});
   final ValueNotifier<MentorAvailability?> availabilityUpdates = ValueNotifier(null);
-  final ValueNotifier<Map<String, dynamic>?> queueUpdates = ValueNotifier(null);
+  final ValueNotifier<int> pendingRequestsCount = ValueNotifier(0);
   final ValueNotifier<int> liveEventQuestionCount = ValueNotifier(0);
-  
+
   final _chatEventController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get chatEvents => _chatEventController.stream;
 
@@ -35,6 +35,20 @@ class CommunitySocketService {
     }
   }
 
+  String? _currentConnectionId;
+
+  Map<String, dynamic> _toMap(String eventType, dynamic data) {
+    final result = <String, dynamic>{'type': eventType};
+    if (data is Map) {
+      data.forEach((k, v) {
+        result[k.toString()] = v;
+      });
+    } else if (data != null) {
+      result['data'] = data;
+    }
+    return result;
+  }
+
   void connect() {
     final token = _storage.authToken;
     if (token == null) {
@@ -45,8 +59,8 @@ class CommunitySocketService {
     if (_socket?.connected == true) return;
 
     final baseUrl = ApiService.instance.dio.options.baseUrl.split('/api')[0];
-    debugPrint('[CommunitySocket] Connecting to components...');
-    
+    debugPrint('[CommunitySocket] Connecting to components at baseUrl: $baseUrl...');
+
     // Core/PeerLine Namespace
     _socket = io.io('$baseUrl/peerline', <String, dynamic>{
       'transports': ['websocket', 'polling'],
@@ -65,15 +79,38 @@ class CommunitySocketService {
     _eventsSocket?.connect();
 
     _socket?.onConnect((_) {
-      debugPrint('[CommunitySocket] PeerLine Connected');
+      debugPrint('[CommunitySocket] PeerLine Connected successfully');
       _socket?.emit('subscribe', {'channel': 'circles'});
       _socket?.emit('subscribe_availability');
+      _socket?.emit('subscribe_mentor_updates');
+      // Re-subscribe to the current chat connection if any
+      if (_currentConnectionId != null) {
+        debugPrint('[CommunitySocket] Resubscribing to connection: $_currentConnectionId');
+        _socket?.emit('subscribe_session', _currentConnectionId);
+      }
+    });
+
+    _socket?.on('connect_error', (err) {
+      debugPrint('[CommunitySocket] PeerLine Connect Error: $err');
+    });
+
+    _socket?.on('connect_timeout', (data) {
+      debugPrint('[CommunitySocket] PeerLine Connect Timeout: $data');
+    });
+
+    _socket?.on('error', (err) {
+      debugPrint('[CommunitySocket] PeerLine Socket Error: $err');
     });
 
     _eventsSocket?.onConnect((_) {
-      debugPrint('[CommunitySocket] Events Connected');
+      debugPrint('[CommunitySocket] Events Connected successfully');
     });
 
+    _eventsSocket?.on('connect_error', (err) {
+      debugPrint('[CommunitySocket] Events Connect Error: $err');
+    });
+
+    // ─── Availability ─────────────────────────────────────────────────────────
     _socket?.on('new_post', (data) {
       if (data is Map && data.containsKey('circle_id')) {
         final circleId = data['circle_id'] as String;
@@ -82,7 +119,7 @@ class CommunitySocketService {
         unreadUpdates.value = currentUpdates;
       }
     });
-    
+
     _socket?.on('mentor_availability_update', (data) {
       if (data != null && data is Map<String, dynamic>) {
         debugPrint('[CommunitySocket] Availability update: $data');
@@ -90,13 +127,14 @@ class CommunitySocketService {
       }
     });
 
-    _socket?.on('queue_position_update', (data) {
-      if (data != null && data is Map<String, dynamic>) {
-        queueUpdates.value = data;
+    // ─── Mentor-side: pending requests count ──────────────────────────────────
+    _socket?.on('pending_requests_update', (data) {
+      if (data != null && data is Map && data.containsKey('count')) {
+        pendingRequestsCount.value = data['count'] as int;
       }
     });
 
-    // Events Namespace Listeners
+    // ─── Events Namespace ─────────────────────────────────────────────────────
     _eventsSocket?.on('event_update', (data) {
       debugPrint('[CommunitySocket] Event update received: $data');
       _liveEventController.add(data as Map<String, dynamic>);
@@ -108,19 +146,38 @@ class CommunitySocketService {
       }
     });
 
-    // PeerLine Chat Events
-    _socket?.on('message', (data) => _chatEventController.add({'type': 'message', ...data}));
-    _socket?.on('message_deleted', (data) => _chatEventController.add({'type': 'message_deleted', ...data}));
-    _socket?.on('peer_typing', (data) => _chatEventController.add({'type': 'peer_typing', ...data}));
-    _socket?.on('crisis_resource', (data) => _chatEventController.add({'type': 'crisis_resource', ...data}));
-    _socket?.on('session_ended', (data) => _chatEventController.add({'type': 'session_ended', ...data}));
-    _socket?.on('session_ready', (data) => _chatEventController.add({'type': 'session_ready', ...data}));
-    _socket?.on('session_paused', (data) => _chatEventController.add({'type': 'session_paused', ...data}));
-    _socket?.on('error', (data) => _chatEventController.add({'type': 'error', ...data}));
-    _socket?.on('queue_count_changed', (data) => _chatEventController.add({'type': 'queue_count_changed', ...data}));
+    // ─── PeerLine Chat Events ─────────────────────────────────────────────────
+    _socket?.on('message', (data) {
+      debugPrint('[CommunitySocket] Socket received message: $data');
+      _chatEventController.add(_toMap('message', data));
+    });
 
-    _socket?.onDisconnect((_) => debugPrint('[CommunitySocket] PeerLine Disconnected'));
-    _eventsSocket?.onDisconnect((_) => debugPrint('[CommunitySocket] Events Disconnected'));
+    _socket?.on('message_deleted', (data) =>
+        _chatEventController.add(_toMap('message_deleted', data)));
+
+    _socket?.on('peer_typing', (data) =>
+        _chatEventController.add(_toMap('peer_typing', data)));
+
+    _socket?.on('crisis_resource', (data) =>
+        _chatEventController.add(_toMap('crisis_resource', data)));
+
+    // Connection lifecycle events (replaces session_ready / session_ended)
+    _socket?.on('connection_accepted', (data) =>
+        _chatEventController.add(_toMap('connection_accepted', data)));
+
+    _socket?.on('connection_declined', (data) =>
+        _chatEventController.add(_toMap('connection_declined', data)));
+
+    _socket?.on('connection_request', (data) =>
+        _chatEventController.add(_toMap('connection_request', data)));
+
+    _socket?.on('error', (data) =>
+        _chatEventController.add(_toMap('error', data)));
+
+    _socket?.onDisconnect((_) =>
+        debugPrint('[CommunitySocket] PeerLine Disconnected'));
+    _eventsSocket?.onDisconnect((_) =>
+        debugPrint('[CommunitySocket] Events Disconnected'));
   }
 
   void reconnect() {
@@ -128,7 +185,7 @@ class CommunitySocketService {
     connect();
   }
 
-  // Events specialized methods
+  // ─── Events specialized methods ───────────────────────────────────────────────
   void subscribeToEvent(String eventId) {
     _eventsSocket?.emit('subscribe_event', eventId);
   }
@@ -137,14 +194,26 @@ class CommunitySocketService {
     _eventsSocket?.emit('unsubscribe_event', eventId);
   }
 
-  // PeerLine specialized methods
-  void subscribeToSession(String sessionId) {
-    _socket?.emit('subscribe_session', sessionId);
+  // ─── PeerLine Chat methods ────────────────────────────────────────────────────
+
+  /// Subscribe to real-time events for a specific chat connection (teen-peer pair).
+  void subscribeToConnection(String connectionId) {
+    _currentConnectionId = connectionId;
+    debugPrint('[CommunitySocket] Subscribing to connection: $connectionId');
+    _socket?.emit('subscribe_session', connectionId);
   }
 
-  void unsubscribeFromSession(String sessionId) {
-    _socket?.emit('unsubscribe_session', sessionId);
+  /// Unsubscribe from a chat connection room.
+  void unsubscribeFromConnection(String connectionId) {
+    if (_currentConnectionId == connectionId) {
+      _currentConnectionId = null;
+    }
+    _socket?.emit('unsubscribe_session', connectionId);
   }
+
+  // Backward-compat aliases
+  void subscribeToSession(String sessionId) => subscribeToConnection(sessionId);
+  void unsubscribeFromSession(String sessionId) => unsubscribeFromConnection(sessionId);
 
   void subscribeToMentorUpdates() {
     _socket?.emit('subscribe_mentor_updates');
@@ -154,9 +223,16 @@ class CommunitySocketService {
     _socket?.emit('unsubscribe_mentor_updates');
   }
 
-  void sendMessage(String sessionId, String? content, String senderRole, {String? messageType, String? mediaUrl, String? clientId}) {
+  void sendMessage(
+    String connectionId,
+    String? content,
+    String senderRole, {
+    String? messageType,
+    String? mediaUrl,
+    String? clientId,
+  }) {
     _socket?.emit('send_message', {
-      'sessionId': sessionId,
+      'sessionId': connectionId,
       'content': content,
       'senderRole': senderRole,
       'messageType': messageType,
@@ -165,39 +241,18 @@ class CommunitySocketService {
     });
   }
 
-
-  void unsendMessage(String sessionId, String messageId) {
+  void unsendMessage(String connectionId, String messageId) {
     _socket?.emit('delete_message', {
-      'sessionId': sessionId,
+      'sessionId': connectionId,
       'messageId': messageId,
     });
   }
 
-  void pauseSession(String sessionId) {
-    _socket?.emit('pause_session', {
-      'sessionId': sessionId,
-    });
-  }
-
-  void sendTypingIndicator(String sessionId, bool isTyping, String senderRole) {
+  void sendTypingIndicator(String connectionId, bool isTyping, String senderRole) {
     _socket?.emit('typing_indicator', {
-      'sessionId': sessionId,
+      'sessionId': connectionId,
       'isTyping': isTyping,
       'senderRole': senderRole,
-    });
-  }
-
-  void sendTypingStop(String sessionId, String senderRole) {
-    _socket?.emit('typing_stop', {
-      'sessionId': sessionId,
-      'senderRole': senderRole,
-    });
-  }
-
-  void endSession(String sessionId, String reason) {
-    _socket?.emit('end_session', {
-      'sessionId': sessionId,
-      'reason': reason,
     });
   }
 

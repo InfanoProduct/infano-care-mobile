@@ -159,7 +159,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
               ),
               const SizedBox(height: 16),
               Text(
-                'Please wait while we match you with experts who can help.',
+                'Please wait while we match you with peer mentors who can help.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.outfit(
                   fontSize: 16,
@@ -268,7 +268,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Expert Mentors',
+                  'Peer Mentors',
                   style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
                 ),
                 Text(
@@ -320,10 +320,12 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
     try {
       final api = Provider.of<CommunityApi>(context, listen: false);
       final mentorId = widget.mentor['id'] as String?;
-      
-      await api.requestPeerLineSession(
+      if (mentorId == null) throw Exception('Invalid mentor');
+
+      // New: use direct connection request (Instagram-style)
+      await api.requestConnection(
+        mentorId: mentorId,
         topicIds: widget.selectedTopics,
-        requestedMentorId: mentorId,
       );
       
       if (mounted) {
@@ -467,7 +469,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Expertise in:',
+                              'Topics:',
                               style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
@@ -584,7 +586,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                   )
                 : Text(
-                    _isRequested ? 'Request Sent' : 'Request Session',
+                    _isRequested ? 'Request Sent' : 'Request Chat',
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.bold,
                       color: _isRequested ? Colors.green.shade700 : (isOnline ? Colors.white : Colors.grey.shade400),

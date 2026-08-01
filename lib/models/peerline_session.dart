@@ -4,6 +4,8 @@ class PeerLineSession {
   final String id;
   final String status; // 'pending', 'active', 'completed', 'cancelled'
   final DateTime createdAt;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
   final String? mentorId;
   final String menteeId;
   final String? mentorName;
@@ -22,6 +24,8 @@ class PeerLineSession {
     required this.status,
     required this.menteeId,
     required this.createdAt,
+    this.startedAt,
+    this.endedAt,
     this.mentorId,
     this.mentorName,
     this.menteeName,
@@ -54,11 +58,23 @@ class PeerLineSession {
           .toList();
     }
 
+    DateTime? startedAt;
+    if (json['startedAt'] != null) {
+      startedAt = DateTime.tryParse(json['startedAt'].toString());
+    }
+
+    DateTime? endedAt;
+    if (json['endedAt'] != null) {
+      endedAt = DateTime.tryParse(json['endedAt'].toString());
+    }
+
     return PeerLineSession(
       id: json['id'],
       status: json['status'],
       menteeId: json['menteeId'],
       createdAt: DateTime.parse(json['createdAt']),
+      startedAt: startedAt,
+      endedAt: endedAt,
       mentorId: json['mentorId'],
       mentorName: mentorName,
       menteeName: menteeName,
