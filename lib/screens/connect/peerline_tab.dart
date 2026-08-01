@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
@@ -38,8 +37,6 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
   late Animation<double> _pulseAnimation;
 
   StreamSubscription? _socketSubscription;
-  late TabController _sessionTabController;
-  int _sessionTabIndex = 0;
 
   @override
   void initState() {
@@ -74,12 +71,6 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
     );
 
     _entryController.forward();
-    _sessionTabController = TabController(length: 2, vsync: this);
-    _sessionTabController.addListener(() {
-      if (_sessionTabController.indexIsChanging) {
-        setState(() => _sessionTabIndex = _sessionTabController.index);
-      }
-    });
     _checkUserRoleAndRefresh();
   }
 
@@ -135,7 +126,6 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
     _socketSubscription?.cancel();
     _entryController.dispose();
     _pulseController.dispose();
-    _sessionTabController.dispose();
     super.dispose();
   }
 
@@ -417,8 +407,6 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
     );
   }
 
-
-
   Widget _buildSessionsList() {
     if (_sessionsFuture == null) return const SizedBox.shrink();
 
@@ -426,364 +414,96 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
       future: _sessionsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()));
+          return const Center(
+              child: Padding(
+                  padding: EdgeInsets.all(40),
+                  child: CircularProgressIndicator()));
         }
-        
+
         final sessions = snapshot.data ?? [];
-        final upcomingSessions = sessions.where((s) => 
-          s.status.toLowerCase() == 'active' || 
-          s.status.toLowerCase() == 'matching' || 
-          s.status.toLowerCase() == 'queued'
-        ).toList();
-        
-        final pastSessions = sessions.where((s) => 
-          s.status.toLowerCase() == 'completed' || 
-          s.status.toLowerCase() == 'cancelled'
-        ).toList();
+        final activeConnections = sessions
+            .where((s) =>
+                s.status.toLowerCase() == 'active' ||
+                s.status.toLowerCase() == 'matching' ||
+                s.status.toLowerCase() == 'queued')
+            .toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Your Sessions',
+              'Your Chats',
               style: GoogleFonts.outfit(
-                fontSize: 18, 
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Track your mentor conversations — fully private.',
-              style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
-            ),
-            const SizedBox(height: 12),
-
-            // Tab bar
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: TabBar(
-                controller: _sessionTabController,
-                indicator: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4, offset: const Offset(0, 2)),
-                  ],
-                ),
-                labelColor: AppColors.purple,
-                unselectedLabelColor: AppColors.textMedium,
-                labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
-                unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
-                dividerColor: Colors.transparent,
-                tabs: [
-                  Tab(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.schedule_rounded, size: 15),
-                        const SizedBox(width: 6),
-                        const Text('Upcoming'),
-                        if (upcomingSessions.isNotEmpty) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: AppColors.purple,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${upcomingSessions.length}',
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Tab(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.history_rounded, size: 15),
-                        const SizedBox(width: 6),
-                        const Text('Past'),
-                        if (pastSessions.isNotEmpty) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade400,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${pastSessions.length}',
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              'Connect and chat with peer mentors privately.',
+              style: GoogleFonts.outfit(
+                  fontSize: 12, color: AppColors.textMedium),
             ),
             const SizedBox(height: 16),
-
-            // Tab content — fixed height so it doesn't fight with SingleChildScrollView
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: _sessionTabIndex == 0
-                ? _buildUpcomingTab(upcomingSessions)
-                : _buildPastTab(pastSessions),
-            ),
+            if (activeConnections.isEmpty)
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.shade100),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.chat_bubble_outline_rounded,
+                        color: Colors.grey.shade300, size: 44),
+                    const SizedBox(height: 14),
+                    Text(
+                      'No active chats',
+                      style: GoogleFonts.outfit(
+                        color: AppColors.textDark,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Request a connection to start chatting.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                          color: AppColors.textMedium,
+                          fontSize: 13,
+                          height: 1.4),
+                    ),
+                    const SizedBox(height: 20),
+                    OutlinedButton.icon(
+                      onPressed: () => context.push('/peerline/request'),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: Text('Find a Mentor',
+                          style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.purple,
+                        side: BorderSide(color: AppColors.purple),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Column(
+                children: activeConnections
+                    .map((s) => _ActiveSessionCard(session: s))
+                    .toList(),
+              ),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildUpcomingTab(List<PeerLineSession> sessions) {
-    if (sessions.isEmpty) {
-      return Container(
-        key: const ValueKey('upcoming-empty'),
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade100),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.calendar_today_rounded, color: Colors.grey.shade300, size: 44),
-            const SizedBox(height: 14),
-            Text(
-              'No upcoming sessions',
-              style: GoogleFonts.outfit(
-                color: AppColors.textDark,
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Request a chat with a peer mentor to get started.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 13, height: 1.4),
-            ),
-            const SizedBox(height: 20),
-            OutlinedButton.icon(
-              onPressed: () => context.push('/peerline/request'),
-              icon: const Icon(Icons.add, size: 16),
-              label: Text('Find a Mentor', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.purple,
-                side: BorderSide(color: AppColors.purple),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return Column(
-      key: const ValueKey('upcoming-list'),
-      children: sessions.map((s) => _ActiveSessionCard(session: s)).toList(),
-    );
-  }
-
-  Widget _buildPastTab(List<PeerLineSession> sessions) {
-    if (sessions.isEmpty) {
-      return Container(
-        key: const ValueKey('past-empty'),
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade100),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.history_rounded, color: Colors.grey.shade300, size: 44),
-            const SizedBox(height: 14),
-            Text(
-              'No past sessions yet',
-              style: GoogleFonts.outfit(
-                color: AppColors.textDark,
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Completed sessions will appear here after you end a chat.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 13, height: 1.4),
-            ),
-          ],
-        ),
-      );
-    }
-    return Column(
-      key: const ValueKey('past-list'),
-      children: sessions.map((s) => _SessionListItem(session: s)).toList(),
-    );
-  }
-}
-
-
-class _SessionListItem extends StatelessWidget {
-  final PeerLineSession session;
-
-  const _SessionListItem({required this.session});
-
-  @override
-  Widget build(BuildContext context) {
-    final dateFormat = DateFormat('MMM dd, yyyy • hh:mm a');
-    final rating = session.menteeRating ?? session.mentorRating;
-    final note = session.menteeNote ?? session.mentorNote;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Avatar
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.purple.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              (session.mentorName ?? 'P').substring(0, 1).toUpperCase(),
-              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppColors.purple, fontSize: 18),
-            ),
-          ),
-          const SizedBox(width: 16),
-          
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        session.mentorName ?? 'Peer Mentor',
-                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (rating != null) ...[
-                      const SizedBox(width: 8),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            rating.toString(),
-                            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.amber.shade700),
-                          ),
-                          const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  dateFormat.format(session.createdAt),
-                  style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
-                ),
-                if (note != null && note.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      '"$note"',
-                      style: GoogleFonts.outfit(
-                        fontSize: 13,
-                        fontStyle: FontStyle.italic,
-                        color: AppColors.textDark.withValues(alpha: 0.7),
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(width: 12),
-          
-          // Status
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _buildStatusBadge(session.status),
-              if (session.status.toLowerCase() == 'active')
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: TextButton(
-                    onPressed: () => context.push('/peerline/chat/${session.id}'),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      foregroundColor: AppColors.purple,
-                    ),
-                    child: const Text('Open Chat', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(String status) {
-    Color color;
-    switch (status.toLowerCase()) {
-      case 'active': color = const Color(0xFF10B981); break;
-      case 'completed': color = AppColors.purple; break;
-      case 'cancelled': color = Colors.red; break;
-      default: color = Colors.grey;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        status.toUpperCase(),
-        style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color),
-      ),
     );
   }
 }
@@ -819,8 +539,8 @@ class _ActiveSessionCard extends StatelessWidget {
       buttonTextColor = Colors.grey.shade400;
       leadingIcon = Icons.hourglass_empty;
     } else if (isMatching) {
-      titleText = 'Finding your mentor...';
-      subtitleText = 'You are in the queue';
+      titleText = 'Finding your Peer Mentor...';
+      subtitleText = 'Waiting for matching';
       buttonText = 'View Status';
       cardBorderColor = AppColors.purple.withValues(alpha: 0.25);
       buttonColor = AppColors.purple;
@@ -829,8 +549,8 @@ class _ActiveSessionCard extends StatelessWidget {
     } else {
       // ACTIVE — mentor accepted
       titleText = '$mentorName accepted your request!';
-      subtitleText = 'Your mentor is ready. Tap below to start chatting.';
-      buttonText = 'Initiate Chat';
+      subtitleText = 'Your peer mentor is ready. Tap below to start chatting.';
+      buttonText = 'Open Chat';
       cardBorderColor = const Color(0xFF10B981).withValues(alpha: 0.4);
       buttonColor = const Color(0xFF10B981);
       buttonTextColor = Colors.white;
@@ -938,7 +658,7 @@ class _ActiveSessionCard extends StatelessWidget {
                   const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 16),
                   const SizedBox(width: 8),
                   Text(
-                    'Mentor accepted · Session is ready',
+                    'Mentor accepted · Connection is active',
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       color: const Color(0xFF10B981),
@@ -950,37 +670,147 @@ class _ActiveSessionCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: isDirectRequest ? null : () {
-                if (isMatching) {
-                  context.push('/peerline/request');
-                } else {
-                  context.push('/peerline/chat/${session.id}');
-                }
-              },
-              icon: isDirectRequest
-                ? const SizedBox.shrink()
-                : Icon(isAccepted ? Icons.chat_bubble_rounded : Icons.arrow_forward_rounded, size: 18),
-              label: Text(
-                buttonText,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.bold,
-                  color: buttonTextColor,
-                  fontSize: 15,
+          if (isDirectRequest)
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      buttonText,
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.bold,
+                        color: buttonTextColor,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _CancelRequestButton(
+                  connectionId: session.id,
+                  onCancelled: () {
+                    // Trigger refresh of list in parent
+                    final tabState = context.findAncestorStateOfType<_PeerLineTabState>();
+                    tabState?._refreshData();
+                  },
+                ),
+              ],
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  if (isMatching) {
+                    context.push('/peerline/request');
+                  } else {
+                    context.push('/peerline/chat/${session.id}');
+                  }
+                },
+                icon: Icon(isAccepted ? Icons.chat_bubble_rounded : Icons.arrow_forward_rounded, size: 18),
+                label: Text(
+                  buttonText,
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.bold,
+                    color: buttonTextColor,
+                    fontSize: 15,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: buttonColor,
+                  disabledBackgroundColor: Colors.grey.shade100,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: isAccepted ? 2 : 0,
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: buttonColor,
-                disabledBackgroundColor: Colors.grey.shade100,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: isAccepted ? 2 : 0,
-              ),
             ),
-          ),
         ],
+      ),
+    );
+  }
+}
+
+class _CancelRequestButton extends StatefulWidget {
+  final String connectionId;
+  final VoidCallback onCancelled;
+
+  const _CancelRequestButton({
+    required this.connectionId,
+    required this.onCancelled,
+  });
+
+  @override
+  State<_CancelRequestButton> createState() => _CancelRequestButtonState();
+}
+
+class _CancelRequestButtonState extends State<_CancelRequestButton> {
+  bool _isCancelling = false;
+
+  Future<void> _handleCancel() async {
+    if (_isCancelling) return;
+    setState(() => _isCancelling = true);
+
+    try {
+      final api = Provider.of<CommunityApi>(context, listen: false);
+      await api.cancelConnection(widget.connectionId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Request cancelled successfully 💜'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        widget.onCancelled();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isCancelling = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to cancel request: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 50,
+      width: 120,
+      child: OutlinedButton(
+        onPressed: _isCancelling ? null : _handleCancel,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.red,
+          side: BorderSide(color: Colors.red.shade200),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          padding: EdgeInsets.zero,
+        ),
+        child: _isCancelling
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Colors.red, strokeWidth: 2),
+              )
+            : Text(
+                'Cancel Request',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Colors.red.shade700,
+                ),
+              ),
       ),
     );
   }
@@ -1050,35 +880,31 @@ class _TopMentorCardState extends State<_TopMentorCard> {
     final bool isOnline = widget.mentor['isOnline'] == true || widget.mentor['profile']?['isAvailable'] == true;
     final List certifiedTopics = widget.mentor['certifiedTopics'] ?? widget.mentor['topics'] ?? [];
     
-    String category = 'Peer Mentor';
     List<String> topics = [];
     if (certifiedTopics.isNotEmpty) {
       if (certifiedTopics.first is Map) {
-        category = certifiedTopics.first['category']?['name'] ?? 'Peer Mentor';
         topics = certifiedTopics.map<String>((t) => t['name'].toString()).toList();
       } else {
         topics = certifiedTopics.map<String>((t) => t.toString()).toList();
-        // Use the first topic as the primary category
-        category = topics.isNotEmpty ? topics.first : 'Peer Mentor';
       }
     }
 
     final List<Color> pastelColors = [
-      const Color(0xFFF5F3FF), // Soft Lavender
-      const Color(0xFFF0F9FF), // Soft Sky
-      const Color(0xFFECFDF5), // Soft Mint
-      const Color(0xFFFFF7ED), // Soft Orange
-      const Color(0xFFFFFBEB), // Soft Amber
-      const Color(0xFFFDF2F2), // Soft Rose
+      const Color(0xFFF5F3FF),
+      const Color(0xFFF0F9FF),
+      const Color(0xFFECFDF5),
+      const Color(0xFFFFF7ED),
+      const Color(0xFFFFFBEB),
+      const Color(0xFFFDF2F2),
     ];
     
     final int colorIndex = widget.mentor['id'].toString().hashCode.abs() % pastelColors.length;
     final Color bgColor = pastelColors[colorIndex];
-    final Color accentColor = Color.lerp(bgColor, Colors.black, 0.6)!; // Darker version for text
+    final Color accentColor = Color.lerp(bgColor, Colors.black, 0.6)!;
 
     return Container(
       width: 320,
-      margin: const EdgeInsets.only(right: 16, bottom: 8),
+      margin: const EdgeInsets.only(right: 16, bottom: 12),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(32),
@@ -1095,11 +921,12 @@ class _TopMentorCardState extends State<_TopMentorCard> {
         color: Colors.transparent,
         child: InkWell(
           onTap: _isRequested ? null : _handleRequest,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(32),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1178,39 +1005,12 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                                         color: const Color(0xFFFFB800),
                                       ),
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '• ${widget.mentor['experienceCount'] ?? '12'}+',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFFFFB800).withValues(alpha: 0.9),
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: accentColor.withValues(alpha: 0.1)),
-                            ),
-                            child: Text(
-                              category.toUpperCase(),
-                              style: GoogleFonts.outfit(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                color: accentColor,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Text(
                             isOnline ? 'Available to chat' : 'Offline',
                             style: GoogleFonts.outfit(
@@ -1225,20 +1025,10 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  'Topics:',
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF4A4A6A),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Using Wrap instead of horizontal ListView to avoid scroll conflicts
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: topics.take(3).map((topic) => Container(
+                  children: topics.take(2).map((topic) => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.4),
@@ -1255,7 +1045,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                     ),
                   )).toList(),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
                   bio,
                   style: GoogleFonts.outfit(
@@ -1266,7 +1056,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -1303,7 +1093,3 @@ class _TopMentorCardState extends State<_TopMentorCard> {
     );
   }
 }
-
-
-
-

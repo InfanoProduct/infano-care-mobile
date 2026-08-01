@@ -8,7 +8,6 @@ import 'package:infano_care_mobile/models/peerline_session.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
-import 'package:dio/dio.dart';
 
 class MentorDashboard extends StatefulWidget {
   final VoidCallback? onSwitchToMentee;
@@ -158,45 +157,17 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
   }
 
   Future<void> _claimNext() async {
-    try {
-      setState(() => _isLoading = true);
-      final api = Provider.of<CommunityApi>(context, listen: false);
-      final session = await api.claimNextSession();
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connected with a mentee!')));
-        _loadStats();
-        context.push('/peerline/chat/${session.id}').then((_) => _loadStats());
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        String message = 'Failed to claim session';
-        
-        if (e is DioException) {
-          final backendError = e.response?.data?['error'];
-          if (backendError != null) {
-            if (backendError == 'NO_MATCHING_SESSIONS') {
-              message = 'No matching mentees in queue right now.';
-            } else if (backendError == 'UNAUTHORIZED_NOT_CERTIFIED') {
-              message = 'You are not certified to claim sessions.';
-            } else if (backendError == 'MENTOR_NOT_AVAILABLE') {
-              message = 'Please toggle "Available" before connecting.';
-            } else {
-              message = 'Error: $backendError';
-            }
-          } else {
-            message = 'Failed to claim session: ${e.message}';
-          }
-        } else {
-          message = 'Failed to claim session: $e';
-        }
-        
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(message),
-          backgroundColor: message.contains('No matching') ? Colors.blueGrey : Colors.redAccent,
-        ));
-      }
+    // In the new model, teens send connection requests directly to specific mentors.
+    // Peers no longer "claim" from a queue — they accept incoming requests instead.
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Teens now send you connection requests directly. Accept them from your pending requests list above.'),
+          backgroundColor: AppColors.purple,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -634,16 +605,17 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
+                      final localContext = context;
                       if (session.status.toUpperCase() == 'MATCHING' || session.status.toUpperCase() == 'QUEUED') {
                         try {
-                          final api = Provider.of<CommunityApi>(context, listen: false);
+                          final api = Provider.of<CommunityApi>(localContext, listen: false);
                           await api.acceptSession(session.id);
                         } catch (e) {
                           debugPrint('Error accepting session: $e');
                         }
                       }
-                      if (context.mounted) {
-                        context.push('/peerline/chat/${session.id}').then((_) => _loadStats());
+                      if (localContext.mounted) {
+                        localContext.push('/peerline/chat/${session.id}').then((_) => _loadStats());
                       }
                     },
                     style: ElevatedButton.styleFrom(

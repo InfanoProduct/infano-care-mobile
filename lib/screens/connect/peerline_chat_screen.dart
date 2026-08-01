@@ -7,7 +7,6 @@ import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:infano_care_mobile/models/chat_message.dart';
 import 'package:infano_care_mobile/widgets/crisis_resource_card.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -341,7 +340,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final bool isPending = _session?.status?.toUpperCase() == 'MATCHING';
+    final bool isPending = _session!.status.toUpperCase() == 'MATCHING';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -764,8 +763,9 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                       textCapitalization: TextCapitalization.sentences,
                       onChanged: (val) {
                         _sendTyping(val.isNotEmpty);
-                        if (_piiError != null)
+                        if (_piiError != null) {
                           setState(() => _piiError = null);
+                        }
                       },
                       decoration: InputDecoration(
                         hintText: isPending

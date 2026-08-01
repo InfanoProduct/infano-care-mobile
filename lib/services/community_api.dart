@@ -178,6 +178,11 @@ class CommunityApi {
     await _dio.post('peerline/connections/$connectionId/decline');
   }
 
+  /// NEW: Teen cancels their own pending connection request.
+  Future<void> cancelConnection(String connectionId) async {
+    await _dio.post('peerline/connections/$connectionId/cancel');
+  }
+
   /// LEGACY: still works via the old route.
   Future<PeerLineSession> acceptPeerLineSession(String sessionId) async {
     final response = await _dio.post('peerline/mentor/sessions/$sessionId/accept');
@@ -223,6 +228,24 @@ class CommunityApi {
   Future<Map<String, dynamic>> getMentorStats() async {
     final response = await _dio.get('peerline/mentor/stats');
     return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateMentorAvailability(bool isAvailable) async {
+    final response = await _dio.patch('peerline/mentor/availability', data: {
+      'isAvailable': isAvailable,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  /// DEPRECATED — claim model removed. Kept so existing mentor dashboard code compiles.
+  /// In the new model peers only accept incoming connection requests — they don't claim.
+  Future<PeerLineSession> claimNextSession() async {
+    throw Exception('Session claiming is no longer supported. Peers now accept incoming connection requests.');
+  }
+
+  /// Accept a pending connection request. Wraps the new /connections/:id/accept endpoint.
+  Future<PeerLineSession> acceptSession(String connectionId) async {
+    return acceptConnection(connectionId);
   }
 
   Future<String> uploadMedia(String filePath, {String folder = 'peerline'}) async {

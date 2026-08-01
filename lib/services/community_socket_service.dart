@@ -256,6 +256,11 @@ class CommunitySocketService {
     });
   }
 
+  // Convenience alias — stops typing indicator
+  void sendTypingStop(String connectionId, String senderRole) {
+    sendTypingIndicator(connectionId, false, senderRole);
+  }
+
   void dispose() {
     _storage.removeListener(_handleStorageChange);
     _socket?.disconnect();
