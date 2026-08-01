@@ -17,31 +17,20 @@ class MentorDashboard extends StatefulWidget {
   State<MentorDashboard> createState() => _MentorDashboardState();
 }
 
-class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProviderStateMixin {
+class _MentorDashboardState extends State<MentorDashboard> {
   bool _isAvailable = false;
-  Map<String, dynamic>? _mentorStatus;
   Map<String, dynamic>? _stats;
   List<PeerLineSession> _activeSessions = [];
   bool _isLoading = true;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
   Timer? _refreshTimer;
   StreamSubscription? _socketSub;
   final Map<String, int> _localUnread = {};
   CommunitySocketService? _socketService;
   final Set<String> _subscribedSessions = {};
-
+ 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-    
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
     
     _loadStats();
     _startRefreshTimer();
@@ -52,7 +41,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
       _socketSub = _socketService?.chatEvents.listen(_onSocketEvent);
     });
   }
-
+ 
   void _startRefreshTimer() {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
@@ -61,7 +50,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
       }
     });
   }
-
+ 
   @override
   void dispose() {
     _socketSub?.cancel();
@@ -70,11 +59,10 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
     for (final id in _subscribedSessions) {
       _socketService?.unsubscribeFromSession(id);
     }
-    _pulseController.dispose();
     _refreshTimer?.cancel();
     super.dispose();
   }
-
+ 
   void _onSocketEvent(Map<String, dynamic> event) {
     if (!mounted) return;
     final type = event['type'];
@@ -83,14 +71,11 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
       setState(() {
         _localUnread[sessionId] = (_localUnread[sessionId] ?? 0) + 1;
       });
-    } else if (type == 'session_ended' && sessionId != null) {
-      _loadStats();
-    } else if (type == 'queue_count_changed') {
-      debugPrint('MentorDashboard: Queue changed, refreshing stats...');
+    } else if (type == 'connection_declined' || type == 'connection_accepted' || type == 'connection_request') {
       _loadStats();
     }
   }
-
+ 
   Future<void> _loadStats() async {
     try {
       final api = Provider.of<CommunityApi>(context, listen: false);
@@ -102,32 +87,22 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
       final stats = results[0];
       final status = results[1];
       
-      if (status['active_session_id'] != null) {
-        try {
-          await api.getSession(status['active_session_id']);
-        } catch (e) {
-          debugPrint('Failed to load active session details: $e');
-        }
-      }
-
       if (mounted) {
         setState(() {
           _stats = stats;
-          _mentorStatus = status;
-          _activeSessions = (stats['activeSessions'] as List? ?? [])
+          _activeSessions = (stats['activeConnections'] as List? ?? [])
               .map((s) => PeerLineSession.fromJson(s as Map<String, dynamic>))
               .toList();
           _isAvailable = status['is_available'] ?? false;
           _isLoading = false;
         });
-
-        // Subscribe to each active session for real-time notifications
+ 
+        // Subscribe to each active connection for real-time notifications
         for (final session in _activeSessions) {
           if (!_subscribedSessions.contains(session.id)) {
             _socketService?.subscribeToSession(session.id);
             _subscribedSessions.add(session.id);
           }
-          // Clear local unread if backend says 0 (e.g. after opening chat)
           if (session.unreadCount == 0) {
             _localUnread.remove(session.id);
           }
@@ -139,7 +114,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
       }
     }
   }
-
+ 
   Future<void> _toggleAvailability(bool value) async {
     final originalValue = _isAvailable;
     setState(() => _isAvailable = value);
@@ -153,21 +128,6 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
         setState(() => _isAvailable = originalValue);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
       }
-    }
-  }
-
-  Future<void> _claimNext() async {
-    // In the new model, teens send connection requests directly to specific mentors.
-    // Peers no longer "claim" from a queue — they accept incoming requests instead.
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Teens now send you connection requests directly. Accept them from your pending requests list above.'),
-          backgroundColor: AppColors.purple,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
-      );
     }
   }
 
@@ -212,10 +172,8 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
             const SizedBox(height: 20),
             _buildAvailabilityToggle(),
             const SizedBox(height: 24),
-            if (_isAvailable) ...[
-              _buildQueueIndicator(),
-              const SizedBox(height: 32),
-            ],
+            _buildPendingRequestsSection(),
+            const SizedBox(height: 32),
             _buildStatsGrid(),
             const SizedBox(height: 32),
             _buildActiveSessionsList(),
@@ -279,7 +237,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
                   ),
                 ),
                 Text(
-                  _isAvailable ? 'Mentees can see you now' : 'Toggle on to start matching',
+                  _isAvailable ? 'Teens can request connections with you' : 'Toggle on to receive requests',
                   style: GoogleFonts.outfit(
                     color: _isAvailable ? Colors.white.withValues(alpha: 0.8) : Colors.grey.shade500,
                     fontSize: 13,
@@ -299,95 +257,155 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
     );
   }
 
-  Widget _buildQueueIndicator() {
-    final status = _mentorStatus;
-    final stats = _stats;
-    final queueCount = status?['queue_count'] ?? stats?['queueCount'] ?? 0;
-    
+  Widget _buildPendingRequestsSection() {
+    final List requests = _stats?['pendingConnectionsList'] ?? [];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Live Queue', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(
+          'Connection Requests (${requests.length})',
+          style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
+        ),
         const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade100),
-          ),
-          child: Column(
-            children: [
-              ScaleTransition(
-                scale: queueCount > 0 ? _pulseAnimation : const AlwaysStoppedAnimation(1.0),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: queueCount > 0 ? AppColors.purple.withValues(alpha: 0.1) : Colors.grey.shade50,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    '$queueCount',
-                    style: GoogleFonts.outfit(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: queueCount > 0 ? AppColors.purple : Colors.grey,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const SizedBox(height: 12),
-              Text(
-                queueCount == 0 
-                  ? 'No mentees waiting right now'
-                  : (queueCount == 1 ? '1 mentee waiting' : '$queueCount mentees waiting'),
-                style: GoogleFonts.outfit(
-                  color: queueCount > 0 ? AppColors.purple : Colors.grey.shade600, 
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: 240,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: queueCount > 0 ? _claimNext : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.purple,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey.shade200,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: queueCount > 0 ? 8 : 0,
-                    shadowColor: AppColors.purple.withValues(alpha: 0.4),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (queueCount > 0) 
-                        const Icon(Icons.flash_on_rounded, size: 18),
-                      if (queueCount > 0)
-                        const SizedBox(width: 8),
-                      Text(
-                        'Connect Now', 
-                        style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (queueCount == 0) ...[
+        if (requests.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade100),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.hourglass_empty_rounded, color: Colors.grey.shade300, size: 40),
                 const SizedBox(height: 12),
                 Text(
-                  'We\'ll notify you when someone needs help',
-                  style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey.shade500),
+                  'No pending requests',
+                  style: GoogleFonts.outfit(color: Colors.grey.shade500, fontSize: 14),
                 ),
               ],
-            ],
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: requests.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final r = requests[index];
+              final List topicIds = r['topicIds'] ?? [];
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.15), width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: AppColors.purple.withValues(alpha: 0.1),
+                          child: Text(
+                            (r['menteeName'] ?? 'T').substring(0, 1).toUpperCase(),
+                            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppColors.purple),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                r['menteeName'] ?? 'Teen Client',
+                                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Wants to connect with you',
+                                style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: topicIds.map((t) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.purple.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          t.toString().toUpperCase(),
+                          style: TextStyle(color: AppColors.purple, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      )).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              try {
+                                final api = Provider.of<CommunityApi>(context, listen: false);
+                                await api.declineConnection(r['id']);
+                                _loadStats();
+                              } catch (e) {
+                                debugPrint('Error declining connection: $e');
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: BorderSide(color: Colors.red.shade200),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Decline'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              try {
+                                final api = Provider.of<CommunityApi>(context, listen: false);
+                                await api.acceptConnection(r['id']);
+                                _loadStats();
+                                if (context.mounted) {
+                                  context.push('/peerline/chat/${r['id']}');
+                                }
+                              } catch (e) {
+                                debugPrint('Error accepting connection: $e');
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.purple,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              elevation: 0,
+                            ),
+                            child: const Text('Accept & Chat'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-        ),
       ],
     );
   }
@@ -407,7 +425,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
             Icon(Icons.forum_outlined, color: Colors.grey.shade300, size: 48),
             const SizedBox(height: 16),
             Text(
-              'No active support requests',
+              'No active conversations',
               style: GoogleFonts.outfit(color: Colors.grey.shade600, fontWeight: FontWeight.w500),
             ),
           ],
@@ -418,7 +436,7 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Active Chats', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('Open Conversations', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         ..._activeSessions.map((s) => Column(
           children: [
@@ -436,9 +454,9 @@ class _MentorDashboardState extends State<MentorDashboard> with SingleTickerProv
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Session History', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('History', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
-        Text('Your conversations stay here after a session — fully private.', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        Text('Completed conversation records.', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
         const SizedBox(height: 16),
         if (history.isEmpty)
           Container(

@@ -463,62 +463,26 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      if (widget.mentor['expertiseTags'] != null && (widget.mentor['expertiseTags'] as List).isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Topics:',
-                              style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textMedium,
-                              ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: topics.take(2).map((t) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.purple.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            t.toString(),
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              color: AppColors.purple,
+                              fontWeight: FontWeight.w600,
                             ),
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: (widget.mentor['expertiseTags'] as List).map((tag) => Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
-                                ),
-                                child: Text(
-                                  tag.toString(),
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11,
-                                    color: Colors.blue.shade800,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              )).toList(),
-                            ),
-                          ],
-                        )
-                      else
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: topics.take(3).map((t) => Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.purple.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              t.toString(),
-                              style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                color: AppColors.purple,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          )).toList(),
-                        ),
+                          ),
+                        )).toList(),
+                      ),
 
                     ],
                   ),
@@ -571,7 +535,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
           Padding(
             padding: const EdgeInsets.all(20),
             child: ElevatedButton(
-              onPressed: (isOnline && !_isRequested && !_isLoading) ? _requestSession : null,
+              onPressed: (!_isRequested && !_isLoading) ? _requestSession : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.purple,
                 disabledBackgroundColor: _isRequested ? Colors.green.shade50 : Colors.grey.shade100,
@@ -589,7 +553,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                     _isRequested ? 'Request Sent' : 'Request Chat',
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.bold,
-                      color: _isRequested ? Colors.green.shade700 : (isOnline ? Colors.white : Colors.grey.shade400),
+                      color: _isRequested ? Colors.green.shade700 : Colors.white,
                       fontSize: 16,
                     ),
                   ),
