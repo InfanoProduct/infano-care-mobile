@@ -88,6 +88,14 @@ dev_dependencies:
   freezed: ^2.5.7
   json_serializable: ^6.9.3
   build_runner: ^2.4.15
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon-with-bg.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/icon-without-bg.png"
 
 flutter_native_splash:
   color: "#ffffff"
@@ -105,6 +113,8 @@ flutter:
   assets:
     - assets/logo.png
     - assets/logo_padded.png
+    - assets/icon-with-bg.png
+    - assets/icon-without-bg.png
     - assets/images/
     - assets/images/gigi.png
     - assets/images/gigi_avatar.png
