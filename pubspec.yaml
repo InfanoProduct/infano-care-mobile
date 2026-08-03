@@ -99,12 +99,12 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#ffffff"
-  image: assets/logo.png
+  image: assets/logo_splash.png
   android: true
   ios: true
   android_gravity: center
   android_12:
-    image: assets/logo.png
+    image: assets/logo_splash.png
     color: "#ffffff"
   web: false
 
@@ -113,6 +113,7 @@ flutter:
   assets:
     - assets/logo.png
     - assets/logo_padded.png
+    - assets/logo_splash.png
     - assets/icon-with-bg.png
     - assets/icon-without-bg.png
     - assets/images/
