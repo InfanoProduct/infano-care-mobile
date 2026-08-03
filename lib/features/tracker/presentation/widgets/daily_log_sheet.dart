@@ -214,7 +214,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFA7F3D0).withOpacity(0.5),
+                color: const Color(0xFFA7F3D0).withValues(alpha: ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -252,7 +252,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+                        color: isSelected ? Colors.white : Colors.white.withValues(alpha: ),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: isSelected ? AppColors.teal : const Color(0xFFA7F3D0),
@@ -456,7 +456,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFBCFE8).withOpacity(0.5),
+                color: const Color(0xFFFBCFE8).withValues(alpha: ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -496,7 +496,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                         width: 1.2,
                       ),
                     ),
-                    backgroundColor: Colors.white.withOpacity(0.6),
+                    backgroundColor: Colors.white.withValues(alpha: ),
                     showCheckmark: false,
                   );
                 }).toList(),
@@ -506,11 +506,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFBCFE8).withOpacity(0.2),
+                        color: const Color(0xFFFBCFE8).withValues(alpha: ),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -552,7 +552,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                       ),
                       Switch.adaptive(
                         value: _isPeriodEndToggled,
-                        activeColor: AppColors.pink, // Hard pink switch color
+                        activeThumbColor: AppColors.pink, // Hard pink switch color
                         onChanged: (val) {
                           setState(() {
                             _isPeriodEndToggled = val;
@@ -622,11 +622,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.6), // Transparent white content area
+                      color: Colors.white.withValues(alpha: ), // Transparent white content area
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFBCFE8).withOpacity(0.3),
+                          color: const Color(0xFFFBCFE8).withValues(alpha: ),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -786,7 +786,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFC7D2FE).withOpacity(0.5),
+                color: const Color(0xFFC7D2FE).withValues(alpha: ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -816,7 +816,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                         Container(
                           width: 64, height: 64,
                           decoration: BoxDecoration(
-                            color: _symptoms.isEmpty ? Colors.white : Colors.white.withOpacity(0.5),
+                            color: _symptoms.isEmpty ? Colors.white : Colors.white.withValues(alpha: ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: _symptoms.isEmpty ? AppColors.purple : const Color(0xFFC7D2FE),
@@ -853,7 +853,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                             width: 64,
                             height: 64,
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+                              color: isSelected ? Colors.white : Colors.white.withValues(alpha: ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isSelected ? AppColors.purple : const Color(0xFFC7D2FE),
@@ -914,7 +914,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFDDD6FE).withOpacity(0.5),
+                color: const Color(0xFFDDD6FE).withValues(alpha: ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -985,7 +985,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFDE68A).withOpacity(0.5),
+                color: const Color(0xFFFDE68A).withValues(alpha: ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -1035,7 +1035,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFC7D2FE).withOpacity(0.5),
+                color: const Color(0xFFC7D2FE).withValues(alpha: ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -1100,7 +1100,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFDDD6FE).withOpacity(0.5),
+            color: const Color(0xFFDDD6FE).withValues(alpha: ),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1124,8 +1124,8 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textDark),
             decoration: InputDecoration(
               hintText: 'Anything else worth noting? (Only you can read this 🔒)',
-              hintStyle: GoogleFonts.nunito(color: const Color(0xFF7C3AED).withOpacity(0.6), fontSize: 13),
-              fillColor: Colors.white.withOpacity(0.6),
+              hintStyle: GoogleFonts.nunito(color: const Color(0xFF7C3AED).withValues(alpha: ), fontSize: 13),
+              fillColor: Colors.white.withValues(alpha: ),
               filled: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -1162,7 +1162,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFA7F3D0).withOpacity(0.5),
+            color: const Color(0xFFA7F3D0).withValues(alpha: ),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1202,7 +1202,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                       Container(
                         width: 60, height: 60,
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+                          color: isSelected ? Colors.white : Colors.white.withValues(alpha: ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected ? AppColors.teal : const Color(0xFFA7F3D0),
@@ -1247,7 +1247,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFC7D2FE).withOpacity(0.5),
+            color: const Color(0xFFC7D2FE).withValues(alpha: ),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1287,7 +1287,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                       Container(
                         width: 60, height: 60,
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+                          color: isSelected ? Colors.white : Colors.white.withValues(alpha: ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected ? AppColors.purple : const Color(0xFFC7D2FE),
@@ -1461,7 +1461,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: isSelected
                         ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))]
-                        : [BoxShadow(color: const Color(0xFFDDD6FE).withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 2))],
+                        : [BoxShadow(color: const Color(0xFFDDD6FE).withValues(alpha: ), blurRadius: 6, offset: const Offset(0, 2))],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

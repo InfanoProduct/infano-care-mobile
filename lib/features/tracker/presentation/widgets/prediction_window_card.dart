@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/tracker_models.dart';
 import 'package:intl/intl.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
 class PredictionWindowCard extends StatelessWidget {
   final CycleProfileModel profile;

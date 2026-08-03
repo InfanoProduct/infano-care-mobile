@@ -347,4 +347,24 @@ class CommunityApi {
     final response = await _dio.get('safety/crisis-resources', queryParameters: {'locale': locale});
     return response.data as Map<String, dynamic>;
   }
+
+  Future<void> submitPeerLineFeedback({
+    required String sessionId,
+    required String role,
+    required int rating,
+    String? note,
+    bool? wellbeingOk,
+    bool? needsSupport,
+    bool? readyForNext,
+  }) async {
+    final payload = {
+      'role': role,
+      'rating': rating,
+      'note': note,
+      'wellbeingOk': wellbeingOk,
+      'needsSupport': needsSupport,
+      'readyForNext': readyForNext,
+    };
+    await _dio.post('peerline/sessions/$sessionId/feedback', data: payload);
+  }
 }
