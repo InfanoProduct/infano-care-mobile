@@ -78,6 +78,29 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
         });
         _scrollToBottom();
         break;
+      case 'message_edited':
+        setState(() {
+          final String? messageId = event['id'];
+          final int msgIndex = messageId != null 
+              ? _messages.indexWhere((m) => m['id'] == messageId) 
+              : -1;
+          if (msgIndex != -1) {
+            _messages[msgIndex] = {
+              ..._messages[msgIndex],
+              'content': event['content'],
+              'isEdited': true,
+            };
+          }
+        });
+        break;
+      case 'message_unsent':
+        setState(() {
+          final String? messageId = event['messageId'];
+          if (messageId != null) {
+            _messages.removeWhere((m) => m['id'] == messageId);
+          }
+        });
+        break;
       case 'peer_typing':
         setState(() => _isPeerTyping = event['isTyping'] ?? false);
         break;
@@ -321,6 +344,174 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
     );
   }
 
+  void _showMessageActions(Map<String, dynamic> msg) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined, color: AppColors.purple),
+                  title: Text(
+                    'Edit Message',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showEditDialog(msg);
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: Text(
+                    'Unsend Message',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _confirmUnsend(msg);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditDialog(Map<String, dynamic> msg) {
+    final textController = TextEditingController(text: msg['content']);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Edit Message',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppColors.textDark),
+          ),
+          content: TextField(
+            controller: textController,
+            maxLines: null,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              hintText: 'Edit your message...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.purple.withValues(alpha: 0.2)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.purple, width: 2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.outfit(color: AppColors.textLight, fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.purple,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              onPressed: () {
+                final newText = textController.text.trim();
+                if (newText.isNotEmpty && newText != msg['content']) {
+                  _socketService?.editMessage(widget.matchId, msg['id'], newText);
+                }
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Save',
+                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmUnsend(Map<String, dynamic> msg) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Unsend Message?',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppColors.textDark),
+          ),
+          content: Text(
+            'Are you sure you want to unsend this message? It will be removed for everyone in the chat.',
+            style: GoogleFonts.outfit(color: AppColors.textLight),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.outfit(color: AppColors.textLight, fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              onPressed: () {
+                _socketService?.unsendMessage(widget.matchId, msg['id']);
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Unsend',
+                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildMessageBubble(Map<String, dynamic> msg, bool isMe, int index) {
     final sentAt = DateTime.parse(msg['createdAt'] ?? DateTime.now().toIso8601String());
     
@@ -347,23 +538,43 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           ),
         Align(
           alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-            decoration: BoxDecoration(
-              color: isMe ? const Color(0xFFFFF1F2) : const Color(0xFFF5F3FF),
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(20),
-                topRight: const Radius.circular(20),
-                bottomLeft: Radius.circular(isMe ? 20 : 4),
-                bottomRight: Radius.circular(isMe ? 4 : 20),
+          child: GestureDetector(
+            onLongPress: isMe ? () => _showMessageActions(msg) : null,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+              decoration: BoxDecoration(
+                color: isMe ? const Color(0xFFFFF1F2) : const Color(0xFFF5F3FF),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isMe ? 20 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 20),
+                ),
+                border: Border.all(color: isMe ? const Color(0xFFFEE2E2) : const Color(0xFFEDE9FE)),
               ),
-              border: Border.all(color: isMe ? const Color(0xFFFEE2E2) : const Color(0xFFEDE9FE)),
-            ),
-            child: Text(
-              msg['content'] ?? '',
-              style: GoogleFonts.outfit(color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), fontSize: 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    msg['content'] ?? '',
+                    style: GoogleFonts.outfit(color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), fontSize: 15),
+                  ),
+                  if (msg['isEdited'] == true) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'edited',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isMe ? const Color(0xFFFDA4AF) : const Color(0xFFC084FC),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),

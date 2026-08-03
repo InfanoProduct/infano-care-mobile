@@ -46,6 +46,8 @@ class FriendsSocketService {
     });
 
     _socket?.on('message', (data) => _chatEventController.add({'type': 'message', ...data}));
+    _socket?.on('message_edited', (data) => _chatEventController.add({'type': 'message_edited', ...data}));
+    _socket?.on('message_unsent', (data) => _chatEventController.add({'type': 'message_unsent', ...data}));
     _socket?.on('peer_typing', (data) => _chatEventController.add({'type': 'peer_typing', ...data}));
     _socket?.on('safety_alert', (data) => _chatEventController.add({'type': 'safety_alert', ...data}));
     _socket?.on('grooming_check', (data) => _chatEventController.add({'type': 'grooming_check', ...data}));
@@ -68,6 +70,21 @@ class FriendsSocketService {
       'matchId': matchId,
       'content': content,
       'clientId': clientId,
+    });
+  }
+
+  void editMessage(String matchId, String messageId, String content) {
+    _socket?.emit('edit_message', {
+      'matchId': matchId,
+      'messageId': messageId,
+      'content': content,
+    });
+  }
+
+  void unsendMessage(String matchId, String messageId) {
+    _socket?.emit('unsend_message', {
+      'matchId': matchId,
+      'messageId': messageId,
     });
   }
 
