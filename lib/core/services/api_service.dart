@@ -15,7 +15,7 @@ class ApiService {
 
   static Completer<void>? _refreshCompleter;
 
-  static const _defaultBaseUrl = 'http://192.168.1.43:4005/api/';
+  static const _defaultBaseUrl = 'https://api-dev.infano.care/api/';
   static final String _baseUrl = _getNormalizedBaseUrl();
 
   static String _getNormalizedBaseUrl() {
@@ -137,7 +137,7 @@ class ApiService {
       String errorMessage = e.toString();
       if (e is DioException) {
         if (e.type == DioExceptionType.connectionError) {
-          errorMessage = 'Connection Error (check if phone is on same WiFi as Mac at 192.168.1.43)';
+          errorMessage = 'Connection Error (check your internet connection or if the API server is reachable)';
         } else if (e.type == DioExceptionType.connectionTimeout) {
           errorMessage = 'Connection Timeout (backend not responding)';
         }

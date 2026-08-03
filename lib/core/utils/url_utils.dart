@@ -8,7 +8,7 @@ class UrlUtils {
     if (url == null) return null;
     
     if (url.contains('localhost') || url.contains('127.0.0.1')) {
-      const defaultApiUrl = 'http://192.168.1.43:4005/api/';
+      const defaultApiUrl = 'https://api-dev.infano.care/api/';
       final String apiUrl = const String.fromEnvironment('API_URL', defaultValue: defaultApiUrl);
       
       final uri = Uri.tryParse(apiUrl);
