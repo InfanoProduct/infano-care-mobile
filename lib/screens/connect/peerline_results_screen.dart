@@ -349,217 +349,371 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final bool isOnline = widget.mentor['isOnline'] == true;
-    final String name = widget.mentor['name'] ?? 'Peer Mentor';
-    final String bio = widget.mentor['bio'] ?? 'Helping girls navigate their journey with empathy and care.';
-    final List topics = widget.mentor['topics'] ?? [];
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.grey.shade100, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 70,
-                      height: 70,
+  void _showDetailsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final bool isOnline = widget.mentor['isOnline'] == true;
+        final String name = widget.mentor['name'] ?? 'Peer Mentor';
+        final String bio = widget.mentor['bio'] ?? 'Helping girls navigate their journey with empathy and care.';
+        final List topics = widget.mentor['topics'] ?? [];
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            Future<void> _requestFromSheet() async {
+              setSheetState(() => _isLoading = true);
+              setState(() => _isLoading = true);
+
+              try {
+                final api = Provider.of<CommunityApi>(context, listen: false);
+                final mentorId = widget.mentor['id'] as String?;
+                if (mentorId == null) throw Exception('Invalid mentor');
+
+                await api.requestConnection(
+                  mentorId: mentorId,
+                  topicIds: widget.selectedTopics,
+                );
+
+                if (mounted) {
+                  setState(() {
+                    _isRequested = true;
+                    _isLoading = false;
+                  });
+                  setSheetState(() {
+                    _isRequested = true;
+                    _isLoading = false;
+                  });
+                }
+              } catch (e) {
+                if (mounted) {
+                  setState(() => _isLoading = false);
+                  setSheetState(() => _isLoading = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to send request: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            }
+
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Pull Handle
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 24),
                       decoration: BoxDecoration(
-                        color: AppColors.purple.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Center(
-                        child: Text(
-                          name.substring(0, 1).toUpperCase(),
-                          style: GoogleFonts.outfit(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.purple,
-                          ),
-                        ),
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    if (isOnline)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 3),
+                  ),
+
+                  // Profile Header
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: AppColors.purple.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Center(
+                          child: Text(
+                            name.substring(0, 1).toUpperCase(),
+                            style: GoogleFonts.outfit(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.purple,
+                            ),
                           ),
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
                               name,
                               style: GoogleFonts.outfit(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
                               ),
                             ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade50,
-                              borderRadius: BorderRadius.circular(8),
+                            const SizedBox(height: 4),
+                            Text(
+                              isOnline ? 'Available to chat' : 'Offline',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                color: isOnline ? const Color(0xFF10B981) : Colors.grey,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            child: Row(
+                            const SizedBox(height: 8),
+                            Row(
                               children: [
-                                const Icon(Icons.star, size: 14, color: Colors.amber),
+                                Icon(Icons.star, size: 14, color: Colors.amber.shade600),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '4.9',
+                                  '4.9 Rating',
                                   style: GoogleFonts.outfit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.amber.shade900,
+                                    color: AppColors.textDark,
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isOnline ? 'Available to chat' : 'Unavailable',
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+                  
+                  // Certified Topics
+                  Text(
+                    'Topics of Expertise',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: topics.map((t) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
+                      ),
+                      child: Text(
+                        t.toString(),
                         style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          color: isOnline ? const Color(0xFF10B981) : Colors.grey,
+                          fontSize: 11,
+                          color: AppColors.purple,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: topics.take(2).map((t) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.purple.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            t.toString(),
-                            style: GoogleFonts.outfit(
-                              fontSize: 11,
-                              color: AppColors.purple,
-                              fontWeight: FontWeight.w600,
+                    )).toList(),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Bio / About
+                  Text(
+                    'About Mentor',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    bio,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      color: AppColors.textMedium,
+                      height: 1.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Request Button inside Popup
+                  if (_isRequested) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.purple.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.hourglass_empty, size: 20, color: AppColors.purple),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Request has been sent to the mentor. Once they accept, you will be able to connect and chat.',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                color: AppColors.textDark,
+                                height: 1.4,
+                              ),
                             ),
                           ),
-                        )).toList(),
-                      ),
-
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              bio,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.outfit(
-                fontSize: 14,
-                color: AppColors.textMedium,
-                height: 1.5,
-              ),
-            ),
-          ),
-          if (_isRequested) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.purple.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.2)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.hourglass_empty, size: 20, color: AppColors.purple),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Request has been sent to the mentor, once they accept you will be able to connect and chat with the mentor.',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          color: AppColors.textDark,
-                          height: 1.4,
-                        ),
+                        ],
                       ),
                     ),
                   ],
+
+                  ElevatedButton(
+                    onPressed: (!_isRequested && !_isLoading) ? _requestFromSheet : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.purple,
+                      disabledBackgroundColor: _isRequested ? Colors.green.shade50 : Colors.grey.shade100,
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : Text(
+                          _isRequested ? 'Request Sent' : 'Request Chat',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            color: _isRequested ? Colors.green.shade700 : Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isOnline = widget.mentor['isOnline'] == true;
+    final String name = widget.mentor['name'] ?? 'Peer Mentor';
+    final List topics = widget.mentor['topics'] ?? [];
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade100, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Stack(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.purple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Text(
+                  name.substring(0, 1).toUpperCase(),
+                  style: GoogleFonts.outfit(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.purple,
+                  ),
                 ),
               ),
             ),
-          ],
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: ElevatedButton(
-              onPressed: (!_isRequested && !_isLoading) ? _requestSession : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.purple,
-                disabledBackgroundColor: _isRequested ? Colors.green.shade50 : Colors.grey.shade100,
-                minimumSize: const Size.fromHeight(52),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 0,
-              ),
-              child: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : Text(
-                    _isRequested ? 'Request Sent' : 'Request Chat',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.bold,
-                      color: _isRequested ? Colors.green.shade700 : Colors.white,
-                      fontSize: 16,
-                    ),
+            if (isOnline)
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
                   ),
+                ),
+              ),
+          ],
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                name,
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ),
+            Icon(Icons.star, size: 14, color: Colors.amber.shade600),
+            const SizedBox(width: 4),
+            Text(
+              '4.9',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            topics.isNotEmpty ? topics.take(2).join(', ') : 'Peer Mentor',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              color: AppColors.textMedium,
             ),
           ),
-        ],
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: _isRequested ? Colors.green.shade50 : AppColors.purple.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            _isRequested ? 'Requested' : 'View Profile',
+            style: GoogleFonts.outfit(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: _isRequested ? Colors.green.shade700 : AppColors.purple,
+            ),
+          ),
+        ),
+        onTap: () => _showDetailsBottomSheet(context),
       ),
     );
   }

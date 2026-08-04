@@ -187,6 +187,16 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
     });
   }
 
+  void _addNewSession(PeerLineSession session) {
+    if (!mounted) return;
+    setState(() {
+      if (!_allSessions.any((s) => s.id == session.id)) {
+        _allSessions = [session, ..._allSessions];
+      }
+      _sessionsFuture = Future.value(_allSessions);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoadingRole) {
@@ -349,7 +359,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
               ],
             ),
             TextButton(
-              onPressed: () => context.push('/peerline/request'),
+              onPressed: () => context.push('/peerline/request').then((_) => _refreshData()),
               child: Text(
                 'View All',
                 style: GoogleFonts.outfit(
@@ -396,7 +406,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                   final mentor = mentors[index];
                   return _TopMentorCard(
                     mentor: mentor,
-                    onRequested: () => _refreshData(),
+                    onRequested: (newSession) => _addNewSession(newSession),
                     sessions: _allSessions,
                   );
                 },
@@ -931,7 +941,7 @@ class _PendingRequestCard extends StatelessWidget {
 
 class _TopMentorCard extends StatefulWidget {
   final Map<String, dynamic> mentor;
-  final VoidCallback onRequested;
+  final Function(PeerLineSession) onRequested;
   final List<PeerLineSession> sessions;
 
   const _TopMentorCard({
@@ -958,7 +968,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
         widget.mentor['certifiedTopicIds'] ?? profile['certifiedTopicIds'] ?? []
       );
 
-      await api.requestConnection(
+      final newSession = await api.requestConnection(
         mentorId: widget.mentor['id'],
         topicIds: topicIds,
       );
@@ -967,7 +977,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
         setState(() {
           _isLoading = false;
         });
-        widget.onRequested();
+        widget.onRequested(newSession);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Request sent to ${profile['displayName'] ?? 'Mentor'}'),

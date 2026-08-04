@@ -554,12 +554,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               context.push('/account/family');
             },
           ),
-          ListTile(
+           ListTile(
             leading: const Icon(Icons.workspace_premium_outlined, color: AppColors.purple),
             title: const Text('Enrolled Programs'),
             onTap: () {
               Navigator.pop(context);
               context.push('/learning/programs');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.menu_book_outlined, color: AppColors.purple),
+            title: const Text('Good To Know'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/good-to-know');
             },
           ),
 

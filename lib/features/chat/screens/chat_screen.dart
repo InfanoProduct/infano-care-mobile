@@ -6,7 +6,8 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import '../bloc/chat_bloc.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String sessionId;
+  const ChatScreen({super.key, required this.sessionId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -21,6 +22,9 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatBloc>().add(SelectSession(widget.sessionId));
+    });
   }
 
   void _onScroll() {
@@ -55,24 +59,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
-      endDrawer: BlocBuilder<ChatBloc, ChatState>(
-        builder: (context, state) {
-          final sessions =
-              state is ChatSuccess ? state.sessions : const <dynamic>[];
-          return _SessionsDrawer(
-            sessions: sessions,
-            currentSessionId: state is ChatSuccess ? state.sessionId : null,
-            onNewChat: () {
-              Navigator.pop(context);
-              context.read<ChatBloc>().add(StartNewSession());
-            },
-            onSelectSession: (id) {
-              Navigator.pop(context);
-              context.read<ChatBloc>().add(SelectSession(id));
-            },
-          );
-        },
-      ),
       appBar: AppBar(
         title: Row(
           children: [
@@ -111,41 +97,12 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 0.5,
         iconTheme: const IconThemeData(color: AppColors.purple),
         actions: [
-          // New chat button — only shown when inside an active session
-          BlocBuilder<ChatBloc, ChatState>(
-            builder: (context, state) {
-              if (state is ChatSuccess && state.sessionId != null) {
-                return IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'New conversation',
-                  onPressed: () =>
-                      context.read<ChatBloc>().add(StartNewSession()),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
           // Expert button — connects to real human experts
           IconButton(
             icon: const Icon(Icons.support_agent_rounded),
             tooltip: 'Talk to an Expert',
             onPressed: () => context.push('/expert/list'),
             color: AppColors.purple,
-          ),
-          // History button — shows the sessions drawer
-          BlocBuilder<ChatBloc, ChatState>(
-            builder: (context, state) {
-              final hasSessions =
-                  state is ChatSuccess && state.sessions.isNotEmpty;
-              return IconButton(
-                icon: const Icon(Icons.history_rounded),
-                tooltip: 'Past conversations',
-                onPressed: hasSessions
-                    ? () => _scaffoldKey.currentState?.openEndDrawer()
-                    : null,
-                color: hasSessions ? AppColors.purple : AppColors.textLight,
-              );
-            },
           ),
         ],
       ),

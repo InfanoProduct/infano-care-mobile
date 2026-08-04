@@ -72,8 +72,9 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
     if (deepLink != null && deepLink.startsWith('infano://')) {
       final path = deepLink.replaceFirst('infano://', '/');
       if (mounted) {
+        final router = GoRouter.of(context);
         Navigator.pop(context); // Close bottom sheet
-        GoRouter.of(context).push(path);
+        router.push(path);
       }
     }
   }

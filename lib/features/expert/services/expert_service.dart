@@ -200,7 +200,7 @@ class ExpertService {
     debugPrint('[Socket] Attempting connection to: $socketUrl (Session: $sessionId)');
 
     _socket = io.io(socketUrl, <String, dynamic>{
-      'transports': ['websocket', 'polling'],
+      'transports': ['websocket'],
       'forceNew': true,
       'multiplex': false,
       'autoConnect': false,

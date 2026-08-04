@@ -66,7 +66,7 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
   void initState() {
     super.initState();
     _repo = OnboardingRepository(ApiService.instance);
-    _router = createRouter(widget.storage);
+    _router = createRouter(widget.storage, _navigatorKey);
     
     // Initialize notifications
     NotificationService().initialize(_navigatorKey, storage: widget.storage);
@@ -114,7 +114,6 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
           ),
         ],
         child: MaterialApp.router(
-          key: _navigatorKey,
           title: 'Infano.Care',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,

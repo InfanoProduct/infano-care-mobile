@@ -46,6 +46,7 @@ import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
 import 'package:infano_care_mobile/features/chat/screens/my_chats_screen.dart';
+import 'package:infano_care_mobile/features/chat/screens/chat_search_screen.dart';
 import 'package:infano_care_mobile/features/chat/data/chat_repository.dart';
 import 'package:infano_care_mobile/features/chat/bloc/chat_bloc.dart';
 import 'package:infano_care_mobile/features/expert/screens/expert_dashboard_screen.dart';
@@ -100,10 +101,11 @@ String getRouteForStep(String step, {String? periodStatus, String? role}) {
 
 // Expert creation helper functions...
 
-GoRouter createRouter(LocalStorageService storage) {
+GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> navigatorKey) {
   final chatRepo = ChatRepository(ApiService.instance);
 
   return GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: '/home',
     refreshListenable: storage,
     redirect: (context, state) {
@@ -188,13 +190,25 @@ GoRouter createRouter(LocalStorageService storage) {
         },
       ),
 
-      // Gigi assistant
+      // Gigi assistant (Redirect /chat to universal MyChatsScreen)
       GoRoute(
         path: '/chat',
-        builder: (_, _) => BlocProvider(
-          create: (context) => ChatBloc(chatRepo)..add(LoadSessions()),
-          child: const ChatScreen(),
+        builder: (_, _) => const MyChatsScreen(),
+      ),
+      GoRoute(
+        path: '/gigi/chat/:sessionId',
+        builder: (_, state) => BlocProvider(
+          create: (context) => ChatBloc(chatRepo)..add(SelectSession(state.pathParameters['sessionId']!)),
+          child: ChatScreen(sessionId: state.pathParameters['sessionId']!),
         ),
+      ),
+      GoRoute(
+        path: '/my-chats/search',
+        builder: (_, _) => const ChatSearchScreen(),
+      ),
+      GoRoute(
+        path: '/good-to-know',
+        builder: (_, _) => const AllArticlesScreen(),
       ),
 
       // Auth (Phone + OTP)

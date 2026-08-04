@@ -63,14 +63,14 @@ class CommunitySocketService {
 
     // Core/PeerLine Namespace
     _socket = io.io('$baseUrl/peerline', <String, dynamic>{
-      'transports': ['websocket', 'polling'],
+      'transports': ['websocket'],
       'forceNew': true,
       'auth': {'token': token},
     });
 
     // Events Namespace
     _eventsSocket = io.io('$baseUrl/events', <String, dynamic>{
-      'transports': ['websocket', 'polling'],
+      'transports': ['websocket'],
       'forceNew': true,
       'auth': {'token': token},
     });

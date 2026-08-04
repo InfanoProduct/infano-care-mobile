@@ -65,20 +65,26 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
   @override
   void codeUpdated() {
     debugPrint("📬 SMS Received signal detected! Raw property 'code': $code");
-    // SMS Auto-fill mixin 'code' property gets populated
     if (code != null && code!.isNotEmpty) {
       final digits = code!.replaceAll(RegExp(r'\D'), '');
+      debugPrint("🔍 Parsed digits: '$digits'");
       if (digits.length == 4) {
         debugPrint("✨ Auto-filling 4-digit code: $digits");
+        
+        // Update controller
         _pinController.text = digits;
+        
         setState(() {
           _otp = digits;
           _error = null;
         });
-        // Auto-verify if session is not expired
-        if (_countdown > 0) {
-          _verify();
-        }
+
+        // Delay briefly to allow the UI to display the digits before automatic navigation
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted && _countdown > 0) {
+            _verify();
+          }
+        });
       }
     } else {
       debugPrint("⚠️ Signal detected but code is null or empty. Check hash match.");

@@ -34,7 +34,7 @@ class FriendsSocketService {
     final baseUrl = ApiService.instance.dio.options.baseUrl.split('/api')[0];
     
     _socket = io.io('$baseUrl/friends', <String, dynamic>{
-      'transports': ['websocket', 'polling'],
+      'transports': ['websocket'],
       'forceNew': true,
       'auth': {'token': token},
     });

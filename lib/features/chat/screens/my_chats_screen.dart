@@ -121,6 +121,10 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.search_rounded, color: AppColors.textDark),
+            onPressed: () => context.push('/my-chats/search'),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.textDark),
             onPressed: () => _fetchChats(),
           ),
@@ -157,23 +161,27 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
           
           // Search & Filter Row
           if (!_isLoading && _error == null && _chats.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                onChanged: (val) => setState(() => _searchQuery = val),
-                decoration: InputDecoration(
-                  hintText: 'Search conversations...',
-                  prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: AppColors.purple.withValues(alpha: 0.5)),
+            GestureDetector(
+              onTap: () => context.push('/my-chats/search'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextField(
+                  readOnly: true,
+                  onTap: () => context.push('/my-chats/search'),
+                  decoration: InputDecoration(
+                    hintText: 'Search conversations, mentors...',
+                    prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: AppColors.purple.withValues(alpha: 0.5)),
+                    ),
                   ),
                 ),
               ),
@@ -372,14 +380,22 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: Stack(
                 children: [
-                  CircleAvatar(
+                   CircleAvatar(
                     radius: 26,
-                    backgroundColor: type == 'expert' ? AppColors.purple.withValues(alpha: 0.1) : AppColors.pink.withValues(alpha: 0.1),
+                    backgroundColor: type == 'expert'
+                        ? AppColors.purple.withValues(alpha: 0.1)
+                        : type == 'gigi'
+                            ? AppColors.purple.withValues(alpha: 0.15)
+                            : AppColors.pink.withValues(alpha: 0.1),
                     backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
                     child: avatarUrl == null
                         ? Icon(
-                            type == 'expert' ? Icons.medical_services : Icons.person,
-                            color: type == 'expert' ? AppColors.purple : AppColors.pink,
+                            type == 'expert'
+                                ? Icons.medical_services
+                                : type == 'gigi'
+                                    ? Icons.smart_toy_rounded
+                                    : Icons.person,
+                            color: type == 'expert' || type == 'gigi' ? AppColors.purple : AppColors.pink,
                           )
                         : null,
                   ),
@@ -485,6 +501,8 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                   context.push('/expert/chat/${chat['id']}', extra: {'expertName': name});
                 } else if (type == 'peer') {
                   context.push('/peerline/chat/${chat['id']}').then((_) => _fetchChats(isSilent: true));
+                } else if (type == 'gigi') {
+                  context.push('/gigi/chat/${chat['id']}');
                 }
               },
             ),

@@ -405,6 +405,40 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                               ),
                             ),
                           ],
+                          if (link['wellnessScore'] != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.purple.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'Wellness: ${link['wellnessScore']}%',
+                                    style: GoogleFonts.nunito(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.purple,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(3),
+                                    child: LinearProgressIndicator(
+                                      value: (link['wellnessScore'] as num) / 100.0,
+                                      backgroundColor: Colors.grey[200],
+                                      color: AppColors.purple,
+                                      minHeight: 5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
