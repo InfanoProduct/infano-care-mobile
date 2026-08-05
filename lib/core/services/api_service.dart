@@ -126,10 +126,7 @@ class ApiService {
     ));
 
     // ── Startup connectivity ping ──────────────────────────────────────────────
-    // Use a robust way to find the health endpoint (usually at root, not under /api)
-    final healthUrl = _baseUrl.contains('/api')
-        ? '${_baseUrl.split('/api')[0]}/health'
-        : (_baseUrl.endsWith('/') ? '${_baseUrl}health' : '$_baseUrl/health');
+    final healthUrl = '${Uri.parse(_baseUrl).origin}/health';
 
     _dio.get(healthUrl).then((r) {
       debugPrint('[API] ✅ Backend reachable at $healthUrl: ${r.data}');

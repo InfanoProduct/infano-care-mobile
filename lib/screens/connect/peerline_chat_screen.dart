@@ -121,6 +121,9 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         _showIntroCard = false;
       });
       _scrollToBottom();
+      
+      final storage = Provider.of<LocalStorageService>(context, listen: false);
+      storage.setPeerlineChatIntroDismissed(widget.sessionId);
 
       // Upload file
       final mediaUrl = await api.uploadMedia(path);
@@ -248,6 +251,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           _messages.addAll(allMessages);
           _myRole = myRole;
           _isLoading = false;
+          _showIntroCard = !storage.isPeerlineChatIntroDismissed(widget.sessionId);
         });
         _scrollToBottom();
       }
@@ -311,6 +315,9 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       _showIntroCard = false;
     });
     _scrollToBottom();
+
+    final storage = Provider.of<LocalStorageService>(context, listen: false);
+    storage.setPeerlineChatIntroDismissed(widget.sessionId);
 
     try {
       _socketService?.sendMessage(
@@ -504,6 +511,14 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
     );
   }
 
+  void _dismissIntroCard() {
+    setState(() {
+      _showIntroCard = false;
+    });
+    final storage = Provider.of<LocalStorageService>(context, listen: false);
+    storage.setPeerlineChatIntroDismissed(widget.sessionId);
+  }
+
   Widget _buildIntroCard() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
@@ -533,7 +548,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: () => setState(() => _showIntroCard = false),
+            onPressed: _dismissIntroCard,
             child: Text('Dismiss', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold)),
           ),
         ],

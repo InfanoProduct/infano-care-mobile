@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/auth/screens/phone_entry_screen.dart';
 import 'package:infano_care_mobile/features/auth/screens/otp_verify_screen.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/all_articles_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/landing_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/account_screen.dart';
 import 'package:infano_care_mobile/features/account/screens/family_settings_screen.dart';

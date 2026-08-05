@@ -357,6 +357,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
           final int unreadCount = chat['unreadCount'] ?? 0;
           final String? avatarUrl = chat['avatarUrl'];
           final bool isActive = chat['isActive'] == true || chat['status'] == 'ACTIVE' || chat['status'] == 'MATCHING';
+          final bool isOnline = chat['isOnline'] == true || type == 'gigi';
           final String statusStr = (chat['status'] ?? '').toString().toUpperCase();
 
           return Container(
@@ -399,7 +400,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                           )
                         : null,
                   ),
-                  if (isActive)
+                  if (isOnline)
                     Positioned(
                       top: 0,
                       right: 0,
@@ -437,17 +438,17 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (isActive)
+                  if (statusStr == 'MATCHING')
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: statusStr == 'MATCHING' ? Colors.orange.withValues(alpha: 0.1) : AppColors.purple.withValues(alpha: 0.1),
+                        color: Colors.orange.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        statusStr == 'MATCHING' ? 'CONNECTING' : 'ACTIVE',
+                        'CONNECTING',
                         style: GoogleFonts.outfit(
-                          color: statusStr == 'MATCHING' ? Colors.orange.shade800 : AppColors.purple,
+                          color: Colors.orange.shade800,
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,

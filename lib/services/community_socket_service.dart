@@ -58,7 +58,7 @@ class CommunitySocketService {
 
     if (_socket?.connected == true) return;
 
-    final baseUrl = ApiService.instance.dio.options.baseUrl.split('/api')[0];
+    final baseUrl = Uri.parse(ApiService.instance.dio.options.baseUrl).origin;
     debugPrint('[CommunitySocket] Connecting to components at baseUrl: $baseUrl...');
 
     // Core/PeerLine Namespace

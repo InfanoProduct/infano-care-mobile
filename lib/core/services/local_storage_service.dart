@@ -229,4 +229,14 @@ class LocalStorageService extends ChangeNotifier {
     await _prefs.setStringList(_savedArticles, current);
     notifyListeners();
   }
+
+  // ── Peerline Chat Intro Card Dismissal ────────────────────────────────────
+  bool isPeerlineChatIntroDismissed(String sessionId) =>
+      _prefs.getBool('peerline_intro_dismissed_$sessionId') ?? false;
+
+  Future<void> setPeerlineChatIntroDismissed(String sessionId) async {
+    await _prefs.setBool('peerline_intro_dismissed_$sessionId', true);
+    notifyListeners();
+  }
 }
+
