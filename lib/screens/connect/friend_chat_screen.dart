@@ -69,6 +69,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
             _messages.add(event);
             if (event['senderId'] != _currentUserId) {
               _isPeerTyping = false;
+              _socketService?.readMessages(widget.matchId);
             }
           }
           
@@ -77,6 +78,15 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           }
         });
         _scrollToBottom();
+        break;
+      case 'messages_read':
+        setState(() {
+          for (var msg in _messages) {
+            if (msg['senderId'] == _currentUserId) {
+              msg['isRead'] = true;
+            }
+          }
+        });
         break;
       case 'message_edited':
         setState(() {
@@ -141,6 +151,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           _isLoading = false;
           _showTagsBanner = _messages.length <= 3;
         });
+        _socketService?.readMessages(widget.matchId);
         _scrollToBottom();
       }
     } catch (e) {
@@ -151,17 +162,15 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent + 200,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   void _sendTyping(bool isTyping) {
@@ -573,6 +582,28 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        DateFormat('h:mm a').format(sentAt),
+                        style: TextStyle(
+                          fontSize: 9, 
+                          color: isMe ? const Color(0xFFFDA4AF) : const Color(0xFFC4B5FD),
+                          fontWeight: FontWeight.w500
+                        ),
+                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          msg['isRead'] == true ? Icons.done_all : Icons.done,
+                          size: 11,
+                          color: const Color(0xFFFDA4AF),
+                        ),
+                      ]
+                    ],
+                  ),
                 ],
               ),
             ),

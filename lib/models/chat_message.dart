@@ -23,6 +23,32 @@ class ChatMessage {
     required this.sentAt,
   });
 
+  ChatMessage copyWith({
+    String? id,
+    String? sessionId,
+    String? senderId,
+    String? senderRole,
+    String? content,
+    String? mediaUrl,
+    String? messageType,
+    bool? crisisFlag,
+    bool? isRead,
+    DateTime? sentAt,
+  }) {
+    return ChatMessage(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      senderId: senderId ?? this.senderId,
+      senderRole: senderRole ?? this.senderRole,
+      content: content ?? this.content,
+      mediaUrl: mediaUrl ?? this.mediaUrl,
+      messageType: messageType ?? this.messageType,
+      crisisFlag: crisisFlag ?? this.crisisFlag,
+      isRead: isRead ?? this.isRead,
+      sentAt: sentAt ?? this.sentAt,
+    );
+  }
+
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
       id: json['id'],

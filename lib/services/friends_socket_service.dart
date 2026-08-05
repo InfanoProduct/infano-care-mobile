@@ -52,6 +52,7 @@ class FriendsSocketService {
     _socket?.on('safety_alert', (data) => _chatEventController.add({'type': 'safety_alert', ...data}));
     _socket?.on('grooming_check', (data) => _chatEventController.add({'type': 'grooming_check', ...data}));
     _socket?.on('friend_match', (data) => _chatEventController.add({'type': 'friend_match', ...data}));
+    _socket?.on('messages_read', (data) => _chatEventController.add({'type': 'messages_read', ...data}));
     _socket?.on('error', (data) => _chatEventController.add({'type': 'error', ...data}));
 
     _socket?.onDisconnect((_) => debugPrint('[FriendsSocket] Disconnected'));
@@ -70,6 +71,12 @@ class FriendsSocketService {
       'matchId': matchId,
       'content': content,
       'clientId': clientId,
+    });
+  }
+
+  void readMessages(String matchId) {
+    _socket?.emit('read_messages', {
+      'matchId': matchId,
     });
   }
 

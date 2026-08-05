@@ -17,6 +17,7 @@ import 'package:infano_care_mobile/services/friends_socket_service.dart';
 import 'package:infano_care_mobile/services/mindful_api.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
 
 void main() async {
@@ -28,6 +29,7 @@ void main() async {
     // 1. Initialize Firebase
     debugPrint('[App] Initializing Firebase...');
     await Firebase.initializeApp().timeout(const Duration(seconds: 10));
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     debugPrint('[App] Firebase initialized ✅');
   } catch (e) {
     debugPrint('[App] Firebase initialization failed ❌: $e');

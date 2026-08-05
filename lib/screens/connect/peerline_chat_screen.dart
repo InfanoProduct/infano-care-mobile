@@ -178,10 +178,22 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
             _messages.add(newMessage);
             if (_myRole != null && event['senderRole'] != _myRole) {
               _isPeerTyping = false;
+              _socketService?.readMessages(widget.sessionId);
             }
           }
         });
         _scrollToBottom();
+        break;
+      case 'messages_read':
+        if (_myRole != null) {
+          setState(() {
+            for (int i = 0; i < _messages.length; i++) {
+              if (_messages[i].senderRole == _myRole) {
+                _messages[i] = _messages[i].copyWith(isRead: true);
+              }
+            }
+          });
+        }
         break;
       case 'message_deleted':
         setState(() {
@@ -253,6 +265,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           _isLoading = false;
           _showIntroCard = !storage.isPeerlineChatIntroDismissed(widget.sessionId);
         });
+        _socketService?.readMessages(widget.sessionId);
         _scrollToBottom();
       }
     } catch (e) {
@@ -264,13 +277,15 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent + 100,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   void _sendTyping(bool isTyping) {

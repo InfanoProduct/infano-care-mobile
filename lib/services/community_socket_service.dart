@@ -154,6 +154,11 @@ class CommunitySocketService {
       updateUnreadChatsCount();
     });
 
+    _socket?.on('messages_read', (data) {
+      debugPrint('[CommunitySocket] Socket received messages_read: $data');
+      _chatEventController.add(_toMap('messages_read', data));
+    });
+
     _socket?.on('message_deleted', (data) =>
         _chatEventController.add(_toMap('message_deleted', data)));
 
@@ -240,6 +245,12 @@ class CommunitySocketService {
       'messageType': messageType,
       'mediaUrl': mediaUrl,
       'clientId': clientId,
+    });
+  }
+
+  void readMessages(String connectionId) {
+    _socket?.emit('read_messages', {
+      'sessionId': connectionId,
     });
   }
 
