@@ -47,7 +47,7 @@ class NotificationService {
     );
 
     // 3. Setup Local Notifications for Foreground
-    const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');
     const initializationSettingsIOS = DarwinInitializationSettings();
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -83,7 +83,7 @@ class NotificationService {
               _channel.id,
               _channel.name,
               channelDescription: _channel.description,
-              icon: '@mipmap/ic_launcher',
+              icon: 'ic_launcher',
               importance: Importance.max,
               priority: Priority.high,
             ),
@@ -97,7 +97,6 @@ class NotificationService {
         );
 
         // SnackBar display removed as requested by the user.
-      }
       }
     });
 
