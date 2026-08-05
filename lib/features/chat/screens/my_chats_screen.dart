@@ -377,7 +377,11 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                 ),
               ],
             ),
-            child: ListTile(
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: Stack(
                 children: [
@@ -507,7 +511,8 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                 }
               },
             ),
-          );
+          ),
+        );
         },
       ),
     );
