@@ -96,45 +96,8 @@ class NotificationService {
           payload: message.data['deepLink'],
         );
 
-        // Also display a beautiful In-App SnackBar toast overlay when app is active/foreground
-        final context = _navigatorKey.currentState?.context;
-        if (context != null && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    notification.title ?? 'New Alert',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  if (notification.body != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        notification.body!,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
-                      ),
-                    ),
-                ],
-              ),
-              backgroundColor: AppColors.purple,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              duration: const Duration(seconds: 4),
-              action: message.data['deepLink'] != null
-                  ? SnackBarAction(
-                      label: 'View',
-                      textColor: Colors.white,
-                      onPressed: () {
-                        _handleDeepLink(message.data['deepLink']);
-                      },
-                    )
-                  : null,
-            ),
-          );
-        }
+        // SnackBar display removed as requested by the user.
+      }
       }
     });
 

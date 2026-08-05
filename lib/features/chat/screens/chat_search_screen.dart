@@ -33,6 +33,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
   // Track pending request states locally for optimistic UI
   final Set<String> _requestedMentorIds = {};
   final Map<String, bool> _loadingRequestIds = {};
+  final Map<String, String> _newSessionIds = {};
 
   @override
   void initState() {
@@ -115,14 +116,15 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
         mentor['certifiedTopicIds'] ?? profile['certifiedTopicIds'] ?? []
       );
 
-      await _communityApi.requestConnection(
+      final session = await _communityApi.requestConnection(
         mentorId: mentorId,
         topicIds: topicIds,
       );
-
+ 
       if (mounted) {
         setState(() {
           _requestedMentorIds.add(mentorId);
+          _newSessionIds[mentorId] = session.id;
           _loadingRequestIds[mentorId] = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -416,10 +418,18 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
     final String mentorId = mentor['id'] ?? '';
     final String name = mentor['name'] ?? profile['displayName'] ?? 'Peer Mentor';
     final List certifiedTopics = mentor['certifiedTopics'] ?? mentor['topics'] ?? [];
+      final existingChat = _existingChats.firstWhere(
+      (c) => c['type'] == 'peer' && c['peerId'] == mentorId,
+      orElse: () => null,
+    );
+    final String? newSessionId = _newSessionIds[mentorId];
+    final String? serverSessionId = mentor['sessionId'];
+    final String? targetSessionId = existingChat != null ? existingChat['id'] : (serverSessionId ?? newSessionId);
+    final bool hasSession = targetSessionId != null || _requestedMentorIds.contains(mentorId) || mentor['hasPendingRequest'] == true;
     
     final bool isRequested = _requestedMentorIds.contains(mentorId) || mentor['hasPendingRequest'] == true;
     final bool isRequestLoading = _loadingRequestIds[mentorId] == true;
-
+ 
     List<String> topics = [];
     if (certifiedTopics.isNotEmpty) {
       if (certifiedTopics.first is Map) {
@@ -428,7 +438,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
         topics = certifiedTopics.map<String>((t) => t.toString()).toList();
       }
     }
-
+ 
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 8),
@@ -438,57 +448,58 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        child: ListTile(
-          leading: CircleAvatar(
-            radius: 22,
-            backgroundColor: AppColors.pink.withValues(alpha: 0.1),
-            child: Text(
-              name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: AppColors.pink, fontSize: 18),
+        child: Material(
+          color: Colors.transparent,
+          child: ListTile(
+            leading: CircleAvatar(
+              radius: 22,
+              backgroundColor: AppColors.pink.withValues(alpha: 0.1),
+              child: Text(
+                name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: AppColors.pink, fontSize: 18),
+              ),
             ),
-          ),
-          title: Text(
-            name,
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
-          ),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: topics.take(2).map((t) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(t, style: GoogleFonts.outfit(fontSize: 9, color: AppColors.textMedium, fontWeight: FontWeight.bold)),
-              )).toList(),
+            title: Text(
+              name,
+              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
             ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: topics.take(2).map((t) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(t, style: GoogleFonts.outfit(fontSize: 9, color: AppColors.textMedium, fontWeight: FontWeight.bold)),
+                )).toList(),
+              ),
+            ),
+            trailing: isRequestLoading
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.purple))
+                : hasSession
+                    ? const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey)
+                    : ElevatedButton(
+                        onPressed: () => _handleRequestChat(mentorId, name),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.purple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                          minimumSize: const Size(60, 30),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: Text('Request', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+            onTap: () {
+              if (targetSessionId != null) {
+                context.push('/peerline/chat/$targetSessionId');
+              }
+            },
           ),
-          trailing: isRequestLoading
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.purple))
-              : isRequested
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text('Requested', style: GoogleFonts.outfit(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.bold)),
-                    )
-                  : ElevatedButton(
-                      onPressed: () => _handleRequestChat(mentorId, name),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.purple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                        minimumSize: const Size(60, 30),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: Text('Request', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold)),
-                    ),
         ),
       ),
     );

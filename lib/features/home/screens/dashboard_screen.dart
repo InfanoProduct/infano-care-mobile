@@ -200,10 +200,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   elevation: 0,
                   iconTheme: const IconThemeData(color: AppColors.purple),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.chat_bubble_outline),
-                      tooltip: 'My Chats',
-                      onPressed: () => context.push('/my-chats'),
+                    Consumer<CommunitySocketService>(
+                      builder: (context, socketService, _) {
+                        return ValueListenableBuilder<int>(
+                          valueListenable: socketService.totalUnreadChatsCount,
+                          builder: (context, count, _) {
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.chat_bubble_outline),
+                                  tooltip: 'My Chats',
+                                  onPressed: () => context.push('/my-chats'),
+                                ),
+                                if (count > 0)
+                                  Positioned(
+                                    right: 4,
+                                    top: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 16,
+                                        minHeight: 16,
+                                      ),
+                                      child: Text(
+                                        '$count',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                     ),
                     Stack(
                       alignment: Alignment.center,

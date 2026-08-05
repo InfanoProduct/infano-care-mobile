@@ -13,6 +13,7 @@ class CommunitySocketService {
   final ValueNotifier<MentorAvailability?> availabilityUpdates = ValueNotifier(null);
   final ValueNotifier<int> pendingRequestsCount = ValueNotifier(0);
   final ValueNotifier<int> liveEventQuestionCount = ValueNotifier(0);
+  final ValueNotifier<int> totalUnreadChatsCount = ValueNotifier(0);
 
   final _chatEventController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get chatEvents => _chatEventController.stream;
@@ -88,6 +89,7 @@ class CommunitySocketService {
         debugPrint('[CommunitySocket] Resubscribing to connection: $_currentConnectionId');
         _socket?.emit('subscribe_session', _currentConnectionId);
       }
+      updateUnreadChatsCount();
     });
 
     _socket?.on('connect_error', (err) {
@@ -146,10 +148,10 @@ class CommunitySocketService {
       }
     });
 
-    // ─── PeerLine Chat Events ─────────────────────────────────────────────────
     _socket?.on('message', (data) {
       debugPrint('[CommunitySocket] Socket received message: $data');
       _chatEventController.add(_toMap('message', data));
+      updateUnreadChatsCount();
     });
 
     _socket?.on('message_deleted', (data) =>
@@ -266,5 +268,23 @@ class CommunitySocketService {
     _socket?.disconnect();
     _socket?.dispose();
     _socket = null;
+  }
+
+  Future<void> updateUnreadChatsCount() async {
+    try {
+      final token = _storage.authToken;
+      if (token == null) return;
+      final response = await ApiService.instance.dio.get('chat/my-chats');
+      if (response.data['success'] == true) {
+        final List chats = response.data['data'] as List;
+        int count = 0;
+        for (var chat in chats) {
+          count += (chat['unreadCount'] ?? 0) as int;
+        }
+        totalUnreadChatsCount.value = count;
+      }
+    } catch (e) {
+      debugPrint('[CommunitySocketService] Error fetching unread chats count: $e');
+    }
   }
 }

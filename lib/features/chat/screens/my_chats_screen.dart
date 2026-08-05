@@ -64,6 +64,10 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
           _isLoading = false;
           _error = null;
         });
+        if (mounted) {
+          final socket = Provider.of<CommunitySocketService>(context, listen: false);
+          socket.updateUnreadChatsCount();
+        }
       } else if (mounted) {
         setState(() {
           _error = 'Failed to load chats';
