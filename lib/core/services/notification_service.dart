@@ -6,7 +6,6 @@ import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();

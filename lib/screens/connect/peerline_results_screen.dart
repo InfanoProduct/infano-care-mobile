@@ -312,43 +312,6 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
     _isRequested = widget.mentor['hasPendingRequest'] == true;
   }
 
-  Future<void> _requestSession() async {
-    setState(() {
-      _isLoading = true;
-    });
-    
-    try {
-      final api = Provider.of<CommunityApi>(context, listen: false);
-      final mentorId = widget.mentor['id'] as String?;
-      if (mentorId == null) throw Exception('Invalid mentor');
-
-      // New: use direct connection request (Instagram-style)
-      await api.requestConnection(
-        mentorId: mentorId,
-        topicIds: widget.selectedTopics,
-      );
-      
-      if (mounted) {
-        setState(() {
-          _isRequested = true;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send request: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
   void _showDetailsBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,

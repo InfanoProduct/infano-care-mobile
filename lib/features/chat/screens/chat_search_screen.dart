@@ -427,7 +427,6 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
     final String? targetSessionId = existingChat != null ? existingChat['id'] : (serverSessionId ?? newSessionId);
     final bool hasSession = targetSessionId != null || _requestedMentorIds.contains(mentorId) || mentor['hasPendingRequest'] == true;
     
-    final bool isRequested = _requestedMentorIds.contains(mentorId) || mentor['hasPendingRequest'] == true;
     final bool isRequestLoading = _loadingRequestIds[mentorId] == true;
  
     List<String> topics = [];

@@ -50,7 +50,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
     setState(() {
       _circlesFuture = _api.getCircles();
       
-      _challengeFuture = _api.getWeeklyChallenge().catchError((e) {
+      _challengeFuture = _api.getWeeklyChallenge().then<WeeklyChallenge?>((v) => v).catchError((e) {
         debugPrint('CirclesTab: Error loading weekly challenge: $e');
         return null;
       });
