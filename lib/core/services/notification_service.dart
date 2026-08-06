@@ -47,7 +47,7 @@ class NotificationService {
     );
 
     // 3. Setup Local Notifications for Foreground
-    const initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');
+    const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initializationSettingsIOS = DarwinInitializationSettings();
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -68,7 +68,6 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_channel);
 
-    // 4. Handle Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
 
@@ -83,7 +82,6 @@ class NotificationService {
               _channel.id,
               _channel.name,
               channelDescription: _channel.description,
-              icon: 'ic_launcher',
               importance: Importance.max,
               priority: Priority.high,
             ),
@@ -96,7 +94,12 @@ class NotificationService {
           payload: message.data['deepLink'],
         );
 
-        // SnackBar display removed as requested by the user.
+        // Show our premium in-app custom notification banner
+        _showInAppNotification(
+          notification.title ?? 'New Alert',
+          notification.body ?? '',
+          message.data['deepLink'],
+        );
       }
     });
 
@@ -172,6 +175,56 @@ class NotificationService {
     }
   }
 
+  void _showInAppNotification(String title, String body, String? deepLink) {
+    final context = _navigatorKey.currentState?.context;
+    if (context == null || !context.mounted) return;
+
+    // Check if the user is already on the chat screen corresponding to this notification
+    try {
+      final GoRouter router = GoRouter.of(context);
+      final String location = router.routerDelegate.currentConfiguration.last.matchedLocation;
+      
+      // If the incoming notification is for the chat they are currently viewing, don't show the toast
+      if (deepLink != null) {
+        final path = deepLink.replaceFirst('infano://', '/');
+        final uri = Uri.parse(path);
+        final segments = uri.pathSegments;
+        if (segments.length >= 3 && segments[0] == 'friends' && segments[1] == 'chat' && location.contains('/friends/chat/')) {
+          if (location.contains(segments[2])) return;
+        }
+        if (segments.length >= 3 && segments[0] == 'peerline' && segments[1] == 'chat' && location.contains('/peerline/chat/')) {
+          if (location.contains(segments[2])) return;
+        }
+        if (segments.length >= 3 && segments[0] == 'expert' && segments[1] == 'chat' && location.contains('/expert/chat/')) {
+          if (location.contains(segments[2])) return;
+        }
+      }
+    } catch (_) {}
+
+    late OverlayEntry overlayEntry;
+    
+    // We will build a beautiful Top-Sliding glassmorphic banner
+    overlayEntry = OverlayEntry(
+      builder: (context) {
+        return _InAppNotificationBanner(
+          title: title,
+          body: body,
+          onTap: () {
+            overlayEntry.remove();
+            if (deepLink != null) {
+              _handleDeepLink(deepLink);
+            }
+          },
+          onDismiss: () {
+            overlayEntry.remove();
+          },
+        );
+      },
+    );
+
+    Overlay.of(context).insert(overlayEntry);
+  }
+
   late final GlobalKey<NavigatorState> _navigatorKey;
 }
 
@@ -180,4 +233,170 @@ class NotificationService {
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint("Handling background message: ${message.messageId}");
+}
+
+class _InAppNotificationBanner extends StatefulWidget {
+  final String title;
+  final String body;
+  final VoidCallback onTap;
+  final VoidCallback onDismiss;
+
+  const _InAppNotificationBanner({
+    required this.title,
+    required this.body,
+    required this.onTap,
+    required this.onDismiss,
+  });
+
+  @override
+  State<_InAppNotificationBanner> createState() => _InAppNotificationBannerState();
+}
+
+class _InAppNotificationBannerState extends State<_InAppNotificationBanner> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _offsetAnimation;
+  Timer? _dismissTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 350),
+      vsync: this,
+    );
+
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0.0, -1.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    ));
+
+    _controller.forward();
+
+    _dismissTimer = Timer(const Duration(seconds: 4), () {
+      _dismiss();
+    });
+  }
+
+  void _dismiss() {
+    if (mounted) {
+      _controller.reverse().then((_) {
+        widget.onDismiss();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _dismissTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final topPadding = mediaQuery.padding.top;
+
+    return Positioned(
+      top: topPadding + 12,
+      left: 16,
+      right: 16,
+      child: SlideTransition(
+        position: _offsetAnimation,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          onVerticalDragUpdate: (details) {
+            if (details.primaryDelta! < -10) {
+              _dismiss();
+            }
+          },
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF6D28D9).withOpacity(0.95),
+                    const Color(0xFF4C1D95).withOpacity(0.95),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.chat_bubble_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.1,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          widget.body,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 20),
+                    onPressed: _dismiss,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
