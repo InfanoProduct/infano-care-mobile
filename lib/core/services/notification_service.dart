@@ -105,6 +105,13 @@ class NotificationService {
       _handleDeepLink(message.data['deepLink']);
     });
 
+    // Check if the app was launched by clicking a notification when it was terminated
+    _fcm.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {
+        _handleDeepLink(message.data['deepLink']);
+      }
+    });
+
     _isInitialized = true;
 
     // 6. Reactive Sync: Listen for token changes
@@ -139,7 +146,7 @@ class NotificationService {
       }
     } catch (e) {
       // If it's a 401, we just ignore it here because ApiService interceptor will handle it
-      debugPrint("[Notifications] FCM sync failed (likely session expired).");
+      debugPrint("[Notifications] FCM sync failed: $e");
     }
   }
 
