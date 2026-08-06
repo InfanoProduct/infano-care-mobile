@@ -45,6 +45,7 @@ class UserQuest {
   final DateTime? completedAt;
   final int? pointsAwarded;
   final QuestTemplate questTemplate;
+  final Map<String, dynamic>? progressJson;
 
   UserQuest({
     required this.id,
@@ -56,6 +57,7 @@ class UserQuest {
     this.completedAt,
     this.pointsAwarded,
     required this.questTemplate,
+    this.progressJson,
   });
 
   factory UserQuest.fromJson(Map<String, dynamic> json) => _$UserQuestFromJson(json);
@@ -153,4 +155,38 @@ class UserQuestProgress {
 
   factory UserQuestProgress.fromJson(Map<String, dynamic> json) => _$UserQuestProgressFromJson(json);
   Map<String, dynamic> toJson() => _$UserQuestProgressToJson(this);
+}
+
+@JsonSerializable()
+class WeeklyChallenge {
+  final String id;
+  final String title;
+  final String description;
+  final int targetTotal;
+  final int rewardPoints;
+  final DateTime startsAt;
+  final DateTime endsAt;
+  final String category;
+  final bool isActive;
+  final int progress;
+  final bool isCompleted;
+  final DateTime? completedAt;
+
+  WeeklyChallenge({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.targetTotal,
+    required this.rewardPoints,
+    required this.startsAt,
+    required this.endsAt,
+    this.category = 'wellbeing',
+    this.isActive = true,
+    this.progress = 0,
+    this.isCompleted = false,
+    this.completedAt,
+  });
+
+  factory WeeklyChallenge.fromJson(Map<String, dynamic> json) => _$WeeklyChallengeFromJson(json);
+  Map<String, dynamic> toJson() => _$WeeklyChallengeToJson(this);
 }

@@ -71,6 +71,15 @@ import 'package:infano_care_mobile/features/learning/screens/journey_detail_scre
 import 'package:infano_care_mobile/features/learning/screens/episode_player_screen.dart';
 import 'package:infano_care_mobile/features/learning/models/learning_models.dart';
 
+// Journal Module Imports
+import 'package:infano_care_mobile/features/journal/application/journal_cubit.dart';
+import 'package:infano_care_mobile/features/journal/data/repositories/journal_repository.dart';
+import 'package:infano_care_mobile/features/journal/screens/journal_home_screen.dart';
+import 'package:infano_care_mobile/features/journal/screens/journal_mode_picker_screen.dart';
+import 'package:infano_care_mobile/features/journal/screens/journal_composer_screen.dart';
+import 'package:infano_care_mobile/features/journal/screens/journal_entry_detail_screen.dart';
+import 'package:infano_care_mobile/features/journal/screens/journal_lock_screen.dart';
+
 String getRouteForStep(String step, {String? periodStatus, String? role}) {
   if (role != null && step == '0') {
     return '/onboarding/name';
@@ -304,7 +313,52 @@ GoRouter createRouter(LocalStorageService storage) {
           final subtab = int.tryParse(state.uri.queryParameters['subtab'] ?? '1') ?? 1;
           return DashboardScreen(storage: storage, initialTab: tab, initialSubTab: subtab);
         }
+      ),
 
+      // ── Journal Module ────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/journal',
+        builder: (_, _) {
+          final repo = JournalRepository(ApiService.instance.dio);
+          return BlocProvider(
+            create: (_) => JournalCubit(repo)..loadFeed(),
+            child: const JournalLockScreen(
+              child: JournalHomeScreen(),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/journal/new',
+        builder: (_, state) {
+          final repo = JournalRepository(ApiService.instance.dio);
+          final extra = state.extra as Map<String, dynamic>?;
+          return BlocProvider(
+            create: (_) => JournalCubit(repo),
+            child: JournalModePickerScreen(extra: extra),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/journal/compose',
+        builder: (_, state) {
+          final repo = JournalRepository(ApiService.instance.dio);
+          final extra = state.extra as Map<String, dynamic>?;
+          return BlocProvider(
+            create: (_) => JournalCubit(repo),
+            child: JournalComposerScreen(extra: extra),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/journal/:id',
+        builder: (_, state) {
+          final repo = JournalRepository(ApiService.instance.dio);
+          return BlocProvider(
+            create: (_) => JournalCubit(repo)..loadFeed(),
+            child: JournalEntryDetailScreen(id: state.pathParameters['id']!),
+          );
+        },
       ),
 
 

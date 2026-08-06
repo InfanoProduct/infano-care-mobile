@@ -44,9 +44,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _notificationsTimer;
   bool _hasUnreadNotifications = false;
 
+  final List<int> _tabHistory = [];
+  int _currentTab = 0;
+
   @override
   void initState() {
     super.initState();
+    _currentTab = widget.initialTab;
     // Ensure native splash is removed if we land here directly
     FlutterNativeSplash.remove();
     _syncProfile();
@@ -173,27 +177,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final storage = context.watch<LocalStorageService>();
-    return BlocProvider(
-      create: (context) => DashboardCubit(initialIndex: widget.initialTab),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => DashboardCubit(initialIndex: widget.initialTab),
+        ),
+        BlocProvider(
+          create: (context) => QuestBloc(QuestRepository(ApiService.instance.dio))..add(const QuestEvent.load()),
+        ),
+      ],
+      child: BlocListener<DashboardCubit, DashboardState>(
+        listener: (context, state) {
+          if (state.selectedIndex == 3) {
+            context.read<QuestBloc>().add(const QuestEvent.refresh());
+          }
+        },
+        child: BlocBuilder<DashboardCubit, DashboardState>(
+          builder: (context, state) {
+            final screens = [
+              const HomeScreen(),
+              LearnHubScreen(storage: storage),
+              const TrackScreen(),
+              const QuestScreen(),
+              ConnectScreen(initialTab: widget.initialSubTab),
+            ];
 
-      child: BlocBuilder<DashboardCubit, DashboardState>(
-        builder: (context, state) {
-          final screens = [
-            const HomeScreen(),
-            LearnHubScreen(storage: storage),
-            const TrackScreen(),
-            BlocProvider(
-              create: (context) => QuestBloc(QuestRepository(ApiService.instance.dio)),
-              child: const QuestScreen(),
-            ),
-            ConnectScreen(initialTab: widget.initialSubTab),
-          ];
+          final selectedIndex = state.selectedIndex;
+          if (_currentTab != selectedIndex) {
+            _tabHistory.remove(selectedIndex);
+            _tabHistory.add(_currentTab);
+            _currentTab = selectedIndex;
+          }
 
-
-          return Scaffold(
-            backgroundColor: const Color(0xFFF5F4F7),
-            appBar: (state.selectedIndex == 2 || state.selectedIndex == 4) 
-              ? null // Hide main AppBar for Track and Connect modules
+          return PopScope(
+            canPop: _tabHistory.isEmpty,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              if (_tabHistory.isNotEmpty) {
+                final prev = _tabHistory.removeLast();
+                _currentTab = prev;
+                if (context.mounted) {
+                  context.read<DashboardCubit>().setTab(prev);
+                }
+              }
+            },
+            child: Scaffold(
+              backgroundColor: const Color(0xFFF5F4F7),
+            appBar: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) 
+              ? null // Hide main AppBar for Track, Quest, and Connect modules
               : AppBar(
                   title: const Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
                   backgroundColor: Colors.white,
@@ -232,7 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ],
                 ),
-            drawer: (state.selectedIndex == 2 || state.selectedIndex == 4) ? null : _buildDrawer(context, storage),
+            drawer: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) ? null : _buildDrawer(context, storage),
             body: NotificationListener<ScrollNotification>(
               onNotification: (scrollNotification) {
                 if (scrollNotification is ScrollUpdateNotification) {
@@ -448,11 +479,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 )
                 .animate(onPlay: (controller) => controller.repeat(reverse: true))
                 .slideY(begin: 0.0, end: -0.12, duration: 1500.ms, curve: Curves.easeInOut),
+            ),
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildBadgeIcon({
     required IconData icon,
@@ -536,6 +569,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onTap: () {
               Navigator.pop(context);
               context.push('/account');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.auto_stories_outlined, color: AppColors.purple),
+            title: const Text('My Journal ✨'),
+            subtitle: const Text('Private • always safe', style: TextStyle(fontSize: 11)),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/journal');
             },
           ),
           ListTile(

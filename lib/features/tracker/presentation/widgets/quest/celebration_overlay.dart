@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
 import 'package:lottie/lottie.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
 class QuestCelebrationOverlay extends StatefulWidget {
@@ -32,7 +33,12 @@ class _QuestCelebrationOverlayState extends State<QuestCelebrationOverlay> {
     _confettiController.play();
     
     Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) widget.onDismiss();
+      if (mounted) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        widget.onDismiss();
+      }
     });
   }
 
@@ -63,6 +69,15 @@ class _QuestCelebrationOverlayState extends State<QuestCelebrationOverlay> {
                   ? 'https://assets5.lottiefiles.com/packages/lf20_tou969ly.json' // Trophy/Level up
                   : 'https://assets3.lottiefiles.com/packages/lf20_vu77bx9c.json', // Checkmark/Celebration
                 height: 200,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 200,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    widget.isLevelUp ? Icons.military_tech_rounded : Icons.check_circle_outline_rounded,
+                    color: AppColors.bloom,
+                    size: 100,
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               Text(
@@ -109,6 +124,29 @@ class _QuestCelebrationOverlayState extends State<QuestCelebrationOverlay> {
                 ),
               ),
             ],
+          ),
+          Positioned(
+            bottom: MediaQuery.of(context).size.height * 0.48,
+            child: Text(
+              '+${widget.points}',
+              style: GoogleFonts.nunito(
+                fontSize: 72,
+                fontWeight: FontWeight.w900,
+                color: AppColors.bloom,
+                shadows: [
+                  const Shadow(
+                    blurRadius: 15.0,
+                    color: Colors.black54,
+                    offset: Offset(0.0, 5.0),
+                  ),
+                ],
+              ),
+            )
+            .animate()
+            .fadeIn(duration: 400.ms)
+            .slideY(begin: 0.8, end: -0.8, duration: 2000.ms, curve: Curves.easeOut)
+            .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2), duration: 2000.ms, curve: Curves.elasticOut)
+            .fadeOut(delay: 1200.ms, duration: 800.ms),
           ),
         ],
       ),
