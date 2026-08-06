@@ -196,10 +196,11 @@ class ExpertService {
     }
 
     // Use same base URL but replace /api and use http/ws
-    final socketUrl = _dio.options.baseUrl.replaceAll('/api', '');
+    final socketUrl = Uri.parse(_dio.options.baseUrl).origin;
     debugPrint('[Socket] Attempting connection to: $socketUrl (Session: $sessionId)');
 
     _socket = io.io(socketUrl, <String, dynamic>{
+      'path': '/api/socket.io',
       'transports': ['websocket'],
       'forceNew': true,
       'multiplex': false,
