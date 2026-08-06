@@ -926,9 +926,11 @@ class _PendingRequestCard extends StatelessWidget {
                 await api.cancelConnection(session.id);
                 onCancelled();
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to cancel request: $e')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to cancel request: $e')),
+                  );
+                }
               }
             },
             child: Text('Yes, Cancel', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.red)),

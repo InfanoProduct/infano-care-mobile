@@ -102,7 +102,7 @@ class _JournalModePickerScreenState extends State<JournalModePickerScreen> {
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOutCubic,
         transform: isHovered
-            ? (Matrix4.identity()..scale(0.95))
+            ? (Matrix4.identity()..scaleByDouble(0.95, 0.95, 0.95, 1.0))
             : Matrix4.identity(),
         decoration: BoxDecoration(
           gradient: LinearGradient(

@@ -285,7 +285,7 @@ class DoodleStroke {
   });
 
   Map<String, dynamic> toJson() => {
-    'color': color.value,
+    'color': color.toARGB32(),
     'width': strokeWidth,
     'isEraser': isEraser,
     'points': points.map((p) => {'x': p.dx, 'y': p.dy}).toList(),
@@ -310,7 +310,7 @@ class DoodlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final allStrokes = [...strokes, if (currentStroke != null) currentStroke!];
+    final allStrokes = [...strokes, ?currentStroke];
 
     for (final stroke in allStrokes) {
       if (stroke.points.isEmpty) continue;

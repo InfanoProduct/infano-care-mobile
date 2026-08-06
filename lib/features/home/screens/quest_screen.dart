@@ -65,7 +65,7 @@ class _QuestScreenState extends State<QuestScreen>
           final questBloc = context.read<QuestBloc>();
           List<String> readInsightIds = [];
           questBloc.state.maybeWhen(
-            loaded: (dailyQuests, _, __, ___, ____, _____, ______) {
+            loaded: (dailyQuests, _, _, _, _, _, _) {
               for (var q in dailyQuests) {
                 if (q.questTemplate.title == 'Review Daily Insights' && q.progressJson != null) {
                   final readList = q.progressJson!['readIds'] as List?;
@@ -182,7 +182,7 @@ class _QuestScreenState extends State<QuestScreen>
                     final bloc = context.read<QuestBloc>();
                     bloc.add(const QuestEvent.refresh());
                     await bloc.stream.firstWhere((state) => state.maybeWhen(
-                          loaded: (_, __, ___, ____, isRefreshing, _____, ______) => !isRefreshing,
+                          loaded: (_, _, _, _, isRefreshing, _, _) => !isRefreshing,
                           error: (_) => true,
                           orElse: () => false,
                         ));

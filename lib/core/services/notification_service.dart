@@ -318,8 +318,8 @@ class _InAppNotificationBannerState extends State<_InAppNotificationBanner> with
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF6D28D9).withOpacity(0.95),
-                    const Color(0xFF4C1D95).withOpacity(0.95),
+                    const Color(0xFF6D28D9).withValues(alpha: 0.95),
+                    const Color(0xFF4C1D95).withValues(alpha: 0.95),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -327,13 +327,13 @@ class _InAppNotificationBannerState extends State<_InAppNotificationBanner> with
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 16,
                     offset: const Offset(0, 8),
                   ),
                 ],
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   width: 1.5,
                 ),
               ),
@@ -344,7 +344,7 @@ class _InAppNotificationBannerState extends State<_InAppNotificationBanner> with
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -374,7 +374,7 @@ class _InAppNotificationBannerState extends State<_InAppNotificationBanner> with
                         Text(
                           widget.body,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),

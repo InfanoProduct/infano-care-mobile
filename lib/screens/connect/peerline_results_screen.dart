@@ -325,7 +325,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
 
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            Future<void> _requestFromSheet() async {
+            Future<void> requestFromSheet() async {
               setSheetState(() => _isLoading = true);
               setState(() => _isLoading = true);
 
@@ -353,6 +353,8 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                 if (mounted) {
                   setState(() => _isLoading = false);
                   setSheetState(() => _isLoading = false);
+                }
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Failed to send request: $e'), backgroundColor: Colors.red),
                   );
@@ -534,7 +536,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                   ],
 
                   ElevatedButton(
-                    onPressed: (!_isRequested && !_isLoading) ? _requestFromSheet : null,
+                    onPressed: (!_isRequested && !_isLoading) ? requestFromSheet : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.purple,
                       disabledBackgroundColor: _isRequested ? Colors.green.shade50 : Colors.grey.shade100,

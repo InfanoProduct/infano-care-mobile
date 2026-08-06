@@ -23,23 +23,23 @@ class JournalCubit extends Cubit<JournalState> {
     try {
       final results = await Future.wait([
         _repo.listEntries().catchError((e, s) {
-          print("[JOURNAL_ERROR] listEntries failed: $e\n$s");
+          // print("[JOURNAL_ERROR] listEntries failed: $e\n$s");
           return {'entries': <JournalEntry>[], 'total': 0, 'page': 1, 'pages': 1};
         }),
         _repo.getStreak().catchError((e, s) {
-          print("[JOURNAL_ERROR] getStreak failed: $e\n$s");
+          // print("[JOURNAL_ERROR] getStreak failed: $e\n$s");
           return null;
         }),
         _repo.getDailyPrompt().catchError((e, s) {
-          print("[JOURNAL_ERROR] getDailyPrompt failed: $e\n$s");
+          // print("[JOURNAL_ERROR] getDailyPrompt failed: $e\n$s");
           return null;
         }),
         _repo.getOnThisDay().catchError((e, s) {
-          print("[JOURNAL_ERROR] getOnThisDay failed: $e\n$s");
+          // print("[JOURNAL_ERROR] getOnThisDay failed: $e\n$s");
           return <JournalEntry>[];
         }),
         _repo.getMoodWeather().catchError((e, s) {
-          print("[JOURNAL_ERROR] getMoodWeather failed: $e\n$s");
+          // print("[JOURNAL_ERROR] getMoodWeather failed: $e\n$s");
           return <String, dynamic>{};
         }),
       ]);
@@ -60,8 +60,8 @@ class JournalCubit extends Cubit<JournalState> {
 
       _cachedState = loadedState;
       emit(loadedState);
-    } catch (e, s) {
-      print("[JOURNAL_CUBIT_FATAL] $e\n$s");
+    } catch (e) {
+      // print("[JOURNAL_CUBIT_FATAL] $e\n$s");
       if (state is! JournalLoaded) {
         emit(JournalError(e.toString()));
       }
@@ -102,12 +102,12 @@ class JournalCubit extends Cubit<JournalState> {
       final dto = {
         'mode': mode,
         'content': content,
-        if (promptId != null) 'promptId': promptId,
-        if (moodTag != null) 'moodTag': moodTag,
-        if (moodColor != null) 'moodColor': moodColor,
-        if (title != null) 'title': title,
+        'promptId': ?promptId,
+        'moodTag': ?moodTag,
+        'moodColor': ?moodColor,
+        'title': ?title,
         'isSealedTimeCapsule': isSealedTimeCapsule,
-        if (capsuleRevealDate != null) 'capsuleRevealDate': capsuleRevealDate,
+        'capsuleRevealDate': ?capsuleRevealDate,
       };
 
       final JournalEntry entry;

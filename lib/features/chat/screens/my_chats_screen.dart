@@ -21,7 +21,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
   StreamSubscription? _socketSub;
 
   // Search & Filter State
-  String _searchQuery = "";
+  final String _searchQuery = "";
   String _selectedTab = "All"; // "All", "Mentors", "Experts"
 
   @override

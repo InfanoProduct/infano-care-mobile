@@ -380,7 +380,7 @@ class _ExpertCalendarScreenState extends State<ExpertCalendarScreen> with Single
                 const Text('Timezone', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: _timezone,
+                  initialValue: _timezone,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -401,7 +401,7 @@ class _ExpertCalendarScreenState extends State<ExpertCalendarScreen> with Single
                 const Text('Reschedule Policy', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: _reschedulePolicy,
+                  initialValue: _reschedulePolicy,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -422,7 +422,7 @@ class _ExpertCalendarScreenState extends State<ExpertCalendarScreen> with Single
                 const Text('Booking Window (Months ahead)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<int>(
-                  value: _bookingPeriodMonths,
+                  initialValue: _bookingPeriodMonths,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

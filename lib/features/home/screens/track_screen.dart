@@ -800,7 +800,7 @@ class TrackScreen extends StatelessWidget {
                 try {
                   final questBloc = context.read<QuestBloc>();
                   questBloc.state.maybeWhen(
-                    loaded: (dailyQuests, _, __, ___, ____, _____, ______) {
+                    loaded: (dailyQuests, _, _, _, _, _, _) {
                       for (var q in dailyQuests) {
                         if (q.questTemplate.title == 'Review Daily Insights' && q.progressJson != null) {
                           final readList = q.progressJson!['readIds'] as List?;

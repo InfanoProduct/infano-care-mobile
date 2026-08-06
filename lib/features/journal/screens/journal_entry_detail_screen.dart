@@ -753,7 +753,7 @@ class _PhotoBlock extends StatelessWidget {
         }
       }
     } catch (e) {
-      print("[IMAGE_RENDER_ERROR] $e");
+      debugPrint("[IMAGE_RENDER_ERROR] $e");
     }
     return Container(
       color: const Color(0xFFD1FAE5),
