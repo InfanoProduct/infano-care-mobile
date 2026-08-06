@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:socket_io_client_new/socket_io_client_new.dart' as io;
 
 class FriendsSocketService {
   final LocalStorageService _storage;
@@ -31,13 +31,11 @@ class FriendsSocketService {
     if (token == null) return;
     if (_socket?.connected == true) return;
 
-    String baseUrl = ApiService.instance.dio.options.baseUrl.replaceAll('/api', '');
-    if (baseUrl.endsWith('/')) {
-      baseUrl = baseUrl.substring(0, baseUrl.length - 1);
-    }
+    final uri = Uri.parse(ApiService.instance.dio.options.baseUrl);
+    final int port = uri.hasPort ? uri.port : (uri.scheme == 'https' ? 443 : 80);
+    final baseUrl = '${uri.scheme}://${uri.host}:$port';
     
     _socket = io.io('$baseUrl/friends', <String, dynamic>{
-      'path': '/api/socket.io',
       'transports': ['websocket'],
       'forceNew': true,
       'auth': {'token': token},

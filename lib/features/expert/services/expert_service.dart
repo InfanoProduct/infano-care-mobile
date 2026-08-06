@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:socket_io_client_new/socket_io_client_new.dart' as io;
 
 class ExpertService {
   final Dio _dio = ApiService.instance.dio;
@@ -196,14 +196,12 @@ class ExpertService {
     }
 
     // Use same base URL but replace /api and use http/ws
-    String socketUrl = _dio.options.baseUrl.replaceAll('/api', '');
-    if (socketUrl.endsWith('/')) {
-      socketUrl = socketUrl.substring(0, socketUrl.length - 1);
-    }
+    final uri = Uri.parse(_dio.options.baseUrl);
+    final int port = uri.hasPort ? uri.port : (uri.scheme == 'https' ? 443 : 80);
+    final socketUrl = '${uri.scheme}://${uri.host}:$port';
     debugPrint('[Socket] Attempting connection to: $socketUrl (Session: $sessionId)');
 
     _socket = io.io(socketUrl, <String, dynamic>{
-      'path': '/api/socket.io',
       'transports': ['websocket'],
       'forceNew': true,
       'multiplex': false,
