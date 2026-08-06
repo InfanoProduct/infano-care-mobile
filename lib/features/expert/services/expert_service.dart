@@ -196,7 +196,10 @@ class ExpertService {
     }
 
     // Use same base URL but replace /api and use http/ws
-    final socketUrl = Uri.parse(_dio.options.baseUrl).origin;
+    String socketUrl = _dio.options.baseUrl.replaceAll('/api', '');
+    if (socketUrl.endsWith('/')) {
+      socketUrl = socketUrl.substring(0, socketUrl.length - 1);
+    }
     debugPrint('[Socket] Attempting connection to: $socketUrl (Session: $sessionId)');
 
     _socket = io.io(socketUrl, <String, dynamic>{

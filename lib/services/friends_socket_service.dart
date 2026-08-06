@@ -31,7 +31,10 @@ class FriendsSocketService {
     if (token == null) return;
     if (_socket?.connected == true) return;
 
-    final baseUrl = Uri.parse(ApiService.instance.dio.options.baseUrl).origin;
+    String baseUrl = ApiService.instance.dio.options.baseUrl.replaceAll('/api', '');
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+    }
     
     _socket = io.io('$baseUrl/friends', <String, dynamic>{
       'path': '/api/socket.io',
