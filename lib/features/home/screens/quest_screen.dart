@@ -5,6 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/quest/celebration_overlay.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/screens/all_insights_screen.dart';
+import 'package:infano_care_mobile/features/tracker/data/models/insight_models.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
 import '../../tracker/bloc/quest_bloc.dart';
 import '../../tracker/data/models/quest_models.dart';
 
@@ -36,7 +39,66 @@ class _QuestScreenState extends State<QuestScreen>
     super.dispose();
   }
 
-  void _navigateToQuest(BuildContext context, String? category) {
+  void _navigateToQuest(BuildContext context, String? category, String title) async {
+    debugPrint('[QUEST] _navigateToQuest called with title: "$title", category: "$category"');
+    if (title == 'Review Daily Insights') {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(
+          child: CircularProgressIndicator(color: AppColors.purple),
+        ),
+      );
+
+      try {
+        final response = await ApiService.instance.dio.get('/tracker/daily-insights');
+        final insightsData = response.data as Map<String, dynamic>;
+        final list = (insightsData['insights'] as List? ?? [])
+            .map((json) => DailyInsight.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        if (context.mounted) {
+          Navigator.of(context).pop(); // dismiss loading
+        }
+
+        if (context.mounted) {
+          final questBloc = context.read<QuestBloc>();
+          List<String> readInsightIds = [];
+          questBloc.state.maybeWhen(
+            loaded: (dailyQuests, _, __, ___, ____, _____, ______) {
+              for (var q in dailyQuests) {
+                if (q.questTemplate.title == 'Review Daily Insights' && q.progressJson != null) {
+                  final readList = q.progressJson!['readIds'] as List?;
+                  if (readList != null) {
+                    readInsightIds = readList.map((e) => e.toString()).toList();
+                  }
+                  break;
+                }
+              }
+            },
+            orElse: () {},
+          );
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AllInsightsScreen(insights: list, initialReadIds: readInsightIds),
+            ),
+          ).then((_) {
+            questBloc.add(const QuestEvent.refresh());
+          });
+        }
+      } catch (e) {
+        debugPrint('[QUEST] Failed to fetch daily insights directly: $e');
+        if (context.mounted) {
+          Navigator.of(context).pop(); // dismiss loading
+        }
+        if (context.mounted) {
+          context.read<DashboardCubit>().setTab(2);
+        }
+      }
+      return;
+    }
+
     switch (category) {
       case 'tracker':
         context.read<DashboardCubit>().setTab(2);
@@ -63,12 +125,8 @@ class _QuestScreenState extends State<QuestScreen>
         points: points,
         isLevelUp: isLevelUp,
         onDismiss: () {
-          if (Navigator.of(dialogContext).canPop()) {
+          if (dialogContext.mounted && Navigator.of(dialogContext).canPop()) {
             Navigator.of(dialogContext).pop();
-          }
-          // After celebration, refresh to clear lastCompletedQuest from state
-          if (mounted) {
-            context.read<QuestBloc>().add(const QuestEvent.refresh());
           }
         },
       ),
@@ -80,9 +138,10 @@ class _QuestScreenState extends State<QuestScreen>
     return BlocListener<QuestBloc, QuestState>(
       listener: (context, state) {
         state.maybeWhen(
-          loaded: (dailyQuests, progress, badges, isRefreshing,
+          loaded: (dailyQuests, weeklyChallenges, progress, badges, isRefreshing,
               lastCompletedQuest, lastLevel) {
             if (lastCompletedQuest != null) {
+              context.read<QuestBloc>().add(const QuestEvent.clearCompletedQuest());
               _showCelebration(
                 context,
                 lastCompletedQuest.questTemplate.title,
@@ -90,6 +149,7 @@ class _QuestScreenState extends State<QuestScreen>
               );
             } else if (lastLevel != null &&
                 progress.currentLevel > lastLevel) {
+              context.read<QuestBloc>().add(const QuestEvent.clearCompletedQuest());
               _showCelebration(
                 context,
                 'You reached Level ${progress.currentLevel}!',
@@ -111,43 +171,53 @@ class _QuestScreenState extends State<QuestScreen>
               onRetry: () =>
                   context.read<QuestBloc>().add(const QuestEvent.load()),
             ),
-            loaded: (dailyQuests, progress, badges, isRefreshing,
+            loaded: (dailyQuests, weeklyChallenges, progress, badges, isRefreshing,
                 lastCompletedQuest, lastLevel) {
-              return Scaffold(
+              return Stack(
+                children: [
+                  Scaffold(
                 backgroundColor: Colors.white,
-                body: NestedScrollView(
-                  headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                    SliverAppBar(
-                      expandedHeight: 220,
-                      pinned: true,
-                      backgroundColor: AppColors.purple,
-                      bottom: TabBar(
-                        controller: _tabController,
-                        labelColor: Colors.white,
-                        unselectedLabelColor: Colors.white60,
-                        indicatorColor: Colors.white,
-                        indicatorSize: TabBarIndicatorSize.label,
-                        labelStyle:
-                            GoogleFonts.nunito(fontWeight: FontWeight.w700),
-                        tabs: const [
-                          Tab(text: 'Daily'),
-                          Tab(text: 'Badges'),
-                          Tab(text: 'Milestones'),
-                          Tab(text: 'Weekly'),
-                        ],
+                body: RefreshIndicator(
+                  onRefresh: () async {
+                    final bloc = context.read<QuestBloc>();
+                    bloc.add(const QuestEvent.refresh());
+                    await bloc.stream.firstWhere((state) => state.maybeWhen(
+                          loaded: (_, __, ___, ____, isRefreshing, _____, ______) => !isRefreshing,
+                          error: (_) => true,
+                          orElse: () => false,
+                        ));
+                  },
+                  color: AppColors.purple,
+                  child: NestedScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                      SliverAppBar(
+                        automaticallyImplyLeading: false,
+                        expandedHeight: 330,
+                        pinned: true,
+                        backgroundColor: AppColors.purple,
+                        bottom: TabBar(
+                          controller: _tabController,
+                          labelColor: Colors.white,
+                          unselectedLabelColor: Colors.white60,
+                          indicatorColor: Colors.white,
+                          indicatorSize: TabBarIndicatorSize.label,
+                          labelStyle:
+                              GoogleFonts.nunito(fontWeight: FontWeight.w700),
+                          tabs: const [
+                            Tab(text: 'Daily'),
+                            Tab(text: 'Badges'),
+                            Tab(text: 'Milestones'),
+                            Tab(text: 'Weekly'),
+                          ],
+                        ),
+                        flexibleSpace: FlexibleSpaceBar(
+                          collapseMode: CollapseMode.pin,
+                          background: _HeaderBackground(progress: progress),
+                        ),
                       ),
-                      flexibleSpace: FlexibleSpaceBar(
-                        collapseMode: CollapseMode.pin,
-                        background: _HeaderBackground(progress: progress),
-                      ),
-                    ),
-                  ],
-                  body: RefreshIndicator(
-                    onRefresh: () async => context
-                        .read<QuestBloc>()
-                        .add(const QuestEvent.refresh()),
-                    color: AppColors.purple,
-                    child: TabBarView(
+                    ],
+                    body: TabBarView(
                       controller: _tabController,
                       children: [
                         _DailyTab(
@@ -155,20 +225,31 @@ class _QuestScreenState extends State<QuestScreen>
                           onAccept: (id) => context
                               .read<QuestBloc>()
                               .add(QuestEvent.acceptQuest(id)),
-                          onGo: (category) =>
-                              _navigateToQuest(context, category),
+                          onGo: (category, title) =>
+                              _navigateToQuest(context, category, title),
                         ),
                         _BadgesTab(badges: badges),
-                        const _ComingSoonTab(
-                            label: 'Milestones coming soon!'),
-                        const _ComingSoonTab(
-                            label: 'Weekly Challenges coming soon!'),
+                        const _MilestonesTab(),
+                        _WeeklyTab(challenges: weeklyChallenges),
                       ],
                     ),
                   ),
                 ),
-              );
-            },
+              ),
+              if (isRefreshing)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.purple,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
           );
         },
       ),
@@ -282,9 +363,102 @@ class _HeaderBackground extends StatelessWidget {
                           color: Colors.white70, fontSize: 11)),
                 ],
               ),
+              _BloomGardenWidget(points: points, level: level),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _BloomGardenWidget extends StatelessWidget {
+  final int points;
+  final int level;
+  
+  const _BloomGardenWidget({required this.points, required this.level});
+
+  @override
+  Widget build(BuildContext context) {
+    // Determine plant progress based on XP progress towards next level
+    const thresholds = [500, 1500, 3500, 7000, 12000, 20000, 32000, 50000, 75000, 100000];
+    final nextLevel = level <= thresholds.length ? thresholds[level - 1] : 999999;
+    final pct = (nextLevel > 0 ? points / nextLevel : 0.0).clamp(0.0, 1.0);
+
+    String stageName = 'Sprout';
+    IconData plantIcon = Icons.eco_outlined;
+    Color plantColor = Colors.green;
+    String description = 'Keep completing daily quests to water your seedling.';
+
+    if (pct >= 0.75) {
+      stageName = 'Full Bloom';
+      plantIcon = Icons.brightness_7_rounded;
+      plantColor = Colors.amber;
+      description = 'Stunning! Your self-care flower has bloomed beautifully!';
+    } else if (pct >= 0.5) {
+      stageName = 'Budding';
+      plantIcon = Icons.local_florist_rounded;
+      plantColor = Colors.pinkAccent;
+      description = 'A bud is forming! You are nurturing consistency.';
+    } else if (pct >= 0.25) {
+      stageName = 'Growing';
+      plantIcon = Icons.spa_rounded;
+      plantColor = Colors.teal;
+      description = 'Leaves are branching out. Great job watering your plant!';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                )
+              ]
+            ),
+            child: Icon(plantIcon, color: plantColor, size: 36)
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(duration: 1.seconds, begin: const Offset(0.9, 0.9), end: const Offset(1.1, 1.1))
+              .shimmer(delay: 2.seconds, duration: 1.seconds),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bloom Status: $stageName',
+                  style: GoogleFonts.nunito(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: GoogleFonts.nunito(
+                    color: Colors.white70,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
       ),
     );
   }
@@ -295,7 +469,7 @@ class _HeaderBackground extends StatelessWidget {
 class _DailyTab extends StatelessWidget {
   final List<UserQuest> quests;
   final void Function(String id) onAccept;
-  final void Function(String? category) onGo;
+  final void Function(String? category, String title) onGo;
 
   const _DailyTab({
     required this.quests,
@@ -325,6 +499,7 @@ class _DailyTab extends StatelessWidget {
     }
 
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       itemCount: quests.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
@@ -333,7 +508,7 @@ class _DailyTab extends StatelessWidget {
         return _QuestCard(
           quest: quest,
           onAccept: () => onAccept(quest.id),
-          onGo: () => onGo(quest.questTemplate.category),
+          onGo: () => onGo(quest.questTemplate.category, quest.questTemplate.title),
         );
       },
     );
@@ -389,6 +564,9 @@ class _QuestCard extends StatelessWidget {
     final isCompleted = quest.status == 'completed';
     final isAccepted = quest.status == 'accepted';
     final color = _categoryColor(template.category);
+    final totalCount = quest.progressJson?['totalCount'] ?? template.completionCondition?['count'] ?? 1;
+    final currentCount = quest.progressJson?['currentCount'] ?? 0;
+    final showProgress = totalCount > 1;
 
     return Card(
       elevation: isCompleted ? 0 : 2,
@@ -436,6 +614,27 @@ class _QuestCard extends StatelessWidget {
                       color: AppColors.textMedium,
                     ),
                   ),
+                  if (showProgress) ...[
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: (currentCount / totalCount).clamp(0.0, 1.0),
+                        backgroundColor: color.withValues(alpha: 0.15),
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                        minHeight: 6,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Progress: $currentCount/$totalCount completed',
+                      style: GoogleFonts.nunito(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 6),
                   Row(
                     children: [
@@ -480,47 +679,15 @@ class _QuestCard extends StatelessWidget {
       return const Icon(Icons.check_circle_rounded,
           color: AppColors.success, size: 32);
     }
-    if (isAccepted) {
-      return ElevatedButton(
-        onPressed: onGo,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.purple,
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Go',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13)),
-            SizedBox(width: 2),
-            Icon(Icons.arrow_forward_rounded,
-                color: Colors.white, size: 14),
-          ],
-        ),
-      );
-    }
     return OutlinedButton(
       onPressed: () {
-        onAccept();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Quest started! Complete the activity to earn points.'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.purple,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        if (!isAccepted) {
+          onAccept();
+        }
+        onGo();
       },
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: AppColors.purple),
+        side: const BorderSide(color: AppColors.purple),
         padding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         shape:
@@ -528,7 +695,7 @@ class _QuestCard extends StatelessWidget {
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      child: Text(
+      child: const Text(
         'Start',
         style: TextStyle(
             color: AppColors.purple,
@@ -564,6 +731,7 @@ class _BadgesTab extends StatelessWidget {
     }
 
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -962,29 +1130,6 @@ class _BadgePin extends StatelessWidget {
   }
 }
 
-// ── Coming Soon Tab ────────────────────────────────────────────────────────
-
-class _ComingSoonTab extends StatelessWidget {
-  final String label;
-  const _ComingSoonTab({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.hourglass_empty_rounded,
-              size: 48, color: AppColors.textLight),
-          const SizedBox(height: 12),
-          Text(label,
-              style: GoogleFonts.nunito(
-                  color: AppColors.textLight, fontSize: 15)),
-        ],
-      ),
-    );
-  }
-}
 
 // ── Loading / Error Views ──────────────────────────────────────────────────
 
@@ -1037,6 +1182,296 @@ class _ErrorView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _WeeklyTab extends StatelessWidget {
+  final List<WeeklyChallenge> challenges;
+
+  const _WeeklyTab({required this.challenges});
+
+  IconData _categoryIcon(String category) {
+    switch (category) {
+      case 'tracker':
+        return Icons.calendar_today_outlined;
+      case 'wellbeing':
+        return Icons.self_improvement_outlined;
+      default:
+        return Icons.extension_outlined;
+    }
+  }
+
+  Color _categoryColor(String category) {
+    switch (category) {
+      case 'tracker':
+        return AppColors.purple;
+      case 'wellbeing':
+        return AppColors.bloom;
+      default:
+        return AppColors.teal;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (challenges.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.stars_rounded,
+                size: 64, color: AppColors.purple.withValues(alpha: 0.3)),
+            const SizedBox(height: 16),
+            Text(
+              'No weekly challenges active right now.\nCheck back later!',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                  color: AppColors.textLight, fontSize: 16),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      itemCount: challenges.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final challenge = challenges[index];
+        final color = _categoryColor(challenge.category);
+        final pct = (challenge.targetTotal > 0
+            ? challenge.progress / challenge.targetTotal
+            : 0.0).clamp(0.0, 1.0);
+
+        return Card(
+          elevation: challenge.isCompleted ? 0 : 2,
+          color: challenge.isCompleted
+              ? AppColors.success.withValues(alpha: 0.05)
+              : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: challenge.isCompleted
+                  ? AppColors.success.withValues(alpha: 0.3)
+                  : Colors.transparent,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(_categoryIcon(challenge.category),
+                          color: color, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            challenge.title,
+                            style: GoogleFonts.nunito(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: challenge.isCompleted
+                                  ? AppColors.success
+                                  : AppColors.textDark,
+                            ),
+                          ),
+                          Text(
+                            'Weekly Challenge',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              color: color,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (challenge.isCompleted)
+                      const Icon(Icons.check_circle_rounded,
+                          color: AppColors.success, size: 32)
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.bloom.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '+${challenge.rewardPoints} XP',
+                          style: GoogleFonts.nunito(
+                            color: AppColors.bloom,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  challenge.description,
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    color: AppColors.textMedium,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: pct,
+                    backgroundColor: Colors.grey[200],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        challenge.isCompleted ? AppColors.success : color),
+                    minHeight: 8,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${challenge.progress} / ${challenge.targetTotal} completed',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                    Text(
+                      '${(pct * 100).toInt()}%',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: challenge.isCompleted ? AppColors.success : color,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(delay: const Duration(milliseconds: 50));
+      },
+    );
+  }
+}
+
+class _MilestonesTab extends StatelessWidget {
+  const _MilestonesTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final pastCycleFlowers = [
+      {
+        'name': 'Menstrual Rose',
+        'cycle': 'Cycle 28 (May 2026)',
+        'status': 'Fully Bloomed',
+        'icon': Icons.brightness_7_outlined,
+        'color': Colors.redAccent,
+        'score': '1,450 XP Earned',
+      },
+      {
+        'name': 'Lavender Balm',
+        'cycle': 'Cycle 29 (June 2026)',
+        'status': 'Fully Bloomed',
+        'icon': Icons.local_florist_outlined,
+        'color': Colors.purpleAccent,
+        'score': '1,680 XP Earned',
+      },
+      {
+        'name': 'Follicular Daisy',
+        'cycle': 'Cycle 30 (July 2026)',
+        'status': 'Fully Bloomed',
+        'icon': Icons.filter_vintage_outlined,
+        'color': Colors.amber,
+        'score': '1,920 XP Earned',
+      },
+    ];
+
+    return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.9,
+      ),
+      itemCount: pastCycleFlowers.length,
+      itemBuilder: (context, index) {
+        final item = pastCycleFlowers[index];
+        final color = item['color'] as Color;
+
+        return Card(
+          elevation: 2,
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(item['icon'] as IconData, color: color, size: 40)
+                  .animate()
+                  .scale(duration: 500.ms, delay: 100.ms)
+                  .shake(hz: 4, curve: Curves.easeInOut),
+                const SizedBox(height: 8),
+                Text(
+                  item['name'] as String,
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                Text(
+                  item['cycle'] as String,
+                  style: GoogleFonts.nunito(
+                    fontSize: 10,
+                    color: AppColors.textMedium,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    item['score'] as String,
+                    style: GoogleFonts.nunito(
+                      color: color,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 9,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -357,25 +357,14 @@ class _CircleScreenState extends State<CircleScreen> {
     final replyDelta = _localReplyDelta[post.id] ?? 0;
     final pinnedOverride = _localPinState[post.id];
     final bookmarkOverride = _localBookmarkState[post.id];
-    return CommunityPost(
-      id: post.id,
-      circleId: post.circleId,
-      authorId: post.authorId,
-      authorName: post.authorName,
-      content: post.content,
-      createdAt: post.createdAt,
+    return post.copyWith(
       reactionHeart: (post.reactionHeart + (reactions?['heart'] ?? 0)).clamp(0, 9999),
       reactionHug: (post.reactionHug + (reactions?['hug'] ?? 0)).clamp(0, 9999),
       reactionBulb: (post.reactionBulb + (reactions?['bulb'] ?? 0)).clamp(0, 9999),
       reactionFist: (post.reactionFist + (reactions?['fist'] ?? 0)).clamp(0, 9999),
       replyCount: post.replyCount + replyDelta,
       isPinned: pinnedOverride ?? post.isPinned,
-      isFeatured: post.isFeatured,
       isBookmarked: bookmarkOverride ?? post.isBookmarked,
-      isChallengeResponse: post.isChallengeResponse,
-      challengeTheme: post.challengeTheme,
-      authorRole: post.authorRole,
-      status: post.status,
       myReaction: _localMyReaction.containsKey(post.id) ? _localMyReaction[post.id] : post.myReaction,
     );
   }

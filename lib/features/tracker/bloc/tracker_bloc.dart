@@ -137,11 +137,13 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
       final currentState = state;
       if (currentState is! _Loaded) return;
 
+      emit(currentState.copyWith(milestone: "updating_tracker"));
+
       try {
         await _repository.updatePeriodRange(event.start, event.end);
         add(const TrackerEvent.load());
       } catch (e) {
-        // Handle error in UI
+        emit(currentState.copyWith(milestone: null));
       }
     });
   }

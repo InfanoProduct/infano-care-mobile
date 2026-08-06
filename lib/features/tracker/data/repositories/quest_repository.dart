@@ -22,6 +22,16 @@ class QuestRepository {
     throw Exception('Failed to load daily quests');
   }
 
+  Future<List<WeeklyChallenge>> getWeeklyChallenges() async {
+    debugPrint('[QUEST] API CALL: /quest/weekly');
+    final response = await _dio.get('/quest/weekly');
+    if (response.data['success']) {
+      final data = response.data['data'] as List;
+      return data.map((json) => WeeklyChallenge.fromJson(json)).toList();
+    }
+    throw Exception('Failed to load weekly challenges');
+  }
+
   Future<UserQuest> acceptQuest(String userQuestId) async {
     final response = await _dio.post('/quest/$userQuestId/accept');
     if (response.data['success']) {

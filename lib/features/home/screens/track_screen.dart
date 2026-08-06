@@ -7,6 +7,7 @@ import 'package:infano_care_mobile/features/tracker/presentation/widgets/daily_l
 import 'package:infano_care_mobile/features/tracker/data/models/insight_models.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/story_screen.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
@@ -62,6 +63,7 @@ class TrackScreen extends StatelessWidget {
                   if (profile.trackerMode == 'watching_waiting' && profile.lastPeriodStart == null) {
                     return _buildNotStartedState(context);
                   }
+                  final isUpdating = milestone == 'updating_tracker';
                   return _buildRedesignedDashboard(
                     context, 
                     profile, 
@@ -71,6 +73,7 @@ class TrackScreen extends StatelessWidget {
                     dailyInsights, 
                     articles,
                     isRefreshing,
+                    isUpdating,
                   );
                 },
               );
@@ -90,6 +93,7 @@ class TrackScreen extends StatelessWidget {
     List<DailyInsight> dailyInsights,
     List<Map<String, String>> articles,
     bool isRefreshing,
+    bool isUpdating,
   ) {
     final mode = profile.trackerMode;
     final char = CharacterGreetingService.getCharacter(mode);
@@ -97,43 +101,85 @@ class TrackScreen extends StatelessWidget {
     // which is more reliable than server-side 'today' due to timezone differences.
     final hasLoggedToday = logs.any((l) => DateUtils.isSameDay(l.date, DateTime.now()));
 
-    return Container(
-      color: const Color(0xFFF5F4F7),
-      child: SafeArea(
-
-        child: RefreshIndicator(
-          color: AppColors.purple,
-          onRefresh: () async {
-            context.read<TrackerBloc>().add(const TrackerEvent.load(isRefresh: true));
-            await Future.delayed(const Duration(milliseconds: 1500));
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                _buildRichHeader(context, profile, prediction, char),
-                const SizedBox(height: 32),
-                _buildCycleRing(context, profile, prediction, history, isRefreshing),
-                const SizedBox(height: 12),
-              _buildActionButtons(context, profile, logs, history),
-              const SizedBox(height: 32),
-              _buildPrimaryActions(context, profile, logs, hasLoggedToday),
-              if (mode != 'watching_waiting') ...[
-                const SizedBox(height: 20),
-                _buildQuestEntryCard(context, prediction?.currentLogStreak ?? 0),
-              ],
-              const SizedBox(height: 24),
-              _buildDailyInsightsSection(context, dailyInsights),
-              const SizedBox(height: 24),
-              _buildGoodToKnowSection(context, profile.currentPhase ?? 'menstrual', articles),
-              const SizedBox(height: 32),
-            ],
+    return Stack(
+      children: [
+        Container(
+          color: const Color(0xFFF5F4F7),
+          child: SafeArea(
+            child: RefreshIndicator(
+              color: AppColors.purple,
+              onRefresh: () async {
+                context.read<TrackerBloc>().add(const TrackerEvent.load(isRefresh: true));
+                await Future.delayed(const Duration(milliseconds: 1500));
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildRichHeader(context, profile, prediction, char),
+                    const SizedBox(height: 32),
+                    _buildCycleRing(context, profile, prediction, history, isRefreshing),
+                    const SizedBox(height: 12),
+                    _buildActionButtons(context, profile, logs, history),
+                    const SizedBox(height: 32),
+                    _buildPrimaryActions(context, profile, logs, hasLoggedToday),
+                    if (mode != 'watching_waiting') ...[
+                      const SizedBox(height: 20),
+                      _buildQuestEntryCard(context, prediction?.currentLogStreak ?? 0),
+                    ],
+                    const SizedBox(height: 24),
+                    _buildDailyInsightsSection(context, dailyInsights),
+                    const SizedBox(height: 24),
+                    _buildGoodToKnowSection(context, profile.currentPhase ?? 'menstrual', articles),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-        ),
-      ),
+        if (isUpdating)
+          Positioned.fill(
+            child: Container(
+              color: Colors.white.withValues(alpha: 0.7),
+              child: Center(
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: AppColors.purple,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          'Updating your tracker data...',
+                          style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -264,7 +310,20 @@ class TrackScreen extends StatelessWidget {
           prediction: prediction,
           history: history,
           isRefreshing: isRefreshing,
-          onCenterTap: () => _openDailyLog(context, DateTime.now()),
+          onCenterTap: () {
+            final currentPhase = prediction?.currentPhase;
+            final isDelayed = currentPhase == 'delayed' || 
+                              currentPhase == 'late' || 
+                              (prediction != null && prediction.cycleDay > (profile.avgCycleLength ?? 28));
+            if (isDelayed) {
+              final duration = profile.avgPeriodDuration ?? 5;
+              final start = DateTime.now();
+              final end = start.add(Duration(days: duration - 1));
+              context.read<TrackerBloc>().add(TrackerEvent.updatePeriodRange(start, end));
+            } else {
+              _openDailyLog(context, DateTime.now());
+            }
+          },
           onSegmentTap: (phaseId) => showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -736,11 +795,41 @@ class TrackScreen extends StatelessWidget {
               ],
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AllInsightsScreen(insights: insights),
-                ),
-              ),
+              onPressed: () {
+                List<String> readInsightIds = [];
+                try {
+                  final questBloc = context.read<QuestBloc>();
+                  questBloc.state.maybeWhen(
+                    loaded: (dailyQuests, _, __, ___, ____, _____, ______) {
+                      for (var q in dailyQuests) {
+                        if (q.questTemplate.title == 'Review Daily Insights' && q.progressJson != null) {
+                          final readList = q.progressJson!['readIds'] as List?;
+                          if (readList != null) {
+                            readInsightIds = readList.map((e) => e.toString()).toList();
+                          }
+                          break;
+                        }
+                      }
+                    },
+                    orElse: () {},
+                  );
+                } catch (_) {}
+
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AllInsightsScreen(
+                      insights: insights,
+                      initialReadIds: readInsightIds,
+                    ),
+                  ),
+                ).then((_) {
+                  if (context.mounted) {
+                    try {
+                      context.read<QuestBloc>().add(const QuestEvent.refresh());
+                    } catch (_) {}
+                  }
+                });
+              },
               child: Text('See All', style: GoogleFonts.nunito(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 13)),
             ),
           ],
@@ -757,7 +846,13 @@ class TrackScreen extends StatelessWidget {
               return GestureDetector(
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => StoryScreen(insight: insight)),
-                ),
+                ).then((_) {
+                  if (context.mounted) {
+                    try {
+                      context.read<QuestBloc>().add(const QuestEvent.refresh());
+                    } catch (_) {}
+                  }
+                }),
                 child: _buildInsightCard(insight, index),
               );
             },

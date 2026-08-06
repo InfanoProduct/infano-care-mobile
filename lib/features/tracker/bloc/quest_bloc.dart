@@ -11,6 +11,7 @@ class QuestEvent with _$QuestEvent {
   const factory QuestEvent.load() = _Load;
   const factory QuestEvent.acceptQuest(String id) = _AcceptQuest;
   const factory QuestEvent.refresh() = _Refresh;
+  const factory QuestEvent.clearCompletedQuest() = _ClearCompletedQuest;
 }
 
 @freezed
@@ -19,6 +20,7 @@ class QuestState with _$QuestState {
   const factory QuestState.loading() = _Loading;
   const factory QuestState.loaded({
     required List<UserQuest> dailyQuests,
+    required List<WeeklyChallenge> weeklyChallenges,
     required UserQuestProgress progress,
     required List<Badge> badges,
     @Default(false) bool isRefreshing,
@@ -45,6 +47,16 @@ class QuestBloc extends Bloc<QuestEvent, QuestState> {
       } else {
         emit(const QuestState.loading());
         await _loadAll(emit);
+      }
+    });
+
+    on<_ClearCompletedQuest>((event, emit) {
+      final currentState = state;
+      if (currentState is _Loaded) {
+        emit(currentState.copyWith(
+          lastCompletedQuest: null,
+          lastLevel: null,
+        ));
       }
     });
 
@@ -80,13 +92,18 @@ class QuestBloc extends Bloc<QuestEvent, QuestState> {
           debugPrint('[QUEST_BLOC] Badges error: $e');
           throw Exception('Badges: $e');
         }),
+        _repository.getWeeklyChallenges().catchError((e) {
+          debugPrint('[QUEST_BLOC] Weekly Challenges error: $e');
+          return <WeeklyChallenge>[];
+        }),
       ]);
 
       final dailyQuests = results[0] as List<UserQuest>;
       final progress = results[1] as UserQuestProgress;
       final badges = results[2] as List<Badge>;
+      final weeklyChallenges = results[3] as List<WeeklyChallenge>;
 
-      debugPrint('[QUEST_BLOC] Loaded ${dailyQuests.length} quests, ${badges.length} badges');
+      debugPrint('[QUEST_BLOC] Loaded ${dailyQuests.length} quests, ${weeklyChallenges.length} weekly challenges, ${badges.length} badges');
 
       final currentState = state;
       UserQuest? completedQuest;
@@ -111,6 +128,7 @@ class QuestBloc extends Bloc<QuestEvent, QuestState> {
 
       emit(QuestState.loaded(
         dailyQuests: dailyQuests,
+        weeklyChallenges: weeklyChallenges,
         progress: progress,
         badges: badges,
         // Only set lastCompletedQuest if this is a new completion

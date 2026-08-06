@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/features/tracker/data/models/insight_models.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
 
 class StoryScreen extends StatefulWidget {
   final DailyInsight insight;
@@ -15,6 +16,21 @@ class _StoryScreenState extends State<StoryScreen> with SingleTickerProviderStat
   late PageController _pageController;
   late AnimationController _animController;
   int _currentIndex = 0;
+
+  Future<void> _markAsRead() async {
+    try {
+      await ApiService.instance.dio.post('/tracker/daily-insights/${widget.insight.id}/read');
+    } catch (e) {
+      debugPrint('Error marking daily insight as read: $e');
+    }
+  }
+
+  Future<void> _completeStory() async {
+    await _markAsRead();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   void initState() {
@@ -39,7 +55,7 @@ class _StoryScreenState extends State<StoryScreen> with SingleTickerProviderStat
             );
             _animController.forward();
           } else {
-            Navigator.of(context).pop();
+            _completeStory();
           }
         });
       }
@@ -81,7 +97,7 @@ class _StoryScreenState extends State<StoryScreen> with SingleTickerProviderStat
         });
         _animController.forward();
       } else {
-        Navigator.of(context).pop();
+        _completeStory();
       }
     }
   }

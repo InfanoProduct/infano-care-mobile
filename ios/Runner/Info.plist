@@ -69,9 +69,11 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>This app requires access to the photo library to upload a profile picture.</string>
+		<string>This app requires access to the photo library to select photos and videos.</string>
 		<key>NSCameraUsageDescription</key>
-		<string>This app requires access to the camera to take a profile picture.</string>
+		<string>This app requires access to the camera to record video journal entries.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>This app requires access to the microphone to record video journal entries with sound.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>We need your approximate location to find friends in your area.</string>
 		<key>NSAppTransportSecurity</key>

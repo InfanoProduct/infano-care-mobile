@@ -74,11 +74,14 @@ dependencies:
   flutter_card_swiper: ^7.2.0
   dart_geohash: ^2.1.0
   image_picker: ^1.2.1
+  video_player: ^2.9.2
   image_cropper: ^12.2.1
   record: ^6.2.0
   audioplayers: ^6.6.0
   pdf: ^3.12.0
   printing: ^5.14.3
+  hand_signature: ^3.1.0+2
+  local_auth: ^2.3.0
 
 dev_dependencies:
   flutter_test:
