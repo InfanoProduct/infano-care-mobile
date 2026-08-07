@@ -182,189 +182,208 @@ class _SosConfigScreenState extends State<SosConfigScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _contacts.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('🛡️', style: TextStyle(fontSize: 28)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Personalized Emergency Contacts',
+                              style: GoogleFonts.nunito(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Choose which trusted contacts get notified for each type of emergency crisis.',
+                              style: GoogleFonts.nunito(
+                                fontSize: 12,
+                                color: AppColors.textMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (_contacts.isEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 24),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFDF2F8), // Soft pink/purple tint
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.purple.withValues(alpha: 0.15)),
+                    ),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
                           '👥',
-                          style: TextStyle(fontSize: 64),
+                          style: TextStyle(fontSize: 40),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         Text(
                           'No Trusted Contacts Found',
                           style: GoogleFonts.nunito(
-                            fontSize: 20,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
-                          'Please add at least one trusted contact before configuring your emergency SOS settings.',
+                          'You need to add at least one trusted contact before you can map them to emergency categories.',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.nunito(
                             color: AppColors.textMedium,
-                            fontSize: 14,
+                            fontSize: 13,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
                         ElevatedButton.icon(
                           onPressed: () => context.push('/safety/contacts').then((_) => _loadData()),
-                          icon: const Icon(Icons.person_add_alt_1_outlined),
+                          icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
                           label: const Text('Add Trusted Contacts'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.purple,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            elevation: 0,
                           ),
                         ),
                       ],
                     ),
                   ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          const Text('🛡️', style: TextStyle(fontSize: 28)),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Personalized Emergency Contacts',
-                                  style: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: AppColors.textDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Choose which trusted contacts get notified for each type of emergency crisis.',
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 12,
-                                    color: AppColors.textMedium,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ..._emergencies.map((emerg) {
-                      final emergencyId = emerg['id'] as String;
-                      final mappedContactIds = _configMapping[emergencyId] ?? [];
+                ..._emergencies.map((emerg) {
+                  final emergencyId = emerg['id'] as String;
+                  final mappedContactIds = _configMapping[emergencyId] ?? [];
 
-                      return Card(
-                        elevation: 0,
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(color: Colors.grey.shade200),
+                  return Card(
+                    elevation: 0,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    child: ExpansionTile(
+                      shape: const Border(),
+                      leading: CircleAvatar(
+                        backgroundColor: (emerg['color'] as Color).withValues(alpha: 0.1),
+                        child: Text(
+                          emerg['icon'],
+                          style: const TextStyle(fontSize: 20),
                         ),
-                        margin: const EdgeInsets.only(bottom: 20),
-                        child: ExpansionTile(
-                          shape: const Border(),
-                          leading: CircleAvatar(
-                            backgroundColor: (emerg['color'] as Color).withValues(alpha: 0.1),
+                      ),
+                      title: Text(
+                        emerg['title'],
+                        style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      subtitle: Text(
+                        emerg['desc'],
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          color: AppColors.textMedium,
+                        ),
+                      ),
+                      childrenPadding: const EdgeInsets.all(16),
+                      initiallyExpanded: true,
+                      children: [
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
+                        if (_contacts.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Text(
-                              emerg['icon'],
-                              style: const TextStyle(fontSize: 20),
-                            ),
-                          ),
-                          title: Text(
-                            emerg['title'],
-                            style: GoogleFonts.nunito(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                          subtitle: Text(
-                            emerg['desc'],
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              color: AppColors.textMedium,
-                            ),
-                          ),
-                          childrenPadding: const EdgeInsets.all(16),
-                          initiallyExpanded: true,
-                          children: [
-                            const Divider(height: 1),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Select contacts to notify:',
+                              'Please add trusted contacts to configure this emergency category.',
                               style: GoogleFonts.nunito(
-                                fontWeight: FontWeight.bold,
                                 fontSize: 13,
+                                fontStyle: FontStyle.italic,
                                 color: AppColors.textMedium,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            ..._contacts.map((contact) {
-                              final contactId = contact['id'] as String;
-                              final isSelected = mappedContactIds.contains(contactId);
+                          )
+                        else ...[
+                          Text(
+                            'Select contacts to notify:',
+                            style: GoogleFonts.nunito(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: AppColors.textMedium,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ..._contacts.map((contact) {
+                            final contactId = contact['id'] as String;
+                            final isSelected = mappedContactIds.contains(contactId);
 
-                              return CheckboxListTile(
-                                value: isSelected,
-                                onChanged: (_) => _toggleContactForEmergency(emergencyId, contactId),
-                                activeColor: AppColors.purple,
-                                title: Text(
-                                  contact['name'],
-                                  style: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
+                            return CheckboxListTile(
+                              value: isSelected,
+                              onChanged: (_) => _toggleContactForEmergency(emergencyId, contactId),
+                              activeColor: AppColors.purple,
+                              title: Text(
+                                contact['name'],
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
                                 ),
-                                subtitle: Text(
-                                  '${contact['relation'] ?? 'Friend'} • ${contact['phone']}',
-                                  style: GoogleFonts.nunito(fontSize: 12),
-                                ),
-                                contentPadding: EdgeInsets.zero,
-                              );
-                            }),
-                          ],
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _saveConfiguration,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.purple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Save SOS Configuration',
-                        style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                              ),
+                              subtitle: Text(
+                                '${contact['relation'] ?? 'Friend'} • ${contact['phone']}',
+                                style: GoogleFonts.nunito(fontSize: 12),
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                            );
+                          }),
+                        ],
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 24),
+                if (_contacts.isNotEmpty)
+                  ElevatedButton(
+                    onPressed: _saveConfiguration,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.purple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Save SOS Configuration',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 40),
-                  ],
-                ),
+                  ),
+                const SizedBox(height: 40),
+              ],
+            ),
     );
   }
 }

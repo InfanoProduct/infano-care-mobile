@@ -9,124 +9,60 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Emergency SOS Hub Card
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFF1F2), Color(0xFFFFF5F5)], // Soft red/rose gradients
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.red.withOpacity(0.15),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text('🚨', style: TextStyle(fontSize: 28)),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF9FAFB),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Emergency SOS Hub',
+                        'Welcome back! 🌟',
                         style: GoogleFonts.nunito(
-                          fontSize: 16,
+                          fontSize: 22,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF991B1B), // text-red-800
+                          color: AppColors.textDark,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Access safety tools, trigger emergency alerts, and configure contacts.',
+                        'Your journey, your power.',
                         style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          color: const Color(0xFF7F1D1D).withOpacity(0.7),
-                          height: 1.3,
+                          fontSize: 14,
+                          color: AppColors.textMedium,
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () => context.push('/safety/sos'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade600,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Open',
-                    style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
-
-          const SizedBox(height: 48),
-
-          const Text('🌸', style: TextStyle(fontSize: 60))
-              .animate(onPlay: (c) => c.repeat())
-              .scaleXY(
-                begin: 0.9,
-                end: 1.1,
-                duration: 2000.ms,
-                curve: Curves.easeInOut,
-              )
-              .then()
-              .scaleXY(begin: 1.1, end: 0.9, duration: 2000.ms),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildJournalCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/journal'),
-      child:
-          Container(
+                  const Text('🌸', style: TextStyle(fontSize: 28)),
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Emergency SOS Hub Card
+              Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFFF5F3FF), Color(0xFFFDF2F8)],
+                    colors: [Color(0xFFFFF1F2), Color(0xFFFFF5F5)], // Soft red/rose gradients
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: AppColors.purple.withValues(alpha: 0.15),
+                    color: Colors.red.withValues(alpha: 0.15),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -134,101 +70,203 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Text('🚨', style: TextStyle(fontSize: 28)),
+                    ),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF7C3AED),
-                                      Color(0xFFEC4899),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  '📖 My Journal',
-                                  style: GoogleFonts.nunito(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
                           Text(
-                            'How are you feeling today?',
+                            'Emergency SOS Hub',
                             style: GoogleFonts.nunito(
                               fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textDark,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF991B1B), // text-red-800
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Tap to write, doodle, record, or just drop a mood.',
+                            'Access safety tools, trigger emergency alerts, and configure contacts.',
                             style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              color: AppColors.textMedium,
+                              fontSize: 12,
+                              color: const Color(0xFF7F1D1D).withValues(alpha: 0.7),
                               height: 1.3,
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 6,
-                            children:
-                                const ['✏️', '🎨', '🎤', '🌈', '✨', '📸', '💌']
-                                    .map(
-                                      (e) => Text(
-                                        e,
-                                        style: const TextStyle(fontSize: 20),
-                                      ),
-                                    )
-                                    .toList(),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () => context.push('/safety/sos'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(80, 40),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        shape: BoxShape.circle,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        elevation: 0,
                       ),
-                      child: const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.white,
-                        size: 26,
+                      child: Text(
+                        'Open',
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
                   ],
                 ),
-              )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .tint(
-                color: AppColors.purple.withValues(alpha: 0.0),
-                duration: 3000.ms,
-              )
-              .then()
-              .tint(
-                color: AppColors.purple.withValues(alpha: 0.02),
-                duration: 3000.ms,
               ),
-    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1);
+              
+              const SizedBox(height: 24),
+              _buildJournalCard(context),
+              
+              const SizedBox(height: 28),
+              Text(
+                'Quick Actions',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildQuickActionRow(context),
+              
+              const SizedBox(height: 28),
+              Text(
+                'Daily Challenges',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureGrid(context),
+            ],
+          ).animate().fadeIn(duration: 400.ms),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJournalCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/journal'),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFF5F3FF), Color(0xFFFDF2F8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppColors.purple.withValues(alpha: 0.15),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF7C3AED),
+                              Color(0xFFEC4899),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '📖 My Journal',
+                          style: GoogleFonts.nunito(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'How are you feeling today?',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tap to write, doodle, record, or just drop a mood.',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      color: AppColors.textMedium,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    children: const ['✏️', '🎨', '🎤', '🌈', '✨', '📸', '💌']
+                        .map(
+                          (e) => Text(
+                            e,
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_forward_rounded,
+                color: Colors.white,
+                size: 26,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildQuickActionRow(BuildContext context) {
@@ -279,7 +317,7 @@ class HomeScreen extends StatelessWidget {
           ),
         );
       }).toList(),
-    ).animate().fadeIn(delay: 300.ms);
+    );
   }
 
   Widget _buildFeatureGrid(BuildContext context) {
@@ -309,7 +347,7 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ],
-    ).animate().fadeIn(delay: 400.ms);
+    );
   }
 }
 
