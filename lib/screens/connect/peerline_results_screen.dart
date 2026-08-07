@@ -48,7 +48,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
         ),
         title: Text(
           'Mentors Matched',
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.nunito(
             color: AppColors.textDark,
             fontWeight: FontWeight.bold,
           ),
@@ -150,7 +150,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
               Text(
                 'Searching for the right mentors for you',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textDark,
@@ -161,7 +161,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
               Text(
                 'Please wait while we match you with peer mentors who can help.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 16,
                   color: AppColors.textMedium,
                   height: 1.5,
@@ -175,7 +175,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
                   final dots = (DateTime.now().millisecondsSinceEpoch / 500 % 4).toInt();
                   return Text(
                     'Scanning database${'.' * dots}',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 14,
                       color: AppColors.purple,
                       fontWeight: FontWeight.bold,
@@ -201,7 +201,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
             const SizedBox(height: 16),
             Text(
               'Something went wrong',
-              style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold),
+              style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(error, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
@@ -235,7 +235,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
           const SizedBox(height: 24),
           Text(
             'No mentors found',
-            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+            style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
           ),
           const SizedBox(height: 8),
           Padding(
@@ -243,7 +243,7 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
             child: Text(
               'Try selecting different topics or check back in a few minutes.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(color: AppColors.textMedium),
+              style: GoogleFonts.nunito(color: AppColors.textMedium),
             ),
           ),
           const SizedBox(height: 32),
@@ -269,11 +269,11 @@ class _PeerLineResultsScreenState extends State<PeerLineResultsScreen> with Sing
               children: [
                 Text(
                   'Peer Mentors',
-                  style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                  style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
                 ),
                 Text(
                   'Matching your selected topics',
-                  style: GoogleFonts.outfit(fontSize: 14, color: AppColors.textMedium),
+                  style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textMedium),
                 ),
               ],
             ),
@@ -399,7 +399,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                         child: Center(
                           child: Text(
                             name.substring(0, 1).toUpperCase(),
-                            style: GoogleFonts.outfit(
+                            style: GoogleFonts.nunito(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: AppColors.purple,
@@ -414,7 +414,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                           children: [
                             Text(
                               name,
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
@@ -423,7 +423,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                             const SizedBox(height: 4),
                             Text(
                               isOnline ? 'Available to chat' : 'Offline',
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 fontSize: 13,
                                 color: isOnline ? const Color(0xFF10B981) : Colors.grey,
                                 fontWeight: FontWeight.w600,
@@ -436,7 +436,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                                 const SizedBox(width: 4),
                                 Text(
                                   '4.9 Rating',
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.nunito(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textDark,
@@ -455,7 +455,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                   // Certified Topics
                   Text(
                     'Topics of Expertise',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textDark,
@@ -474,7 +474,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                       ),
                       child: Text(
                         t.toString(),
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                           fontSize: 11,
                           color: AppColors.purple,
                           fontWeight: FontWeight.w600,
@@ -488,7 +488,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                   // Bio / About
                   Text(
                     'About Mentor',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textDark,
@@ -497,7 +497,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                   const SizedBox(height: 8),
                   Text(
                     bio,
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 13,
                       color: AppColors.textMedium,
                       height: 1.5,
@@ -523,7 +523,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                           Expanded(
                             child: Text(
                               'Request has been sent to the mentor. Once they accept, you will be able to connect and chat.',
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 color: AppColors.textDark,
                                 height: 1.4,
@@ -552,7 +552,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
                         )
                       : Text(
                           _isRequested ? 'Request Sent' : 'Request Chat',
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.nunito(
                             fontWeight: FontWeight.bold,
                             color: _isRequested ? Colors.green.shade700 : Colors.white,
                             fontSize: 16,
@@ -603,7 +603,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
               child: Center(
                 child: Text(
                   name.substring(0, 1).toUpperCase(),
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: AppColors.purple,
@@ -632,7 +632,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
             Expanded(
               child: Text(
                 name,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
@@ -643,7 +643,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
             const SizedBox(width: 4),
             Text(
               '4.9',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.nunito(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
@@ -657,7 +657,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
             topics.isNotEmpty ? topics.take(2).join(', ') : 'Peer Mentor',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 12,
               color: AppColors.textMedium,
             ),
@@ -671,7 +671,7 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
           ),
           child: Text(
             _isRequested ? 'Requested' : 'View Profile',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 11,
               fontWeight: FontWeight.bold,
               color: _isRequested ? Colors.green.shade700 : AppColors.purple,
@@ -739,3 +739,4 @@ class SearchingBackgroundPainter extends CustomPainter {
     return oldDelegate.animationValue != animationValue;
   }
 }
+

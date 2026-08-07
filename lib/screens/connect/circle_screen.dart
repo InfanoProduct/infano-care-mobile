@@ -715,7 +715,7 @@ class _CircleScreenState extends State<CircleScreen> {
                     ),
                     child: RichText(
                       text: TextSpan(
-                        style: const TextStyle(fontSize: 12, fontFamily: 'Inter'),
+                        style: const TextStyle(fontSize: 12, fontFamily: 'Nunito'),
                         children: [
                           const TextSpan(
                             text: '📌 ',
@@ -1331,3 +1331,4 @@ class _SkeletonBoxState extends State<_SkeletonBox> with SingleTickerProviderSta
     );
   }
 }
+

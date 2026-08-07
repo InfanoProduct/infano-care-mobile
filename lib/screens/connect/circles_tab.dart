@@ -111,9 +111,9 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                 children: [
                   Icon(Icons.wifi_off_rounded, size: 48, color: Colors.grey.shade300),
                   const SizedBox(height: 12),
-                  Text('Could not load circles', style: GoogleFonts.outfit(color: Colors.grey.shade500)),
+                  Text('Could not load circles', style: GoogleFonts.nunito(color: Colors.grey.shade500)),
                   const SizedBox(height: 16),
-                  TextButton(onPressed: _load, child: Text('Retry', style: GoogleFonts.outfit())),
+                  TextButton(onPressed: _load, child: Text('Retry', style: GoogleFonts.nunito())),
                 ],
               ),
             ),
@@ -182,7 +182,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                                 ),
                                 child: Text(
                                   'COMMUNITY',
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.nunito(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
                                     color: Colors.pink,
@@ -195,7 +195,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                                 width: MediaQuery.of(context).size.width * 0.6,
                                 child: Text(
                                   '"Empowering your journey through collective wisdom."',
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.nunito(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w900,
                                     color: const Color(0xFF4A3F6B),
@@ -210,7 +210,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                                 width: MediaQuery.of(context).size.width * 0.55,
                                 child: Text(
                                   'Join our vibrant circles to accelerate your growth and find your tribe.',
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.nunito(
                                     fontSize: 12,
                                     color: const Color(0xFF4A3F6B).withValues(alpha: 0.7),
                                     fontWeight: FontWeight.w600,
@@ -250,7 +250,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                           onChanged: (val) => setState(() => _searchQuery = val),
                           decoration: InputDecoration(
                             hintText: 'Search community circles...',
-                            hintStyle: GoogleFonts.outfit(color: Colors.grey.shade400),
+                            hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
                             prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey),
                             filled: true,
                             fillColor: Colors.white,
@@ -280,7 +280,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                                 child: ChoiceChip(
                                   label: Text(
                                     cat,
-                                    style: GoogleFonts.outfit(
+                                    style: GoogleFonts.nunito(
                                       color: isSelected ? Colors.white : AppColors.textDark,
                                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                     ),
@@ -315,7 +315,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                         children: [
                           Text(
                             'Your Circles',
-                            style: GoogleFonts.outfit(
+                            style: GoogleFonts.nunito(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF1A1A2E),
@@ -330,7 +330,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                             ),
                             child: Text(
                               '${joinedCircles.length}',
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF1A1A2E),
@@ -397,7 +397,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                       children: [
                         Text(
                           'Explore New Circles',
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.nunito(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: const Color(0xFF1A1A2E),
@@ -420,7 +420,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                             Text(
                               'You have joined all available circles!', 
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(color: Colors.grey.shade500, fontWeight: FontWeight.w500)
+                              style: GoogleFonts.nunito(color: Colors.grey.shade500, fontWeight: FontWeight.w500)
                             ),
                           ],
                         ),
@@ -520,7 +520,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                             const SizedBox(width: 4),
                             Text(
                               'WEEKLY CHALLENGE',
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 color: Colors.white,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w900,
@@ -533,7 +533,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                       const Spacer(),
                       Text(
                         '⚡ ${challenge.participatingCount} active',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -544,7 +544,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                   const SizedBox(height: 14),
                   Text(
                     challenge.theme,
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
@@ -568,7 +568,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                     ),
                     child: Text(
                       challenge.userHasResponded ? 'View Responses' : 'Participate Now',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 13),
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 13),
                     ),
                   ),
                 ],
@@ -588,7 +588,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 14),
           child: Text(
             'Live & Upcoming Events',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: const Color(0xFF1A1A2E),
@@ -639,7 +639,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                                 ),
                                 child: Text(
                                   'WEBINAR',
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.nunito(
                                     color: Colors.blue.shade800,
                                     fontSize: 8,
                                     fontWeight: FontWeight.w800,
@@ -649,7 +649,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                               const Spacer(),
                               Text(
                                 formattedTime,
-                                style: GoogleFonts.outfit(
+                                style: GoogleFonts.nunito(
                                   fontSize: 11,
                                   color: AppColors.purple,
                                   fontWeight: FontWeight.bold,
@@ -660,7 +660,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                           const SizedBox(height: 10),
                           Text(
                             event.title,
-                            style: GoogleFonts.outfit(
+                            style: GoogleFonts.nunito(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                               color: AppColors.textDark,
@@ -677,7 +677,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                             backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                             child: Text(
                               (event.expertName ?? 'E')[0],
-                              style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.purple),
+                              style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.purple),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -687,13 +687,13 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                               children: [
                                 Text(
                                   event.expertName ?? 'Dr. Expert',
-                                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                  style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
                                   event.expertCredentials ?? 'Host',
-                                  style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textMedium),
+                                  style: GoogleFonts.nunito(fontSize: 10, color: AppColors.textMedium),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -711,7 +711,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: Text('Join', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold)),
+                            child: Text('Join', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -734,7 +734,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 14),
           child: Text(
             'Trending Conversations',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: const Color(0xFF1A1A2E),
@@ -779,7 +779,7 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                       children: [
                         Text(
                           post.content,
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.nunito(
                             fontSize: 13,
                             color: AppColors.textDark,
                             height: 1.4,
@@ -793,19 +793,19 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
                             const SizedBox(width: 4),
                             Text(
                               '${post.reactionHeart + post.reactionHug}',
-                              style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(width: 14),
                             const Icon(Icons.mode_comment_rounded, color: AppColors.purple, size: 14),
                             const SizedBox(width: 4),
                             Text(
                               '${post.replyCount}',
-                              style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.bold),
                             ),
                             const Spacer(),
                             Text(
                               'Tap to read',
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 fontSize: 10,
                                 color: AppColors.purple,
                                 fontWeight: FontWeight.w800,
@@ -825,3 +825,4 @@ class _CirclesTabState extends State<CirclesTab> with AutomaticKeepAliveClientMi
     );
   }
 }
+

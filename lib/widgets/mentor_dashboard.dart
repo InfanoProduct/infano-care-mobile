@@ -149,7 +149,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
                 Expanded(
                   child: Text(
                     'Mentor Dashboard',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.purple,
@@ -164,7 +164,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
                     label: const Text('I need support too'),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.purple,
-                      textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 13),
+                      textStyle: GoogleFonts.nunito(fontWeight: FontWeight.w600, fontSize: 13),
                     ),
                   ),
               ],
@@ -230,7 +230,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
               children: [
                 Text(
                   _isAvailable ? 'I\'m available' : 'Taking a break',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     color: _isAvailable ? Colors.white : Colors.grey.shade700,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -238,7 +238,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
                 ),
                 Text(
                   _isAvailable ? 'Teens can request connections with you' : 'Toggle on to receive requests',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     color: _isAvailable ? Colors.white.withValues(alpha: 0.8) : Colors.grey.shade500,
                     fontSize: 13,
                   ),
@@ -265,7 +265,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
       children: [
         Text(
           'Connection Requests (${requests.length})',
-          style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
+          style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
         ),
         const SizedBox(height: 12),
         if (requests.isEmpty)
@@ -283,7 +283,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
                 const SizedBox(height: 12),
                 Text(
                   'No pending requests',
-                  style: GoogleFonts.outfit(color: Colors.grey.shade500, fontSize: 14),
+                  style: GoogleFonts.nunito(color: Colors.grey.shade500, fontSize: 14),
                 ),
               ],
             ),
@@ -313,7 +313,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
                           backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                           child: Text(
                             (r['menteeName'] ?? 'T').substring(0, 1).toUpperCase(),
-                            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppColors.purple),
+                            style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.purple),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -323,12 +323,12 @@ class _MentorDashboardState extends State<MentorDashboard> {
                             children: [
                               Text(
                                 r['menteeName'] ?? 'Teen Client',
-                                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
+                                style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 'Wants to connect with you',
-                                style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
+                                style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textMedium),
                               ),
                             ],
                           ),
@@ -426,7 +426,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
             const SizedBox(height: 16),
             Text(
               'No active conversations',
-              style: GoogleFonts.outfit(color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+              style: GoogleFonts.nunito(color: Colors.grey.shade600, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -436,7 +436,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Open Conversations', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('Open Conversations', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         ..._activeSessions.map((s) => Column(
           children: [
@@ -454,7 +454,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('History', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('History', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text('Completed conversation records.', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
         const SizedBox(height: 16),
@@ -594,7 +594,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
                     children: [
                       Text(
                         session.menteeName != null ? 'Chat with ${session.menteeName}' : 'Active Support session',
-                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark),
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark),
                       ),
                       const SizedBox(height: 4),
                       Wrap(
@@ -645,7 +645,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
                     ),
                     child: Text(
                       session.status.toUpperCase() == 'MATCHING' || session.status.toUpperCase() == 'QUEUED' ? 'Accept & Start Chat' : 'Return to Chat',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold)
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.bold)
                     ),
                   ),
                 ),
@@ -661,7 +661,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Your Impact', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('Your Impact', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         GridView.count(
           crossAxisCount: 2,
@@ -701,7 +701,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(value, style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(value, style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -712,7 +712,7 @@ class _MentorDashboardState extends State<MentorDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Resources & Training', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('Resources & Training', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         _buildResourceItem('Mentor Handbook', Icons.menu_book_rounded),
         _buildResourceItem('Refresh training', Icons.refresh_rounded),
@@ -729,9 +729,10 @@ class _MentorDashboardState extends State<MentorDashboard> {
         decoration: BoxDecoration(color: AppColors.purple.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, color: AppColors.purple, size: 20),
       ),
-      title: Text(title, style: GoogleFonts.outfit(fontSize: 14)),
+      title: Text(title, style: GoogleFonts.nunito(fontSize: 14)),
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () {},
     );
   }
 }
+

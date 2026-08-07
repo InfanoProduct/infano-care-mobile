@@ -60,6 +60,7 @@ class AppTheme {
         surface: AppColors.surface,
       ),
       scaffoldBackgroundColor: AppColors.background,
+      fontFamily: GoogleFonts.nunito().fontFamily,
     );
 
     return base.copyWith(

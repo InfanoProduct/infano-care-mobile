@@ -200,14 +200,14 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
           controller: _searchController,
           autofocus: true,
           onChanged: (val) => setState(() => _searchQuery = val),
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.nunito(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: AppColors.textDark,
           ),
           decoration: InputDecoration(
             hintText: 'Search chats, mentors, experts...',
-            hintStyle: GoogleFonts.outfit(
+            hintStyle: GoogleFonts.nunito(
               fontSize: 15,
               color: Colors.grey.shade400,
             ),
@@ -282,7 +282,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
             child: FilterChip(
               label: Text(
                 isAll ? 'All Mentors' : (topic?.name ?? ''),
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   color: isSelected ? Colors.white : AppColors.textMedium,
@@ -310,7 +310,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
       padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
       child: Text(
         title,
-        style: GoogleFonts.outfit(
+        style: GoogleFonts.nunito(
           fontSize: 14,
           fontWeight: FontWeight.bold,
           color: AppColors.textMedium,
@@ -353,13 +353,13 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
         ),
         title: Text(
           name,
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
         ),
         subtitle: Text(
           lastMessage,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
+          style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textMedium),
         ),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
         onTap: () {
@@ -396,11 +396,11 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
         ),
         title: Text(
           name,
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
         ),
         subtitle: Text(
           pronouns,
-          style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
+          style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textMedium),
         ),
         trailing: const Icon(Icons.chat_bubble_outline_rounded, size: 18, color: AppColors.purple),
         onTap: () async {
@@ -455,12 +455,12 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
               backgroundColor: AppColors.pink.withValues(alpha: 0.1),
               child: Text(
                 name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: AppColors.pink, fontSize: 18),
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.pink, fontSize: 18),
               ),
             ),
             title: Text(
               name,
-              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
+              style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textDark),
             ),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -473,7 +473,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(t, style: GoogleFonts.outfit(fontSize: 9, color: AppColors.textMedium, fontWeight: FontWeight.bold)),
+                  child: Text(t, style: GoogleFonts.nunito(fontSize: 9, color: AppColors.textMedium, fontWeight: FontWeight.bold)),
                 )).toList(),
               ),
             ),
@@ -491,7 +491,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
-                        child: Text('Request', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold)),
+                        child: Text('Request', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
             onTap: () {
               if (targetSessionId != null) {
@@ -513,10 +513,11 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
           const SizedBox(height: 16),
           Text(
             'No results found for "$_searchQuery"',
-            style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 15),
+            style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 15),
           ),
         ],
       ),
     );
   }
 }
+

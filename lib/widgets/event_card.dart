@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/models/event.dart';
@@ -62,7 +63,7 @@ class _EventCardState extends State<EventCard> {
                       Expanded(
                         child: Text(
                           widget.event.title,
-                          style: const TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
                             color: AppColors.textDark,
@@ -78,7 +79,7 @@ class _EventCardState extends State<EventCard> {
                     children: [
                       Text(
                         widget.event.expertName ?? 'Expert',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.purple),
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.purple),
                       ),
                       const SizedBox(width: 4),
                       const Icon(Icons.verified, color: Colors.blue, size: 14),
@@ -86,7 +87,7 @@ class _EventCardState extends State<EventCard> {
                         const Spacer(),
                         const Icon(Icons.circle, color: AppColors.error, size: 8),
                         const SizedBox(width: 6),
-                        const Text('LIVE NOW', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w900, fontSize: 10)),
+                        Text('LIVE NOW', style: GoogleFonts.nunito(color: AppColors.error, fontWeight: FontWeight.w900, fontSize: 10)),
                       ],
                     ],
                   ),
@@ -150,7 +151,7 @@ class _EventCardState extends State<EventCard> {
             const SizedBox(width: 4),
             Text(
               _isReminderSet ? 'Reminded' : 'Remind me',
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 color: _isReminderSet ? Colors.white : AppColors.purple,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
@@ -175,10 +176,12 @@ class _EventCardState extends State<EventCard> {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color),
+            style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.bold, color: color),
           ),
         ],
       ),
     );
   }
 }
+
+

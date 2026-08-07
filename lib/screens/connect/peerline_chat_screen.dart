@@ -408,7 +408,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                     _myRole == 'mentor'
                         ? 'Teen'
                         : (_session?.mentorName ?? 'Peer Mentor'),
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textDark),
@@ -417,7 +417,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                     isPending
                         ? 'Pending acceptance…'
                         : (_isPeerTyping ? 'Typing…' : 'Active'),
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 12,
                       color: isPending
                           ? Colors.orange
@@ -451,7 +451,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                       Expanded(
                         child: Text(
                           'Waiting for the peer mentor to accept your request.',
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.nunito(
                               fontSize: 13, color: Colors.orange.shade800),
                         ),
                       ),
@@ -553,13 +553,13 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           Text(
             "You're connected with ${_session?.mentorName ?? 'a Peer Mentor'}",
             textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
+            style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
             "This is a peer conversation — for professional support, resources are always here.",
             textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textLight),
+            style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 16),
           TextButton(
@@ -608,7 +608,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           ),
           child: Text(
             msg.content ?? "",
-            style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey.shade600),
+            style: GoogleFonts.nunito(fontSize: 12, color: Colors.grey.shade600),
           ),
 
         ),
@@ -658,7 +658,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                   else
                     Text(
                       msg.content ?? "",
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.nunito(
                         color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), 
                         fontSize: 15,
                         height: 1.4,
@@ -757,7 +757,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                   const SizedBox(width: 12),
                   Text(
                     'Recording... ${_recordingDuration ~/ 60}:${(_recordingDuration % 60).toString().padLeft(2, '0')}',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                         color: Colors.red, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
@@ -981,4 +981,5 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
     return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
   }
 }
+
 

@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/models/circle.dart';
 
@@ -79,7 +80,7 @@ class JoinedCircleCard extends StatelessWidget {
                           child: Center(
                             child: Text(
                               circle.iconEmoji,
-                              style: const TextStyle(fontSize: 24),
+                              style: GoogleFonts.nunito(fontSize: 24),
                             ),
                           ),
                         ),
@@ -90,7 +91,7 @@ class JoinedCircleCard extends StatelessWidget {
                             children: [
                               Text(
                                 circle.name,
-                                style: const TextStyle(
+                                style: GoogleFonts.nunito(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
                                   color: Color(0xFF1A1A2E),
@@ -113,7 +114,7 @@ class JoinedCircleCard extends StatelessWidget {
                                   const SizedBox(width: 6),
                                   Text(
                                     'Active Now',
-                                    style: TextStyle(
+                                    style: GoogleFonts.nunito(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.grey.shade600,
@@ -129,7 +130,7 @@ class JoinedCircleCard extends StatelessWidget {
                     const SizedBox(height: 18),
                     Text(
                       circle.description ?? 'Share your journey with others in this safe space.',
-                      style: TextStyle(
+                      style: GoogleFonts.nunito(
                         fontSize: 13,
                         color: Colors.black87.withValues(alpha: 0.65),
                         height: 1.5,
@@ -148,3 +149,4 @@ class JoinedCircleCard extends StatelessWidget {
     );
   }
 }
+

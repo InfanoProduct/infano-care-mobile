@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/community_api.dart';
@@ -118,7 +120,7 @@ class _MyFeedTabState extends State<MyFeedTab> with AutomaticKeepAliveClientMixi
             children: [
               Icon(Icons.wifi_off_rounded, size: 48, color: Colors.grey.shade300),
               const SizedBox(height: 16),
-              Text('Something went wrong', style: GoogleFonts.outfit(color: AppColors.textMedium)),
+              Text('Something went wrong', style: GoogleFonts.nunito(color: AppColors.textMedium)),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => _loadPosts(refresh: true),
@@ -126,7 +128,7 @@ class _MyFeedTabState extends State<MyFeedTab> with AutomaticKeepAliveClientMixi
                   backgroundColor: AppColors.purple,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text('Try Again', style: GoogleFonts.outfit(color: Colors.white)),
+                child: Text('Try Again', style: GoogleFonts.nunito(color: Colors.white)),
               ),
             ],
           ),
@@ -154,7 +156,7 @@ class _MyFeedTabState extends State<MyFeedTab> with AutomaticKeepAliveClientMixi
                 onChanged: (val) => setState(() => _searchQuery = val),
                 decoration: InputDecoration(
                   hintText: 'Search feed...',
-                  hintStyle: GoogleFonts.outfit(color: Colors.grey.shade400),
+                  hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
                   prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey),
                   filled: true,
                   fillColor: Colors.white,
@@ -195,7 +197,7 @@ class _MyFeedTabState extends State<MyFeedTab> with AutomaticKeepAliveClientMixi
                             const SizedBox(height: 24),
                             Text(
                               'Your feed is empty',
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 fontSize: 18, 
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
@@ -205,14 +207,14 @@ class _MyFeedTabState extends State<MyFeedTab> with AutomaticKeepAliveClientMixi
                             Text(
                               'Join community circles to see posts and start sharing with others!',
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 13, height: 1.4),
+                              style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 13, height: 1.4),
                             ),
                             const SizedBox(height: 24),
                             ElevatedButton.icon(
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Tap the "Circles" tab at the top to explore circles!', style: GoogleFonts.outfit()),
+                                    content: Text('Tap the "Circles" tab at the top to explore circles!', style: GoogleFonts.nunito()),
                                     behavior: SnackBarBehavior.floating,
                                     backgroundColor: AppColors.purple,
                                   ),
@@ -221,7 +223,7 @@ class _MyFeedTabState extends State<MyFeedTab> with AutomaticKeepAliveClientMixi
                               icon: const Icon(Icons.explore_outlined, size: 18),
                               label: Text(
                                 'Browse Circles',
-                                style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                                style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.purple,
@@ -419,6 +421,19 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
   Circle? _selectedCircle;
   bool _isLoadingCircles = true;
   bool _isSubmitting = false;
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() => _selectedImage = File(pickedFile.path));
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -452,12 +467,16 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
 
     setState(() => _isSubmitting = true);
     try {
-      await widget.api.createPost(_selectedCircle!.id, text);
+      String? imageUrl;
+      if (_selectedImage != null) {
+        imageUrl = await widget.api.uploadImage(_selectedImage!.path);
+      }
+      await widget.api.createPost(_selectedCircle!.id, text, imageUrl: imageUrl);
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Post published successfully to ${_selectedCircle!.name}! 🎉', style: GoogleFonts.outfit()),
+            content: Text('Post published successfully to ${_selectedCircle!.name}! 🎉', style: GoogleFonts.nunito()),
             backgroundColor: AppColors.purple,
             behavior: SnackBarBehavior.floating,
           ),
@@ -467,7 +486,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
       if (mounted) {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to publish post: $e', style: GoogleFonts.outfit()), backgroundColor: Colors.red),
+          SnackBar(content: Text('Failed to publish post: $e', style: GoogleFonts.nunito()), backgroundColor: Colors.red),
         );
       }
     }
@@ -499,13 +518,13 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                     const SizedBox(height: 16),
                     Text(
                       'No Joined Circles',
-                      style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'You must join at least one circle before you can create a post.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.outfit(color: Colors.grey, fontSize: 13),
+                      style: GoogleFonts.nunito(color: Colors.grey, fontSize: 13),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
@@ -514,20 +533,21 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                         backgroundColor: AppColors.purple,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: Text('OK', style: GoogleFonts.outfit(color: Colors.white)),
+                      child: Text('OK', style: GoogleFonts.nunito(color: Colors.white)),
                     ),
                   ],
                 )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+              : SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'Create New Post',
-                          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                          style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
@@ -538,7 +558,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                     const SizedBox(height: 12),
                     Text(
                       'Select circle to post to:',
-                      style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textMedium),
+                      style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textMedium),
                     ),
                     const SizedBox(height: 6),
                     Container(
@@ -555,7 +575,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                           items: _joinedCircles.map((circle) {
                             return DropdownMenuItem<Circle>(
                               value: circle,
-                              child: Text('${circle.iconEmoji} ${circle.name}', style: GoogleFonts.outfit(fontSize: 14)),
+                              child: Text('${circle.iconEmoji} ${circle.name}', style: GoogleFonts.nunito(fontSize: 14)),
                             );
                           }).toList(),
                           onChanged: (val) => setState(() => _selectedCircle = val),
@@ -568,10 +588,10 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                       maxLines: 4,
                       maxLength: 500,
                       autofocus: true,
-                      style: GoogleFonts.outfit(fontSize: 15, color: AppColors.textDark),
+                      style: GoogleFonts.nunito(fontSize: 15, color: AppColors.textDark),
                       decoration: InputDecoration(
                         hintText: 'Share anonymously with the community...',
-                        hintStyle: GoogleFonts.outfit(color: Colors.grey.shade400),
+                        hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400),
                         filled: true,
                         fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
@@ -588,10 +608,42 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                         ),
                       ),
                     ),
+                    if (_selectedImage != null) ...[
+                      const SizedBox(height: 12),
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(_selectedImage!, height: 100, width: double.infinity, fit: BoxFit.cover),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: InkWell(
+                              onTap: () => setState(() => _selectedImage = null),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                child: const Icon(Icons.close, color: Colors.white, size: 16),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _submit,
-                      style: ElevatedButton.styleFrom(
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _pickImage,
+                          icon: const Icon(Icons.image_outlined, color: AppColors.purple),
+                          tooltip: 'Attach Image',
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _submit,
+                            style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.purple,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -603,10 +655,15 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                               height: 20,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
-                          : Text('Publish Anonymously', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15)),
+                          : Text('Publish Anonymously', style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15)),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+              ),
     );
   }
 }
+

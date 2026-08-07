@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/models/circle.dart';
 
@@ -74,7 +75,7 @@ class ExploreCircleCard extends StatelessWidget {
                           child: Center(
                             child: Text(
                               circle.iconEmoji,
-                              style: const TextStyle(fontSize: 22),
+                              style: GoogleFonts.nunito(fontSize: 22),
                             ),
                           ),
                         ),
@@ -92,7 +93,7 @@ class ExploreCircleCard extends StatelessWidget {
                     const SizedBox(height: 14),
                     Text(
                       circle.name,
-                      style: const TextStyle(
+                      style: GoogleFonts.nunito(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E),
@@ -142,10 +143,11 @@ class ExploreCircleCard extends StatelessWidget {
           ),
           child: Text(
             '+${(circle.memberCount ?? 0) >= 1000 ? '${((circle.memberCount ?? 0) / 1000).toStringAsFixed(0)}k' : circle.memberCount ?? 0}',
-            style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+            style: GoogleFonts.nunito(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
           ),
         ),
       ],
     );
   }
 }
+

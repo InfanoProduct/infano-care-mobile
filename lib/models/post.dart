@@ -18,6 +18,7 @@ class CommunityPost {
   final String authorRole;
   final String status;
   final String? myReaction;
+  final String? imageUrl;
   final Map<String, dynamic>? journalData;
 
   CommunityPost({
@@ -40,6 +41,7 @@ class CommunityPost {
     this.authorRole = 'TEEN',
     this.status = 'APPROVED',
     this.myReaction,
+    this.imageUrl,
     this.journalData,
   });
 
@@ -48,11 +50,12 @@ class CommunityPost {
       id: json['id']?.toString() ?? '',
       circleId: json['circleId']?.toString() ?? '',
       authorId: json['authorId']?.toString() ?? '',
-      authorName: json['author']?['profile']?['displayName']?.toString() ?? 'Anonymous',
+      authorName:
+          json['author']?['profile']?['displayName']?.toString() ?? 'Anonymous',
       authorRole: json['author']?['role']?.toString() ?? 'TEEN',
       status: json['status']?.toString() ?? 'APPROVED',
       content: json['content']?.toString() ?? '',
-      createdAt: json['createdAt'] != null 
+      createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
       reactionHeart: json['reactionHeart'] ?? 0,
@@ -66,6 +69,7 @@ class CommunityPost {
       isChallengeResponse: json['isChallengeResponse'] ?? false,
       challengeTheme: json['challenge']?['theme']?.toString(),
       myReaction: json['myReaction']?.toString(),
+      imageUrl: json['imageUrl']?.toString(),
       journalData: json['journalData'] != null
           ? Map<String, dynamic>.from(json['journalData'] as Map)
           : null,
@@ -92,6 +96,7 @@ class CommunityPost {
     String? authorRole,
     String? status,
     String? myReaction,
+    String? imageUrl,
     Map<String, dynamic>? journalData,
   }) {
     return CommunityPost(
@@ -114,6 +119,7 @@ class CommunityPost {
       authorRole: authorRole ?? this.authorRole,
       status: status ?? this.status,
       myReaction: myReaction ?? this.myReaction,
+      imageUrl: imageUrl ?? this.imageUrl,
       journalData: journalData ?? this.journalData,
     );
   }
@@ -155,9 +161,10 @@ class CommunityReply {
       id: json['id']?.toString() ?? '',
       postId: json['postId']?.toString() ?? '',
       authorId: json['authorId']?.toString() ?? '',
-      authorName: json['author']?['profile']?['displayName']?.toString() ?? 'Anonymous',
+      authorName:
+          json['author']?['profile']?['displayName']?.toString() ?? 'Anonymous',
       content: json['content']?.toString() ?? '',
-      createdAt: json['createdAt'] != null 
+      createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
       depth: json['depth'] ?? 1,
@@ -166,9 +173,11 @@ class CommunityReply {
       reactionBulb: json['reactionBulb'] ?? 0,
       reactionFist: json['reactionFist'] ?? 0,
       isBookmarked: json['isBookmarked'] ?? false,
-      childReplies: (json['childReplies'] as List?)
-          ?.map((e) => CommunityReply.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+      childReplies:
+          (json['childReplies'] as List?)
+              ?.map((e) => CommunityReply.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 

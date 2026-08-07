@@ -53,7 +53,7 @@ class _AppealModalState extends State<AppealModal> {
           const SizedBox(height: 24),
           Text(
             'Appeal Moderation Decision ⚖️',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
@@ -99,7 +99,7 @@ class _AppealModalState extends State<AppealModal> {
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
                   : Text('Submit appeal',
-                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 12),
@@ -135,7 +135,7 @@ class _AppealModalState extends State<AppealModal> {
         SnackBar(
           content: Text(
             'Appeal submitted. We will review it within 24 hours. 💜',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+            style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
           ),
           backgroundColor: AppColors.purple,
           behavior: SnackBarBehavior.floating,
@@ -145,3 +145,4 @@ class _AppealModalState extends State<AppealModal> {
     }
   }
 }
+

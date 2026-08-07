@@ -44,6 +44,9 @@ import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_re
 import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/sos_cancel_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/sos_active_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/trusted_contacts_screen.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
@@ -329,6 +332,7 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
           final subtab = int.tryParse(state.uri.queryParameters['subtab'] ?? '1') ?? 1;
           return DashboardScreen(storage: storage, initialTab: tab, initialSubTab: subtab);
         }
+<<<<<<< HEAD
       ),
 
       // ── Journal Module ────────────────────────────────────────────────────────
@@ -375,8 +379,17 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
             child: JournalEntryDetailScreen(id: state.pathParameters['id']!),
           );
         },
+=======
+>>>>>>> feature/sos
       ),
 
+      // Safety / SOS
+      GoRoute(path: '/safety/contacts', builder: (_, _) => const TrustedContactsScreen()),
+      GoRoute(path: '/safety/sos_cancel', builder: (_, _) => const SosCancelScreen()),
+      GoRoute(
+        path: '/safety/sos_active', 
+        builder: (_, state) => SosActiveScreen(incidentId: state.extra as String?),
+      ),
 
       // Learning Journey Module
       GoRoute(
