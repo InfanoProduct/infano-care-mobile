@@ -23,10 +23,18 @@ class SafetyRepository {
     await _dio.delete('/safety/trusted-contacts/$id');
   }
 
-  Future<dynamic> triggerSos(double lat, double lng) async {
+  Future<dynamic> triggerSos(double lat, double lng, {String? emergencyType}) async {
     final response = await _dio.post('/safety/sos/trigger', data: {
       'lat': lat,
       'lng': lng,
+      'emergencyType': emergencyType,
+    });
+    return response.data;
+  }
+
+  Future<dynamic> updateContactEmergencies(String id, List<String> types) async {
+    final response = await _dio.put('/safety/trusted-contacts/$id/emergencies', data: {
+      'emergencyTypes': types,
     });
     return response.data;
   }

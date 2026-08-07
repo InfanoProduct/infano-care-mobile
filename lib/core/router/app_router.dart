@@ -47,6 +47,8 @@ import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_cancel_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_active_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/trusted_contacts_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/sos_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/sos_config_screen.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
@@ -153,8 +155,9 @@ GoRouter createRouter(
         }
         // Others go home
         if (onAuth ||
-            (path.startsWith('/onboarding') && !path.contains('tracker')))
+            (path.startsWith('/onboarding') && !path.contains('tracker'))) {
           return '/home';
+        }
         return null;
       }
 
@@ -452,7 +455,6 @@ GoRouter createRouter(
         },
       ),
 
-      // Safety / SOS
       GoRoute(
         path: '/safety/contacts',
         builder: (_, _) => const TrustedContactsScreen(),
@@ -465,6 +467,14 @@ GoRouter createRouter(
         path: '/safety/sos_active',
         builder: (_, state) =>
             SosActiveScreen(incidentId: state.extra as String?),
+      ),
+      GoRoute(
+        path: '/safety/sos',
+        builder: (_, _) => const SosScreen(),
+      ),
+      GoRoute(
+        path: '/safety/sos_config',
+        builder: (_, _) => const SosConfigScreen(),
       ),
 
       // ── Journal Module ────────────────────────────────────────────────────────

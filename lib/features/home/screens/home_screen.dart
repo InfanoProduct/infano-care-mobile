@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
-import 'package:infano_care_mobile/features/safety/widgets/sos_button.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -16,32 +13,85 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // The new SOS Orb Button with 3-second hold
-          const SosButton(),
-          const SizedBox(height: 24),
-
-          TextButton.icon(
-            onPressed: () => context.push('/safety/contacts'),
-            icon: const Icon(Icons.group_add_outlined, color: AppColors.purple),
-            label: const Text(
-              'Manage Trusted Contacts',
-              style: TextStyle(
-                color: AppColors.purple,
-                fontWeight: FontWeight.bold,
+          // Emergency SOS Hub Card
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFF1F2), Color(0xFFFFF5F5)], // Soft red/rose gradients
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-                side: BorderSide(
-                  color: AppColors.purple.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.red.withOpacity(0.15),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
                 ),
-              ),
+              ],
             ),
-          ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text('🚨', style: TextStyle(fontSize: 28)),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Emergency SOS Hub',
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF991B1B), // text-red-800
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Access safety tools, trigger emergency alerts, and configure contacts.',
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          color: const Color(0xFF7F1D1D).withOpacity(0.7),
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () => context.push('/safety/sos'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade600,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Open',
+                    style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 48),
 
           const Text('🌸', style: TextStyle(fontSize: 60))
               .animate(onPlay: (c) => c.repeat())

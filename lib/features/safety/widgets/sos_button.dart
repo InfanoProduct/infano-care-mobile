@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:async';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/safety/data/safety_repository.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+
 class SosButton extends StatefulWidget {
   const SosButton({super.key});
 
@@ -17,7 +19,6 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
   int _secondsHeld = 0;
   bool _isHolding = false;
   late AnimationController _progressController;
-  bool _hasCheckedContacts = false;
   bool _hasContacts = false;
   bool _isCheckingContacts = false;
 
@@ -40,7 +41,6 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
       if (mounted) {
         setState(() {
           _hasContacts = contacts.isNotEmpty;
-          _hasCheckedContacts = true;
           _isCheckingContacts = false;
         });
       }
@@ -93,7 +93,6 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
       if (mounted) {
         setState(() {
           _hasContacts = contacts.isNotEmpty;
-          _hasCheckedContacts = true;
           _isCheckingContacts = false;
         });
         
@@ -136,7 +135,7 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
     });
   }
 
-  void _completeHold() {
+  Future<void> _completeHold() async {
     _holdTimer?.cancel();
     HapticFeedback.vibrate();
     setState(() {
@@ -144,9 +143,209 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
       _secondsHeld = 0;
     });
     _progressController.reset();
-    
-    // Navigate to the SOS Cancel Window Screen
-    context.push('/safety/sos_cancel');
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: AppColors.error),
+      ),
+    );
+
+    try {
+      final repo = SafetyRepository(ApiService.instance.dio);
+      final contacts = await repo.getTrustedContacts();
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading dialog
+        
+        bool isConfigured = false;
+        for (var contact in contacts) {
+          final List<dynamic> types = contact['emergencyTypes'] ?? [];
+          if (types.isNotEmpty) {
+            isConfigured = true;
+            break;
+          }
+        }
+
+        if (!isConfigured) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please configure your emergency contacts first.'),
+              backgroundColor: AppColors.purple,
+            ),
+          );
+          context.push('/safety/sos_config');
+        } else {
+          _showEmergencyOptionsBottomSheet();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to verify configuration: $e')),
+        );
+      }
+    }
+  }
+
+  void _showEmergencyOptionsBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) {
+        final List<Map<String, dynamic>> categories = [
+          {
+            'id': 'physical_threat',
+            'title': 'Physical Threat / Harassment',
+            'icon': '🚨',
+            'color': Colors.red,
+          },
+          {
+            'id': 'medical_emergency',
+            'title': 'Medical Emergency',
+            'icon': '🚑',
+            'color': Colors.orange,
+          },
+          {
+            'id': 'mental_distress',
+            'title': 'Mental Distress Crisis',
+            'icon': '🧠',
+            'color': Colors.purple,
+          },
+          {
+            'id': 'safe_walk',
+            'title': 'Follow Me / Safe Walk',
+            'icon': '🚶‍♀️',
+            'color': Colors.teal,
+          },
+        ];
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Select Emergency Crisis',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Tapping an option will trigger the SOS alert instantly to configured contacts.',
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    color: AppColors.textMedium,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ...categories.map((cat) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _triggerEmergencySos(cat['id'] as String, cat['title'] as String);
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: (cat['color'] as Color).withValues(alpha: 0.1),
+                              child: Text(
+                                cat['icon'] as String,
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                cat['title'] as String,
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _triggerEmergencySos(String categoryId, String categoryTitle) async {
+    // Show a loading/progress indicator overlay
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: AppColors.error),
+      ),
+    );
+
+    try {
+      final repo = SafetyRepository(ApiService.instance.dio);
+      // Trigger the backend alert using categoryId directly
+      final response = await repo.triggerSos(
+        28.6139,
+        77.2090,
+        emergencyType: categoryId,
+      );
+
+      final incidentId = response['id']?.toString();
+
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading dialog
+        context.pushReplacement('/safety/sos_active', extra: incidentId);
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to trigger SOS: $e')),
+        );
+      }
+    }
   }
 
   @override

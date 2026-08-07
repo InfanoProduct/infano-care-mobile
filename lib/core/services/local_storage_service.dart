@@ -238,5 +238,13 @@ class LocalStorageService extends ChangeNotifier {
     await _prefs.setBool('peerline_intro_dismissed_$sessionId', true);
     notifyListeners();
   }
+
+  // ── SOS Configuration Mapping ──────────────────────────────────────────────
+  static const _sosConfig = 'sos_config_mapping';
+  String? get sosConfig => _prefs.getString(_sosConfig);
+  Future<void> setSosConfig(String jsonMapping) async {
+    await _prefs.setString(_sosConfig, jsonMapping);
+    notifyListeners();
+  }
 }
 
