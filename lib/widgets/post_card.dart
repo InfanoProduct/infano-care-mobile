@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/models/post.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
@@ -151,9 +152,9 @@ class _PostCardState extends State<PostCard> {
                         children: [
                           Icon(Icons.push_pin, size: 12, color: AppColors.purple),
                           const SizedBox(width: 6),
-                          const Text(
+                          Text(
                             'PINNED',
-                            style: TextStyle(
+                            style: GoogleFonts.nunito(
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
                               color: AppColors.purple,
@@ -181,11 +182,11 @@ class _PostCardState extends State<PostCard> {
                             ),
                             child: Row(
                               children: [
-                                const Text('⭐', style: TextStyle(fontSize: 10)),
+                                Text('⭐', style: GoogleFonts.nunito(fontSize: 10)),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Featured',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF92400E)),
+                                  style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF92400E)),
                                 ),
                               ],
                             ),
@@ -199,7 +200,7 @@ class _PostCardState extends State<PostCard> {
                             ),
                             child: Text(
                               '#${widget.post.challengeTheme}',
-                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF0F766E)),
+                              style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF0F766E)),
                             ),
                           ),
                       ],
@@ -231,7 +232,7 @@ class _PostCardState extends State<PostCard> {
                             backgroundColor: _getRoleColor(widget.post.authorRole).withValues(alpha: 0.1),
                             child: Text(
                               widget.post.authorName.isNotEmpty ? widget.post.authorName[0].toUpperCase() : '?',
-                              style: TextStyle(
+                              style: GoogleFonts.nunito(
                                 color: _getRoleColor(widget.post.authorRole),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
@@ -262,7 +263,7 @@ class _PostCardState extends State<PostCard> {
                         children: [
                           Text(
                             widget.post.authorName,
-                            style: const TextStyle(
+                            style: GoogleFonts.nunito(
                               fontWeight: FontWeight.w900,
                               fontSize: 15,
                               color: Color(0xFF1F2937),
@@ -272,7 +273,7 @@ class _PostCardState extends State<PostCard> {
                           ),
                           Text(
                             '${_getRoleLabel(widget.post.authorRole)} • $timeAgo',
-                            style: TextStyle(
+                            style: GoogleFonts.nunito(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: Colors.grey.shade400,
@@ -303,7 +304,7 @@ class _PostCardState extends State<PostCard> {
                     children: [
                       Text(
                         displayContent,
-                        style: const TextStyle(
+                        style: GoogleFonts.nunito(
                           fontSize: 15, 
                           height: 1.5,
                           color: Color(0xFF374151),
@@ -321,7 +322,7 @@ class _PostCardState extends State<PostCard> {
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
                               _isExpanded ? 'Read less' : 'Read more',
-                              style: TextStyle(
+                              style: GoogleFonts.nunito(
                                 fontSize: 13,
                                 color: AppColors.purple,
                                 fontWeight: FontWeight.bold,
@@ -329,6 +330,29 @@ class _PostCardState extends State<PostCard> {
                             ),
                           ),
                         ),
+                      if (widget.post.imageUrl != null) ...[
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Builder(
+                            builder: (context) {
+                              String url = widget.post.imageUrl!;
+                              if (!url.startsWith('http')) {
+                                const apiUrl = String.fromEnvironment('API_URL', defaultValue: 'https://api-dev.infano.care/api/');
+                                final baseUrl = Uri.parse(apiUrl).origin;
+                                url = '$baseUrl$url';
+                              }
+                              return Image.network(
+                                url,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => 
+                                  const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey))),
+                              );
+                            }
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -424,7 +448,7 @@ class _PostCardState extends State<PostCard> {
             ),
             ListTile(
               leading: const Icon(Icons.flag_outlined, color: Colors.redAccent),
-              title: const Text('Report Post'),
+              title: Text('Report Post'),
               onTap: () {
                 Navigator.pop(context);
                 _showReportModal(context);
@@ -434,9 +458,9 @@ class _PostCardState extends State<PostCard> {
               const Divider(height: 1, indent: 16, endIndent: 16),
               ListTile(
                 leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-                title: const Text(
+                title: Text(
                   'Delete Post',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.nunito(color: Colors.red, fontWeight: FontWeight.w600),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -456,14 +480,14 @@ class _PostCardState extends State<PostCard> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete Post?'),
-        content: const Text(
+        title: Text('Delete Post?'),
+        content: Text(
           'This will permanently remove your post from the community. This cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -475,7 +499,7 @@ class _PostCardState extends State<PostCard> {
               Navigator.pop(ctx);
               widget.onDelete!();
             },
-            child: const Text('Delete'),
+            child: Text('Delete'),
           ),
         ],
       ),
@@ -513,7 +537,7 @@ class _PostCardState extends State<PostCard> {
             children: [
               Text(
                 'This post was removed for violating community guidelines.',
-                style: TextStyle(
+                style: GoogleFonts.nunito(
                   color: Colors.grey.shade600,
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -526,7 +550,7 @@ class _PostCardState extends State<PostCard> {
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
                       'Appeal decision',
-                      style: TextStyle(
+                      style: GoogleFonts.nunito(
                         color: AppColors.purple,
                         fontSize: 12,
                         decoration: TextDecoration.underline,
@@ -576,7 +600,7 @@ class _PostCardState extends State<PostCard> {
               ],
               Text(
                 label,
-                style: TextStyle(
+                style: GoogleFonts.nunito(
                   color: AppColors.purple.withValues(alpha: 0.8),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -636,7 +660,7 @@ class _ReactionButton extends StatelessWidget {
           children: [
             Text(
               emoji,
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: isSelected ? 17 : 15,
                 shadows: isSelected ? [
                   Shadow(color: AppColors.purple.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 1))
@@ -646,7 +670,7 @@ class _ReactionButton extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               count >= 1000 ? '${(count / 1000).toStringAsFixed(1)}K' : count.toString(),
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 12,
                 color: isSelected ? AppColors.purple : const Color(0xFF4B5563),
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
@@ -686,11 +710,11 @@ class _ActionEmojiButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 15)),
+            Text(emoji, style: GoogleFonts.nunito(fontSize: 15)),
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 12, 
                 color: Color(0xFF4B5563), 
                 fontWeight: FontWeight.w700,
@@ -702,5 +726,6 @@ class _ActionEmojiButton extends StatelessWidget {
     );
   }
 }
+
 
 

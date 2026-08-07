@@ -91,19 +91,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Expanded(
               child: Text(
                 'Mentor Connected!',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18),
+                style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
           ],
         ),
         content: Text(
           'A peer mentor has accepted your chat request and is waiting for you in chat.',
-          style: GoogleFonts.outfit(color: Colors.grey.shade700, fontSize: 14),
+          style: GoogleFonts.nunito(color: Colors.grey.shade700, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Dismiss', style: GoogleFonts.outfit(color: Colors.grey.shade600)),
+            child: Text('Dismiss', style: GoogleFonts.nunito(color: Colors.grey.shade600)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -116,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-            child: Text('Join Chat Now', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+            child: Text('Join Chat Now', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -688,3 +688,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 }
+

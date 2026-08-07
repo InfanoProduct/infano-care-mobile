@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/models/circle.dart';
@@ -106,7 +107,7 @@ class _CircleCardState extends State<CircleCard> with SingleTickerProviderStateM
                       // Large emoji icon at top-left
                       Text(
                         widget.circle.iconEmoji,
-                        style: const TextStyle(fontSize: 28),
+                        style: GoogleFonts.nunito(fontSize: 28),
                       ),
                       const SizedBox(height: 4),
                       // Circle name
@@ -114,7 +115,7 @@ class _CircleCardState extends State<CircleCard> with SingleTickerProviderStateM
                         widget.circle.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: GoogleFonts.nunito(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF1A1A2E),
@@ -135,7 +136,7 @@ class _CircleCardState extends State<CircleCard> with SingleTickerProviderStateM
                             ),
                             child: Text(
                               '${widget.circle.unreadCount} new',
-                              style: const TextStyle(
+                              style: GoogleFonts.nunito(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF0D9488),
@@ -154,3 +155,4 @@ class _CircleCardState extends State<CircleCard> with SingleTickerProviderStateM
     );
   }
 }
+

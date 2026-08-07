@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
@@ -80,7 +81,7 @@ class PeerLineEntryCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               isAvailable ? 'Mentors Online' : 'Busy right now',
-                              style: TextStyle(
+                              style: GoogleFonts.nunito(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: isAvailable ? const Color(0xFF065F46) : const Color(0xFF991B1B),
@@ -92,9 +93,9 @@ class PeerLineEntryCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Talk to someone who gets it',
-                    style: TextStyle(
+                    style: GoogleFonts.nunito(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF1F2937),
@@ -104,7 +105,7 @@ class PeerLineEntryCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'PeerLine connects you with a trained Peer Mentor who has been where you are.',
-                    style: TextStyle(
+                    style: GoogleFonts.nunito(
                       fontSize: 13,
                       color: const Color(0xFF4B5563),
                       height: 1.4,
@@ -122,10 +123,10 @@ class PeerLineEntryCard extends StatelessWidget {
                         minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('I want support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text('I want support', style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 16)),
                           SizedBox(width: 8),
                           Icon(Icons.favorite, size: 18),
                         ],
@@ -141,3 +142,5 @@ class PeerLineEntryCard extends StatelessWidget {
     );
   }
 }
+
+

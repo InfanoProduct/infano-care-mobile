@@ -47,7 +47,7 @@ class CommunityApi {
     return response.data as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> createPost(String circleId, String content, {bool isChallengeResponse = false, String? challengeId}) async {
+  Future<Map<String, dynamic>> createPost(String circleId, String content, {bool isChallengeResponse = false, String? challengeId, String? imageUrl}) async {
     final data = <String, dynamic>{
       'content': content,
       'isChallengeResponse': isChallengeResponse,
@@ -55,8 +55,22 @@ class CommunityApi {
     if (challengeId != null && challengeId.isNotEmpty) {
       data['challengeId'] = challengeId;
     }
+    if (imageUrl != null) {
+      data['imageUrl'] = imageUrl;
+    }
     final response = await _dio.post('community/circles/$circleId/posts', data: data);
     return response.data as Map<String, dynamic>;
+  }
+
+  Future<String?> uploadImage(String filePath) async {
+    final formData = FormData.fromMap({
+      'image': await MultipartFile.fromFile(filePath),
+    });
+    final response = await _dio.post('community/upload-image', data: formData);
+    if (response.data['success'] == true) {
+      return response.data['imageUrl'] as String;
+    }
+    return null;
   }
 
   Future<List<CommunityReply>> getPostReplies(String postId) async {

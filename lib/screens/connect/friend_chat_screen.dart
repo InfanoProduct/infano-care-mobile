@@ -248,7 +248,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(nickname, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                  Text(nickname, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                   Text(
                     _isPeerTyping ? 'Typing...' : 'Online',
                     style: TextStyle(fontSize: 12, color: _isPeerTyping ? Colors.amber.shade700 : Colors.green, fontWeight: FontWeight.w500),
@@ -384,7 +384,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
                   leading: const Icon(Icons.edit_outlined, color: AppColors.purple),
                   title: Text(
                     'Edit Message',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textDark,
@@ -400,7 +400,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
                   leading: const Icon(Icons.delete_outline, color: Colors.red),
                   title: Text(
                     'Unsend Message',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.red,
@@ -428,7 +428,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
             'Edit Message',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppColors.textDark),
+            style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.textDark),
           ),
           content: TextField(
             controller: textController,
@@ -451,7 +451,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancel',
-                style: GoogleFonts.outfit(color: AppColors.textLight, fontWeight: FontWeight.w600),
+                style: GoogleFonts.nunito(color: AppColors.textLight, fontWeight: FontWeight.w600),
               ),
             ),
             ElevatedButton(
@@ -469,7 +469,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
               },
               child: Text(
                 'Save',
-                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+                style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -486,18 +486,18 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
             'Unsend Message?',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppColors.textDark),
+            style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.textDark),
           ),
           content: Text(
             'Are you sure you want to unsend this message? It will be removed for everyone in the chat.',
-            style: GoogleFonts.outfit(color: AppColors.textLight),
+            style: GoogleFonts.nunito(color: AppColors.textLight),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancel',
-                style: GoogleFonts.outfit(color: AppColors.textLight, fontWeight: FontWeight.w600),
+                style: GoogleFonts.nunito(color: AppColors.textLight, fontWeight: FontWeight.w600),
               ),
             ),
             ElevatedButton(
@@ -512,7 +512,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
               },
               child: Text(
                 'Unsend',
-                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+                style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -569,7 +569,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
                 children: [
                   Text(
                     msg['content'] ?? '',
-                    style: GoogleFonts.outfit(color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), fontSize: 15),
+                    style: GoogleFonts.nunito(color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), fontSize: 15),
                   ),
                   if (msg['isEdited'] == true) ...[
                     const SizedBox(height: 2),
@@ -749,3 +749,4 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
     );
   }
 }
+

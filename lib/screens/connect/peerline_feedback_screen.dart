@@ -126,7 +126,7 @@ class _PeerLineFeedbackScreenState extends State<PeerLineFeedbackScreen> {
             child: _isSubmitting
                 ? const CircularProgressIndicator(color: Colors.white)
                 : Text('Done',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
@@ -141,14 +141,14 @@ class _PeerLineFeedbackScreenState extends State<PeerLineFeedbackScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Thank you for connecting 💜',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF1F2937))),
         const SizedBox(height: 8),
         Text(
           'Your conversation stays private. This helps us improve PeerLine for everyone.',
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.nunito(
               fontSize: 14, color: const Color(0xFF6B7280)),
         ),
         const SizedBox(height: 24),
@@ -163,7 +163,7 @@ class _PeerLineFeedbackScreenState extends State<PeerLineFeedbackScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Did this conversation help?',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                       fontSize: 16, fontWeight: FontWeight.w600)),
               const SizedBox(height: 12),
               Row(
@@ -183,7 +183,7 @@ class _PeerLineFeedbackScreenState extends State<PeerLineFeedbackScreen> {
               ),
               const SizedBox(height: 16),
               Text('Anything you\'d like to share? (optional)',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               const SizedBox(height: 10),
               TextField(
@@ -207,7 +207,7 @@ class _PeerLineFeedbackScreenState extends State<PeerLineFeedbackScreen> {
         const SizedBox(height: 24),
 
         Text('Mentor wellbeing check',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF15803D))),

@@ -58,7 +58,7 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
         ),
         title: Text(
           'Mentorship Topics',
-          style: GoogleFonts.outfit(color: AppColors.textDark, fontWeight: FontWeight.bold),
+          style: GoogleFonts.nunito(color: AppColors.textDark, fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -71,7 +71,7 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
               children: [
                 Text(
                   'What kind of mentorship are you looking for?',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textDark,
@@ -81,7 +81,7 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
                 const SizedBox(height: 8),
                 Text(
                   'Select one or more topics you want to discuss with a mentor.',
-                  style: GoogleFonts.outfit(fontSize: 14, color: AppColors.textMedium),
+                  style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textMedium),
                 ),
               ],
             ),
@@ -185,7 +185,7 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
               child: Text(
                 topic.name,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: isSelected ? Colors.white : AppColors.textDark,
@@ -223,7 +223,7 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
             ),
             child: Text(
               'Find Mentors',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+              style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
             ),
           ),
         ),
@@ -231,3 +231,4 @@ class _PeerLineTopicSelectionScreenState extends State<PeerLineTopicSelectionScr
     );
   }
 }
+

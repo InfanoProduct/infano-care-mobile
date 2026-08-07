@@ -94,7 +94,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                 children: [
                   const Icon(Icons.check_circle_rounded, color: Colors.white),
                   const SizedBox(width: 12),
-                  Expanded(child: Text('Your peer mentor accepted your request! 💜', style: GoogleFonts.outfit())),
+                  Expanded(child: Text('Your peer mentor accepted your request! 💜', style: GoogleFonts.nunito())),
                 ],
               ),
               backgroundColor: AppColors.purple,
@@ -113,7 +113,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
         _refreshData();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Your connection request was not accepted. You can try another mentor.', style: GoogleFonts.outfit()),
+            content: Text('Your connection request was not accepted. You can try another mentor.', style: GoogleFonts.nunito()),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -292,7 +292,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
             child: FilterChip(
               label: Text(
                 isAll ? '✨ All Topics' : '${topic!.emoji} ${topic.name}',
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected ? Colors.white : AppColors.textDark,
@@ -335,7 +335,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
               children: [
                 Text(
                   'Recommended Peer Mentors',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,
@@ -348,7 +348,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                     const SizedBox(width: 4),
                     Text(
                       'All mentors are certified & verified',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.nunito(
                         fontSize: 12,
                         color: const Color(0xFF10B981),
                         fontWeight: FontWeight.w600,
@@ -362,7 +362,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
               onPressed: () => context.push('/peerline/request').then((_) => _refreshData()),
               child: Text(
                 'View All',
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   color: AppColors.purple,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
@@ -393,7 +393,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                 return Center(
                   child: Text(
                     'No mentors available for this topic',
-                    style: GoogleFonts.outfit(color: AppColors.textMedium),
+                    style: GoogleFonts.nunito(color: AppColors.textMedium),
                   ),
                 );
               }
@@ -463,7 +463,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
             if (pendingRequests.isNotEmpty) ...[
               Text(
                 'Pending Requests',
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
@@ -480,7 +480,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
             // 2. Active Chats Title & List
             Text(
               'Your Conversations',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.nunito(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
@@ -489,7 +489,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
             const SizedBox(height: 4),
             Text(
               'Chat privately with certified peer mentors.',
-              style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMedium),
+              style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textMedium),
             ),
             const SizedBox(height: 16),
 
@@ -508,7 +508,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                     const SizedBox(height: 14),
                     Text(
                       'No active conversations yet',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.nunito(
                         color: AppColors.textDark,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -518,7 +518,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                     Text(
                       'Search for a peer mentor above or connect with matching to start a private conversation.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.nunito(
                         color: AppColors.textMedium,
                         fontSize: 13,
                         height: 1.4,
@@ -530,7 +530,7 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                       icon: const Icon(Icons.add_rounded, size: 18),
                       label: Text(
                         'Find a Mentor',
-                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.purple,
@@ -644,7 +644,7 @@ class _PeerLineHeaderCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           isAvailable ? 'MENTORS ONLINE' : 'MENTORS OFFLINE',
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.nunito(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -657,7 +657,7 @@ class _PeerLineHeaderCard extends StatelessWidget {
                   const SizedBox(height: 18),
                   Text(
                     'Talk to someone\nwho gets it',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
@@ -667,7 +667,7 @@ class _PeerLineHeaderCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Connect with a certified Peer Mentor who has been where you are. Share, get support, and talk privately.',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 13,
                       color: Colors.white.withValues(alpha: 0.9),
                       height: 1.4,
@@ -688,7 +688,7 @@ class _PeerLineHeaderCard extends StatelessWidget {
                       children: [
                         Text(
                           'I want support',
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16),
+                          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16),
                         ),
                         const SizedBox(width: 8),
                         const Icon(Icons.favorite_rounded, size: 18),
@@ -741,7 +741,7 @@ class _ActiveChatTile extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             initials,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.purple,
@@ -753,7 +753,7 @@ class _ActiveChatTile extends StatelessWidget {
           children: [
             Text(
               mentorName,
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.nunito(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: AppColors.textDark,
@@ -761,7 +761,7 @@ class _ActiveChatTile extends StatelessWidget {
             ),
             Text(
               _formatDate(session.createdAt),
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.nunito(
                 fontSize: 11,
                 color: AppColors.textMedium,
               ),
@@ -772,7 +772,7 @@ class _ActiveChatTile extends StatelessWidget {
           padding: const EdgeInsets.only(top: 4.0),
           child: Text(
             'Conversation Active · Tap to open chat',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 13,
               color: AppColors.purple,
               fontWeight: FontWeight.w600,
@@ -791,7 +791,7 @@ class _ActiveChatTile extends StatelessWidget {
                 ),
                 child: Text(
                   '${session.unreadCount}',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -864,7 +864,7 @@ class _PendingRequestCard extends StatelessWidget {
                   children: [
                     Text(
                       isDirectRequest ? 'Direct Request to $mentorName' : 'Finding a Peer Mentor...',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.nunito(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                         color: AppColors.textDark,
@@ -873,7 +873,7 @@ class _PendingRequestCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       isDirectRequest ? 'Awaiting response from mentor' : 'Waiting in matching queue',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.nunito(
                         fontSize: 12,
                         color: AppColors.textMedium,
                       ),
@@ -897,7 +897,7 @@ class _PendingRequestCard extends StatelessWidget {
                 ),
                 child: Text(
                   'Cancel Request',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ),
             ],
@@ -911,12 +911,12 @@ class _PendingRequestCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Cancel Request', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-        content: Text('Are you sure you want to cancel this connection request?', style: GoogleFonts.outfit()),
+        title: Text('Cancel Request', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to cancel this connection request?', style: GoogleFonts.nunito()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('No', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.grey)),
+            child: Text('No', style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: Colors.grey)),
           ),
           TextButton(
             onPressed: () async {
@@ -931,7 +931,7 @@ class _PendingRequestCard extends StatelessWidget {
                 );
               }
             },
-            child: Text('Yes, Cancel', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.red)),
+            child: Text('Yes, Cancel', style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: Colors.red)),
           ),
         ],
       ),
@@ -1081,7 +1081,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                             alignment: Alignment.center,
                             child: Text(
                               name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M',
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
                                 color: accentColor,
@@ -1111,7 +1111,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                           children: [
                             Text(
                               name,
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.nunito(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 17,
                                 color: const Color(0xFF1A1A2E),
@@ -1126,7 +1126,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                                 const SizedBox(width: 3),
                                 Text(
                                   widget.mentor['rating']?.toString() ?? '4.9',
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.nunito(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w800,
                                     color: const Color(0xFFFFB800),
@@ -1151,7 +1151,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                       ),
                       child: Text(
                         topic,
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           color: accentColor.withValues(alpha: 0.9),
@@ -1162,7 +1162,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
                   const SizedBox(height: 12),
                   Text(
                     bio,
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 12,
                       color: accentColor.withValues(alpha: 0.75),
                       height: 1.4,
@@ -1193,7 +1193,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
         icon: const Icon(Icons.chat_bubble_rounded, size: 16),
         label: Text(
           'Start Chat',
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.nunito(
             fontWeight: FontWeight.bold,
             fontSize: 14,
             color: Colors.white,
@@ -1213,7 +1213,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
         icon: const Icon(Icons.hourglass_empty_rounded, size: 16),
         label: Text(
           'Request Sent',
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.nunito(
             fontWeight: FontWeight.bold,
             fontSize: 14,
             color: Colors.grey.shade500,
@@ -1244,7 +1244,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
             )
           : Text(
               'Request Chat',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.nunito(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -1253,3 +1253,4 @@ class _TopMentorCardState extends State<_TopMentorCard> {
     }
   }
 }
+

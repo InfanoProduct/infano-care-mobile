@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'friends_explainer_bottom_sheet.dart';
 
@@ -47,10 +48,10 @@ class FriendsTabEntryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Find your people nearby',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: GoogleFonts.nunito(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Color(0xFF1A1A2E),
@@ -60,7 +61,7 @@ class FriendsTabEntryCard extends StatelessWidget {
           Text(
             'Meet girls your age who get what you\'re going through. Swipe to find your match.',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: GoogleFonts.nunito(
               fontSize: 16,
               color: Colors.grey[700],
               height: 1.5,
@@ -80,7 +81,7 @@ class FriendsTabEntryCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   '$nearbyCount girls near you are looking for friends',
-                  style: const TextStyle(
+                  style: GoogleFonts.nunito(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: Colors.pink,
@@ -110,9 +111,9 @@ class FriendsTabEntryCard extends StatelessWidget {
                 ),
                 child: Container(
                   alignment: Alignment.center,
-                  child: const Text(
+                  child: Text(
                     'Start matching',
-                    style: TextStyle(
+                    style: GoogleFonts.nunito(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -125,9 +126,9 @@ class FriendsTabEntryCard extends StatelessWidget {
           const SizedBox(height: 16),
           TextButton(
             onPressed: () => FriendsExplainerBottomSheet.show(context),
-            child: const Text(
+            child: Text(
               'How does this work?',
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.purple,
@@ -140,3 +141,5 @@ class FriendsTabEntryCard extends StatelessWidget {
     );
   }
 }
+
+

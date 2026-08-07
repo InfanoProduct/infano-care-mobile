@@ -126,7 +126,7 @@ class _CrisisResourceCardState extends State<CrisisResourceCard>
               Text(
                 'What you shared matters.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF1F2937),
@@ -138,7 +138,7 @@ class _CrisisResourceCardState extends State<CrisisResourceCard>
               Text(
                 'Here are people who can help right now.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 16,
                   color: const Color(0xFF6B7280),
                 ),
@@ -188,7 +188,7 @@ class _CrisisResourceCardState extends State<CrisisResourceCard>
                       ),
                       child: Text(
                         'I need help now →',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                             fontSize: 16,
                             fontWeight: FontWeight.bold),
                       ),
@@ -224,7 +224,7 @@ class _CrisisResourceCardState extends State<CrisisResourceCard>
                         _canDismiss
                             ? "I'm safe"
                             : "I'm safe (Wait $_countdown s)",
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF6B7280),
@@ -262,7 +262,7 @@ class _CrisisResourceCardState extends State<CrisisResourceCard>
               Expanded(
                 child: Text(
                   h['name'] ?? 'Helpline',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF6B7280),
@@ -279,7 +279,7 @@ class _CrisisResourceCardState extends State<CrisisResourceCard>
                   ),
                   child: Text(
                     h['hours'],
-                    style: const TextStyle(
+                    style: GoogleFonts.nunito(
                       fontSize: 10,
                       color: Color(0xFF6B7280),
                       fontWeight: FontWeight.w600,
@@ -299,7 +299,7 @@ class _CrisisResourceCardState extends State<CrisisResourceCard>
                       _launchUrl('tel:${h['phone']}'),
                   child: Text(
                     h['phone'] ?? '',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFFE3643B),
@@ -327,3 +327,4 @@ class _CrisisResourceCardState extends State<CrisisResourceCard>
     );
   }
 }
+

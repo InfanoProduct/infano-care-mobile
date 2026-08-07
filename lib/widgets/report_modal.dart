@@ -60,7 +60,7 @@ class _ReportModalState extends State<ReportModal> {
           const SizedBox(height: 24),
           Text(
             'Help us keep this space safe 💜',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
@@ -118,7 +118,7 @@ class _ReportModalState extends State<ReportModal> {
                   SnackBar(
                     content: Text(
                       'Thanks for letting us know We take every report seriously. 💜',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
                     ),
                     backgroundColor: AppColors.purple,
                     behavior: SnackBarBehavior.floating,
@@ -132,7 +132,7 @@ class _ReportModalState extends State<ReportModal> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
-              child: Text('Submit report', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: Text('Submit report', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 12),
@@ -151,3 +151,4 @@ class _ReportModalState extends State<ReportModal> {
     );
   }
 }
+

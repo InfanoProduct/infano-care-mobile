@@ -118,7 +118,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
       appBar: AppBar(
         title: Text(
           'My Inbox', 
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: AppColors.textDark)
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.textDark)
         ),
         centerTitle: false,
         backgroundColor: Colors.white,
@@ -245,7 +245,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
               children: [
                 Text(
                   value,
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: color,
@@ -253,7 +253,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                 ),
                 Text(
                   title,
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     fontSize: 11,
                     color: AppColors.textMedium,
                     fontWeight: FontWeight.w600,
@@ -284,7 +284,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
         ),
         child: Text(
           label,
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.nunito(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             color: isSelected ? Colors.white : AppColors.textDark,
@@ -324,7 +324,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
             const SizedBox(height: 16),
             Text(
               'No active chats found.',
-              style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 16, fontWeight: FontWeight.bold),
+              style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -340,7 +340,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
             const SizedBox(height: 16),
             Text(
               'No matches found.',
-              style: GoogleFonts.outfit(color: AppColors.textMedium, fontSize: 15),
+              style: GoogleFonts.nunito(color: AppColors.textMedium, fontSize: 15),
             ),
           ],
         ),
@@ -442,7 +442,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                   Expanded(
                     child: Text(
                       name,
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark),
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -455,7 +455,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                       ),
                       child: Text(
                         'CONNECTING',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                           color: Colors.orange.shade800,
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
@@ -471,7 +471,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                   lastMessage,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.nunito(
                     color: unreadCount > 0 ? AppColors.textDark : AppColors.textMedium,
                     fontWeight: unreadCount > 0 ? FontWeight.w700 : FontWeight.normal,
                     fontSize: 13,
@@ -491,7 +491,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                       ),
                       child: Text(
                         unreadCount.toString(),
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -522,3 +522,4 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     );
   }
 }
+
