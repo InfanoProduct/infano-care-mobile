@@ -92,16 +92,16 @@ String getRouteForStep(String step, {String? periodStatus, String? role}) {
   }
 
   final routes = {
-    '0':  '/onboarding/path',
-    '1':  '/onboarding/name',
-    '2':  '/onboarding/birthday',
-    '3':  '/onboarding/consent/send',
-    '4':  '/onboarding/goals',
-    '5':  '/onboarding/period-comfort',
-    '6':  '/onboarding/period-status',
-    '7':  '/onboarding/interests',
-    '8':  '/onboarding/terms',
-    '9':  '/onboarding/tracker/date',
+    '0': '/onboarding/path',
+    '1': '/onboarding/name',
+    '2': '/onboarding/birthday',
+    '3': '/onboarding/consent/send',
+    '4': '/onboarding/goals',
+    '5': '/onboarding/period-comfort',
+    '6': '/onboarding/period-status',
+    '7': '/onboarding/interests',
+    '8': '/onboarding/terms',
+    '9': '/onboarding/tracker/date',
     '10': '/onboarding/tracker/details',
   };
 
@@ -110,12 +110,16 @@ String getRouteForStep(String step, {String? periodStatus, String? role}) {
     if (step == '9' || step == '10') return '/home';
   }
 
-  return routes[step] ?? (role != null ? '/onboarding/name' : '/onboarding/path');
+  return routes[step] ??
+      (role != null ? '/onboarding/name' : '/onboarding/path');
 }
 
 // Expert creation helper functions...
 
-GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> navigatorKey) {
+GoRouter createRouter(
+  LocalStorageService storage,
+  GlobalKey<NavigatorState> navigatorKey,
+) {
   final chatRepo = ChatRepository(ApiService.instance);
 
   return GoRouter(
@@ -140,13 +144,17 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
       if (storage.isOnboarded) {
         // Experts go to their dashboard
         if (role == 'EXPERT') {
-          if (path == '/home' || path == '/splash' || path.startsWith('/onboarding')) {
+          if (path == '/home' ||
+              path == '/splash' ||
+              path.startsWith('/onboarding')) {
             return '/expert/dashboard';
           }
           return null;
         }
         // Others go home
-        if (onAuth || (path.startsWith('/onboarding') && !path.contains('tracker'))) return '/home';
+        if (onAuth ||
+            (path.startsWith('/onboarding') && !path.contains('tracker')))
+          return '/home';
         return null;
       }
 
@@ -158,27 +166,55 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
       }
 
       // Allow onboarding screens and tracker screens freely
-      if (path.startsWith('/onboarding') || path.contains('tracker') ||
-          path == '/settings' || path == '/account' || path == '/chat') {
+      if (path.startsWith('/onboarding') ||
+          path.contains('tracker') ||
+          path == '/settings' ||
+          path == '/account' ||
+          path == '/chat') {
         return null;
       }
 
       // Any other screen while not onboarded → redirect to correct step
-      final target = getRouteForStep(step ?? '0', periodStatus: storage.periodStatus, role: role);
+      final target = getRouteForStep(
+        step ?? '0',
+        periodStatus: storage.periodStatus,
+        role: role,
+      );
       return target;
     },
     routes: [
-      GoRoute(path: '/splash',   builder: (_, _) => const LandingScreen()),
-      GoRoute(path: '/account',  builder: (_, _) => AccountScreen(storage: storage)),
-      GoRoute(path: '/settings',  builder: (_, _) => const SettingsScreen()),
-      GoRoute(path: '/account/notifications', builder: (_, _) => const NotificationPreferencesScreen()),
-      GoRoute(path: '/account/data-rights', builder: (_, _) => const DataRightsPrivacyScreen()),
-      GoRoute(path: '/account/saved', builder: (_, _) => const SavedArticlesScreen()),
-      GoRoute(path: '/account/family', builder: (_, _) => FamilySettingsScreen(storage: storage)),
-      
+      GoRoute(path: '/splash', builder: (_, _) => const LandingScreen()),
+      GoRoute(
+        path: '/account',
+        builder: (_, _) => AccountScreen(storage: storage),
+      ),
+      GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+      GoRoute(
+        path: '/account/notifications',
+        builder: (_, _) => const NotificationPreferencesScreen(),
+      ),
+      GoRoute(
+        path: '/account/data-rights',
+        builder: (_, _) => const DataRightsPrivacyScreen(),
+      ),
+      GoRoute(
+        path: '/account/saved',
+        builder: (_, _) => const SavedArticlesScreen(),
+      ),
+      GoRoute(
+        path: '/account/family',
+        builder: (_, _) => FamilySettingsScreen(storage: storage),
+      ),
+
       // Expert Dashboard & Tools
-      GoRoute(path: '/expert/dashboard', builder: (_, _) => ExpertDashboardScreen(storage: storage)),
-      GoRoute(path: '/expert/program-sessions', builder: (_, _) => ExpertProgramSessionsScreen(storage: storage)),
+      GoRoute(
+        path: '/expert/dashboard',
+        builder: (_, _) => ExpertDashboardScreen(storage: storage),
+      ),
+      GoRoute(
+        path: '/expert/program-sessions',
+        builder: (_, _) => ExpertProgramSessionsScreen(storage: storage),
+      ),
       GoRoute(
         path: '/expert/enrollment-details/:id',
         builder: (_, state) => ExpertEnrollmentDetailScreen(
@@ -186,14 +222,23 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
           storage: storage,
         ),
       ),
-      GoRoute(path: '/expert/consultations', builder: (_, _) => ExpertConsultationsScreen(storage: storage)),
-      GoRoute(path: '/expert/calendar', builder: (_, _) => ExpertCalendarScreen(storage: storage)),
-      
+      GoRoute(
+        path: '/expert/consultations',
+        builder: (_, _) => ExpertConsultationsScreen(storage: storage),
+      ),
+      GoRoute(
+        path: '/expert/calendar',
+        builder: (_, _) => ExpertCalendarScreen(storage: storage),
+      ),
+
       // Expert Chat
-      GoRoute(path: '/expert/list', builder: (_, _) => ExpertListScreen(storage: storage)),
+      GoRoute(
+        path: '/expert/list',
+        builder: (_, _) => ExpertListScreen(storage: storage),
+      ),
       GoRoute(path: '/my-chats', builder: (_, _) => const MyChatsScreen()),
       GoRoute(
-        path: '/expert/chat/:sessionId', 
+        path: '/expert/chat/:sessionId',
         builder: (_, state) {
           final expertName = (state.extra as Map?)?['expertName'] ?? 'Expert';
           return ExpertChatScreen(
@@ -205,14 +250,13 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
       ),
 
       // Gigi assistant (Redirect /chat to universal MyChatsScreen)
-      GoRoute(
-        path: '/chat',
-        builder: (_, _) => const MyChatsScreen(),
-      ),
+      GoRoute(path: '/chat', builder: (_, _) => const MyChatsScreen()),
       GoRoute(
         path: '/gigi/chat/:sessionId',
         builder: (_, state) => BlocProvider(
-          create: (context) => ChatBloc(chatRepo)..add(SelectSession(state.pathParameters['sessionId']!)),
+          create: (context) =>
+              ChatBloc(chatRepo)
+                ..add(SelectSession(state.pathParameters['sessionId']!)),
           child: ChatScreen(sessionId: state.pathParameters['sessionId']!),
         ),
       ),
@@ -243,43 +287,107 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
       ),
 
       // Onboarding
-      GoRoute(path: '/onboarding/path',           builder: (_, _) => const PathSelectorScreen()),
-      GoRoute(path: '/onboarding/name',            builder: (_, _) => const NamePronounsScreen()),
-      GoRoute(path: '/onboarding/birthday',        builder: (_, _) => const BirthdayInputScreen()),
-      GoRoute(path: '/onboarding/consent/send',    builder: (_, _) => const ParentalConsentScreen()),
-      GoRoute(path: '/onboarding/consent/waiting', builder: (_, _) => const ConsentWaitingScreen()),
-      GoRoute(path: '/onboarding/terms',           builder: (_, _) => const AssentTermsScreen()),
-      GoRoute(path: '/onboarding/goals',           builder: (_, _) => const GoalsSelectionScreen()),
-      GoRoute(path: '/onboarding/period-comfort',  builder: (_, _) => const PeriodComfortScreen()),
-      GoRoute(path: '/onboarding/period-status',   builder: (_, _) => const PeriodExperienceScreen()),
-      GoRoute(path: '/onboarding/interests',       builder: (_, _) => const InterestTopicsScreen()),
+      GoRoute(
+        path: '/onboarding/path',
+        builder: (_, _) => const PathSelectorScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/name',
+        builder: (_, _) => const NamePronounsScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/birthday',
+        builder: (_, _) => const BirthdayInputScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/consent/send',
+        builder: (_, _) => const ParentalConsentScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/consent/waiting',
+        builder: (_, _) => const ConsentWaitingScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/terms',
+        builder: (_, _) => const AssentTermsScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/goals',
+        builder: (_, _) => const GoalsSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/period-comfort',
+        builder: (_, _) => const PeriodComfortScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/period-status',
+        builder: (_, _) => const PeriodExperienceScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/interests',
+        builder: (_, _) => const InterestTopicsScreen(),
+      ),
       // GoRoute(path: '/onboarding/avatar',          builder: (_, _) => const AvatarBuilderScreen()),
       // GoRoute(path: '/onboarding/journey-name',    builder: (_, _) => const JourneyNameScreen()),
-      GoRoute(path: '/onboarding/welcome',         builder: (_, _) => const WelcomeWorldScreen()),
-      GoRoute(path: '/onboarding/tracker/date',    builder: (_, _) => const LastPeriodDateScreen()),
-      GoRoute(path: '/onboarding/tracker/details', builder: (_, _) => const CycleDetailsScreen()),
-      GoRoute(path: '/onboarding/tracker/done',    builder: (_, _) => const TrackerActivatedScreen()),
+      GoRoute(
+        path: '/onboarding/welcome',
+        builder: (_, _) => const WelcomeWorldScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/tracker/date',
+        builder: (_, _) => const LastPeriodDateScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/tracker/details',
+        builder: (_, _) => const CycleDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/tracker/done',
+        builder: (_, _) => const TrackerActivatedScreen(),
+      ),
 
       // Deep Link Routes for Notifications
-      GoRoute(path: '/tracker/log', builder: (_, _) => const TrackScreen()), // Placeholder for direct log sheet
-      GoRoute(path: '/tracker/prediction', builder: (_, _) => const TrackScreen()),
-      GoRoute(path: '/tracker/phase', builder: (_, _) => const TrackScreen()), // Placeholder
-      GoRoute(path: '/tracker/doctor-connect', builder: (_, _) => const DoctorSummaryScreen()),
+      GoRoute(
+        path: '/tracker/log',
+        builder: (_, _) => const TrackScreen(),
+      ), // Placeholder for direct log sheet
+      GoRoute(
+        path: '/tracker/prediction',
+        builder: (_, _) => const TrackScreen(),
+      ),
+      GoRoute(
+        path: '/tracker/phase',
+        builder: (_, _) => const TrackScreen(),
+      ), // Placeholder
+      GoRoute(
+        path: '/tracker/doctor-connect',
+        builder: (_, _) => const DoctorSummaryScreen(),
+      ),
 
       // Tracker Reporting
-
-      GoRoute(path: '/tracker/doctor-summary', builder: (_, _) => const DoctorSummaryScreen()),
-      GoRoute(path: '/tracker/settings', builder: (_, _) => const CycleSettingsScreen()),
       GoRoute(
-        path: '/tracker/calendar', 
+        path: '/tracker/doctor-summary',
+        builder: (_, _) => const DoctorSummaryScreen(),
+      ),
+      GoRoute(
+        path: '/tracker/settings',
+        builder: (_, _) => const CycleSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/tracker/calendar',
         builder: (context, _) => BlocProvider(
-          create: (_) => CalendarCubit(context.read<TrackerRepository>())..loadCalendarData(),
+          create: (_) =>
+              CalendarCubit(context.read<TrackerRepository>())
+                ..loadCalendarData(),
           child: const CalendarScreen(),
         ),
       ),
-      GoRoute(path: '/tracker/milestone/first-period', builder: (_, _) => const FirstPeriodCelebrationScreen()),
       GoRoute(
-        path: '/tracker/insights', 
+        path: '/tracker/milestone/first-period',
+        builder: (_, _) => const FirstPeriodCelebrationScreen(),
+      ),
+      GoRoute(
+        path: '/tracker/insights',
         builder: (_, state) {
           final extra = state.extra as Map<String, dynamic>;
           return CycleInsightsScreen(
@@ -287,7 +395,7 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
             logs: extra['logs'] as List<CycleLogModel>,
             history: (extra['history'] as List<CycleRecordModel>?) ?? [],
           );
-        }
+        },
       ),
       GoRoute(
         path: '/quests',
@@ -301,38 +409,62 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
       ),
 
       // PeerLine Focus
-      GoRoute(path: '/peerline/request', builder: (_, _) => const PeerLineTopicSelectionScreen()),
       GoRoute(
-        path: '/peerline/results', 
+        path: '/peerline/request',
+        builder: (_, _) => const PeerLineTopicSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/peerline/results',
         builder: (_, state) {
           final topics = state.extra as List<String>? ?? [];
           return PeerLineResultsScreen(selectedTopics: topics);
-        }
+        },
       ),
       GoRoute(
         path: '/peerline/chat/:sessionId',
-        builder: (_, state) => PeerLineChatScreen(
-          sessionId: state.pathParameters['sessionId']!,
-        ),
+        builder: (_, state) =>
+            PeerLineChatScreen(sessionId: state.pathParameters['sessionId']!),
       ),
       GoRoute(
         path: '/friends/chat/:matchId',
-        builder: (_, state) => FriendChatScreen(
-          matchId: state.pathParameters['matchId']!,
-        ),
+        builder: (_, state) =>
+            FriendChatScreen(matchId: state.pathParameters['matchId']!),
       ),
 
       // Community Circles
-      GoRoute(path: '/community/circle', builder: (_, state) => CircleScreen(circle: state.extra as Circle)),
+      GoRoute(
+        path: '/community/circle',
+        builder: (_, state) => CircleScreen(circle: state.extra as Circle),
+      ),
       // Home
       GoRoute(
-        path: '/home', 
+        path: '/home',
         builder: (_, state) {
-          final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
-          final subtab = int.tryParse(state.uri.queryParameters['subtab'] ?? '1') ?? 1;
-          return DashboardScreen(storage: storage, initialTab: tab, initialSubTab: subtab);
-        }
-<<<<<<< HEAD
+          final tab =
+              int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+          final subtab =
+              int.tryParse(state.uri.queryParameters['subtab'] ?? '1') ?? 1;
+          return DashboardScreen(
+            storage: storage,
+            initialTab: tab,
+            initialSubTab: subtab,
+          );
+        },
+      ),
+
+      // Safety / SOS
+      GoRoute(
+        path: '/safety/contacts',
+        builder: (_, _) => const TrustedContactsScreen(),
+      ),
+      GoRoute(
+        path: '/safety/sos_cancel',
+        builder: (_, _) => const SosCancelScreen(),
+      ),
+      GoRoute(
+        path: '/safety/sos_active',
+        builder: (_, state) =>
+            SosActiveScreen(incidentId: state.extra as String?),
       ),
 
       // ── Journal Module ────────────────────────────────────────────────────────
@@ -342,9 +474,7 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
           final repo = JournalRepository(ApiService.instance.dio);
           return BlocProvider(
             create: (_) => JournalCubit(repo)..loadFeed(),
-            child: const JournalLockScreen(
-              child: JournalHomeScreen(),
-            ),
+            child: const JournalLockScreen(child: JournalHomeScreen()),
           );
         },
       ),
@@ -379,16 +509,6 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
             child: JournalEntryDetailScreen(id: state.pathParameters['id']!),
           );
         },
-=======
->>>>>>> feature/sos
-      ),
-
-      // Safety / SOS
-      GoRoute(path: '/safety/contacts', builder: (_, _) => const TrustedContactsScreen()),
-      GoRoute(path: '/safety/sos_cancel', builder: (_, _) => const SosCancelScreen()),
-      GoRoute(
-        path: '/safety/sos_active', 
-        builder: (_, state) => SosActiveScreen(incidentId: state.extra as String?),
       ),
 
       // Learning Journey Module
@@ -431,7 +551,9 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
           final journeyId = state.pathParameters['id']!;
           final repo = LearningRepository(ApiService.instance.dio);
           return BlocProvider(
-            create: (context) => JourneyDetailBloc(repo)..add(JourneyDetailEvent.loadJourney(journeyId)),
+            create: (context) =>
+                JourneyDetailBloc(repo)
+                  ..add(JourneyDetailEvent.loadJourney(journeyId)),
             child: JourneyDetailScreen(journeyId: journeyId),
           );
         },
@@ -442,16 +564,18 @@ GoRouter createRouter(LocalStorageService storage, GlobalKey<NavigatorState> nav
           // DEFENSIVE PARSING: Handle both Episode objects and raw JSON maps
           final extra = state.extra;
           final Episode episode;
-          
+
           if (extra is Episode) {
             episode = extra;
           } else if (extra is Map<String, dynamic>) {
             episode = Episode.fromJson(extra);
           } else {
-            // Fallback: If no extra is provided, we should ideally fetch it, 
+            // Fallback: If no extra is provided, we should ideally fetch it,
             // but for now we'll throw a more descriptive error or use a dummy.
             // This prevents the 'subtype' crash in the UI.
-            throw Exception('Episode data missing from route. Expected Episode or Map.');
+            throw Exception(
+              'Episode data missing from route. Expected Episode or Map.',
+            );
           }
 
           final repo = LearningRepository(ApiService.instance.dio);
