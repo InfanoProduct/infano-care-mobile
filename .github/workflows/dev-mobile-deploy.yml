@@ -1,0 +1,40 @@
+name: Mobile Development Build & Deploy
+
+on:
+  push:
+    branches: [ "development" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get Dependencies
+        run: flutter pub get
+        working-directory: ./
+
+      - name: Build Debug APK
+        run: flutter build apk --debug --dart-define=API_URL=${{ secrets.DEV_API_URL }}
+        working-directory: ./
+
+      - name: Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_CLI_CREDENTIALS }}
+          groups: testers
+          file: build/app/outputs/flutter-apk/app-debug.apk

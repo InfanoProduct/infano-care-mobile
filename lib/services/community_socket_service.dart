@@ -15,6 +15,10 @@ class CommunitySocketService {
   final ValueNotifier<int> liveEventQuestionCount = ValueNotifier(0);
   final ValueNotifier<int> totalUnreadChatsCount = ValueNotifier(0);
 
+  /// Incremented whenever the server pushes a 'notification:new' event.
+  /// Dashboard listens to this to refresh the bell badge instantly.
+  final ValueNotifier<int> notificationNewCount = ValueNotifier(0);
+
   final _chatEventController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get chatEvents => _chatEventController.stream;
 
@@ -148,6 +152,12 @@ class CommunitySocketService {
       if (data != null && data is Map && data.containsKey('count')) {
         liveEventQuestionCount.value = data['count'] as int;
       }
+    });
+
+    // ─── Notification badge push ───────────────────────────────────────────────
+    // Server emits this whenever a NotificationHistory record is created for the user.
+    _eventsSocket?.on('notification:new', (_) {
+      notificationNewCount.value++;
     });
 
     _socket?.on('message', (data) {

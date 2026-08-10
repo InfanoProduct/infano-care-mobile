@@ -23,6 +23,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
 
   bool _isLoading = true;
   String _searchQuery = "";
+  String? _currentUserId;   // logged-in user's own ID — excluded from peer results
   List<PeerLineTopic> _topics = [];
   String? _selectedTopicId;
 
@@ -39,6 +40,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
   void initState() {
     super.initState();
     final storage = Provider.of<LocalStorageService>(context, listen: false);
+    _currentUserId = storage.userId;
     _expertService = ExpertService(storage);
     _communityApi = Provider.of<CommunityApi>(context, listen: false);
     _loadInitialData();
@@ -157,9 +159,13 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
 
   List<dynamic> _getFilteredPeers() {
     return _peerMentors.where((m) {
+      // Never show the currently logged-in user in their own peer list
+      final String peerId = (m['id'] ?? '').toString();
+      if (_currentUserId != null && peerId == _currentUserId) return false;
+
       final profile = m['profile'] ?? {};
       final String name = (m['name'] ?? profile['displayName'] ?? '').toString().toLowerCase();
-      
+
       // Filter by query if search query is not empty
       if (_searchQuery.trim().isNotEmpty) {
         return name.contains(_searchQuery.toLowerCase());
@@ -195,32 +201,36 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
         backgroundColor: Colors.white,
         elevation: 0.5,
         iconTheme: const IconThemeData(color: AppColors.textDark),
-        titleSpacing: 0,
-        title: TextField(
-          controller: _searchController,
-          autofocus: true,
-          onChanged: (val) => setState(() => _searchQuery = val),
-          style: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Search chats, mentors, experts...',
-            hintStyle: GoogleFonts.nunito(
-              fontSize: 15,
-              color: Colors.grey.shade400,
+        titleSpacing: 8,
+        title: Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: TextField(
+            controller: _searchController,
+            autofocus: true,
+            onChanged: (val) => setState(() => _searchQuery = val),
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
             ),
-            border: InputBorder.none,
-            suffixIcon: _searchQuery.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() => _searchQuery = "");
-                    },
-                  )
-                : null,
+            decoration: InputDecoration(
+              hintText: 'Search chats, mentors, experts...',
+              hintStyle: GoogleFonts.nunito(
+                fontSize: 15,
+                color: Colors.grey.shade400,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = "");
+                      },
+                    )
+                  : null,
+            ),
           ),
         ),
       ),

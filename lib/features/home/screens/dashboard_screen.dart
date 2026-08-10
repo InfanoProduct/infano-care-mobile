@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -37,11 +38,11 @@ class DashboardScreen extends StatefulWidget {
 
 
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
   bool _isExpanded = true;
   StreamSubscription? _peerlineSocketSub;
+  StreamSubscription? _fcmMessageSub;
   Timer? _collapseTimer;
-  Timer? _notificationsTimer;
   bool _hasUnreadNotifications = false;
 
   final List<int> _tabHistory = [];
@@ -56,14 +57,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _syncProfile();
     _startCollapseTimer();
 
-    // Periodically poll for unread notifications to dynamically update the Bell badge
-    _notificationsTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
-      _checkUnreadNotifications();
-    });
+    // Register lifecycle observer — refetch badge when app comes to foreground
+    WidgetsBinding.instance.addObserver(this);
+
+    // Initial fetch once on load
     _checkUnreadNotifications();
+
+    // Listen to foreground FCM messages — update badge instantly when a push arrives
+    _fcmMessageSub = FirebaseMessaging.onMessage.listen((_) {
+      if (mounted) _checkUnreadNotifications();
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final socket = Provider.of<CommunitySocketService>(context, listen: false);
+
+      // Listen to socket 'notification:new' event — badge updates with zero latency
+      socket.notificationNewCount.addListener(_checkUnreadNotifications);
+
       _peerlineSocketSub = socket.chatEvents.listen((event) {
         if (event['type'] == 'session_ready' && mounted) {
           final sessionId = event['sessionId']?.toString();
@@ -73,6 +83,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
       });
     });
+  }
+
+  /// Refetch notification badge whenever the app returns to the foreground.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkUnreadNotifications();
+    }
   }
 
   void _showSessionReadyDialog(String sessionId) {
@@ -157,9 +175,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Remove socket badge listener
+    final socket = context.read<CommunitySocketService>();
+    socket.notificationNewCount.removeListener(_checkUnreadNotifications);
     _peerlineSocketSub?.cancel();
+    _fcmMessageSub?.cancel();
     _collapseTimer?.cancel();
-    _notificationsTimer?.cancel();
     super.dispose();
   }
 
