@@ -166,7 +166,7 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                       ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.purple.withValues(alpha: 0.1),
+                          backgroundColor: AppColors.purple.withOpacity(0.1),
                           child: Text(
                             contact['name'].substring(0, 1).toUpperCase(),
                             style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold),

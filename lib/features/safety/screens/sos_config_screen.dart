@@ -230,7 +230,7 @@ class _SosConfigScreenState extends State<SosConfigScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFDF2F8), // Soft pink/purple tint
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.purple.withValues(alpha: 0.15)),
+                      border: Border.all(color: AppColors.purple.withOpacity(0.15)),
                     ),
                     child: Column(
                       children: [
@@ -287,7 +287,7 @@ class _SosConfigScreenState extends State<SosConfigScreen> {
                     child: ExpansionTile(
                       shape: const Border(),
                       leading: CircleAvatar(
-                        backgroundColor: (emerg['color'] as Color).withValues(alpha: 0.1),
+                        backgroundColor: (emerg['color'] as Color).withOpacity(0.1),
                         child: Text(
                           emerg['icon'],
                           style: const TextStyle(fontSize: 20),

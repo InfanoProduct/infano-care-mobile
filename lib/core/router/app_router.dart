@@ -46,9 +46,12 @@ import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_cancel_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_active_screen.dart';
-import 'package:infano_care_mobile/features/safety/screens/trusted_contacts_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/contact_picker_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/safety_welcome_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_config_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/sos_type_setup_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/sos_test_screen.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
@@ -455,23 +458,53 @@ GoRouter createRouter(
         },
       ),
 
+      // ── Safety / SOS Module ───────────────────────────────────────────────────────
+      GoRoute(
+        path: '/safety/welcome',
+        builder: (_, _) => const SafetyWelcomeScreen(),
+      ),
       GoRoute(
         path: '/safety/contacts',
-        builder: (_, _) => const TrustedContactsScreen(),
+        builder: (_, state) => ContactPickerScreen(
+          fromWizard: state.uri.queryParameters['wizard'] == 'true',
+        ),
       ),
       GoRoute(
-        path: '/safety/sos_cancel',
-        builder: (_, _) => const SosCancelScreen(),
+        path: '/safety/setup-type',
+        builder: (_, state) => SosTypeSetupScreen(
+          fromWizard: state.uri.queryParameters['wizard'] == 'true',
+        ),
       ),
       GoRoute(
-        path: '/safety/sos_active',
-        builder: (_, state) =>
-            SosActiveScreen(incidentId: state.extra as String?),
+        path: '/safety/test',
+        builder: (_, _) => const SosTestScreen(),
       ),
       GoRoute(
         path: '/safety/sos',
-        builder: (_, _) => const SosScreen(),
+        builder: (_, _) => const SosHubScreen(),
       ),
+      GoRoute(
+        path: '/safety/sos/countdown',
+        builder: (_, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return SosCountdownScreen(
+            emergencyType: extra['emergencyType'] as String? ?? 'physical_threat',
+            contacts: extra['contacts'] as List<dynamic>? ?? [],
+          );
+        },
+      ),
+      GoRoute(
+        path: '/safety/sos/active',
+        builder: (_, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return SosActiveScreen(
+            incidentId: extra['incidentId'] as String?,
+            contacts: extra['contacts'] as List<dynamic>? ?? [],
+            emergencyType: extra['emergencyType'] as String? ?? 'physical_threat',
+          );
+        },
+      ),
+      // Legacy alias kept for backwards compat
       GoRoute(
         path: '/safety/sos_config',
         builder: (_, _) => const SosConfigScreen(),

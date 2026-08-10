@@ -277,7 +277,7 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
                         child: Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor: (cat['color'] as Color).withValues(alpha: 0.1),
+                              backgroundColor: (cat['color'] as Color).withOpacity(0.1),
                               child: Text(
                                 cat['icon'] as String,
                                 style: const TextStyle(fontSize: 20),
@@ -369,7 +369,7 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
                     value: _progressController.value,
                     strokeWidth: 8,
                     color: AppColors.error,
-                    backgroundColor: AppColors.error.withValues(alpha: 0.2),
+                    backgroundColor: AppColors.error.withOpacity(0.2),
                   );
                 },
               ),
@@ -387,7 +387,7 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.error.withValues(alpha: _isHolding ? 0.5 : 0.3),
+                    color: AppColors.error.withOpacity(_isHolding ? 0.5 : 0.3),
                     blurRadius: _isHolding ? 30 : 20,
                     spreadRadius: _isHolding ? 12 : 8,
                   ),

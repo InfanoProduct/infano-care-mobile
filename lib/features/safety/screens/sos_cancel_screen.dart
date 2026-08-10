@@ -1,180 +1,274 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:async';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/features/safety/data/safety_repository.dart';
 
-class SosCancelScreen extends StatefulWidget {
-  const SosCancelScreen({super.key});
+class SosCountdownScreen extends StatefulWidget {
+  final String emergencyType;
+  final List<dynamic> contacts;
+
+  const SosCountdownScreen({
+    super.key,
+    required this.emergencyType,
+    required this.contacts,
+  });
 
   @override
-  State<SosCancelScreen> createState() => _SosCancelScreenState();
+  State<SosCountdownScreen> createState() => _SosCountdownScreenState();
 }
 
-class _SosCancelScreenState extends State<SosCancelScreen> with SingleTickerProviderStateMixin {
-  Timer? _cancelTimer;
-  int _secondsLeft = 5;
-  late AnimationController _progressController;
+class _SosCountdownScreenState extends State<SosCountdownScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ringController;
+  Timer? _countdownTimer;
+  int _secondsLeft = 3;
+  bool _isCancelled = false;
+  bool _isFiring = false;
+
+  double? _lat;
+  double? _lng;
 
   @override
   void initState() {
     super.initState();
-    _progressController = AnimationController(
+    _ringController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 3),
     );
-    _startCancelWindow();
+    _startCountdown();
+    _fetchLocation();
   }
 
   @override
   void dispose() {
-    _cancelTimer?.cancel();
-    _progressController.dispose();
+    _countdownTimer?.cancel();
+    _ringController.dispose();
     super.dispose();
   }
 
-  void _startCancelWindow() {
-    _progressController.reverse(from: 1.0);
-    _cancelTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
-      HapticFeedback.lightImpact();
-      setState(() {
-        _secondsLeft--;
-      });
+  void _startCountdown() {
+    _ringController.reverse(from: 1.0);
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted || _isCancelled) return;
+      HapticFeedback.mediumImpact();
+      setState(() => _secondsLeft--);
       if (_secondsLeft <= 0) {
-        _cancelTimer?.cancel();
-        _triggerSosAlert();
+        t.cancel();
+        _fireAlert();
       }
     });
   }
 
-  void _onCancelPressed() {
-    _cancelTimer?.cancel();
-    _progressController.stop();
-    HapticFeedback.mediumImpact();
-    // Go back to the dashboard without triggering
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go('/home');
+  Future<void> _fetchLocation() async {
+    try {
+      final perm = await Geolocator.requestPermission();
+      if (perm == LocationPermission.always ||
+          perm == LocationPermission.whileInUse) {
+        final pos = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
+        _lat = pos.latitude;
+        _lng = pos.longitude;
+      }
+    } catch (_) {}
+  }
+
+  void _onCancel() {
+    if (_isFiring) return;
+    _isCancelled = true;
+    _countdownTimer?.cancel();
+    _ringController.stop();
+    HapticFeedback.heavyImpact();
+    if (mounted) {
+      if (context.canPop()) context.pop();
     }
   }
 
-  Future<void> _triggerSosAlert() async {
-    // Actually trigger the SOS backend call here
+  Future<void> _fireAlert() async {
+    if (!mounted || _isCancelled) return;
+    setState(() => _isFiring = true);
+
     try {
-      // Mock location for now
-      final response = await ApiService.instance.dio.post('/safety/sos/trigger', data: {
-        'lat': 28.6139,
-        'lng': 77.2090,
-      });
-      final incidentId = response.data['id'];
-      
+      final repo = SafetyRepository(ApiService.instance.dio);
+      final response = await repo.triggerSos(
+        _lat ?? 0.0,
+        _lng ?? 0.0,
+        emergencyType: widget.emergencyType,
+      );
+      final incidentId = response['id']?.toString();
+
       if (mounted) {
-        // Navigate to the active SOS screen
-        context.pushReplacement('/safety/sos_active', extra: incidentId);
+        context.pushReplacement('/safety/sos/active', extra: {
+          'incidentId': incidentId,
+          'contacts': widget.contacts,
+          'emergencyType': widget.emergencyType,
+        });
       }
     } catch (e) {
-      debugPrint('Error triggering SOS: $e');
-      // Even if API fails, we should show the active screen to reassure the user
-      // and maybe retry in the background.
       if (mounted) {
-        context.pushReplacement('/safety/sos_active');
+        context.pushReplacement('/safety/sos/active', extra: {
+          'incidentId': null,
+          'contacts': widget.contacts,
+          'emergencyType': widget.emergencyType,
+        });
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.error,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.warning_amber_rounded, size: 80, color: Colors.white),
-              const SizedBox(height: 32),
-              const Text(
-                'SOS Triggered!',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Alerting your trusted contacts and sharing your location in...',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 18,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-              
-              // Countdown Circle
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 160,
-                    height: 160,
-                    child: AnimatedBuilder(
-                      animation: _progressController,
-                      builder: (context, child) {
-                        return CircularProgressIndicator(
-                          value: _progressController.value,
-                          strokeWidth: 12,
-                          color: Colors.white,
-                          backgroundColor: Colors.white24,
-                        );
-                      },
-                    ),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Dark Crimson Gradient Background
+            Positioned.fill(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF3B0712), Color(0xFF991B1B)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                  Text(
-                    '$_secondsLeft',
-                    style: const TextStyle(
+                ),
+              ),
+            ),
+
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 48),
+                child: Column(
+                  children: [
+                    // Top warning icon
+                    const Icon(
+                      Icons.gpp_maybe_rounded,
+                      size: 72,
                       color: Colors.white,
-                      fontSize: 64,
-                      fontWeight: FontWeight.w900,
+                    )
+                        .animate(onPlay: (c) => c.repeat(reverse: true))
+                        .scale(duration: 800.ms, begin: const Offset(1.0, 1.0), end: const Offset(1.15, 1.15)),
+                    const SizedBox(height: 24),
+
+                    Text(
+                      _isFiring ? 'Alerting Help...' : 'SOS Triggered!',
+                      style: GoogleFonts.nunito(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              
-              const Spacer(),
-              
-              // Cancel Button
-              SizedBox(
-                width: double.infinity,
-                height: 64,
-                child: ElevatedButton(
-                  onPressed: _onCancelPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.error,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'CANCEL ALERT',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
+                    const SizedBox(height: 12),
+
+                    if (!_isFiring) ...[
+                      Text(
+                        'Notifying: ${widget.contacts.take(2).map((c) => c['name']).join(', ')}${widget.contacts.length > 2 ? ' + ${widget.contacts.length - 2} more' : ''}',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ).animate().fade(duration: 300.ms),
+                      const SizedBox(height: 8),
+                      Text(
+                        '📍 Resolving live GPS location...',
+                        style: GoogleFonts.nunito(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 13,
+                        ),
+                      ).animate(onPlay: (c) => c.repeat(reverse: true)).fadeOut(duration: 800.ms),
+                    ],
+
+                    const Spacer(),
+
+                    // Countdown Ring HUD
+                    if (!_isFiring)
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Outer ambient glow ring
+                          Container(
+                            width: 220,
+                            height: 220,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.03),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 190,
+                            height: 190,
+                            child: AnimatedBuilder(
+                              animation: _ringController,
+                              builder: (_, __) => CircularProgressIndicator(
+                                value: _ringController.value,
+                                strokeWidth: 12,
+                                color: Colors.white,
+                                backgroundColor: Colors.white24,
+                                strokeCap: StrokeCap.round,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '$_secondsLeft',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white,
+                              fontSize: 84,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      const SizedBox(
+                        width: 72,
+                        height: 72,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 4.5),
+                      ),
+
+                    const Spacer(),
+
+                    // Cancel button
+                    if (!_isFiring)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 64,
+                        child: ElevatedButton(
+                          onPressed: _onCancel,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppColors.error,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(32)),
+                          ),
+                          child: Text(
+                            '✕   CANCEL ALERT',
+                            style: GoogleFonts.nunito(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                      ).animate().scale(delay: 200.ms, duration: 300.ms, curve: Curves.easeOutBack),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
