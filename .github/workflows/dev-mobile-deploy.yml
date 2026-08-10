@@ -27,6 +27,10 @@ jobs:
         run: flutter pub get
         working-directory: ./
 
+      - name: Generate Code (Build Runner)
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+        working-directory: ./
+
       - name: Build Debug APK
         run: flutter build apk --debug --dart-define=API_URL=${{ secrets.DEV_API_URL }}
         working-directory: ./
