@@ -1,0 +1,173 @@
+import 'package:dio/dio.dart';
+import '../models/creative_journey_models.dart';
+
+class CreativeJourneyRepository {
+  final Dio _dio;
+
+  CreativeJourneyRepository(this._dio);
+
+  // ── Journeys ────────────────────────────────────────────────────────────────
+
+  Future<List<CreativeJourney>> listJourneys() async {
+    final response = await _dio.get('/creative-journey/journeys');
+    return (response.data as List)
+        .map((j) => CreativeJourney.fromJson(j as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CreativeJourney> getJourney(String id) async {
+    final response = await _dio.get('/creative-journey/journeys/$id');
+    return CreativeJourney.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<CreativeEpisode> getEpisode(String episodeId) async {
+    final response = await _dio.get('/creative-journey/episodes/$episodeId');
+    return CreativeEpisode.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  // ── Node Order (seeded shuffle) ─────────────────────────────────────────────
+
+  Future<List<String>> getOrCreateNodeOrder(String episodeId) async {
+    final response =
+        await _dio.get('/creative-journey/episodes/$episodeId/node-order');
+    return List<String>.from(response.data['nodeOrder'] as List);
+  }
+
+  // ── Progress ────────────────────────────────────────────────────────────────
+
+  Future<List<NodeProgress>> getEpisodeProgress(String episodeId) async {
+    try {
+      final response =
+          await _dio.get('/creative-journey/episodes/$episodeId/progress');
+      return (response.data as List)
+          .map((p) => NodeProgress.fromJson(p as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> updateNodeProgress({
+    required String episodeId,
+    required String nodeId,
+    required String status,
+    int xpEarned = 0,
+    String? lastScreen,
+  }) async {
+    await _dio.post(
+      '/creative-journey/episodes/$episodeId/nodes/$nodeId/progress',
+      data: {
+        'status': status,
+        'xpEarned': xpEarned,
+        'lastScreen': lastScreen,
+      },
+    );
+  }
+
+  Future<List<NodeProgress>> getMyProgress() async {
+    final response = await _dio.get('/creative-journey/my-progress');
+    return (response.data as List)
+        .map((p) => NodeProgress.fromJson(p as Map<String, dynamic>))
+        .toList();
+  }
+
+  // ── Ask Gigi ────────────────────────────────────────────────────────────────
+
+  Future<void> saveGigiEntry({
+    required String episodeId,
+    required String nodeId,
+    required String entryText,
+  }) async {
+    await _dio.post(
+      '/creative-journey/episodes/$episodeId/nodes/$nodeId/gigi-entry',
+      data: {'entryText': entryText},
+    );
+  }
+
+  /// Episode-aware Gigi AI call.
+  ///
+  /// [question]        — the raw user question text
+  /// [episodeTitle]    — e.g. "Skin Stories" — restricts Gigi to episode scope
+  /// [episodeTopics]   — short comma-separated list of what the episode covers
+  /// [history]         — previous turns in this Ask Gigi session for continuity
+  Future<String> askGigiAi(
+    String question, {
+    String? episodeTitle,
+    String? episodeTopics,
+    List<Map<String, String>> history = const [],
+  }) async {
+    try {
+      // Build an episode-scoped content string so Gigi's SYSTEM_PROMPT context
+      // knows to restrict answers to the episode's scope.
+      final String scopedContent = _buildScopedContent(
+        question: question,
+        episodeTitle: episodeTitle,
+        episodeTopics: episodeTopics,
+      );
+
+      final response = await _dio.post(
+        '/chat/send',
+        data: {
+          'content': scopedContent,
+          'platform': 'mobile',
+          // Pass previous turns so Gigi has conversational continuity
+          if (history.isNotEmpty) 'history': history,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        // Real API structure: { success: true, data: { message: { content, sender, ... }, sessionId } }
+        final dataWrapper = response.data['data'];
+        if (dataWrapper is Map) {
+          final msg = dataWrapper['message'];
+          if (msg is Map) {
+            final content = msg['content'];
+            if (content != null && content.toString().isNotEmpty) {
+              return content.toString();
+            }
+          }
+          // Fallback: some versions return data.response
+          final fallbackContent = dataWrapper['response'] ?? dataWrapper['content'];
+          if (fallbackContent != null && fallbackContent.toString().isNotEmpty) {
+            return fallbackContent.toString();
+          }
+        }
+        // Legacy flat fallback
+        final legacy = response.data['response'] ?? response.data['message'];
+        if (legacy != null && legacy.toString().isNotEmpty) {
+          return legacy.toString();
+        }
+      }
+    } catch (_) {}
+
+    // Offline / error fallback — still episode-aware
+    if (episodeTitle != null) {
+      return "I'm here for you! 🌸 In this episode on $episodeTitle, there's a lot to explore. If you have a question about ${episodeTopics ?? 'this topic'}, feel free to ask and I'll do my best to help!";
+    }
+    return "I'm here for you! 🌸 Remember, Gigi is always in your corner. Ask me anything about this episode!";
+  }
+
+  /// Wraps the user's question with an episode scope instruction so the
+  /// Gigi AI naturally restricts itself to episode-relevant content.
+  String _buildScopedContent({
+    required String question,
+    String? episodeTitle,
+    String? episodeTopics,
+  }) {
+    if (episodeTitle == null) return question;
+
+    return '''[EPISODE CONTEXT — RESTRICT TO THIS SCOPE ONLY]
+You are answering a question inside the "$episodeTitle" learning episode.
+This episode covers: ${episodeTopics ?? episodeTitle}.
+
+IMPORTANT RULES FOR THIS CONTEXT:
+1. Answer ONLY questions related to the topics covered in this episode.
+2. If the question is completely unrelated to this episode's topics, politely say:
+   "I'm focused on the $episodeTitle episode right now! For anything else, let's connect in the Talk to Gigi chat on your home screen. 💬"
+3. Keep answers warm, age-appropriate (10–16 years), and concise (2–4 sentences max).
+4. Do NOT discuss unrelated topics like family issues, school stress, relationships, etc. — redirect to Talk to Gigi for those.
+
+USER'S QUESTION: $question''';
+  }
+}
+
