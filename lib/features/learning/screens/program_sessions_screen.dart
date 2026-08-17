@@ -149,8 +149,32 @@ class _ProgramSessionsScreenState extends State<ProgramSessionsScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-
+            if (widget.enrollment['batch'] != null) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.groups, size: 16, color: color),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Assigned Batch: ${widget.enrollment['batch']['name']}',
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             // Sessions List
             ...sessionsWithStatus.map((session) {
