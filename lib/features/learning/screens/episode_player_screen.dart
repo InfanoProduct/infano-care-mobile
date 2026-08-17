@@ -722,7 +722,7 @@ class _HookSegmentState extends State<_HookSegment> with SingleTickerProviderSta
               duration: 1500.ms,
               layoutBuilder: (current, previous) => Stack(
                 alignment: Alignment.center,
-                children: [...previous, ?current],
+                children: [...previous, if (current != null) current!],
               ),
               transitionBuilder: (child, animation) {
                 final isIncoming = child.key == ValueKey(_showCTA ? 'cta' : _narrativeTexts[_currentIndex]);
@@ -1473,7 +1473,7 @@ class _QuizSegmentState extends State<_QuizSegment> {
                 ),
               ),
             ),
-            ?trailing,
+            if (trailing != null) trailing!,
           ],
         ),
       ),

@@ -68,7 +68,7 @@ class FriendsApi {
 
   Future<List<Map<String, dynamic>>> getMatches({String? status}) async {
     final response = await _dio.get('/friends/matches', queryParameters: {
-      'status': ?status,
+      if (status != null) 'status': status,
     });
     if (response.data != null && response.data['matches'] is List) {
       return List<Map<String, dynamic>>.from(response.data['matches']);

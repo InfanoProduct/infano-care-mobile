@@ -756,7 +756,7 @@ class _FactTaskContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                    ?icon,
+                    if (icon != null) icon!,
                   ],
                 ),
               ),

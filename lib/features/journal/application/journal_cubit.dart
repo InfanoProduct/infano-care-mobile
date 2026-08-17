@@ -102,12 +102,12 @@ class JournalCubit extends Cubit<JournalState> {
       final dto = {
         'mode': mode,
         'content': content,
-        'promptId': ?promptId,
-        'moodTag': ?moodTag,
-        'moodColor': ?moodColor,
-        'title': ?title,
+        if (promptId != null) 'promptId': promptId,
+        if (moodTag != null) 'moodTag': moodTag,
+        if (moodColor != null) 'moodColor': moodColor,
+        if (title != null) 'title': title,
         'isSealedTimeCapsule': isSealedTimeCapsule,
-        'capsuleRevealDate': ?capsuleRevealDate,
+        if (capsuleRevealDate != null) 'capsuleRevealDate': capsuleRevealDate,
       };
 
       final JournalEntry entry;

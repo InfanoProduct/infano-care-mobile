@@ -12,8 +12,8 @@ class ChatRepository {
         '/chat/send',
         data: {
           'content': content,
-          'sessionId': ?sessionId,
-          'moodCode': ?moodCode,
+          if (sessionId != null) 'sessionId': sessionId,
+          if (moodCode != null) 'moodCode': moodCode,
         },
       );
       return response.data['data'];
@@ -26,7 +26,7 @@ class ChatRepository {
   Future<List<dynamic>> getHistory(String sessionId, {String? cursor, int limit = 20}) async {
     try {
       final queryParams = <String, dynamic>{
-        'cursor': ?cursor,
+        if (cursor != null) 'cursor': cursor,
         'limit': limit,
       };
       
