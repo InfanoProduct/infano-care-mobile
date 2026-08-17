@@ -91,6 +91,11 @@ import 'package:infano_care_mobile/features/journal/screens/journal_composer_scr
 import 'package:infano_care_mobile/features/journal/screens/journal_entry_detail_screen.dart';
 import 'package:infano_care_mobile/features/journal/screens/journal_lock_screen.dart';
 
+// Creative Journey v2 Module
+import 'package:infano_care_mobile/features/creative_journey/screens/creative_journey_hub_screen.dart';
+import 'package:infano_care_mobile/features/creative_journey/screens/journey_detail_screen.dart';
+import 'package:infano_care_mobile/features/creative_journey/screens/episode_path_screen.dart';
+
 String getRouteForStep(String step, {String? periodStatus, String? role}) {
   if (role != null && step == '0') {
     return '/onboarding/name';
@@ -554,6 +559,29 @@ GoRouter createRouter(
         },
       ),
 
+      // ── Creative Learning Journey v2 ────────────────────────────────────────
+      GoRoute(
+        path: '/creative-journey',
+        builder: (_, _) => const CreativeJourneyHubScreen(),
+      ),
+      GoRoute(
+        path: '/creative-journey/journey/:journeyId',
+        builder: (_, state) => CreativeJourneyDetailScreen(
+          journeyId: state.pathParameters['journeyId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/creative-journey/episode/:episodeId',
+        builder: (_, state) => EpisodePathScreen(
+          episodeId: state.pathParameters['episodeId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/creative-journey/episodes/:episodeId',
+        builder: (_, state) => EpisodePathScreen(
+          episodeId: state.pathParameters['episodeId']!,
+        ),
+      ),
       // Learning Journey Module
       GoRoute(
         path: '/learning/journeys',

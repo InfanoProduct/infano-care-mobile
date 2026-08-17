@@ -657,7 +657,31 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               context.push('/account/family');
             },
           ),
-           ListTile(
+          ListTile(
+            leading: Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.auto_awesome_outlined, color: Colors.white, size: 20),
+            ),
+            title: const Text(
+              'Learning Journey ✨',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: const Text(
+              'New • My Changing Body',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/creative-journey');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.workspace_premium_outlined, color: AppColors.purple),
             title: const Text('Enrolled Programs'),
             onTap: () {

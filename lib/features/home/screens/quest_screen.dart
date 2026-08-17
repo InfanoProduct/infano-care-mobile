@@ -712,39 +712,401 @@ class _BadgesTab extends StatelessWidget {
   final List<Badge> badges;
   const _BadgesTab({required this.badges});
 
+  static const List<Map<String, dynamic>> _journeyBadges = [
+    {
+      'id': 'jb_body_timeline',
+      'title': 'The Body Timeline Badge',
+      'journeyName': 'My Changing Body',
+      'emoji': '🗺️',
+      'color': Color(0xFF7C3AED),
+      'bgColor': Color(0xFFEDE9FE),
+      'isEarned': true,
+      'piecesEarned': 5,
+      'totalPieces': 5,
+      'assets': [
+        {'name': 'Mystery Letter Scroll', 'emoji': '📜', 'collected': true},
+        {'name': 'Doorframe Ruler', 'emoji': '📐', 'collected': true},
+        {'name': 'Growth Compass', 'emoji': '🧭', 'collected': true},
+        {'name': 'Confidence Star', 'emoji': '⭐', 'collected': true},
+        {'name': 'Timeline Crest', 'emoji': '🏆', 'collected': true},
+      ],
+    },
+    {
+      'id': 'jb_period_diaries',
+      'title': 'Period Diaries Badge',
+      'journeyName': 'Period Diaries',
+      'emoji': '🩸',
+      'color': Color(0xFFDB2777),
+      'bgColor': Color(0xFFFCE7F3),
+      'isEarned': false,
+      'piecesEarned': 0,
+      'totalPieces': 5,
+      'assets': [
+        {'name': 'Cycle Guide', 'emoji': '🩸', 'collected': false},
+        {'name': 'Self-Care Kit', 'emoji': '🌸', 'collected': false},
+        {'name': 'Myth Buster', 'emoji': '💡', 'collected': false},
+        {'name': 'Discovery Key', 'emoji': '🔑', 'collected': false},
+        {'name': 'Diaries Crest', 'emoji': '👑', 'collected': false},
+      ],
+    },
+    {
+      'id': 'jb_hygiene_hero',
+      'title': 'Hygiene Hero Badge',
+      'journeyName': 'Hygiene Hero',
+      'emoji': '🧼',
+      'color': Color(0xFF059669),
+      'bgColor': Color(0xFFD1FAE5),
+      'isEarned': false,
+      'piecesEarned': 0,
+      'totalPieces': 5,
+      'assets': [
+        {'name': 'Freshness Shield', 'emoji': '🧼', 'collected': false},
+        {'name': 'Glow Spray', 'emoji': '✨', 'collected': false},
+        {'name': 'Cleanliness Wand', 'emoji': '🪄', 'collected': false},
+        {'name': 'Hero Star', 'emoji': '⭐', 'collected': false},
+        {'name': 'Hygiene Crest', 'emoji': '🛡️', 'collected': false},
+      ],
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
-    if (badges.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.shield_outlined,
-                size: 64, color: AppColors.purple.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text('Complete quests to earn badges!',
-                style: GoogleFonts.nunito(
-                    color: AppColors.textLight, fontSize: 16)),
-          ],
-        ),
-      );
-    }
-
-    return GridView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.8,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── LEARNING JOURNEY EPISODE BADGES SECTION ───────────────────────
+          Row(
+            children: [
+              const Text('🛡️', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Text(
+                'Journey Episode Master Badges',
+                style: GoogleFonts.nunito(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Each activity discovery chest contributes a badge asset to assemble these master badges!',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              color: AppColors.textMedium,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Journey Badges Cards
+          ..._journeyBadges.map((jb) {
+            return GestureDetector(
+              onTap: () => _showJourneyBadgeSheet(context, jb),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: (jb['color'] as Color).withValues(alpha: 0.25),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 54,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        color: jb['bgColor'] as Color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: jb['color'] as Color,
+                          width: 2,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          jb['emoji'] as String,
+                          style: const TextStyle(fontSize: 26),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            jb['title'] as String,
+                            style: GoogleFonts.nunito(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            jb['journeyName'] as String,
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: jb['color'] as Color,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: (jb['isEarned'] as bool)
+                                      ? const Color(0xFFFEF3C7)
+                                      : Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  (jb['isEarned'] as bool)
+                                      ? '🏆 Master Badge Assembled'
+                                      : '🧩 ${jb['piecesEarned']}/${jb['totalPieces']} Assets Collected',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: (jb['isEarned'] as bool)
+                                        ? const Color(0xFF92400E)
+                                        : AppColors.textMedium,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textLight),
+                  ],
+                ),
+              ),
+            );
+          }),
+
+          const SizedBox(height: 24),
+
+          // ── STANDARD QUEST BADGES SECTION ─────────────────────────────────
+          Row(
+            children: [
+              const Text('⭐', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Text(
+                'Quest Badges',
+                style: GoogleFonts.nunito(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          if (badges.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(
+                  'Complete daily quests to earn more badges!',
+                  style: GoogleFonts.nunito(color: AppColors.textLight, fontSize: 14),
+                ),
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+                childAspectRatio: 0.82,
+              ),
+              itemCount: badges.length,
+              itemBuilder: (context, index) {
+                final badge = badges[index];
+                return GestureDetector(
+                  onTap: () => _showBadgeDetails(context, badge),
+                  child: _BadgePin(badge: badge),
+                );
+              },
+            ),
+        ],
       ),
-      itemCount: badges.length,
-      itemBuilder: (context, index) {
-        final badge = badges[index];
-        return GestureDetector(
-          onTap: () => _showBadgeDetails(context, badge),
-          child: _BadgePin(badge: badge),
+    );
+  }
+
+  void _showJourneyBadgeSheet(BuildContext context, Map<String, dynamic> jb) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final assets = List<Map<String, dynamic>>.from(jb['assets'] as List);
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Badge Large Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: jb['bgColor'] as Color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: jb['color'] as Color, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (jb['color'] as Color).withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(jb['emoji'] as String, style: const TextStyle(fontSize: 40)),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              Text(
+                jb['title'] as String,
+                style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDark,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              Text(
+                'Journey: ${jb['journeyName']}',
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: jb['color'] as Color,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 16),
+
+              Text(
+                'Collected Badge Assets (Discovery Chests)',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Asset Collection List
+              ...assets.map((ast) {
+                final collected = ast['collected'] as bool;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: collected ? const Color(0xFFFEF3C7) : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: collected ? const Color(0xFFFBBF24) : Colors.grey.shade200,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        collected ? (ast['emoji'] as String) : '🧩',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: collected ? null : Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          ast['name'] as String,
+                          style: GoogleFonts.nunito(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: collected ? AppColors.textDark : AppColors.textLight,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        collected ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                        color: collected ? const Color(0xFFD97706) : Colors.grey.shade400,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                );
+              }),
+
+              const SizedBox(height: 20),
+
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.purple,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    'Close',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
