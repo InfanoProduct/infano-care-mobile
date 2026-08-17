@@ -118,7 +118,7 @@ class SafetyRepository {
     return response.data;
   }
 
-  Future<dynamic?> getActiveIncident() async {
+  Future<dynamic> getActiveIncident() async {
     try {
       final response = await _dio.get('/safety/sos/active');
       return response.data;

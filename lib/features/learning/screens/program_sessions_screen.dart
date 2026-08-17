@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
@@ -149,6 +149,7 @@ class _ProgramSessionsScreenState extends State<ProgramSessionsScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             if (widget.enrollment['batch'] != null) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 12),
