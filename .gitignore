@@ -46,8 +46,6 @@ app.*.map.json
 
 # Generated and Lock files
 pubspec.lock
-*.g.dart
-*.freezed.dart
 .flutter-plugins
 .flutter-plugins-dependencies
 
