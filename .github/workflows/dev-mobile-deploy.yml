@@ -20,7 +20,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'
           channel: 'stable'
           cache: false
 
@@ -29,9 +28,7 @@ jobs:
         working-directory: ./
 
       - name: Generate Code (Build Runner)
-        run: |
-          flutter pub run build_runner clean
-          flutter pub run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs
         working-directory: ./
 
       - name: Build Debug APK
