@@ -500,7 +500,8 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
 
   Widget _buildDrawer(BuildContext context, LocalStorageService storage) {
     return Drawer(
-      child: Column(
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
             decoration: const BoxDecoration(gradient: AppGradients.brandDiagonal),
@@ -567,14 +568,7 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
             title: const Text('Help & Support'),
             onTap: () => Navigator.pop(context),
           ),
-          const Spacer(),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout, color: AppColors.error),
-            title: const Text('Logout', style: TextStyle(color: AppColors.error)),
-            onTap: () => _handleLogout(context),
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
         ],
       ),
     );

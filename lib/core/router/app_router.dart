@@ -199,7 +199,10 @@ GoRouter createRouter(
         path: '/account',
         builder: (_, _) => AccountScreen(storage: storage),
       ),
-      GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+      GoRoute(
+        path: '/settings',
+        builder: (_, _) => SettingsScreen(storage: storage),
+      ),
       GoRoute(
         path: '/account/notifications',
         builder: (_, _) => const NotificationPreferencesScreen(),

@@ -607,7 +607,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   Widget _buildDrawer(BuildContext context, LocalStorageService storage) {
     return Drawer(
-      child: Column(
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
             decoration: const BoxDecoration(
@@ -697,7 +698,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               context.push('/good-to-know');
             },
           ),
-
           ListTile(
             leading: const Icon(Icons.shopping_bag_outlined, color: AppColors.purple),
             title: const Text('My Orders'),
@@ -719,14 +719,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             title: const Text('Help & Support'),
             onTap: () => Navigator.pop(context),
           ),
-          const Spacer(),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout, color: AppColors.error),
-            title: const Text('Logout', style: TextStyle(color: AppColors.error)),
-            onTap: () => _handleLogout(context),
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
         ],
       ),
     );
