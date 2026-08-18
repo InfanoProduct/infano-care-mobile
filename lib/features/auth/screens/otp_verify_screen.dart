@@ -200,7 +200,6 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
               appContext: context,
               length: 4,
               animationType: AnimationType.scale,
-              autofillHints: const [AutofillHints.oneTimeCode],
               pinTheme: PinTheme(
                 shape: PinCodeFieldShape.box, 
                 borderRadius: BorderRadius.circular(16),
