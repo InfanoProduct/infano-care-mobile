@@ -198,16 +198,17 @@ class _ScenarioChoiceWidgetState extends State<ScenarioChoiceWidget> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF4C1D95), Color(0xFF7C3AED)],
+          colors: [Color(0xFFF5F3FF), Color(0xFFFDF2F8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFDDD6FE), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
             blurRadius: 16,
-            offset: const Offset(0, 5),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -218,12 +219,12 @@ class _ScenarioChoiceWidgetState extends State<ScenarioChoiceWidget> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: const Color(0xFFEDE9FE),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               rolePrompt,
-              style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFFFDE047), letterSpacing: 0.5),
+              style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF7C3AED), letterSpacing: 0.5),
             ),
           ),
           const SizedBox(height: 14),
@@ -238,7 +239,7 @@ class _ScenarioChoiceWidgetState extends State<ScenarioChoiceWidget> {
                   style: GoogleFonts.nunito(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: const Color(0xFF1E1B4B),
                     height: 1.55,
                   ),
                 ),
@@ -351,43 +352,91 @@ class _ScenarioChoiceWidgetState extends State<ScenarioChoiceWidget> {
     if (selected == null) return const SizedBox.shrink();
 
     final choice = _choices[selected];
-    final isBest = (choice['isBest'] as bool?) ?? false;
-    final gigiResponse = choice['gigiResponse'] as String? ?? '';
+    final isBest = (choice['isBest'] as bool?) ?? (choice['isCorrect'] as bool?) ?? false;
+    final gigiResponse = (choice['gigiResponse'] as String?) ??
+        (choice['gigiSays'] as String?) ??
+        (choice['feedback'] as String?) ??
+        (choice['gigiInsight'] as String?) ??
+        (choice['explanation'] as String?) ??
+        (_current['gigiResponse'] as String?) ??
+        (_current['gigiSays'] as String?) ??
+        (_current['feedback'] as String?) ??
+        'Gigi loves that you took time to reflect on this response! 💖';
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isBest ? const Color(0xFFECFDF5) : const Color(0xFFFEF9C3),
+        color: isBest ? const Color(0xFFECFDF5) : const Color(0xFFFDF2F8),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isBest ? const Color(0xFF34D399) : const Color(0xFFFBBF24),
+          color: isBest ? const Color(0xFF10B981) : const Color(0xFFF472B6),
           width: 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (isBest ? const Color(0xFF10B981) : const Color(0xFFF472B6)).withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(isBest ? '🌸' : '💛', style: const TextStyle(fontSize: 22)),
-          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.purple.withValues(alpha: 0.1),
+                  blurRadius: 6,
+                ),
+              ],
+            ),
+            child: const Text('🌸', style: TextStyle(fontSize: 22)),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  isBest ? 'Gigi loves this!' : 'Gigi says:',
-                  style: GoogleFonts.nunito(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w900,
-                    color: isBest ? const Color(0xFF065F46) : const Color(0xFF92400E),
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Gigi Says:',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: isBest ? const Color(0xFF047857) : const Color(0xFFBE185D),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isBest ? const Color(0xFFD1FAE5) : const Color(0xFFFCE7F3),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        isBest ? '🌟 Wise Choice' : '💖 Helpful Reflection',
+                        style: GoogleFonts.nunito(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: isBest ? const Color(0xFF047857) : const Color(0xFFBE185D),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   gigiResponse,
                   style: GoogleFonts.nunito(
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isBest ? const Color(0xFF065F46) : const Color(0xFF78350F),
+                    fontWeight: FontWeight.w700,
+                    color: isBest ? const Color(0xFF064E3B) : const Color(0xFF881337),
                     height: 1.45,
                   ),
                 ),

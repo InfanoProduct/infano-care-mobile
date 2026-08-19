@@ -890,7 +890,7 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Continue Journey • Collect XP ⭐',
+                    'Continue Journey • Collect 🪙 Coins',
                     style: GoogleFonts.nunito(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,

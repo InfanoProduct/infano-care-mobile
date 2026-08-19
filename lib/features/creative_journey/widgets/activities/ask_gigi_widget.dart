@@ -426,23 +426,26 @@ class _AskGigiWidgetState extends State<AskGigiWidget> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.purple,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEDE9FE), Color(0xFFFCE7F3)],
+                        ),
                         borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFFC4B5FD), width: 1.5),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.purple.withValues(alpha: 0.35),
+                            color: const Color(0xFFA78BFA).withValues(alpha: 0.2),
                             blurRadius: 14,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Text(
-                        'Collect XP ⭐',
+                        'Collect 🪙 Coins',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.nunito(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                          color: const Color(0xFF4C1D95),
                         ),
                       ),
                     ),
@@ -566,8 +569,15 @@ class _AskGigiWidgetState extends State<AskGigiWidget> {
           children: [
             Row(
               children: [
-                const Text('🌸', style: TextStyle(fontSize: 18)),
-                const SizedBox(width: 6),
+                ClipOval(
+                  child: Image.asset(
+                    'assets/images/gigi_avatar.png',
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Text(
                   'Gigi says:',
                   style: GoogleFonts.nunito(

@@ -33,7 +33,7 @@ class JourneyPastelStyle {
       heroGradientEnd: Color(0xFFF5F3FF),
       cardBg: Color(0xFFF5F3FF),
       cardBorder: Color(0xFFDDD6FE),
-      ctaColor: Color(0xFF7C3AED),
+      ctaColor: Color(0xFF8B5CF6),
       textColor: Color(0xFF1E1B4B),
     ),
     // 1: Period Diaries (Soft Rose / Pink)
@@ -74,31 +74,31 @@ class PastelEpisodeTheme {
     PastelEpisodeTheme(
       bg: Color(0xFFF5F3FF),
       border: Color(0xFFDDD6FE),
-      iconGradientStart: Color(0xFF7C3AED),
-      iconGradientEnd: Color(0xFFEC4899),
+      iconGradientStart: Color(0xFFC4B5FD),
+      iconGradientEnd: Color(0xFFA78BFA),
     ),
     PastelEpisodeTheme(
       bg: Color(0xFFFDF2F8),
       border: Color(0xFFFBCFE8),
-      iconGradientStart: Color(0xFFEC4899),
+      iconGradientStart: Color(0xFFFBCFE8),
       iconGradientEnd: Color(0xFFF472B6),
     ),
     PastelEpisodeTheme(
       bg: Color(0xFFF0FDF4),
       border: Color(0xFFA7F3D0),
-      iconGradientStart: Color(0xFF059669),
+      iconGradientStart: Color(0xFFA7F3D0),
       iconGradientEnd: Color(0xFF34D399),
     ),
     PastelEpisodeTheme(
       bg: Color(0xFFFFFBEB),
       border: Color(0xFFFDE68A),
-      iconGradientStart: Color(0xFFD97706),
+      iconGradientStart: Color(0xFFFDE68A),
       iconGradientEnd: Color(0xFFFBBF24),
     ),
     PastelEpisodeTheme(
       bg: Color(0xFFEFF6FF),
       border: Color(0xFFBFDBFE),
-      iconGradientStart: Color(0xFF2563EB),
+      iconGradientStart: Color(0xFFBFDBFE),
       iconGradientEnd: Color(0xFF60A5FA),
     ),
   ];
@@ -278,24 +278,14 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
 
     // Collect all node IDs for this episode
     final epNodeIds = episode.nodes.map((n) => n.nodeId).toSet();
-    final prefix = episode.nodes.first.nodeId.split('_').first;
 
-    // Check if reflection / end node of this episode is completed
-    final reflectionNode = episode.nodes.firstWhere(
-      (n) => n.type == 'reflection_reward' || n.position == 'fixed_end',
-      orElse: () => episode.nodes.last,
-    );
-
-    final isReflectionDone = _progress.any((p) => p.nodeId == reflectionNode.nodeId && p.isCompleted);
-
-    // Count completed nodes matching this episode's node IDs or prefix
+    // Count completed nodes matching this episode's node IDs
     final completedCount = _progress
-        .where((p) => p.isCompleted && (epNodeIds.contains(p.nodeId) || p.nodeId.startsWith('${prefix}_')))
+        .where((p) => p.isCompleted && epNodeIds.contains(p.nodeId))
         .length;
 
-    // Episode is completed if reflection/end node is done OR if at least 3 nodes are completed
-    final minReq = epNodeIds.length >= 3 ? 3 : 1;
-    return isReflectionDone || completedCount >= minReq;
+    // Episode is completed ONLY when ALL nodes in this episode are completed
+    return completedCount >= epNodeIds.length;
   }
 
   bool _isEpisodeUnlocked(CreativeEpisode episode, int index) {
@@ -362,10 +352,10 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
                     ),
                     child: Row(
                       children: [
-                        const Text('⭐', style: TextStyle(fontSize: 14)),
+                        const Text('🪙', style: TextStyle(fontSize: 14)),
                         const SizedBox(width: 4),
                         Text(
-                          '$totalXp XP',
+                          '500 Coins',
                           style: GoogleFonts.nunito(
                             fontSize: 13,
                             fontWeight: FontWeight.w900,
@@ -573,10 +563,10 @@ class _EpisodeCard extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text('⭐', style: TextStyle(fontSize: 11)),
+                                const Text('🪙', style: TextStyle(fontSize: 11)),
                                 const SizedBox(width: 3),
                                 Text(
-                                  '+${episode.totalXP} XP',
+                                  '+83 Coins',
                                   style: GoogleFonts.nunito(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -611,13 +601,16 @@ class _EpisodeCard extends StatelessWidget {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: isNextEpisode
-                                      ? const [Color(0xFFEC4899), Color(0xFFDB2777)]
+                                      ? const [Color(0xFFEDE9FE), Color(0xFFFCE7F3)]
                                       : [theme.iconGradientStart, theme.iconGradientEnd],
                                 ),
                                 borderRadius: BorderRadius.circular(14),
+                                border: isNextEpisode
+                                    ? Border.all(color: const Color(0xFFC4B5FD), width: 1.5)
+                                    : null,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (isNextEpisode ? const Color(0xFFDB2777) : theme.iconGradientStart).withValues(alpha: 0.35),
+                                    color: (isNextEpisode ? const Color(0xFFA78BFA) : theme.iconGradientStart).withValues(alpha: 0.25),
                                     blurRadius: 10,
                                     offset: const Offset(0, 3),
                                   ),
@@ -631,11 +624,15 @@ class _EpisodeCard extends StatelessWidget {
                                     style: GoogleFonts.nunito(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w900,
-                                      color: Colors.white,
+                                      color: isNextEpisode ? const Color(0xFF4C1D95) : Colors.white,
                                     ),
                                   ),
                                   const SizedBox(width: 6),
-                                  const Icon(Icons.arrow_forward_rounded, size: 13, color: Colors.white),
+                                  Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 13,
+                                    color: isNextEpisode ? const Color(0xFF4C1D95) : Colors.white,
+                                  ),
                                 ],
                               ),
                             )

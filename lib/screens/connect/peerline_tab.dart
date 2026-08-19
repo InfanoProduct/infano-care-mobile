@@ -922,6 +922,7 @@ class _PendingRequestCard extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(ctx);
               final api = Provider.of<CommunityApi>(context, listen: false);
+              final messenger = ScaffoldMessenger.of(context);
               try {
                 await api.cancelConnection(session.id);
                 onCancelled();

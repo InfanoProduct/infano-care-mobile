@@ -149,9 +149,9 @@ class _QuizWidgetState extends State<QuizWidget> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
+                    color: const Color(0xFFF3E8FF),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFBBF24)),
+                    border: Border.all(color: AppColors.purple.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
@@ -162,7 +162,7 @@ class _QuizWidgetState extends State<QuizWidget> {
                         style: GoogleFonts.nunito(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFFB45309),
+                          color: AppColors.purple,
                         ),
                       ),
                     ],
@@ -215,16 +215,17 @@ class _QuizWidgetState extends State<QuizWidget> {
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF4C1D95), Color(0xFF7C3AED)],
+                colors: [Color(0xFFF5F3FF), Color(0xFFFDF2F8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0xFFDDD6FE), width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.purple.withValues(alpha: 0.35),
+                  color: AppColors.purple.withValues(alpha: 0.08),
                   blurRadius: 18,
-                  offset: const Offset(0, 6),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -236,7 +237,7 @@ class _QuizWidgetState extends State<QuizWidget> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: const Color(0xFFEDE9FE),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -244,7 +245,7 @@ class _QuizWidgetState extends State<QuizWidget> {
                         style: GoogleFonts.nunito(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFFFDE047),
+                          color: const Color(0xFF7C3AED),
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -253,12 +254,12 @@ class _QuizWidgetState extends State<QuizWidget> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  q['text'] as String? ?? '',
+                  (q['text'] as String?) ?? (q['question'] as String?) ?? (q['statement'] as String?) ?? '',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.nunito(
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: const Color(0xFF1E1B4B),
                     height: 1.45,
                   ),
                 ),
@@ -415,10 +416,10 @@ class _QuizWidgetState extends State<QuizWidget> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: selected == correct ? const Color(0xFFECFDF5) : const Color(0xFFFEF9C3),
+                color: selected == correct ? const Color(0xFFECFDF5) : const Color(0xFFF3E8FF),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: selected == correct ? AppColors.success.withValues(alpha: 0.4) : const Color(0xFFFDE68A),
+                  color: selected == correct ? AppColors.success.withValues(alpha: 0.4) : AppColors.purple.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
               ),
@@ -426,7 +427,7 @@ class _QuizWidgetState extends State<QuizWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    selected == correct ? '🌸' : '👩‍⚕️',
+                    selected == correct ? '✨' : '👩‍⚕️',
                     style: const TextStyle(fontSize: 22),
                   ),
                   const SizedBox(width: 10),
@@ -439,16 +440,20 @@ class _QuizWidgetState extends State<QuizWidget> {
                           style: GoogleFonts.nunito(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w900,
-                            color: selected == correct ? const Color(0xFF047857) : const Color(0xFF92400E),
+                            color: selected == correct ? const Color(0xFF047857) : AppColors.purple,
                           ),
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          q['feedback'] as String? ?? '',
+                          (q['explanation'] as String?) ??
+                          (q['feedback'] as String?) ??
+                          (q['gigiResponse'] as String?) ??
+                          (q['gigiInsight'] as String?) ??
+                          (q['doctorSays'] as String?) ?? '',
                           style: GoogleFonts.nunito(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: selected == correct ? const Color(0xFF065F46) : const Color(0xFF78350F),
+                            color: selected == correct ? const Color(0xFF065F46) : AppColors.textDark,
                             height: 1.45,
                           ),
                         ),
@@ -514,7 +519,8 @@ class _QuizWidgetState extends State<QuizWidget> {
   // ── 🏆 GAMIFIED RESULTS SCREEN ─────────────────────────────────────────────
   Widget _buildResults() {
     final passed = accuracy >= 0.6;
-    final totalXp = widget.content['xpReward'] as int? ?? 25;
+    final maxCoins = widget.content['coinsReward'] as int? ?? widget.content['xpReward'] as int? ?? 10;
+    final totalXp = passed ? (accuracy * maxCoins).round().clamp(1, maxCoins) : 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -528,7 +534,7 @@ class _QuizWidgetState extends State<QuizWidget> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: passed
-                    ? [const Color(0xFFFEF9C3), const Color(0xFFFDE68A)]
+                    ? [const Color(0xFFFFF7ED), const Color(0xFFFFEDD5)]
                     : [const Color(0xFFF5F3FF), const Color(0xFFDDD6FE)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -536,7 +542,7 @@ class _QuizWidgetState extends State<QuizWidget> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (passed ? const Color(0xFFFBBF24) : AppColors.purple).withValues(alpha: 0.35),
+                  color: (passed ? const Color(0xFFFDBA74) : AppColors.purple).withValues(alpha: 0.35),
                   blurRadius: 24,
                   offset: const Offset(0, 6),
                 ),
@@ -593,13 +599,13 @@ class _QuizWidgetState extends State<QuizWidget> {
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFFEF9C3), Color(0xFFFDE68A)],
+                colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
               ),
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFFBBF24)),
+              border: Border.all(color: const Color(0xFFFDBA74)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFBBF24).withValues(alpha: 0.2),
+                  color: const Color(0xFFF97316).withValues(alpha: 0.15),
                   blurRadius: 12,
                 ),
               ],
@@ -607,17 +613,17 @@ class _QuizWidgetState extends State<QuizWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('⭐', style: TextStyle(fontSize: 24)),
+                const Text('🪙', style: TextStyle(fontSize: 24)),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '+$totalXp XP EARNED!',
+                      '+$totalXp COINS EARNED! 🪙',
                       style: GoogleFonts.nunito(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: const Color(0xFF78350F),
+                        color: const Color(0xFF9A3412),
                       ),
                     ),
                     if (_maxStreak > 1)
@@ -626,7 +632,7 @@ class _QuizWidgetState extends State<QuizWidget> {
                         style: GoogleFonts.nunito(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: const Color(0xFFB45309),
+                          color: const Color(0xFFC2410C),
                         ),
                       ),
                   ],
@@ -690,7 +696,7 @@ class _QuizWidgetState extends State<QuizWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Continue Journey • Collect XP ⭐',
+                    'Continue Journey • Collect 🪙 Coins',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.nunito(
                       fontSize: 16,

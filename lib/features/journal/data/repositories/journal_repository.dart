@@ -24,14 +24,14 @@ class JournalRepository {
     final res = await _dio.post('/journal/entries', data: {
       'mode': mode,
       'content': content,
-      if (promptId != null) 'promptId': promptId,
-      if (moodTag != null) 'moodTag': moodTag,
-      if (moodColor != null) 'moodColor': moodColor,
-      if (title != null) 'title': title,
+      'promptId': ?promptId,
+      'moodTag': ?moodTag,
+      'moodColor': ?moodColor,
+      'title': ?title,
       'isSealedTimeCapsule': isSealedTimeCapsule,
-      if (capsuleRevealDate != null) 'capsuleRevealDate': capsuleRevealDate,
+      'capsuleRevealDate': ?capsuleRevealDate,
       'visibility': visibility,
-      if (linkedLearningEpisodeId != null) 'linkedLearningEpisodeId': linkedLearningEpisodeId,
+      'linkedLearningEpisodeId': ?linkedLearningEpisodeId,
     });
     return JournalEntry.fromJson(res.data['data'] as Map<String, dynamic>);
   }
@@ -46,9 +46,9 @@ class JournalRepository {
     final res = await _dio.get('/journal/entries', queryParameters: {
       'page': page,
       'limit': limit,
-      if (mode != null) 'mode': mode,
-      if (from != null) 'from': from,
-      if (to != null) 'to': to,
+      'mode': ?mode,
+      'from': ?from,
+      'to': ?to,
     });
     final data = res.data as Map<String, dynamic>;
     return {
@@ -86,7 +86,7 @@ class JournalRepository {
 
   Future<JournalPrompt?> getRandomPrompt({String? category}) async {
     final res = await _dio.get('/journal/prompts/jar',
-        queryParameters: {if (category != null) 'category': category});
+        queryParameters: {'category': ?category});
     final data = res.data['data'];
     if (data == null) return null;
     return JournalPrompt.fromJson(data as Map<String, dynamic>);
@@ -132,7 +132,7 @@ class JournalRepository {
     bool isAnonymous = false,
   }) async {
     await _dio.post('/journal/entries/$entryId/share', data: {
-      if (circleId != null) 'circleId': circleId,
+      'circleId': ?circleId,
       if (caption != null && caption.isNotEmpty) 'caption': caption,
       'isAnonymous': isAnonymous,
     });

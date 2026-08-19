@@ -16,9 +16,14 @@ import '../widgets/activities/ask_gigi_widget.dart';
 import '../widgets/activities/emoji_decoder_widget.dart';
 import '../widgets/activities/match_pairs_widget.dart';
 import '../widgets/activities/drag_to_label_widget.dart';
+import '../widgets/activities/drag_to_sort_widget.dart';
 import '../widgets/activities/scenario_choice_widget.dart';
+import '../widgets/activities/mirror_reflection_flip_widget.dart';
+import '../widgets/activities/comparison_filter_unmask_widget.dart';
+import '../widgets/activities/body_appreciation_jar_widget.dart';
 import 'story_comic_screen.dart';
 import 'reflection_reward_screen.dart';
+import 'package:infano_care_mobile/widgets/coin_burst_overlay.dart';
 
 class NodeActivityScreen extends StatefulWidget {
   final CreativeNode node;
@@ -86,11 +91,11 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
               ],
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Text('⭐', style: TextStyle(fontSize: 12)),
+              const Text('🪙', style: TextStyle(fontSize: 12)),
               const SizedBox(width: 4),
               Text(
-                '+${widget.node.xpReward}',
-                style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF92400E)),
+                '+${widget.node.xpReward} Coins',
+                style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFFB45309)),
               ),
             ]),
           ),
@@ -115,19 +120,19 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
               height: 100,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
+                  colors: [Color(0xFFF3E8FF), Color(0xFFFDF2F8)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFF59E0B).withValues(alpha: 0.25),
+                    color: AppColors.purple.withValues(alpha: 0.25),
                     blurRadius: 20,
                     offset: const Offset(0, 6),
                   ),
                 ],
-                border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4), width: 3),
+                border: Border.all(color: AppColors.purple.withValues(alpha: 0.35), width: 3),
               ),
               child: Center(
                 child: Text(
@@ -165,11 +170,11 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
                   const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 16),
                   const SizedBox(width: 6),
                   Text(
-                    '+${widget.node.xpReward} XP Collected ⭐',
+                    '+${widget.node.xpReward} Coins Collected 🪙',
                     style: GoogleFonts.nunito(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.success,
+                      color: const Color(0xFF047857),
                     ),
                   ),
                 ],
@@ -266,8 +271,21 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
   }
 
   Widget _buildActivity(BuildContext context) {
-    final content = widget.node.content ?? {};
-    void complete() => widget.onCompleted(widget.node.xpReward);
+    final content = {
+      ...?widget.node.content,
+      'xpReward': widget.node.xpReward,
+      'coinsReward': widget.node.xpReward,
+    };
+    void complete([int? customCoins]) {
+      final earnedCoins = customCoins ?? widget.node.xpReward;
+      CoinBurstOverlay.show(
+        context,
+        coinsEarned: earnedCoins,
+        onComplete: () {
+          widget.onCompleted(earnedCoins);
+        },
+      );
+    }
 
     return switch (widget.node.type) {
       'story' => StoryComicScreen(content: content, onCompleted: complete),
@@ -294,7 +312,11 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
       'emoji_decoder' => EmojiDecoderWidget(content: content, onCompleted: complete),
       'match_pairs' => MatchPairsWidget(content: content, onCompleted: complete),
       'drag_to_label' => DragToLabelWidget(content: content, onCompleted: complete),
+      'drag_to_sort' => DragToSortWidget(content: content, onCompleted: complete),
       'scenario_choice' => ScenarioChoiceWidget(content: content, onCompleted: complete),
+      'mirror_reflection_flip' => MirrorReflectionFlipWidget(content: content, onCompleted: complete),
+      'comparison_filter_unmask' => ComparisonFilterUnmaskWidget(content: content, onCompleted: complete),
+      'body_appreciation_jar' => BodyAppreciationJarWidget(content: content, onCompleted: complete),
       'reflection_reward' => ReflectionRewardScreen(
           content: content,
           episodeTitle: widget.node.title,
@@ -321,7 +343,7 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
               color: AppColors.purple,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text('Collect XP ⭐', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+            child: Text('Collect 🪙 Coins', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
           ),
         ),
       ]),

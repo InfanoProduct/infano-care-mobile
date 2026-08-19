@@ -288,19 +288,19 @@ class _SpotTheChangeWidgetState extends State<SpotTheChangeWidget> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF4C1D95), // Deep Purple
-            Color(0xFF7C3AED), // Vibrant Violet
-            Color(0xFFDB2777), // Neon Pink
+            Color(0xFFF5F3FF),
+            Color(0xFFFDF2F8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFFDDD6FE), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
             blurRadius: 20,
-            offset: const Offset(0, 8),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -312,7 +312,7 @@ class _SpotTheChangeWidgetState extends State<SpotTheChangeWidget> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: const Color(0xFFEDE9FE),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -324,7 +324,7 @@ class _SpotTheChangeWidgetState extends State<SpotTheChangeWidget> {
                       style: GoogleFonts.nunito(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: const Color(0xFF7C3AED),
                         letterSpacing: 0.8,
                       ),
                     ),
@@ -335,7 +335,7 @@ class _SpotTheChangeWidgetState extends State<SpotTheChangeWidget> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: const Color(0xFFFCE7F3),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -343,7 +343,7 @@ class _SpotTheChangeWidgetState extends State<SpotTheChangeWidget> {
                   style: GoogleFonts.nunito(
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFFFDE047),
+                    color: const Color(0xFFDB2777),
                   ),
                 ),
               ),
@@ -865,7 +865,7 @@ class _SpotTheChangeWidgetState extends State<SpotTheChangeWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Continue Journey • Collect XP ⭐',
+                    'Continue Journey • Collect 🪙 Coins',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.nunito(
                       fontSize: 16,

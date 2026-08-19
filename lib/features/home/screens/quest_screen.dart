@@ -638,15 +638,14 @@ class _QuestCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.stars_rounded,
-                          size: 14, color: AppColors.bloom),
+                      const Text('🪙', style: TextStyle(fontSize: 12)),
                       const SizedBox(width: 3),
                       Text(
-                        '${template.pointsBase} pts',
+                        '${template.pointsBase} Coins',
                         style: GoogleFonts.nunito(
                           fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.bloom,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFB45309),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -1675,9 +1674,9 @@ class _WeeklyTab extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          '+${challenge.rewardPoints} XP',
+                          '+${challenge.rewardPoints} Coins 🪙',
                           style: GoogleFonts.nunito(
-                            color: AppColors.bloom,
+                            color: const Color(0xFFB45309),
                             fontWeight: FontWeight.w800,
                             fontSize: 12,
                           ),

@@ -313,7 +313,6 @@ class TrackScreen extends StatelessWidget {
           onCenterTap: () {
             final currentPhase = prediction?.currentPhase;
             final isDelayed = currentPhase == 'delayed' || 
-                              currentPhase == 'late' || 
                               (prediction != null && prediction.cycleDay > profile.avgCycleLength);
             if (isDelayed) {
               final duration = profile.avgPeriodDuration;

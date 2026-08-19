@@ -70,17 +70,9 @@ import 'package:infano_care_mobile/features/expert/screens/expert_enrollment_det
 // Learning Journey Imports
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
-import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
-import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
-import 'package:infano_care_mobile/features/learning/application/journey_detail_bloc.dart';
-import 'package:infano_care_mobile/features/learning/application/episode_player_bloc.dart';
-import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/payments_and_orders_screens.dart';
 import 'package:infano_care_mobile/features/learning/screens/order_details_screen.dart';
-import 'package:infano_care_mobile/features/learning/screens/journey_detail_screen.dart';
-import 'package:infano_care_mobile/features/learning/screens/episode_player_screen.dart';
-import 'package:infano_care_mobile/features/learning/models/learning_models.dart';
 
 // Journal Module Imports
 import 'package:infano_care_mobile/features/journal/application/journal_cubit.dart';
@@ -586,15 +578,10 @@ GoRouter createRouter(
         ),
       ),
       // Learning Journey Module
+      // Learning Journey Module Redirect to Creative Journey v2
       GoRoute(
         path: '/learning/journeys',
-        builder: (_, _) {
-          final repo = LearningRepository(ApiService.instance.dio);
-          return BlocProvider(
-            create: (context) => JourneyListBloc(repo),
-            child: const JourneyExplorerScreen(),
-          );
-        },
+        builder: (_, _) => const CreativeJourneyHubScreen(),
       ),
       GoRoute(
         path: '/learning/programs',
@@ -618,46 +605,6 @@ GoRouter createRouter(
           enrollmentId: state.pathParameters['id']!,
           storage: storage,
         ),
-      ),
-      GoRoute(
-        path: '/journey/:id',
-        builder: (_, state) {
-          final journeyId = state.pathParameters['id']!;
-          final repo = LearningRepository(ApiService.instance.dio);
-          return BlocProvider(
-            create: (context) =>
-                JourneyDetailBloc(repo)
-                  ..add(JourneyDetailEvent.loadJourney(journeyId)),
-            child: JourneyDetailScreen(journeyId: journeyId),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/journey/:id/episode/:episodeId',
-        builder: (_, state) {
-          // DEFENSIVE PARSING: Handle both Episode objects and raw JSON maps
-          final extra = state.extra;
-          final Episode episode;
-
-          if (extra is Episode) {
-            episode = extra;
-          } else if (extra is Map<String, dynamic>) {
-            episode = Episode.fromJson(extra);
-          } else {
-            // Fallback: If no extra is provided, we should ideally fetch it,
-            // but for now we'll throw a more descriptive error or use a dummy.
-            // This prevents the 'subtype' crash in the UI.
-            throw Exception(
-              'Episode data missing from route. Expected Episode or Map.',
-            );
-          }
-
-          final repo = LearningRepository(ApiService.instance.dio);
-          return BlocProvider(
-            create: (context) => EpisodePlayerBloc(repo),
-            child: EpisodePlayerScreen(episode: episode),
-          );
-        },
       ),
     ],
   );

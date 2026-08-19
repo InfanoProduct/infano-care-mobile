@@ -317,6 +317,7 @@ class _JournalComposerScreenState extends State<JournalComposerScreen>
     if (!_hasUserContent() && !silent) return;
 
     final journalCubit = context.read<JournalCubit>();
+
     if (_mode == JournalMode.voiceNote && _isRecording) {
       await _stopRecording();
     }

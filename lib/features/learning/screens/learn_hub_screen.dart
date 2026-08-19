@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/features/learning/repositories/learning_repository.dart';
-import 'package:infano_care_mobile/features/learning/application/journey_list_bloc.dart';
-import 'package:infano_care_mobile/features/learning/screens/journey_explorer_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/program_sessions_screen.dart';
+import 'package:infano_care_mobile/features/creative_journey/screens/creative_journey_hub_screen.dart';
 
 class LearnHubScreen extends StatefulWidget {
   const LearnHubScreen({super.key, required this.storage});
@@ -22,26 +20,7 @@ class LearnHubScreen extends StatefulWidget {
 class _LearnHubScreenState extends State<LearnHubScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Learn Hub',
-          style: TextStyle(
-            color: AppColors.purple,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: BlocProvider(
-        create: (context) => JourneyListBloc(
-          LearningRepository(ApiService.instance.dio),
-        )..add(const JourneyListEvent.loadJourneys()),
-        child: const JourneyExplorerScreen(isEmbedded: true),
-      ),
-    );
+    return const CreativeJourneyHubScreen();
   }
 }
 
