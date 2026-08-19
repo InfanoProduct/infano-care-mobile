@@ -758,24 +758,58 @@ class _DemoBookingFormState extends State<_DemoBookingForm> {
   bool _isSuccess = false;
 
   final List<String> _timeSlots = [
-    '09:00 AM - 10:00 AM',
-    '10:00 AM - 11:00 AM',
-    '11:00 AM - 12:00 PM',
-    '12:00 PM - 01:00 PM',
-    '02:00 PM - 03:00 PM',
-    '03:00 PM - 04:00 PM',
-    '04:00 PM - 05:00 PM',
-    '05:00 PM - 06:00 PM',
-    '06:00 PM - 07:00 PM',
+    '09:00 AM - 09:30 AM',
+    '09:30 AM - 10:00 AM',
+    '10:00 AM - 10:30 AM',
+    '10:30 AM - 11:00 AM',
+    '11:00 AM - 11:30 AM',
+    '11:30 AM - 12:00 PM',
+    '12:00 PM - 12:30 PM',
+    '12:30 PM - 01:00 PM',
+    '02:00 PM - 02:30 PM',
+    '02:30 PM - 03:00 PM',
+    '03:00 PM - 03:30 PM',
+    '03:30 PM - 04:00 PM',
+    '04:00 PM - 04:30 PM',
+    '04:30 PM - 05:00 PM',
+    '05:00 PM - 05:30 PM',
+    '05:30 PM - 06:00 PM',
+    '06:00 PM - 06:30 PM',
+    '06:30 PM - 07:00 PM',
   ];
+
+  List<String> _getAvailableTimeSlots() {
+    if (_selectedDate == null) return _timeSlots;
+    final now = DateTime.now();
+    final isToday = _selectedDate!.year == now.year &&
+        _selectedDate!.month == now.month &&
+        _selectedDate!.day == now.day;
+    if (!isToday) return _timeSlots;
+
+    final thresholdMinutes = (now.hour * 60 + now.minute) + 90;
+
+    return _timeSlots.where((slot) {
+      final startTime = slot.split(' - ')[0].trim();
+      final parts = startTime.split(' ');
+      final timeParts = parts[0].split(':');
+      var hours = int.parse(timeParts[0]);
+      final minutes = int.parse(timeParts[1]);
+      final modifier = parts[1];
+
+      if (modifier == 'PM' && hours != 12) hours += 12;
+      if (modifier == 'AM' && hours == 12) hours = 0;
+
+      return (hours * 60 + minutes) >= thresholdMinutes;
+    }).toList();
+  }
 
   Future<void> _selectDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? now.add(const Duration(days: 1)),
+      initialDate: _selectedDate ?? now,
       firstDate: now,
-      lastDate: now.add(const Duration(days: 30)),
+      lastDate: now.add(const Duration(days: 7)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -792,6 +826,7 @@ class _DemoBookingFormState extends State<_DemoBookingForm> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
+        _selectedTimeSlot = null;
       });
     }
   }
@@ -1031,7 +1066,7 @@ class _DemoBookingFormState extends State<_DemoBookingForm> {
                         value: _selectedTimeSlot,
                         hint: const Text('Select Time Slot'),
                         isExpanded: true,
-                        items: _timeSlots.map((slot) {
+                        items: _getAvailableTimeSlots().map((slot) {
                           return DropdownMenuItem(
                             value: slot,
                             child: Text(slot, style: const TextStyle(fontSize: 13)),
