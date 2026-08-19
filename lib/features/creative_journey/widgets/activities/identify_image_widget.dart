@@ -199,7 +199,7 @@ class _IdentifyImageWidgetState extends State<IdentifyImageWidget> {
                     ),
                   ],
                 ),
-                child: Text('Collect XP ⭐', textAlign: TextAlign.center, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+                child: Text('Collect 🪙 Coins', textAlign: TextAlign.center, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
               ),
             ),
           ] else if (_selected.isNotEmpty) ...[

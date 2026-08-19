@@ -325,7 +325,7 @@ class _TimelineBuilderWidgetState extends State<TimelineBuilderWidget> {
                     ),
                   ] else ...[
                     Text(
-                      'Collect XP ⭐',
+                      'Collect 🪙 Coins',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.nunito(
                         fontSize: 16,

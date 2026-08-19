@@ -54,14 +54,18 @@ class CreativeJourneyRepository {
     int xpEarned = 0,
     String? lastScreen,
   }) async {
-    await _dio.post(
-      '/creative-journey/episodes/$episodeId/nodes/$nodeId/progress',
-      data: {
-        'status': status,
-        'xpEarned': xpEarned,
-        'lastScreen': lastScreen,
-      },
-    );
+    try {
+      await _dio.post(
+        '/creative-journey/episodes/$episodeId/nodes/$nodeId/progress',
+        data: {
+          'status': status,
+          'xpEarned': xpEarned,
+          'lastScreen': lastScreen,
+        },
+      );
+    } catch (_) {
+      // Gracefully ignore network exceptions during offline node transitions
+    }
   }
 
   Future<List<NodeProgress>> getMyProgress() async {

@@ -49,7 +49,6 @@ class _GigiWelcomeBannerState extends State<GigiWelcomeBanner> {
   @override
   Widget build(BuildContext context) {
     final completedCount = widget.progress.where((p) => p.isCompleted).length;
-    final totalXp = completedCount * 15;
 
     return Container(
       width: double.infinity,
@@ -80,28 +79,11 @@ class _GigiWelcomeBannerState extends State<GigiWelcomeBanner> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
           child: Column(
             children: [
-              // 1. Top row: Gigi Illustration + Dynamic Speech Bubble
+              // 1. Top row: Dynamic Speech Bubble (left) + Gigi Illustration (right)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Gigi Illustration (Floating beanbag character)
-                  SizedBox(
-                    width: 115,
-                    height: 135,
-                    child: Image.asset(
-                      'assets/images/gigi_sitting.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const Center(
-                        child: Text('👩‍💻✨', style: TextStyle(fontSize: 48)),
-                      ),
-                    ),
-                  )
-                      .animate(onPlay: (c) => c.repeat(reverse: true))
-                      .moveY(begin: 0, end: -5, duration: 2000.ms, curve: Curves.easeInOut),
-
-                  const SizedBox(width: 10),
-
-                  // Dynamic Speech Bubble Container
+                  // Dynamic Speech Bubble Container (Left)
                   Expanded(
                     child: GestureDetector(
                       onTap: _nextMessage,
@@ -112,8 +94,8 @@ class _GigiWelcomeBannerState extends State<GigiWelcomeBanner> {
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(20),
                             topRight: Radius.circular(20),
-                            bottomRight: Radius.circular(20),
-                            bottomLeft: Radius.circular(4),
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(4), // Speech tail pointing right towards Gigi
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -205,6 +187,23 @@ class _GigiWelcomeBannerState extends State<GigiWelcomeBanner> {
                       ),
                     ),
                   ),
+
+                  const SizedBox(width: 10),
+
+                  // Gigi Illustration (Right) - Slightly larger dimension
+                  SizedBox(
+                    width: 130,
+                    height: 148,
+                    child: Image.asset(
+                      'assets/images/gigi_sitting.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Center(
+                        child: Text('👩‍💻✨', style: TextStyle(fontSize: 48)),
+                      ),
+                    ),
+                  )
+                      .animate(onPlay: (c) => c.repeat(reverse: true))
+                      .moveY(begin: 0, end: -5, duration: 2000.ms, curve: Curves.easeInOut),
                 ],
               ),
 
@@ -225,11 +224,11 @@ class _GigiWelcomeBannerState extends State<GigiWelcomeBanner> {
                 ),
                 child: Row(
                   children: [
-                    // XP Tracker
-                    const Text('⭐', style: TextStyle(fontSize: 14)),
+                    // Coins Tracker
+                    const Text('🪙', style: TextStyle(fontSize: 14)),
                     const SizedBox(width: 6),
                     Text(
-                      '$totalXp / 145 XP',
+                      '${completedCount * 15} / 500 Coins',
                       style: GoogleFonts.nunito(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,

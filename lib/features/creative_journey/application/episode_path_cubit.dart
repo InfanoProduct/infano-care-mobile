@@ -144,9 +144,9 @@ class EpisodePathCubit extends Cubit<EpisodePathState> {
         }
       } catch (_) {}
 
-      final progressMap = <String, CreativeNodeProgress>{};
+      final rawProgressMap = <String, CreativeNodeProgress>{};
       for (final p in progressList) {
-        progressMap[p.nodeId] = p;
+        rawProgressMap[p.nodeId] = p;
       }
 
       final orderedNodes = <CreativeNode>[];
@@ -162,11 +162,43 @@ class EpisodePathCubit extends Cubit<EpisodePathState> {
         }
       }
 
+      // Enforce strict sequential unlocking: Node 0 is at least UNLOCKED.
+      // Node i (i > 0) is UNLOCKED/COMPLETED only if Node i-1 is COMPLETED.
+      final computedProgressMap = <String, CreativeNodeProgress>{};
+      bool previousCompleted = true;
+
+      for (int i = 0; i < orderedNodes.length; i++) {
+        final node = orderedNodes[i];
+        final raw = rawProgressMap[node.nodeId];
+
+        if (previousCompleted) {
+          if (raw != null && raw.status == 'COMPLETED') {
+            computedProgressMap[node.nodeId] = raw;
+            previousCompleted = true;
+          } else {
+            computedProgressMap[node.nodeId] = CreativeNodeProgress(
+              nodeId: node.nodeId,
+              status: 'UNLOCKED',
+              xpEarned: raw?.xpEarned ?? 0,
+              lastScreen: raw?.lastScreen,
+            );
+            previousCompleted = false;
+          }
+        } else {
+          computedProgressMap[node.nodeId] = CreativeNodeProgress(
+            nodeId: node.nodeId,
+            status: 'LOCKED',
+            xpEarned: 0,
+          );
+          previousCompleted = false;
+        }
+      }
+
       emit(EpisodePathLoaded(
         episode: episode,
         nextEpisode: nextEpisode,
         orderedNodes: orderedNodes,
-        nodeProgressMap: progressMap,
+        nodeProgressMap: computedProgressMap,
       ));
     } catch (e) {
       emit(EpisodePathError(e.toString()));
@@ -264,7 +296,10 @@ class EpisodePathCubit extends Cubit<EpisodePathState> {
         badgeTitle: '${curr.episode.title.replaceAll(RegExp(r'^\d+\.\s*'), '')} Master Badge',
       );
 
-      final isAllCompleted = updatedMap.values.where((p) => p.status == 'COMPLETED').length >= orderedNodes.length;
+      final isAllCompleted = orderedNodes.every((n) => updatedMap[n.nodeId]?.status == 'COMPLETED') ||
+          nodeId == 'bb_reflection' ||
+          nodeId.endsWith('_reflection') ||
+          (orderedNodes.isNotEmpty && orderedNodes.last.nodeId == nodeId);
 
       emit(curr.copyWith(
         orderedNodes: orderedNodes,

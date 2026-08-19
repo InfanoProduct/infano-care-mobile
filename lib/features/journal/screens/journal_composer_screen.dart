@@ -316,16 +316,18 @@ class _JournalComposerScreenState extends State<JournalComposerScreen>
     if (_isSaving) return;
     if (!_hasUserContent() && !silent) return;
 
+    final journalCubit = context.read<JournalCubit>();
+
     if (_mode == JournalMode.voiceNote && _isRecording) {
       await _stopRecording();
     }
 
     final content = _getContent();
-    print("[JOURNAL_SAVE_DEBUG] Saving entry mode=${_mode.apiValue}, id=$_existingEntryId, content=$content");
+    debugPrint("[JOURNAL_SAVE_DEBUG] Saving entry mode=${_mode.apiValue}, id=$_existingEntryId, content=$content");
 
     setState(() => _isSaving = true);
     try {
-      final entry = await context.read<JournalCubit>().saveEntry(
+      final entry = await journalCubit.saveEntry(
         id: _existingEntryId,
         mode: _mode.apiValue,
         content: content,
@@ -339,12 +341,12 @@ class _JournalComposerScreenState extends State<JournalComposerScreen>
       if (entry != null) {
         _existingEntryId = entry.id;
       }
-      print("[JOURNAL_SAVE_DEBUG] Save result: ${entry?.id}");
+      debugPrint("[JOURNAL_SAVE_DEBUG] Save result: ${entry?.id}");
       if (mounted && !silent) {
         _showSuccessAnimation();
       }
     } catch (e, s) {
-      print("[JOURNAL_SAVE_ERROR] Save failed: $e\n$s");
+      debugPrint("[JOURNAL_SAVE_ERROR] Save failed: $e\n$s");
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -949,7 +951,7 @@ class _JournalComposerScreenState extends State<JournalComposerScreen>
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: patternStyles.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (_, i) {
               final st = patternStyles[i];
               final isSel = _patternStyle == st['id'];
@@ -1164,10 +1166,15 @@ class _JournalComposerScreenState extends State<JournalComposerScreen>
     final ny = (localPos.dy / canvasH).clamp(0.0, 1.0);
 
     int shapeStyle = 0;
-    if (_patternStyle == 'geometric') shapeStyle = (math.Random().nextBool() ? 1 : 3);
-    else if (_patternStyle == 'cosmic') shapeStyle = (math.Random().nextDouble() > 0.6 ? 2 : 0);
-    else if (_patternStyle == 'marble') shapeStyle = 3;
-    else if (_patternStyle == 'stained_glass') shapeStyle = 4;
+    if (_patternStyle == 'geometric') {
+      shapeStyle = (math.Random().nextBool() ? 1 : 3);
+    } else if (_patternStyle == 'cosmic') {
+      shapeStyle = (math.Random().nextDouble() > 0.6 ? 2 : 0);
+    } else if (_patternStyle == 'marble') {
+      shapeStyle = 3;
+    } else if (_patternStyle == 'stained_glass') {
+      shapeStyle = 4;
+    }
 
     final newBlob = MoodSplashBlob(
       normalizedX: nx,

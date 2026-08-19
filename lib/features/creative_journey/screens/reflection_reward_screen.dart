@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 
 /// Fixed final node — mood tap + recap carousel + badge ceremony lead-in
 class ReflectionRewardScreen extends StatefulWidget {
@@ -98,20 +99,26 @@ class _ReflectionRewardScreenState extends State<ReflectionRewardScreen> {
             ),
             const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: moodOptions.asMap().entries.map((e) {
                 final option = e.value;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedMood = e.key),
-                  child: Column(children: [
-                    Text(option['emoji'] as String? ?? '😊', style: const TextStyle(fontSize: 40)),
-                    const SizedBox(height: 6),
-                    Text(
-                      option['label'] as String? ?? '',
-                      style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textMedium),
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedMood = e.key),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(option['emoji'] as String? ?? '😊', style: const TextStyle(fontSize: 40)),
+                        const SizedBox(height: 6),
+                        Text(
+                          option['label'] as String? ?? '',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textMedium),
+                        ),
+                      ],
                     ),
-                  ]),
-                ).animate().fadeIn(delay: (e.key * 100).ms, duration: 400.ms);
+                  ).animate().fadeIn(delay: (e.key * 100).ms, duration: 400.ms),
+                );
               }).toList(),
             ),
           ]),
@@ -128,21 +135,38 @@ class _ReflectionRewardScreenState extends State<ReflectionRewardScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFFFEF9C3), Color(0xFFFDE68A)]),
+        gradient: const LinearGradient(colors: [Color(0xFFF3E8FF), Color(0xFFFDF2F8)]),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purple.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
           width: 44, height: 44,
-          decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFFBBF24)),
-          child: const Center(child: Text('✨', style: TextStyle(fontSize: 22))),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.purple.withValues(alpha: 0.15),
+                blurRadius: 6,
+              ),
+            ],
+          ),
+          child: const Center(child: Text('🌸', style: TextStyle(fontSize: 22))),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Gigi says:', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF92400E))),
+            Text('Gigi says:', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.purple)),
             const SizedBox(height: 4),
-            Text(response, style: GoogleFonts.nunito(fontSize: 13, color: const Color(0xFF92400E), height: 1.5, fontWeight: FontWeight.w600)),
+            Text(response, style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textDark, height: 1.5, fontWeight: FontWeight.w600)),
           ]),
         ),
       ]),
@@ -174,16 +198,16 @@ class _ReflectionRewardScreenState extends State<ReflectionRewardScreen> {
                   gradient: LinearGradient(
                     colors: [
                       [const Color(0xFFF5F3FF), const Color(0xFFEDE9FE)],
-                      [const Color(0xFFFDF2F8), const Color(0xFFFFE4E6)],
-                      [const Color(0xFFF0FDF4), const Color(0xFFDCFCE7)],
-                      [const Color(0xFFFEF9C3), const Color(0xFFFEF3C7)],
-                      [const Color(0xFFE0F2FE), const Color(0xFFBAE6FD)],
+                      [const Color(0xFFFDF2F8), const Color(0xFFFCE7F3)],
+                      [const Color(0xFFF0FDFA), const Color(0xFFDCFCE7)],
+                      [const Color(0xFFE0F2FE), const Color(0xFFF0F9FF)],
+                      [const Color(0xFFF5F3FF), const Color(0xFFFDF2F8)],
                     ][index % 5],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
+                  border: Border.all(color: AppColors.purple.withValues(alpha: 0.15)),
                 ),
                 child: Center(
                   child: SingleChildScrollView(
@@ -285,25 +309,30 @@ class _ReflectionRewardScreenState extends State<ReflectionRewardScreen> {
         ).animate().fadeIn(duration: 500.ms),
         const SizedBox(height: 20),
         GestureDetector(
-          onTap: widget.onCompleted,
+          onTap: () {
+            AppSoundService.instance.playBunchOfCoinsSound();
+            widget.onCompleted();
+          },
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 18),
             decoration: BoxDecoration(
-              color: AppColors.purple,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+              ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.purple.withValues(alpha: 0.35),
                   blurRadius: 16,
-                  offset: const Offset(0, 5),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Text('🏆', style: TextStyle(fontSize: 22)),
               const SizedBox(width: 8),
-              Text('Claim Your Badge!', style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white)),
+              Text('Claim Your Badge & Collect 🪙 Coins!', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
             ]),
           ),
         ).animate().fadeIn(delay: 300.ms, duration: 500.ms).scaleXY(begin: 0.9, end: 1.0, curve: Curves.elasticOut),

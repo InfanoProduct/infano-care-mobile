@@ -39,31 +39,12 @@ class _EpisodePathView extends StatelessWidget {
       body: BlocConsumer<EpisodePathCubit, EpisodePathState>(
         listener: (context, state) {
           if (state is EpisodePathLoaded) {
-            // Show master badge ceremony as overlay when episode is fully completed
+            // Show master badge ceremony as overlay when episode is fully completed and no dialog is active
             if (state.showBadgeCeremony && state.pendingRewards.isEmpty) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.of(context).push(
-                  PageRouteBuilder(
-                    opaque: false,
-                    barrierDismissible: false,
-                    pageBuilder: (ctx, a1, a2) => BadgeCeremonyWidget(
-                      episodeTitle: state.episode.title,
-                      nextEpisode: state.nextEpisode,
-                      onExploreNextEpisode: (nextEp) {
-                        Navigator.of(ctx).pop();
-                        context.read<EpisodePathCubit>().clearBadgeCeremony();
-                        context.read<EpisodePathCubit>().clearPendingRewards();
-                        context.go('/creative-journey/journey/${state.episode.journeyId}');
-                      },
-                      onDismiss: () {
-                        Navigator.of(ctx).pop();
-                        context.read<EpisodePathCubit>().clearBadgeCeremony();
-                        context.read<EpisodePathCubit>().clearPendingRewards();
-                        context.go('/creative-journey/journey/${state.episode.journeyId}');
-                      },
-                    ),
-                  ),
-                );
+                if (ModalRoute.of(context)?.isCurrent ?? false) {
+                  _showBadgeCeremonyModal(context, state);
+                }
               });
             }
           }
@@ -75,6 +56,31 @@ class _EpisodePathView extends StatelessWidget {
             EpisodePathLoaded() => _buildPath(context, state),
           };
         },
+      ),
+    );
+  }
+
+  void _showBadgeCeremonyModal(BuildContext context, EpisodePathLoaded state) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierDismissible: false,
+        pageBuilder: (ctx, a1, a2) => BadgeCeremonyWidget(
+          episodeTitle: state.episode.title,
+          nextEpisode: state.nextEpisode,
+          onExploreNextEpisode: (nextEp) {
+            Navigator.of(ctx).pop();
+            context.read<EpisodePathCubit>().clearBadgeCeremony();
+            context.read<EpisodePathCubit>().clearPendingRewards();
+            context.go('/creative-journey/journey/${state.episode.journeyId}');
+          },
+          onDismiss: () {
+            Navigator.of(ctx).pop();
+            context.read<EpisodePathCubit>().clearBadgeCeremony();
+            context.read<EpisodePathCubit>().clearPendingRewards();
+            context.go('/creative-journey/journey/${state.episode.journeyId}');
+          },
+        ),
       ),
     );
   }
@@ -103,7 +109,7 @@ class _EpisodePathView extends StatelessWidget {
       slivers: [
         // Header
         SliverAppBar(
-          expandedHeight: 160,
+          expandedHeight: 180,
           pinned: true,
           backgroundColor: AppColors.purple,
           leading: IconButton(
@@ -111,7 +117,7 @@ class _EpisodePathView extends StatelessWidget {
             onPressed: () => context.pop(),
           ),
           flexibleSpace: FlexibleSpaceBar(
-            background: _buildEpisodeHeader(state),
+            background: _buildEpisodeHeader(context, state),
           ),
         ),
 
@@ -146,7 +152,10 @@ class _EpisodePathView extends StatelessWidget {
     );
   }
 
-  Widget _buildEpisodeHeader(EpisodePathLoaded state) {
+  Widget _buildEpisodeHeader(BuildContext context, EpisodePathLoaded state) {
+    final isAllDone = state.orderedNodes.isNotEmpty &&
+        state.completedCount >= state.orderedNodes.length;
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -157,7 +166,7 @@ class _EpisodePathView extends StatelessWidget {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 50, 20, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -181,9 +190,9 @@ class _EpisodePathView extends StatelessWidget {
                     ],
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('⭐', style: TextStyle(fontSize: 14)),
+                    const Text('🪙', style: TextStyle(fontSize: 14)),
                     const SizedBox(width: 4),
-                    Text('${state.totalXpEarned} XP', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF92400E))),
+                    Text('${state.totalXpEarned} Coins', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF92400E))),
                   ]),
                 ),
               ]),
@@ -200,10 +209,37 @@ class _EpisodePathView extends StatelessWidget {
                   minHeight: 6,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${state.completedCount} of ${state.orderedNodes.length} nodes completed',
-                style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.w700),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${state.completedCount} of ${state.orderedNodes.length} nodes completed',
+                    style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.w700),
+                  ),
+                  if (isAllDone)
+                    GestureDetector(
+                      onTap: () => _showBadgeCeremonyModal(context, state),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.purple,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('🏆', style: TextStyle(fontSize: 11)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'View Badge',
+                              style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
@@ -262,11 +298,28 @@ class _EpisodePathView extends StatelessWidget {
   }
 
   Widget _buildNodeLabel(CreativeNode node, NodeProgress progress, {required bool isLeft}) {
+    final title = node.title;
+    final typeLabel = node.type.replaceAll('_', ' ').toUpperCase();
+
     return Column(
       crossAxisAlignment: isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
       children: [
         Text(
-          node.title,
+          typeLabel,
+          style: GoogleFonts.nunito(
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: progress.isCompleted
+                ? AppColors.purple
+                : progress.isUnlocked
+                    ? AppColors.pink
+                    : AppColors.textLight,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          title,
           textAlign: isLeft ? TextAlign.left : TextAlign.right,
           style: GoogleFonts.nunito(
             fontSize: 13,
@@ -274,76 +327,26 @@ class _EpisodePathView extends StatelessWidget {
             color: progress.isLocked ? AppColors.textLight : AppColors.textDark,
           ),
         ),
-        if (node.energyTag != null)
-          Row(
-            mainAxisAlignment: isLeft ? MainAxisAlignment.start : MainAxisAlignment.end,
-            children: [
-              Text(
-                node.energyTag == 'active' ? '⚡' : '🌙',
-                style: const TextStyle(fontSize: 10),
-              ),
-              const SizedBox(width: 2),
-              Text(
-                node.energyTag!,
-                style: GoogleFonts.nunito(fontSize: 10, color: AppColors.textLight),
-              ),
-            ],
-          ),
-        Row(
-          mainAxisAlignment: isLeft ? MainAxisAlignment.start : MainAxisAlignment.end,
-          children: [
-            const Text('⭐', style: TextStyle(fontSize: 10)),
-            const SizedBox(width: 2),
-            Text(
-              '+${node.xpReward} XP',
-              style: GoogleFonts.nunito(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: progress.isCompleted ? const Color(0xFFFBBF24) : AppColors.textLight,
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
 
   ChestReward _buildChestRewardForNode(EpisodePathLoaded state, String nodeId) {
-    final nodeIdx = state.orderedNodes.indexWhere((n) => n.nodeId == nodeId);
-    final totalNodes = state.orderedNodes.length;
-    final totalPieces = totalNodes > 0 ? totalNodes : 5;
-    final safeIdx = nodeIdx >= 0 ? nodeIdx : 0;
-    final pieceIndex = safeIdx + 1;
+    final idx = state.orderedNodes.indexWhere((n) => n.nodeId == nodeId);
+    final safeIdx = idx >= 0 ? idx : 0;
 
     const templates = [
-      {
-        'name': 'Mystery Letter Scroll',
-        'emoji': '📜',
-        'desc': 'Discovered Mira\'s future letter — first piece of the Episode Badge!',
-      },
-      {
-        'name': 'Doorframe Ruler',
-        'emoji': '📐',
-        'desc': 'Measured puberty milestones — second piece snapped into place!',
-      },
-      {
-        'name': 'Growth Compass',
-        'emoji': '🧭',
-        'desc': 'Mastered growth spurt timing — third piece collected!',
-      },
-      {
-        'name': 'Confidence Star',
-        'emoji': '⭐',
-        'desc': 'Built your unique timeline — fourth piece unlocked!',
-      },
-      {
-        'name': 'Timeline Crest',
-        'emoji': '🏆',
-        'desc': 'Final piece acquired! The Master Badge is ready for assembly!',
-      },
+      {'name': 'Mystery Letter Scroll', 'emoji': '📜', 'desc': 'Discovered Meera\'s letter — first piece of the Episode Badge!'},
+      {'name': 'Fit Check Compass', 'emoji': '🧭', 'desc': 'Mastered fit clues — second piece snapped into place!'},
+      {'name': 'Bra Matcher Trophy', 'emoji': '👚', 'desc': 'Matched every bra type — third piece collected!'},
+      {'name': 'Timeline Star', 'emoji': '⭐', 'desc': 'Built your unique timeline — fourth piece unlocked!'},
+      {'name': 'Confidence Crest', 'emoji': '🏆', 'desc': 'Final piece acquired! The Master Badge is ready for assembly!'},
     ];
 
     final template = templates[safeIdx % templates.length];
+    final totalNodes = state.orderedNodes.length;
+    final totalPieces = totalNodes > 0 ? totalNodes : 5;
+    final pieceIndex = safeIdx + 1;
 
     return ChestReward(
       assetName: template['name']!,
@@ -373,17 +376,17 @@ class _EpisodePathView extends StatelessWidget {
             onCompleted: (xpEarned) async {
               final cubit = context.read<EpisodePathCubit>();
 
-              // 1. Build reward instantly for zero-delay transition on all nodes
+              // 1. Build reward & start background sync immediately
               ChestReward? reward;
               final currentState = cubit.state;
               if (currentState is EpisodePathLoaded) {
                 reward = _buildChestRewardForNode(currentState, node.nodeId);
               }
 
-              // 2. Sync progress to backend in background so transition is 100% instant
-              final syncFuture = cubit.completeNode(episodeId, node.nodeId, xpEarned);
+              // Fire network sync asynchronously in background — DO NOT AWAIT!
+              cubit.completeNode(episodeId, node.nodeId, xpEarned);
 
-              // 3. Open Discovery Chest modal immediately without waiting for API network latency
+              // 2. Open Discovery Chest modal immediately
               if (reward != null && activityContext.mounted) {
                 await showGeneralDialog(
                   context: activityContext,
@@ -394,7 +397,11 @@ class _EpisodePathView extends StatelessWidget {
                   pageBuilder: (dialogCtx, anim1, anim2) => DiscoveryChestScreen(
                     reward: reward!,
                     onClose: () {
+                      // Smoothly dismiss both dialog AND activity screen in one seamless transition!
                       Navigator.of(dialogCtx).pop();
+                      if (activityContext.mounted) {
+                        Navigator.of(activityContext).pop();
+                      }
                       cubit.clearPendingRewards();
                     },
                   ),
@@ -409,13 +416,28 @@ class _EpisodePathView extends StatelessWidget {
                     );
                   },
                 );
+              } else if (activityContext.mounted) {
+                Navigator.of(activityContext).pop();
               }
 
-              // Ensure network sync finishes before dismissing activity screen
-              await syncFuture;
+              // 3. AFTER ActivityScreen pops, check if episode is completed or if final node finished!
+              if (context.mounted) {
+                final endState = cubit.state;
+                if (endState is EpisodePathLoaded) {
+                  final isFinalNode = node.nodeId == 'bb_reflection' ||
+                      node.type == 'reflection_reward' ||
+                      node.position == 'fixed_end' ||
+                      (endState.orderedNodes.isNotEmpty &&
+                          endState.orderedNodes.last.nodeId == node.nodeId);
 
-              if (activityContext.mounted) {
-                Navigator.of(activityContext).pop();
+                  final isEpisodeDone = endState.showBadgeCeremony ||
+                      isFinalNode ||
+                      (endState.orderedNodes.isNotEmpty &&
+                          endState.completedCount >= endState.orderedNodes.length);
+                  if (isEpisodeDone) {
+                    _showBadgeCeremonyModal(context, endState);
+                  }
+                }
               }
             },
           ),

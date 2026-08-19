@@ -73,7 +73,7 @@ class CreativeEpisode {
               ?.map((n) => CreativeNode.fromJson(n as Map<String, dynamic>))
               .toList() ??
           [],
-      totalXP: json['totalXP'] as int? ?? 145,
+      totalXP: json['totalCoins'] as int? ?? json['totalXP'] as int? ?? 83,
       isActive: json['isActive'] as bool? ?? true,
     );
   }
@@ -128,8 +128,12 @@ class CreativeNode {
         return '🧩';
       case 'spot_the_change':
         return '🕵️';
-      case 'anonymous_question_box':
-        return '💬';
+      case 'mirror_reflection_flip':
+        return '🪞';
+      case 'comparison_filter_unmask':
+        return '🔍';
+      case 'body_appreciation_jar':
+        return '🫙';
       case 'reflection_reward':
         return '🏆';
       default:

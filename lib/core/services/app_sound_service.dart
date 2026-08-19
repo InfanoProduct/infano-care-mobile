@@ -27,6 +27,40 @@ class AppSoundService {
     return '$_tempDir/$filename';
   }
 
+  /// Play realistic multi-note metallic coin cascade sound effect when coins are collected
+  Future<void> playBunchOfCoinsSound() async {
+    try {
+      HapticFeedback.mediumImpact();
+      final path = await _getTempPath('coin_bunch_cascade.wav');
+      final file = File(path);
+      if (!await file.exists()) {
+        final bytes = _generateCoinBunchWav();
+        await file.writeAsBytes(bytes);
+      }
+      await _player.stop();
+      await _player.play(DeviceFileSource(path));
+    } catch (_) {
+      HapticFeedback.vibrate();
+    }
+  }
+
+  /// Play metallic coin collection sequence
+  Future<void> playCoinChime() async {
+    try {
+      HapticFeedback.lightImpact();
+      final path = await _getTempPath('coin_chime.wav');
+      final file = File(path);
+      if (!await file.exists()) {
+        final bytes = _generateChimeWav(frequencies: [987.77, 1318.51, 1567.98, 1975.53], durationMs: 280);
+        await file.writeAsBytes(bytes);
+      }
+      await _player.stop();
+      await _player.play(DeviceFileSource(path));
+    } catch (_) {
+      HapticFeedback.mediumImpact();
+    }
+  }
+
   /// Play cheerful "Ting" chime tone for correct answers
   Future<void> playCorrect() async {
     try {
@@ -162,6 +196,40 @@ class AppSoundService {
       final sampleVal = ((sin(2 * pi * freq * t) + 0.3 * sin(2 * pi * freq * 2 * t)) * 18000 * envelope).round();
       pcmData[i] = sampleVal.clamp(-32768, 32767);
     }
+    return _buildWavHeader(pcmData, sampleRate);
+  }
+
+  static Uint8List _generateCoinBunchWav() {
+    const sampleRate = 22050;
+    const durationMs = 450;
+    final totalSamples = (sampleRate * (durationMs / 1000)).round();
+    final pcmData = Int16List(totalSamples);
+
+    final coinClinks = [
+      {'startMs': 0, 'freq': 1174.66, 'decay': 35.0},
+      {'startMs': 40, 'freq': 1567.98, 'decay': 30.0},
+      {'startMs': 80, 'freq': 1760.00, 'decay': 32.0},
+      {'startMs': 120, 'freq': 2093.00, 'decay': 28.0},
+      {'startMs': 160, 'freq': 2349.32, 'decay': 30.0},
+      {'startMs': 200, 'freq': 2637.02, 'decay': 25.0},
+      {'startMs': 250, 'freq': 3135.96, 'decay': 22.0},
+    ];
+
+    for (final clink in coinClinks) {
+      final startSample = ((clink['startMs'] as int) * sampleRate / 1000).round();
+      final freq = clink['freq'] as double;
+      final decay = clink['decay'] as double;
+
+      for (int i = startSample; i < totalSamples; i++) {
+        final t = (i - startSample) / sampleRate;
+        final env = exp(-t * decay);
+        if (env < 0.001) break;
+
+        final sampleVal = ((sin(2 * pi * freq * t) + 0.4 * sin(2 * pi * (freq * 2.4) * t)) * 14000 * env).round();
+        pcmData[i] = (pcmData[i] + sampleVal).clamp(-32768, 32767);
+      }
+    }
+
     return _buildWavHeader(pcmData, sampleRate);
   }
 

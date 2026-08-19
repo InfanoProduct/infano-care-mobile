@@ -90,20 +90,21 @@ class _MysteryTaskBoxWidgetState extends State<MysteryTaskBoxWidget> {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
+                          colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
                         ),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFDBA74)),
                       ),
                       child: Row(
                         children: [
-                          const Text('⭐', style: TextStyle(fontSize: 13)),
+                          const Text('🪙', style: TextStyle(fontSize: 13)),
                           const SizedBox(width: 4),
                           Text(
-                            '+20 XP',
+                            '+${widget.content['coinsReward'] ?? widget.content['xpReward'] ?? 10} Coins',
                             style: GoogleFonts.nunito(
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
-                              color: const Color(0xFF92400E),
+                              color: const Color(0xFF9A3412),
                             ),
                           ),
                         ],
@@ -225,7 +226,7 @@ class _MysteryTaskBoxWidgetState extends State<MysteryTaskBoxWidget> {
                         ),
                       ] else ...[
                         Text(
-                          'Continue Journey • Collect XP ⭐',
+                          'Continue Journey • Collect 🪙 Coins',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.nunito(
                             fontSize: 16,

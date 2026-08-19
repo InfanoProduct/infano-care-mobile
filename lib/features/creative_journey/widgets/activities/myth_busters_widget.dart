@@ -23,8 +23,10 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
   final List<bool?> _results = []; // true = swiped right (TRUE), false = swiped left (MYTH)
   bool _allDone = false;
 
-  List<Map<String, dynamic>> get cards =>
-      List<Map<String, dynamic>>.from(widget.content['cards'] as List? ?? []);
+  List<Map<String, dynamic>> get cards {
+    final raw = widget.content['cards'] ?? widget.content['myths'] ?? widget.content['items'];
+    return List<Map<String, dynamic>>.from(raw as List? ?? []);
+  }
 
   @override
   void dispose() {
@@ -36,6 +38,22 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
   Widget build(BuildContext context) {
     if (_allDone) return _buildResults();
 
+    if (cards.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('🚫', style: TextStyle(fontSize: 48)),
+            const SizedBox(height: 12),
+            Text(
+              'No myths found!',
+              style: GoogleFonts.nunito(fontSize: 16, color: AppColors.textMedium),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       children: [
         // Header
@@ -45,8 +63,8 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
             const Text('🚫', style: TextStyle(fontSize: 38)),
             const SizedBox(height: 6),
             Text(
-              'True or Myth?',
-              style: GoogleFonts.nunito(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textDark),
+              widget.content['title'] as String? ?? 'True or Myth?',
+              style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark),
             ),
             const SizedBox(height: 4),
             Text(
@@ -65,7 +83,7 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
             children: [
               const _DirectionHint(emoji: '🚫', label: 'MYTH', color: AppColors.error),
               Text(
-                '${_currentIndex + 1} / ${cards.length}',
+                '${_currentIndex.clamp(0, cards.length - 1) + 1} / ${cards.length}',
                 style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textMedium),
               ),
               const _DirectionHint(emoji: '✅', label: 'TRUE', color: AppColors.success),
@@ -78,10 +96,12 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
           child: CardSwiper(
             controller: _controller,
             cardsCount: cards.length,
+            numberOfCardsDisplayed: cards.length.clamp(1, 2),
             onSwipe: (previousIndex, currentIndex, direction) {
               final swipedTrue = direction == CardSwiperDirection.right;
               if (previousIndex < cards.length) {
-                final isTrue = cards[previousIndex]['verdict'] == 'TRUE';
+                final cardData = cards[previousIndex];
+                final isTrue = (cardData['verdict'] == 'TRUE') || (cardData['isMyth'] == false);
                 final isCorrect = swipedTrue == isTrue;
                 if (isCorrect) {
                   AppSoundService.instance.playCorrect();
@@ -441,7 +461,7 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Continue Journey • Collect XP ⭐',
+                    'Continue Journey • Collect 🪙 Coins',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.nunito(
                       fontSize: 16,
@@ -560,7 +580,7 @@ class _MythCard extends StatelessWidget {
           const Text('🤔', style: TextStyle(fontSize: 52)),
           const SizedBox(height: 20),
           Text(
-            card['statement'] as String? ?? '',
+            (card['statement'] as String?) ?? (card['text'] as String?) ?? (card['title'] as String?) ?? '',
             textAlign: TextAlign.center,
             style: GoogleFonts.nunito(
               fontSize: 18,

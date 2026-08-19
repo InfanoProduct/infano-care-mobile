@@ -8,6 +8,7 @@ import 'package:infano_care_mobile/core/services/api_service.dart';
 import '../application/journey_map_cubit.dart';
 import '../models/creative_journey_models.dart';
 import '../repositories/creative_journey_repository.dart';
+import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 import '../widgets/gigi_welcome_banner.dart';
 
 // ── Pastel Design System ───────────────────────────────────────────────────────
@@ -34,7 +35,7 @@ class PastelCardStyle {
     PastelCardStyle(
       bg: Color(0xFFF5F3FF),
       border: Color(0xFFDDD6FE),
-      ctaColor: Color(0xFF7C3AED),
+      ctaColor: Color(0xFF8B5CF6),
       badgeBg: Color(0xFFEDE9FE),
       badgeTextColor: Color(0xFF6D28D9),
       assetImage: 'assets/images/community_banner.png',
@@ -119,8 +120,18 @@ class _CreativeJourneyHubView extends StatelessWidget {
           backgroundColor: const Color(0xFFEDE9FE),
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: AppColors.textDark),
-            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDark),
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                try {
+                  context.read<DashboardCubit>().setTab(0);
+                } catch (_) {
+                  context.go('/');
+                }
+              }
+            },
           ),
           title: Text(
             'Learning Journey',
@@ -431,10 +442,10 @@ class _JourneyCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('⭐', style: TextStyle(fontSize: 12)),
+                            const Text('🪙', style: TextStyle(fontSize: 12)),
                             const SizedBox(width: 4),
                             Text(
-                              '145 XP',
+                              '500 Coins',
                               style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,

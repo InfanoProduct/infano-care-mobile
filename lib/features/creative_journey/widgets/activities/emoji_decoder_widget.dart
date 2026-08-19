@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -5,9 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 
-/// EmojiDecoderWidget — "Meera's Panic Decoder"
-/// Users see a story scene card and tap which emoji best captures the character's feeling.
-/// After each answer, Gigi gives a warm, validating response.
+/// EmojiDecoderWidget — "Timeline Decoder Wheel"
+/// Interactive 3D Spinning Wheel where users spin the wheel to land on each segment and reveal questions!
 class EmojiDecoderWidget extends StatefulWidget {
   final Map<String, dynamic> content;
   final VoidCallback onCompleted;
@@ -18,16 +18,101 @@ class EmojiDecoderWidget extends StatefulWidget {
   State<EmojiDecoderWidget> createState() => _EmojiDecoderWidgetState();
 }
 
-class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
+class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   String? _selectedEmoji;
   bool _revealed = false;
   bool _isCompleting = false;
+  bool _hasSpun = false;
+  bool _isSpinning = false;
+
+  late AnimationController _spinController;
+  late Animation<double> _spinAnimation;
+  double _baseRotation = 0.0;
+  double _currentRotation = 0.0;
+  double _targetRotation = 0.0;
 
   List<Map<String, dynamic>> get _scenarios =>
       List<Map<String, dynamic>>.from(widget.content['scenarios'] as List? ?? []);
 
   Map<String, dynamic> get _current => _scenarios[_currentIndex];
+
+  static const List<Color> _wheelColors = [
+    Color(0xFFFCE7F3), // Soft Pink
+    Color(0xFFEDE9FE), // Soft Purple
+    Color(0xFFDBEAFE), // Soft Blue
+    Color(0xFFFFF7ED), // Soft Peach
+    Color(0xFFD1FAE5), // Soft Mint
+    Color(0xFFFFE4E6), // Soft Rose
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _spinController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    );
+
+    _spinAnimation = CurvedAnimation(
+      parent: _spinController,
+      curve: Curves.decelerate,
+    )..addListener(() {
+        setState(() {
+          _currentRotation = _baseRotation + (_spinAnimation.value * (_targetRotation - _baseRotation));
+        });
+      });
+
+    _spinController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        AppSoundService.instance.playCorrect();
+        HapticFeedback.heavyImpact();
+        setState(() {
+          _baseRotation = _currentRotation;
+          _isSpinning = false;
+          _hasSpun = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _spinController.dispose();
+    super.dispose();
+  }
+
+  void _spinWheel() {
+    if (_isSpinning) return;
+    AppSoundService.instance.playPop();
+    HapticFeedback.mediumImpact();
+
+    final n = max(_scenarios.length, 1);
+    final k = _currentIndex % n;
+
+    // Exact angle required to position segment k center under top pointer (at 12 o'clock / -pi/2):
+    // Segment k spans from [k*2pi/N - pi/2] to [(k+1)*2pi/N - pi/2]
+    // Segment k center = k*2pi/N - pi/2 + pi/N = (2k + 1)*pi/N - pi/2
+    // Rotating by theta clockwise moves center to: (2k + 1)*pi/N - pi/2 + theta = 3pi/2 (or -pi/2)
+    // theta = 2pi - (2k + 1)*pi/N
+    final targetSegmentAngle = (2 * pi) - ((2 * k + 1) * pi / n);
+
+    // Calculate incremental delta rotation required from current wheel position plus 4 full spins
+    final currentMod = _baseRotation % (2 * pi);
+    double delta = targetSegmentAngle - currentMod;
+    if (delta <= 0) delta += (2 * pi);
+
+    // 4 full 360-degree rotations (8 * pi) + exact alignment delta
+    _targetRotation = _baseRotation + (8 * pi) + delta;
+
+    setState(() {
+      _isSpinning = true;
+      _hasSpun = false;
+    });
+
+    _spinController.forward(from: 0.0);
+  }
 
   void _onEmojiTap(String emoji) {
     if (_revealed) return;
@@ -44,6 +129,7 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
         _currentIndex++;
         _selectedEmoji = null;
         _revealed = false;
+        _hasSpun = false;
       });
     } else {
       AppSoundService.instance.playCorrect();
@@ -56,41 +142,53 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
   Widget build(BuildContext context) {
     final scenarios = _scenarios;
     if (scenarios.isEmpty) {
-      return Center(child: Text('No scenarios available.', style: GoogleFonts.nunito(fontSize: 16, color: AppColors.textMedium)));
+      return Center(
+        child: Text(
+          'No scenarios available.',
+          style: GoogleFonts.nunito(fontSize: 16, color: AppColors.textMedium),
+        ),
+      );
     }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Header
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFFCE7F3), Color(0xFFFDF2F8)],
+                colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFFBCFE8)),
+              border: Border.all(color: const Color(0xFFFDBA74)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFF97316).withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                const Text('🎭', style: TextStyle(fontSize: 32)),
+                const Text('🎡', style: TextStyle(fontSize: 32)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.content['title'] as String? ?? 'Panic Decoder',
-                        style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w900, color: const Color(0xFF9D174D)),
+                        widget.content['title'] as String? ?? 'Timeline Decoder Wheel 🎭',
+                        style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w900, color: const Color(0xFF9A3412)),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        widget.content['instruction'] as String? ?? 'Tap the emoji that best matches the feeling!',
+                        widget.content['instruction'] as String? ?? 'Spin the wheel to land on each segment and reveal questions!',
                         style: GoogleFonts.nunito(fontSize: 12.5, color: AppColors.textMedium, height: 1.35),
                       ),
                     ],
@@ -101,107 +199,266 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
           ),
           const SizedBox(height: 16),
 
-          // Progress bar
+          // Progress indicator
           Row(
             children: List.generate(scenarios.length, (i) {
               Color color = const Color(0xFFE5E7EB);
-              if (i < _currentIndex) color = const Color(0xFFDB2777);
-              if (i == _currentIndex) color = const Color(0xFFEC4899);
+              if (i < _currentIndex) color = const Color(0xFF8B5CF6);
+              if (i == _currentIndex) color = const Color(0xFFA78BFA);
               return Expanded(
                 child: AnimatedContainer(
                   duration: 300.ms,
-                  height: 5,
+                  height: 6,
                   margin: EdgeInsets.only(right: i < scenarios.length - 1 ? 5 : 0),
                   decoration: BoxDecoration(
                     color: color,
                     borderRadius: BorderRadius.circular(3),
                     boxShadow: i <= _currentIndex
-                        ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6)]
+                        ? [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 6)]
                         : null,
                   ),
                 ),
               );
             }),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           Text(
-            'Scene ${_currentIndex + 1} of ${scenarios.length}',
-            style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w700),
+            'Question ${_currentIndex + 1} of ${scenarios.length}',
+            style: GoogleFonts.nunito(fontSize: 11.5, color: AppColors.textLight, fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
-          // Scene Card
-          AnimatedSwitcher(
-            duration: 350.ms,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(begin: const Offset(0.05, 0), end: Offset.zero).animate(animation),
-                child: child,
-              ),
-            ),
-            child: KeyedSubtree(
-              key: ValueKey<int>(_currentIndex),
-              child: _buildSceneCard(),
-            ),
-          ),
-          const SizedBox(height: 18),
+          // ── INTERACTIVE SPINNING WHEEL WIDGET (Matching exact segments!) ────
+          _buildWheelSection(scenarios),
 
-          // Emoji Options
-          _buildEmojiGrid(),
+          const SizedBox(height: 24),
 
-          // Gigi Feedback
-          if (_revealed) ...[
-            const SizedBox(height: 16),
-            _buildFeedback(),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: _isCompleting
-                  ? null
-                  : () {
-                      AppSoundService.instance.playPop();
-                      HapticFeedback.selectionClick();
-                      _onNext();
-                    },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFEC4899), Color(0xFFDB2777)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFDB2777).withValues(alpha: 0.35),
-                      blurRadius: 14,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+          // ── UNLOCKED QUESTION CARD & OPTIONS (Reveals after landing!) ────────
+          if (_hasSpun) ...[
+            AnimatedSwitcher(
+              duration: 400.ms,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(animation),
+                  child: child,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              ),
+              child: KeyedSubtree(
+                key: ValueKey<int>(_currentIndex),
+                child: Column(
                   children: [
-                    Text(
-                      _currentIndex < scenarios.length - 1 ? 'Next Scene →' : 'Continue Journey • Collect XP ⭐',
-                      style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white),
-                    ),
-                    if (_currentIndex < scenarios.length - 1) ...[
-                      const SizedBox(width: 6),
-                    ] else ...[
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 19),
-                    ],
+                    _buildSceneCard(),
+                    const SizedBox(height: 18),
+                    _buildEmojiGrid(),
                   ],
                 ),
               ),
-            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+            ),
+            const SizedBox(height: 18),
+
+            // Gigi Feedback
+            if (_revealed) ...[
+              _buildFeedback(),
+              const SizedBox(height: 24),
+              GestureDetector(
+                onTap: _isCompleting
+                    ? null
+                    : () {
+                        AppSoundService.instance.playPop();
+                        HapticFeedback.selectionClick();
+                        _onNext();
+                      },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.purple.withValues(alpha: 0.35),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _currentIndex < scenarios.length - 1 ? 'Spin for Question ${_currentIndex + 2} →' : 'Continue Journey • Collect 🪙 Coins',
+                        style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        _currentIndex < scenarios.length - 1 ? Icons.autorenew_rounded : Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+            ],
           ],
         ],
       ),
     );
   }
 
+  // ── SPIN WHEEL SECTION (Exact Segments) ──────────────────────────────────────
+  Widget _buildWheelSection(List<Map<String, dynamic>> scenarios) {
+    final emojis = scenarios.map((s) => s['sceneEmoji'] as String? ?? '📖').toList();
+
+    return Column(
+      children: [
+        SizedBox(
+          width: 250,
+          height: 250,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer Golden Ring Rim Shadow
+              Container(
+                width: 240,
+                height: 240,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFF3E8FF), Color(0xFFDDD6FE), Color(0xFFC4B5FD)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFA78BFA).withValues(alpha: 0.25),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Rotating Wheel
+              Transform.rotate(
+                angle: _currentRotation,
+                child: SizedBox(
+                  width: 224,
+                  height: 224,
+                  child: CustomPaint(
+                    painter: _SpinWheelPainter(
+                      emojis: emojis,
+                      colors: _wheelColors,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Center SPIN Button Badge
+              GestureDetector(
+                onTap: _isSpinning ? null : _spinWheel,
+                child: Container(
+                  width: 78,
+                  height: 78,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
+                    ),
+                    border: Border.all(color: const Color(0xFFFDBA74), width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      _isSpinning
+                          ? 'SPINNING...'
+                          : (_hasSpun ? 'SPIN AGAIN 🎡' : 'TAP TO\nSPIN 🎡'),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFF9A3412),
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Top Pointer Ticker (📍 Arrow pointing down into wheel segment)
+              Positioned(
+                top: 2,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFDC2626),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.arrow_drop_down_rounded, color: Colors.white, size: 26),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // Action Prompt below Wheel
+        if (!_hasSpun && !_isSpinning)
+          GestureDetector(
+            onTap: _spinWheel,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.purple.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('🎡', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Spin for Question ${_currentIndex + 1}!',
+                    style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(0.97, 0.97), end: const Offset(1.03, 1.03), duration: 1000.ms),
+      ],
+    );
+  }
+
+  // ── SCENE CARD ───────────────────────────────────────────────────────────────
   Widget _buildSceneCard() {
     final character = _current['character'] as String? ?? 'Character';
     final scene = _current['scene'] as String? ?? '';
@@ -213,10 +470,10 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFFBCFE8), width: 1.5),
+        border: Border.all(color: const Color(0xFFFDBA74), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFDB2777).withValues(alpha: 0.08),
+            color: const Color(0xFFF97316).withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -232,12 +489,13 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFCE7F3),
+                  color: const Color(0xFFFFF7ED),
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFED7AA)),
                 ),
                 child: Text(
                   character,
-                  style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF9D174D)),
+                  style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF9A3412)),
                 ),
               ),
             ],
@@ -257,6 +515,7 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
     );
   }
 
+  // ── EMOJI GRID ───────────────────────────────────────────────────────────────
   Widget _buildEmojiGrid() {
     final options = List<String>.from(_current['options'] as List? ?? []);
     final correct = _current['correctEmoji'] as String? ?? '';
@@ -283,8 +542,8 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
             bgColor = const Color(0xFFFEF2F2);
           }
         } else if (isSelected) {
-          borderColor = const Color(0xFFDB2777);
-          bgColor = const Color(0xFFFCE7F3);
+          borderColor = const Color(0xFFF97316);
+          bgColor = const Color(0xFFFFF7ED);
         }
 
         return GestureDetector(
@@ -329,6 +588,7 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
     );
   }
 
+  // ── GIGI FEEDBACK CARD ───────────────────────────────────────────────────────
   Widget _buildFeedback() {
     final correct = _current['correctEmoji'] as String? ?? '';
     final isRight = _selectedEmoji == correct;
@@ -338,17 +598,17 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isRight ? const Color(0xFFECFDF5) : const Color(0xFFFEF3C7),
+        color: isRight ? const Color(0xFFECFDF5) : const Color(0xFFFFF7ED),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isRight ? const Color(0xFF34D399) : const Color(0xFFFBBF24),
+          color: isRight ? const Color(0xFF34D399) : const Color(0xFFFDBA74),
           width: 1.5,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(isRight ? '🌸' : '💛', style: const TextStyle(fontSize: 22)),
+          Text(isRight ? '🌸' : '💡', style: const TextStyle(fontSize: 22)),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -359,7 +619,7 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
                   style: GoogleFonts.nunito(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w900,
-                    color: isRight ? const Color(0xFF065F46) : const Color(0xFF92400E),
+                    color: isRight ? const Color(0xFF065F46) : const Color(0xFF9A3412),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -376,7 +636,7 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
                   const SizedBox(height: 8),
                   Text(
                     'The feeling was $correct — and that\'s perfectly valid.',
-                    style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF92400E)),
+                    style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF9A3412)),
                   ),
                 ],
               ],
@@ -386,4 +646,66 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget> {
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08);
   }
+}
+
+// ── CUSTOM PAINTER FOR SPINNING WHEEL SECTORS ─────────────────────────────────
+class _SpinWheelPainter extends CustomPainter {
+  final List<String> emojis;
+  final List<Color> colors;
+
+  _SpinWheelPainter({required this.emojis, required this.colors});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final n = max(emojis.length, 1);
+    final sweepAngle = (2 * pi) / n;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+    final borderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = Colors.white.withValues(alpha: 0.9)
+      ..strokeWidth = 3.0;
+
+    for (int i = 0; i < n; i++) {
+      final startAngle = (i * sweepAngle) - (pi / 2);
+      paint.color = colors[i % colors.length];
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        true,
+        paint,
+      );
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        true,
+        borderPaint,
+      );
+
+      // Render Emojis in Sector Centers
+      final textAngle = startAngle + (sweepAngle / 2);
+      final textRadius = radius * 0.65;
+      final textX = center.dx + textRadius * cos(textAngle);
+      final textY = center.dy + textRadius * sin(textAngle);
+
+      final textPainter = TextPainter(
+        text: TextSpan(text: emojis[i], style: const TextStyle(fontSize: 26)),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(textX - (textPainter.width / 2), textY - (textPainter.height / 2)),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SpinWheelPainter oldDelegate) => true;
 }

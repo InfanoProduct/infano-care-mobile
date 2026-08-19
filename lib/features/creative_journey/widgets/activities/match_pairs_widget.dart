@@ -348,7 +348,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                               const Text('🪙', style: TextStyle(fontSize: 12)),
                               const SizedBox(width: 4),
                               Text(
-                                '+20 XP',
+                                '+20 Coins 🪙',
                                 style: GoogleFonts.nunito(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w900,
@@ -835,16 +835,17 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFEC4899), Color(0xFFDB2777), Color(0xFFBE185D)],
+          colors: [Color(0xFFFDF2F8), Color(0xFFFFF1F2)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFFBCFE8), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFDB2777).withValues(alpha: 0.4),
+            color: const Color(0xFFDB2777).withValues(alpha: 0.1),
             blurRadius: 20,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -857,7 +858,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
             style: GoogleFonts.nunito(
               fontSize: 22,
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: const Color(0xFF1E1B4B),
             ),
           ),
           const SizedBox(height: 6),
@@ -867,7 +868,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
             textAlign: TextAlign.center,
             style: GoogleFonts.nunito(
               fontSize: 13.5,
-              color: Colors.white.withValues(alpha: 0.95),
+              color: const Color(0xFF4B5563),
               height: 1.4,
             ),
           ),
@@ -882,13 +883,14 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 15),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color(0xFFFCE7F3),
                 borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFFBCFE8), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFFDB2777).withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
@@ -896,11 +898,11 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Continue Journey • Collect XP ⭐',
+                    'Continue Journey • Collect 🪙 Coins',
                     style: GoogleFonts.nunito(
                       fontSize: 15.5,
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFFBE185D),
+                      color: const Color(0xFFDB2777),
                     ),
                   ),
                   const SizedBox(width: 8),

@@ -283,7 +283,7 @@ class _WatchVideoWidgetState extends State<WatchVideoWidget> {
                 ],
               ),
               child: Text(
-                'Collect XP ⭐',
+                'Collect 🪙 Coins',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.nunito(
                   fontSize: 16,

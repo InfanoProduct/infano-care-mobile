@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -315,13 +314,14 @@ class _JournalHomeScreenState extends State<JournalHomeScreen>
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () async {
+                  final cubit = context.read<JournalCubit>();
                   await context.push('/journal/new', extra: {
                     'moodTag': _selectedMood,
                     'moodColor': _selectedMoodColor != null
                         ? '#${(_selectedMoodColor!.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}'
                         : null,
                   });
-                  if (context.mounted) context.read<JournalCubit>().loadFeed();
+                  if (mounted) cubit.loadFeed();
                 },
                 icon: const Icon(Icons.edit_note_rounded),
                 label: const Text('Journal about it'),
@@ -385,13 +385,14 @@ class _JournalHomeScreenState extends State<JournalHomeScreen>
               Row(children: [
                 GestureDetector(
                   onTap: () async {
+                    final cubit = context.read<JournalCubit>();
                     await context.push('/journal/compose', extra: {
                       'promptId': prompt.id,
                       'promptText': prompt.text,
                       'promptOptions': prompt.options,
                       'mode': targetMode,
                     });
-                    if (context.mounted) context.read<JournalCubit>().loadFeed();
+                    if (mounted) cubit.loadFeed();
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -406,8 +407,9 @@ class _JournalHomeScreenState extends State<JournalHomeScreen>
                 const Spacer(),
                 TextButton.icon(
                   onPressed: () async {
-                    await context.read<JournalCubit>().shakePromptJar();
-                    if (context.mounted) context.read<JournalCubit>().loadFeed();
+                    final cubit = context.read<JournalCubit>();
+                    await cubit.shakePromptJar();
+                    if (mounted) cubit.loadFeed();
                   },
                   icon: const Icon(Icons.shuffle_rounded, color: Colors.white, size: 16),
                   label: Text('Next prompt', style: GoogleFonts.nunito(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
@@ -486,8 +488,9 @@ class _JournalHomeScreenState extends State<JournalHomeScreen>
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () async {
+              final cubit = context.read<JournalCubit>();
               await context.push('/journal/new');
-              if (context.mounted) context.read<JournalCubit>().loadFeed();
+              if (mounted) cubit.loadFeed();
             },
             icon: const Icon(Icons.add),
             label: const Text('Start journaling'),

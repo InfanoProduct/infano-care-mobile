@@ -13,6 +13,7 @@ import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:infano_care_mobile/widgets/notification_center_sheet.dart';
+import 'package:infano_care_mobile/widgets/coin_badge.dart';
 import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/screens/connect/connect_screen.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
@@ -223,14 +224,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
             child: Scaffold(
               backgroundColor: const Color(0xFFF5F4F7),
-            appBar: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) 
-              ? null // Hide main AppBar for Track, Quest, and Connect modules
+            appBar: (state.selectedIndex != 0) 
+              ? null // Hide main AppBar for Learning Journey, Track, Quest, and Connect modules
               : AppBar(
                   title: const Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
                   backgroundColor: Colors.white,
                   elevation: 0,
                   iconTheme: const IconThemeData(color: AppColors.purple),
                   actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: CoinBadge(
+                        coins: storage.totalCoins,
+                        onTap: () => context.push('/account'),
+                      ),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.chat_bubble_outline),
                       tooltip: 'My Chats',
@@ -263,7 +271,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ],
                 ),
-            drawer: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) ? null : _buildDrawer(context, storage),
+            drawer: (state.selectedIndex != 0) ? null : _buildDrawer(context, storage),
             body: NotificationListener<ScrollNotification>(
               onNotification: (scrollNotification) {
                 if (scrollNotification is ScrollUpdateNotification) {
@@ -596,30 +604,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               context.push('/account/family');
             },
           ),
-          ListTile(
-            leading: Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.auto_awesome_outlined, color: Colors.white, size: 20),
-            ),
-            title: const Text(
-              'Learning Journey ✨',
-              style: TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: const Text(
-              'New • My Changing Body',
-              style: TextStyle(fontSize: 11, color: Colors.grey),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/creative-journey');
-            },
-          ),
+
           ListTile(
             leading: const Icon(Icons.workspace_premium_outlined, color: AppColors.purple),
             title: const Text('Enrolled Programs'),

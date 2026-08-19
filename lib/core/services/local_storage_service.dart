@@ -108,10 +108,15 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Points ────────────────────────────────────────────────────────────────
+  // ── Points & Coins ────────────────────────────────────────────────────────
   int get points                => _prefs.getInt(_points) ?? 0;
+  int get totalCoins            => _prefs.getInt(_points) ?? 0;
   Future<void> addPoints(int n) => _prefs.setInt(_points, points + n);
   Future<void> setPoints(int n) => _prefs.setInt(_points, n);
+  Future<void> setTotalCoins(int n) async {
+    await _prefs.setInt(_points, n);
+    notifyListeners();
+  }
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   String? get authToken         => _prefs.getString(_authToken);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 import 'package:page_flip/page_flip.dart';
 
 /// Modern Flip Book Story Reader (Node 1 — Story Book)
@@ -29,7 +30,8 @@ class _StoryComicScreenState extends State<StoryComicScreen> {
   bool get isLastPage => _currentPage >= pages.length - 1;
 
   void _nextPage() {
-    if (isLastPage) {
+    if (_currentPage == pages.length - 1) {
+      AppSoundService.instance.playBunchOfCoinsSound();
       widget.onCompleted();
     } else {
       _pageFlipKey.currentState?.nextPage();
@@ -201,7 +203,7 @@ class _StoryComicScreenState extends State<StoryComicScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          isLastPage ? 'Collect XP ⭐' : 'Turn Page',
+                          isLastPage ? 'Collect 🪙 Coins' : 'Turn Page',
                           style: GoogleFonts.nunito(
                             fontSize: 15,
                             fontWeight: FontWeight.w900,
