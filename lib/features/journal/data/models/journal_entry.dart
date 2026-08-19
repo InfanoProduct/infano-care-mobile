@@ -310,7 +310,7 @@ class DoodlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final allStrokes = [...strokes, ?currentStroke];
+    final allStrokes = [...strokes, if (currentStroke != null) currentStroke!];
 
     for (final stroke in allStrokes) {
       if (stroke.points.isEmpty) continue;
