@@ -191,8 +191,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  gradient: avatarUrl == null ? AppGradients.brandDiagonal : null,
-                  color: avatarUrl != null ? Colors.white : null,
+                  color: avatarUrl != null ? Colors.white : AppColors.purple,
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.purple.withValues(alpha: 0.2), width: 4),
                   boxShadow: [

@@ -265,10 +265,9 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
                 duration: const Duration(milliseconds: 200),
                 height: 54,
                 decoration: BoxDecoration(
-                  gradient: (_otp.length == 4 && !sessionExpired) ? AppGradients.brand : null, 
-                  color: (_otp.length == 4 && !sessionExpired) ? null : AppColors.textLight.withValues(alpha: 0.3),
+                  color: (_otp.length == 4 && !sessionExpired) ? AppColors.purple : AppColors.textLight.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(100),
-                  boxShadow: (_otp.length == 4) ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))] : [],
+                  boxShadow: (_otp.length == 4) ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))] : [],
                 ),
                 child: Center(
                   child: _loading

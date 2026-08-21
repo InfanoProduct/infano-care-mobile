@@ -25,26 +25,26 @@ class AppColors {
   static const Color softAmber    = Color(0xFFFFFBEB);
   static const Color teal         = Color(0xFF0D9488);
 
-  // Gradient stops
-  static const List<Color> brandGradient = [purple, pink];
-  static const List<Color> cardGradient  = [Color(0xFFF5F3FF), Color(0xFFFDF2F8)];
+  // Solid stops (gradients disabled)
+  static const List<Color> brandGradient = [purple, purple];
+  static const List<Color> cardGradient  = [surfaceCard, surfaceCard];
 }
 
 class AppGradients {
   static const LinearGradient brand = LinearGradient(
-    colors: AppColors.brandGradient,
+    colors: [AppColors.purple, AppColors.purple],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
 
   static const LinearGradient brandDiagonal = LinearGradient(
-    colors: AppColors.brandGradient,
+    colors: [AppColors.purple, AppColors.purple],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient softCard = LinearGradient(
-    colors: AppColors.cardGradient,
+    colors: [AppColors.surfaceCard, AppColors.surfaceCard],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

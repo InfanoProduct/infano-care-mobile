@@ -62,8 +62,8 @@ class _ExpertHomeTabState extends State<_ExpertHomeTab> {
                     children: [
                       Container(
                         width: 52, height: 52,
-                        decoration: BoxDecoration(
-                          gradient: AppGradients.brand,
+                        decoration: const BoxDecoration(
+                          color: AppColors.purple,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -504,7 +504,7 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(gradient: AppGradients.brandDiagonal),
+            decoration: const BoxDecoration(color: AppColors.purple),
             accountName: Text(storage.displayName ?? 'Expert',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             accountEmail: Text(storage.phone ?? ''),

@@ -40,7 +40,7 @@ class _PointsBurstState extends State<PointsBurst> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          gradient: AppGradients.brand,
+          color: AppColors.purple,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(

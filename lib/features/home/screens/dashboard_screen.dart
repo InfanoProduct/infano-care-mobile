@@ -620,7 +620,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         children: [
           UserAccountsDrawerHeader(
             decoration: const BoxDecoration(
-              gradient: AppGradients.brandDiagonal,
+              color: AppColors.purple,
             ),
             accountName: Text(storage.displayName ?? 'Infano User', 
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),

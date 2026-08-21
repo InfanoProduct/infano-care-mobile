@@ -161,7 +161,7 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
                 onTap: _valid && !_loading ? _sendOtp : null,
                 child: Container(
                   height: 52,
-                  decoration: BoxDecoration(gradient: _valid ? AppGradients.brand : null, color: _valid ? null : AppColors.textLight, borderRadius: BorderRadius.circular(100)),
+                  decoration: BoxDecoration(color: _valid ? AppColors.purple : AppColors.textLight, borderRadius: BorderRadius.circular(100)),
                   child: Center(
                     child: _loading
                       ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
