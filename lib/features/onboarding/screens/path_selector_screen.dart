@@ -18,7 +18,7 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
 
   Future<void> _select(int index) async {
     setState(() => _selected = index);
-    
+
     final cleanRole = (index == 0) ? 'TEEN' : 'PARENT';
     try {
       await ApiService.instance.dio.patch('/user/role', data: {'role': cleanRole});
@@ -30,14 +30,9 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
     await storage.setUserType(index == 0 ? 'teen' : 'parent');
     await storage.setRole(cleanRole);
     await storage.setStepComplete('0.5');
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 350));
     if (!mounted) return;
-    if (index == 0) {
-      context.go('/onboarding/name');
-    } else {
-      // Parent path — placeholder
-      context.go('/onboarding/name');
-    }
+    context.go('/onboarding/name');
   }
 
   @override
@@ -51,18 +46,25 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 32),
-            Text('Who are you?',
-              style: Theme.of(context).textTheme.headlineLarge),
+            const SizedBox(height: 24),
+            Text(
+              'Who are you? ✨',
+              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    color: AppColors.textDark,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
             const SizedBox(height: 8),
-            const Text('Choose the right path for you 💜',
-              style: TextStyle(color: AppColors.textLight, fontSize: 16)),
-            const SizedBox(height: 40),
+            const Text(
+              'Choose your journey path to get personalized support.',
+              style: TextStyle(color: AppColors.textMedium, fontSize: 15, height: 1.4),
+            ),
+            const SizedBox(height: 32),
             ...[
               _PathCard(
                 emoji: '🌸',
                 title: "I'm a Girl or Young Woman",
-                subtitle: 'Ages 10–24',
+                subtitle: 'Ages 10–24 • Learn, track, and blossom',
                 selected: _selected == 0,
                 onTap: () => _select(0),
               ),
@@ -70,13 +72,16 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
               _PathCard(
                 emoji: '👨‍👧',
                 title: "I'm a Parent or Guardian",
-                subtitle: 'Set up for my daughter',
+                subtitle: 'Set up guidance and care for my child',
                 selected: _selected == 1,
                 onTap: () => _select(1),
               ),
-            ].asMap().entries.map((e) =>
-              e.value.animate(delay: Duration(milliseconds: 200 + e.key * 150))
-                .fadeIn(duration: 300.ms).slideY(begin: 0.1, duration: 300.ms)),
+            ].asMap().entries.map(
+                  (e) => e.value
+                      .animate(delay: Duration(milliseconds: 150 + e.key * 100))
+                      .fadeIn(duration: 250.ms)
+                      .slideY(begin: 0.08, duration: 250.ms),
+                ),
           ],
         ),
       ),
@@ -85,7 +90,14 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
 }
 
 class _PathCard extends StatelessWidget {
-  const _PathCard({required this.emoji, required this.title, required this.subtitle, required this.selected, required this.onTap});
+  const _PathCard({
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
   final String emoji, title, subtitle;
   final bool selected;
   final VoidCallback onTap;
@@ -95,34 +107,74 @@ class _PathCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        transform: Matrix4.diagonal3Values(selected ? 1.04 : 1.0, selected ? 1.04 : 1.0, 1.0),
-        transformAlignment: Alignment.center,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
-          color: AppColors.surfaceCard,
-          borderRadius: BorderRadius.circular(24),
+          color: selected ? AppColors.surface : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected ? AppColors.purple : const Color(0xFFE9D5FF),
             width: selected ? 2.5 : 1.5,
           ),
-          boxShadow: selected ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8))] : null,
+          boxShadow: [
+            BoxShadow(
+              color: selected ? AppColors.purple.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.03),
+              blurRadius: selected ? 16 : 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 40)),
-            const SizedBox(width: 20),
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.purple.withValues(alpha: 0.1) : const Color(0xFFFAF5FF),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(emoji, style: const TextStyle(fontSize: 28)),
+              ),
+            ),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17, color: AppColors.textDark)),
-                  Text(subtitle, style: const TextStyle(color: AppColors.textLight, fontSize: 14)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: selected ? AppColors.purple : AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: AppColors.textMedium, fontSize: 13, height: 1.3),
+                  ),
                 ],
               ),
             ),
-            if (selected) const Icon(Icons.check_circle_rounded, color: AppColors.purple, size: 28),
+            const SizedBox(width: 8),
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.purple : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? AppColors.purple : const Color(0xFFD8B4FE),
+                  width: 2,
+                ),
+              ),
+              child: selected
+                  ? const Icon(Icons.check, size: 16, color: Colors.white)
+                  : null,
+            ),
           ],
         ),
       ),

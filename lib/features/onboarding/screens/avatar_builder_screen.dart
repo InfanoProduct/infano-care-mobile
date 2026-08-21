@@ -9,7 +9,6 @@ import 'package:infano_care_mobile/shared/widgets/points_burst.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 
 /// Simplified SVG-layer avatar builder.
-/// Replace the emoji placeholders with illustrated SVG layers when assets are available.
 class AvatarBuilderScreen extends StatefulWidget {
   const AvatarBuilderScreen({super.key});
 
@@ -34,11 +33,19 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
 
   Widget _buildPreview() {
     return Container(
-      width: 160, height: 220,
+      width: 160,
+      height: 220,
       decoration: BoxDecoration(
-        gradient: AppGradients.softCard,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(80),
         border: Border.all(color: const Color(0xFFE9D5FF), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purple.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -77,10 +84,7 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
 
               if (mounted) {
                 setState(() => _showPoints = true);
-                
-                // Wait for sync to backend
                 await bloc.stream.firstWhere((state) => !state.isLoading);
-                
                 if (context.mounted) {
                   context.go('/onboarding/journey-name');
                 }
@@ -89,9 +93,10 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
           ),
           if (_showPoints)
             Positioned(
-              top: -50, right: 20, 
+              top: -50,
+              right: 20,
               child: PointsBurst(
-                points: 25, 
+                points: 25,
                 onComplete: () {
                   if (mounted) setState(() => _showPoints = false);
                 },
@@ -105,35 +110,50 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              Text('Build your Bloom Avatar ✨', style: Theme.of(context).textTheme.headlineLarge, textAlign: TextAlign.center),
+              Text(
+                'Build your Bloom Avatar ✨',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.w800,
+                    ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 20),
-              // Preview
-              Center(child: _buildPreview().animate().scaleXY(begin: 0.8, duration: 500.ms, curve: Curves.elasticOut)),
+              Center(child: _buildPreview().animate().scaleXY(begin: 0.8, duration: 500.ms, curve: Curves.easeOutBack)),
               const SizedBox(height: 24),
               // Category tabs
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: _categories.asMap().entries.map((e) =>
-                    GestureDetector(
+                  children: _categories.asMap().entries.map((e) {
+                    final isSelected = _category == e.key;
+                    return GestureDetector(
                       onTap: () => setState(() => _category = e.key),
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: const Duration(milliseconds: 180),
                         margin: const EdgeInsets.only(right: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
-                          gradient: _category == e.key ? AppGradients.brand : null,
-                          color: _category == e.key ? null : AppColors.surfaceCard,
+                          color: isSelected ? AppColors.purple : AppColors.surface,
                           borderRadius: BorderRadius.circular(100),
+                          border: Border.all(
+                            color: isSelected ? AppColors.purple : const Color(0xFFE9D5FF),
+                            width: 1.5,
+                          ),
                         ),
-                        child: Text(e.value, style: TextStyle(color: _category == e.key ? Colors.white : AppColors.textDark, fontWeight: FontWeight.w700)),
+                        child: Text(
+                          e.value,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : AppColors.textDark,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
-                  ).toList(),
+                    );
+                  }).toList(),
                 ),
               ),
               const SizedBox(height: 20),
-              // Swatch grid
               GridView.count(
                 crossAxisCount: 6,
                 mainAxisSpacing: 10,
@@ -143,15 +163,16 @@ class _AvatarBuilderScreenState extends State<AvatarBuilderScreen> {
                 children: _getCategoryItems().asMap().entries.map((e) {
                   final item = e.value;
                   final isColor = _isColor(item);
+                  final isCurrent = _getCurrentIndex() == e.key;
                   return GestureDetector(
                     onTap: () => setState(() => _setCategory(e.key)),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isColor ? Color(item as int) : null,
+                        color: isColor ? Color(item as int) : AppColors.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _getCurrentIndex() == e.key ? AppColors.purple : Colors.transparent,
-                          width: 2,
+                          color: isCurrent ? AppColors.purple : const Color(0xFFE9D5FF),
+                          width: isCurrent ? 2.5 : 1,
                         ),
                       ),
                       child: isColor ? null : Center(child: Text(item as String, style: const TextStyle(fontSize: 24))),

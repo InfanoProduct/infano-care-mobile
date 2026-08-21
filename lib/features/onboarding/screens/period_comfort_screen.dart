@@ -19,25 +19,25 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
   bool _showPoints = false;
 
   static const _scale = [
-    ('😬', 'Umm... pretty\nembarrassed'),
-    ('😕', 'A little\nuncomfortable'),
-    ('😐', "It's okay,\nI guess"),
-    ('🙂', 'Pretty\ncomfortable'),
-    ('😄', 'Totally fine,\nlet\'s talk!'),
+    ('😬', 'Pretty\nhesitant'),
+    ('😕', 'A bit\nunsure'),
+    ('😐', 'Getting\nused to it'),
+    ('🙂', 'Comfortable'),
+    ('😄', 'Super\nconfident!'),
   ];
 
   static const _responses = [
-    "That's totally okay — many girls feel the same way!\nWe'll go at your pace 💜",
-    "Completely normal. We'll take it step by step 💜",
-    "Good starting point! You're already here 🌸",
-    "Love that comfort level! You're doing great 💜",
-    "Amazing openness! You'll thrive here 🌟",
+    "That is 100% normal! We'll go at your pace and make everything simple. 💜",
+    "Completely okay — we break things down step-by-step so you feel secure. 🌸",
+    "Great starting point! You're already taking positive steps. ✨",
+    "Awesome! You're in a great space to build healthy habits. 💜",
+    "Amazing openness! You're ready to bloom into your best self. 🌟",
   ];
 
   void _select(int i) {
     context.read<OnboardingBloc>().add(SetPeriodComfort(i + 1));
     setState(() { _selected = i; _showPoints = true; });
-    Future.delayed(const Duration(milliseconds: 1800), () {
+    Future.delayed(const Duration(milliseconds: 1400), () {
       if (mounted) {
         context.go('/onboarding/period-status');
       }
@@ -51,17 +51,26 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
       totalSteps: 11,
       onBack: () => context.go('/onboarding/goals'),
       bottomBar: _showPoints ? PointsBurst(points: 10, onComplete: () => setState(() => _showPoints = false)) : null,
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 32),
-            Text('How do you feel about talking about periods?', style: Theme.of(context).textTheme.headlineLarge),
+            const SizedBox(height: 24),
+            Text(
+              'How comfortable are you talking about periods?',
+              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    color: AppColors.textDark,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
             const SizedBox(height: 8),
-            Text("Be honest — we don't judge! 😊", style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 48),
-            // Emoji scale
+            const Text(
+              'Be honest — there are no wrong answers in this safe space! 😊',
+              style: TextStyle(color: AppColors.textMedium, fontSize: 15),
+            ),
+            const SizedBox(height: 36),
+            // Emoji scale cards
             Row(
               children: _scale.asMap().entries.map((e) {
                 final isSelected = _selected == e.key;
@@ -69,15 +78,41 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
                   child: GestureDetector(
                     onTap: () => _select(e.key),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      transform: Matrix4.diagonal3Values(isSelected ? 1.35 : 1.0, isSelected ? 1.35 : 1.0, 1.0),
-                      transformAlignment: Alignment.center,
+                      duration: const Duration(milliseconds: 180),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.purple : AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected ? AppColors.purple : const Color(0xFFE9D5FF),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isSelected
+                                ? AppColors.purple.withValues(alpha: 0.25)
+                                : Colors.black.withValues(alpha: 0.02),
+                            blurRadius: isSelected ? 10 : 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(e.value.$1, style: TextStyle(fontSize: isSelected ? 38 : 28)),
-                          const SizedBox(height: 6),
-                          Text(e.value.$2, textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 10, color: isSelected ? AppColors.purple : AppColors.textLight, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400)),
+                          Text(e.value.$1, style: const TextStyle(fontSize: 30)),
+                          const SizedBox(height: 8),
+                          Text(
+                            e.value.$2,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isSelected ? Colors.white : AppColors.textDark,
+                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                              height: 1.2,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -85,33 +120,52 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
                 );
               }).toList(),
             ),
-            // Connecting line
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: _selected != null ? (_selected! + 1) / 5 : 0,
-                  backgroundColor: AppColors.surfaceCard,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
-                  minHeight: 4,
+            const SizedBox(height: 28),
+            if (_selected != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.purple.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('💬', style: TextStyle(fontSize: 22)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _responses[_selected!],
+                        style: const TextStyle(
+                          color: AppColors.textDark,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn(duration: 250.ms).slideY(begin: 0.1, duration: 250.ms),
+              const SizedBox(height: 24),
+            ],
+            Center(
+              child: TextButton(
+                onPressed: () => context.go('/onboarding/period-status'),
+                child: const Text(
+                  'Skip for now',
+                  style: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.w600),
                 ),
               ),
-            ),
-            if (_selected != null) ...[
-              const SizedBox(height: 32),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(20)),
-                child: Text(_responses[_selected!],
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.textDark, fontSize: 16, fontWeight: FontWeight.w600, height: 1.5)),
-              ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2, duration: 300.ms),
-            ],
-            TextButton(
-              onPressed: () => context.go('/onboarding/period-status'),
-              child: const Text('Skip for now', style: TextStyle(color: AppColors.textLight)),
             ),
           ],
         ),

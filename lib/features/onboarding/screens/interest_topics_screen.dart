@@ -20,16 +20,16 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
   bool _showPoints = false;
 
   static const _topics = [
-    ('puberty',    '🌺', 'Puberty & Body Changes'),
-    ('period',     '🩸', 'Period Health'),
-    ('nutrition',  '🥗', 'Food & Nutrition'),
-    ('fitness',    '💪', 'Exercise & Fitness'),
-    ('emotional',  '🧠', 'Mental Health'),
-    ('skincare',   '✨', 'Skincare & Beauty'),
-    ('social',     '💬', 'Healthy Friendships'),
+    ('puberty',      '🌺', 'Puberty & Body Changes'),
+    ('period',       '🩸', 'Period Health'),
+    ('nutrition',    '🥗', 'Food & Nutrition'),
+    ('fitness',      '💪', 'Exercise & Fitness'),
+    ('emotional',    '🧠', 'Mental Health'),
+    ('skincare',     '✨', 'Skincare & Glow'),
+    ('social',       '💬', 'Healthy Friendships'),
     ('reproductive', '🔬', 'Reproductive Health'),
-    ('financial',  '💸', 'Money Basics'),
-    ('creativity', '🎨', 'Art & Creativity'),
+    ('financial',    '💸', 'Money & Life Skills'),
+    ('creativity',   '🎨', 'Creativity & Arts'),
   ];
 
   void _toggle(String key) {
@@ -55,7 +55,9 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
         clipBehavior: Clip.none,
         children: [
           GradientButton(
-            label: 'Show Me My Universe 🌟',
+            label: _selected.isEmpty
+                ? 'Pick Your Interests'
+                : 'Explore My Universe (${_selected.length}) 🌟',
             onPressed: () async {
               final bloc = context.read<OnboardingBloc>();
               bloc.add(SetInterestTopics(_selected.toList()));
@@ -63,10 +65,7 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
 
               if (mounted) {
                 setState(() => _showPoints = true);
-                
-                // Wait for sync to backend
                 await bloc.stream.firstWhere((state) => !state.isLoading);
-                
                 if (context.mounted) {
                   context.go('/onboarding/terms');
                 }
@@ -76,9 +75,10 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
           ),
           if (_showPoints && _selected.length >= 3)
             Positioned(
-              top: -50, right: 20, 
+              top: -50,
+              right: 20,
               child: PointsBurst(
-                points: 20, 
+                points: 20,
                 onComplete: () {
                   if (mounted) setState(() => _showPoints = false);
                 },
@@ -92,44 +92,73 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
-              Text('What topics light you up? 🌟', style: Theme.of(context).textTheme.headlineLarge),
+              const SizedBox(height: 24),
+              Text(
+                'What topics light you up? 🌟',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
               const SizedBox(height: 8),
-              Text('Pick all that interest you!', style: Theme.of(context).textTheme.bodyLarge),
-              const SizedBox(height: 16),
+              const Text(
+                'Pick everything that interests you — we customize your feed!',
+                style: TextStyle(color: AppColors.textMedium, fontSize: 15),
+              ),
+              const SizedBox(height: 24),
               GridView.count(
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.8,
+                childAspectRatio: 1.7,
                 children: _topics.asMap().entries.map((e) {
                   final t = e.value;
                   final isSelected = _selected.contains(t.$1);
                   return GestureDetector(
                     onTap: () => _toggle(t.$1),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      transform: Matrix4.diagonal3Values(isSelected ? 1.04 : 1.0, isSelected ? 1.04 : 1.0, 1.0),
-                      transformAlignment: Alignment.center,
-                      padding: const EdgeInsets.all(12),
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        gradient: isSelected ? AppGradients.brand : AppGradients.softCard,
+                        color: isSelected ? AppColors.purple : AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected ? AppColors.purple : const Color(0xFFE9D5FF),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isSelected
+                                ? AppColors.purple.withValues(alpha: 0.2)
+                                : Colors.black.withValues(alpha: 0.02),
+                            blurRadius: isSelected ? 8 : 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
-                          Text(t.$2, style: const TextStyle(fontSize: 20)),
+                          Text(t.$2, style: const TextStyle(fontSize: 22)),
                           const SizedBox(width: 8),
-                          Expanded(child: Text(t.$3,
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11,
-                              color: isSelected ? Colors.white : AppColors.textDark))),
-                          if (isSelected) const Icon(Icons.check_circle, color: Colors.white, size: 14),
+                          Expanded(
+                            child: Text(
+                              t.$3,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                color: isSelected ? Colors.white : AppColors.textDark,
+                                height: 1.2,
+                              ),
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(Icons.check_circle, color: Colors.white, size: 16),
                         ],
                       ),
                     ),
-                  ).animate(delay: Duration(milliseconds: e.key * 50)).fadeIn(duration: 200.ms);
+                  ).animate(delay: Duration(milliseconds: e.key * 40)).fadeIn(duration: 180.ms);
                 }).toList(),
               ),
               const SizedBox(height: 24),

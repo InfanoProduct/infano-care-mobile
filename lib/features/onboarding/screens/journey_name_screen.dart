@@ -21,6 +21,12 @@ class _JourneyNameScreenState extends State<JourneyNameScreen> {
   static const _suggestions = ['My Bloom Journey', 'Rising Star', 'Wild Flower', 'Ocean Dreamer', 'Moonlight Path'];
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
       currentStep: 10,
@@ -34,7 +40,6 @@ class _JourneyNameScreenState extends State<JourneyNameScreen> {
           bloc.add(const SubmitJourneyName());
 
           if (mounted) {
-            // Wait for sync to backend
             await bloc.stream.firstWhere((state) => !state.isLoading);
             if (context.mounted) {
               context.go('/onboarding/terms');
@@ -49,25 +54,72 @@ class _JourneyNameScreenState extends State<JourneyNameScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 32),
-              Text('Name your journey ✍️', style: Theme.of(context).textTheme.headlineLarge),
+              const SizedBox(height: 24),
+              Text(
+                'Name your journey ✍️',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
               const SizedBox(height: 8),
-              Text('This is your personal space — give it a name that feels like you!', style: Theme.of(context).textTheme.bodyLarge),
-              const SizedBox(height: 32),
-              TextField(
-                controller: _controller,
-                maxLength: 40,
-                onChanged: (v) => setState(() => _valid = v.trim().length >= 2),
-                decoration: const InputDecoration(
-                  hintText: 'E.g. "My Bloom Journey"',
-                  counterText: '',
+              const Text(
+                'This is your personal space — give it a name that feels like you!',
+                style: TextStyle(color: AppColors.textMedium, fontSize: 15),
+              ),
+              const SizedBox(height: 28),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.purple.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _controller,
+                  maxLength: 40,
+                  onChanged: (v) => setState(() => _valid = v.trim().length >= 2),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. "My Bloom Journey"',
+                    hintStyle: const TextStyle(color: AppColors.textLight, fontWeight: FontWeight.normal),
+                    counterText: '',
+                    prefixIcon: const Icon(Icons.edit_note_rounded, color: AppColors.purple),
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFE9D5FF), width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFE9D5FF), width: 1.5),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppColors.purple, width: 2),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
-              Text('✨ Spark ideas:', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 24),
+              Text(
+                '✨ Spark ideas:',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+              ),
               const SizedBox(height: 12),
               Wrap(
-                spacing: 10, runSpacing: 10,
+                spacing: 10,
+                runSpacing: 10,
                 children: _suggestions.map((s) =>
                   GestureDetector(
                     onTap: () {
@@ -76,15 +128,29 @@ class _JourneyNameScreenState extends State<JourneyNameScreen> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(100), border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5)),
-                      child: Text(s, style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600)),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        s,
+                        style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
                     ),
                   ),
                 ).toList(),
               ),
               const SizedBox(height: 32),
             ],
-          ).animate().fadeIn(duration: 400.ms),
+          ).animate().fadeIn(duration: 300.ms),
         ),
       ),
     );

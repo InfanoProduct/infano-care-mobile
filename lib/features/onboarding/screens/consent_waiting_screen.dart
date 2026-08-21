@@ -62,34 +62,113 @@ class _ConsentWaitingScreenState extends State<ConsentWaitingScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('🌱', style: TextStyle(fontSize: 80)).animate(onPlay: (c) => c.repeat())
-                .slideY(begin: -0.05, end: 0.05, duration: 2000.ms, curve: Curves.easeInOut)
-                .then().slideY(begin: 0.05, end: -0.05, duration: 2000.ms),
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFE9D5FF), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.purple.withValues(alpha: 0.1),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text('🌱', style: TextStyle(fontSize: 48)),
+                ),
+              ).animate(onPlay: (c) => c.repeat(reverse: true))
+                .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.05, 1.05), duration: 1500.ms, curve: Curves.easeInOut),
               const SizedBox(height: 32),
-              Text("We've sent the note! 💌", style: Theme.of(context).textTheme.headlineLarge, textAlign: TextAlign.center),
+              Text(
+                "We've sent the note! 💌",
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.w800,
+                    ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 8),
-              Text('Waiting for the all-clear from your parent...', style: Theme.of(context).textTheme.bodyLarge, textAlign: TextAlign.center),
-              const SizedBox(height: 40),
+              const Text(
+                'Waiting for approval from your parent or guardian...',
+                style: TextStyle(color: AppColors.textMedium, fontSize: 15, height: 1.4),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 36),
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 400),
                 child: Container(
                   key: ValueKey(_factIndex),
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(20)),
-                  child: Text(_facts[_factIndex], style: Theme.of(context).textTheme.bodyLarge, textAlign: TextAlign.center),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.purple.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.lightbulb_outline_rounded, color: AppColors.purple, size: 18),
+                          SizedBox(width: 6),
+                          Text(
+                            'Fun Fact While You Wait',
+                            style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w700, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _facts[_factIndex],
+                        style: const TextStyle(
+                          color: AppColors.textDark,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 40),
-              TextButton.icon(
-                icon: const Icon(Icons.refresh_rounded, color: AppColors.purple),
-                label: const Text('Resend Email', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 36),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.purple,
+                  side: const BorderSide(color: Color(0xFFE9D5FF), width: 1.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: AppColors.surface,
+                ),
+                icon: const Icon(Icons.refresh_rounded, color: AppColors.purple, size: 18),
+                label: const Text(
+                  'Resend Email',
+                  style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w700),
+                ),
                 onPressed: _resendCooldown == 0 ? () {
                   final parentEmail = context.read<OnboardingBloc>().state.parentEmail;
                   if (parentEmail != null) {
                     context.read<OnboardingBloc>().add(SendConsentEmail(parentEmail));
-                    setState(() => _resendCooldown = 60); // 1 minute cooldown
+                    setState(() => _resendCooldown = 60);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Verification email resent!')),
+                      SnackBar(
+                        content: const Text('Verification email resent!'),
+                        backgroundColor: AppColors.purple,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                     );
                   }
                 } : null,

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
-/// Consistent onboarding page wrapper with gradient progress bar, back nav, and safe-area padding.
+/// Clean, modern onboarding page wrapper with solid progress indicator, tactile back nav, and safe-area padding.
 class OnboardingScaffold extends StatelessWidget {
   const OnboardingScaffold({
     super.key,
     required this.body,
     this.currentStep = 1,
-    this.totalSteps = 12,
+    this.totalSteps = 11,
     this.canGoBack = true,
     this.onBack,
     this.bottomBar,
@@ -23,15 +23,15 @@ class OnboardingScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = currentStep / totalSteps;
+    final progress = (currentStep / totalSteps).clamp(0.0, 1.0);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            // Progress bar
+            // Top Navigation & Step Progress
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
               child: Row(
                 children: [
                   if (canGoBack)
@@ -44,38 +44,71 @@ class OnboardingScaffold extends StatelessWidget {
                         }
                       },
                       child: Container(
-                        width: 40, height: 40,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceCard,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE9D5FF), width: 1),
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.purple.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.purple),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 18,
+                          color: AppColors.purple,
+                        ),
                       ),
                     )
                   else
-                    const SizedBox(width: 40),
-                  const SizedBox(width: 16),
+                    const SizedBox(width: 42),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Step $currentStep of $totalSteps',
-                          style: const TextStyle(
-                            color: AppColors.purple,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.purple.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Step $currentStep of $totalSteps',
+                                style: const TextStyle(
+                                  color: AppColors.purple,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 12,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${(progress * 100).round()}%',
+                              style: const TextStyle(
+                                color: AppColors.textLight,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                           child: LinearProgressIndicator(
                             value: progress,
-                            backgroundColor: AppColors.surfaceCard,
+                            backgroundColor: const Color(0xFFE9D5FF),
                             valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
-                            minHeight: 8,
+                            minHeight: 6,
                           ),
                         ),
                       ],
@@ -84,12 +117,15 @@ class OnboardingScaffold extends StatelessWidget {
                 ],
               ),
             ),
-            // Body
+            // Body Content
             Expanded(child: body),
-            // Bottom bar
+            // Bottom Action Bar
             if (bottomBar != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+                decoration: const BoxDecoration(
+                  color: AppColors.background,
+                ),
                 child: bottomBar!,
               ),
           ],

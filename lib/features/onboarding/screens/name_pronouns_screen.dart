@@ -38,13 +38,13 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
     super.dispose();
   }
 
-  static const _pronouns = ['She / Her', 'She / They', 'They / Them'];
+  static const _pronouns = ['She / Her', 'She / They', 'They / Them', 'Prefer not to say'];
 
   bool get _valid => _controller.text.trim().length >= 2;
 
   void _onNameChanged(String value) {
     setState(() {});
-    if (value.length >= 2 && !_pointsAwarded) {
+    if (value.trim().length >= 2 && !_pointsAwarded) {
       if (mounted) setState(() { _showPoints = true; _pointsAwarded = true; });
     }
   }
@@ -54,7 +54,6 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
     await storage.setDisplayName(_controller.text.trim());
     await storage.setPronouns(_pronoun);
     await storage.setPoints(10);
-    // Don't set stage yet, Birthday will set Stage 1
     if (mounted) context.go('/onboarding/birthday');
   }
 
@@ -83,29 +82,72 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 32),
-              Text('What should we call you? 👋',
-                style: Theme.of(context).textTheme.headlineLarge),
+              const SizedBox(height: 24),
+              Text(
+                'What should we call you? 👋',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
               const SizedBox(height: 8),
-              Text('Your first name or nickname works great!',
-                style: Theme.of(context).textTheme.bodyLarge),
+              const Text(
+                'Your first name or favorite nickname works great!',
+                style: TextStyle(color: AppColors.textMedium, fontSize: 15),
+              ),
               const SizedBox(height: 32),
               // Name input with points burst
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  TextField(
-                    controller: _controller,
-                    maxLength: 30,
-                    onChanged: _onNameChanged,
-                    decoration: const InputDecoration(
-                      counterText: '',
-                      hintText: 'Your first name or nickname',
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.purple.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _controller,
+                      maxLength: 30,
+                      onChanged: _onNameChanged,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        hintText: 'e.g. Maya or Alex',
+                        hintStyle: const TextStyle(color: AppColors.textLight, fontWeight: FontWeight.normal),
+                        prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.purple),
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Color(0xFFE9D5FF), width: 1.5),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Color(0xFFE9D5FF), width: 1.5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.purple, width: 2),
+                        ),
+                      ),
                     ),
                   ),
                   if (_showPoints)
                     Positioned(
-                      top: -50, right: 12,
+                      top: -50,
+                      right: 12,
                       child: PointsBurst(
                         points: 10,
                         onComplete: () {
@@ -116,42 +158,60 @@ class _NamePronounsScreenState extends State<NamePronounsScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-              Text('Your pronouns (optional)',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: _pronouns.map((p) =>
-                  GestureDetector(
-                    onTap: () => setState(() => _pronoun = _pronoun == p ? null : p),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: _pronoun == p ? AppGradients.brand : null,
-                        color: _pronoun == p ? null : AppColors.surfaceCard,
-                        borderRadius: BorderRadius.circular(100),
-                        border: Border.all(
-                          color: _pronoun == p ? Colors.transparent : const Color(0xFFE9D5FF),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Text(p,
-                        style: TextStyle(
-                          color: _pronoun == p ? Colors.white : AppColors.textDark,
-                          fontWeight: FontWeight.w600,
-                        )),
+              Text(
+                'Your pronouns (optional)',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
                     ),
-                  ),
-                ).toList(),
               ),
               const SizedBox(height: 12),
-              Text('You can always change this later.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textLight)),
-              const SizedBox(height: 32),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: _pronouns.map((p) {
+                  final isSelected = _pronoun == p;
+                  return GestureDetector(
+                    onTap: () => setState(() => _pronoun = isSelected ? null : p),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.purple : AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected ? AppColors.purple : const Color(0xFFE9D5FF),
+                          width: 1.5,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.purple.withValues(alpha: 0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Text(
+                        p,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : AppColors.textDark,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'You can always update this later in your profile.',
+                style: TextStyle(color: AppColors.textLight, fontSize: 13),
+              ),
             ],
-          ).animate().fadeIn(duration: 400.ms),
+          ).animate().fadeIn(duration: 300.ms),
         ),
       ),
     );

@@ -16,18 +16,29 @@ class AssentTermsScreen extends StatefulWidget {
 }
 
 class _AssentTermsScreenState extends State<AssentTermsScreen> {
-  bool _terms    = false;
-  bool _privacy  = false;
+  bool _terms = false;
+  bool _privacy = false;
   bool _marketing = false;
   int? _expanded;
-  bool _loading  = false;
+  bool _loading = false;
 
   static const _accordionItems = [
-    ('What Infano.Care does', 'A safe, age-appropriate platform for young girls to learn about their bodies, track their health, and build confidence — in a supportive community free from ads or data selling.'),
-    ('Your privacy', 'We collect only your name, phone number, birth year, and what you choose to share. We never sell your data. You can delete your account at any time.'),
-    ('How we keep you safe', 'All content is reviewed by health educators. Our community is moderated. You control your privacy settings. COPPA-compliant for users under 13.'),
-    ('Your rights', 'You can update or delete your data, change your preferences, or leave at any time. All your data belongs to you.'),
-    ('Community rules', 'Be kind. Be yourself. No bullying, no sharing personal info publicly. We have a zero-tolerance policy for harmful content.'),
+    (
+      'What Infano.Care does',
+      'A safe, age-appropriate platform for young girls to learn about their bodies, track their health, and build confidence — free from ads or data selling.'
+    ),
+    (
+      'Your privacy & data safety',
+      'We only collect the info needed for personalized care (name, age tier, cycle preferences). We never sell your data to third parties.'
+    ),
+    (
+      'Expert verified content',
+      'All educational articles and guides are medically reviewed by certified adolescent health educators and pediatricians.'
+    ),
+    (
+      'You are always in control',
+      'You can update preferences, export your entries, or delete your account whenever you choose.'
+    ),
   ];
 
   bool get _canContinue => _terms && _privacy;
@@ -36,29 +47,28 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
     setState(() => _loading = true);
     final bloc = context.read<OnboardingBloc>();
     final storage = await LocalStorageService.create();
-    
-    // Save locally and update state
+
     await storage.setConsents(terms: _terms, privacy: _privacy, marketing: _marketing);
     bloc.add(SetConsent(_terms, _privacy, _marketing));
-    
+
     final authToken = storage.authToken;
     if (authToken != null) {
       bloc.add(const SubmitProfile());
-      
-      // Wait for profile setup to finish
       await bloc.stream.firstWhere((state) => !state.isLoading);
-      
+
       if (!mounted) return;
       if (bloc.state.errorMessage != null) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(bloc.state.errorMessage!), 
-          backgroundColor: AppColors.error,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(bloc.state.errorMessage!),
+            backgroundColor: AppColors.error,
+          ),
+        );
         return;
       }
     }
-    
+
     if (mounted) {
       context.go('/onboarding/welcome');
     }
@@ -71,7 +81,7 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
       totalSteps: 11,
       onBack: () => context.go('/onboarding/interests'),
       bottomBar: GradientButton(
-        label: "Let's Bloom! 🌸",
+        label: _loading ? "Setting Up..." : "Let's Bloom! 🌸",
         onPressed: _letsBloom,
         enabled: _canContinue && !_loading,
       ),
@@ -82,36 +92,46 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24),
-              Text('Here\'s how we take care of you 💜',
-                style: Theme.of(context).textTheme.headlineLarge),
-              const SizedBox(height: 24),
-              // Accordion
-              ..._accordionItems.asMap().entries.map((e) =>
-                _AccordionCard(
-                  index: e.key,
-                  title: e.value.$1,
-                  content: e.value.$2,
-                  expanded: _expanded == e.key,
-                  onTap: () => setState(() => _expanded = _expanded == e.key ? null : e.key),
-                ).animate(delay: Duration(milliseconds: e.key * 80)).fadeIn(duration: 300.ms),
+              Text(
+                'How we take care of you 💜',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Our safety commitments and community standards in plain language.',
+                style: TextStyle(color: AppColors.textMedium, fontSize: 15),
               ),
               const SizedBox(height: 24),
-              // Checkboxes
-              _Checkbox(
+              // Accordion cards
+              ..._accordionItems.asMap().entries.map(
+                    (e) => _AccordionCard(
+                      index: e.key,
+                      title: e.value.$1,
+                      content: e.value.$2,
+                      expanded: _expanded == e.key,
+                      onTap: () => setState(() => _expanded = _expanded == e.key ? null : e.key),
+                    ).animate(delay: Duration(milliseconds: e.key * 70)).fadeIn(duration: 250.ms),
+                  ),
+              const SizedBox(height: 24),
+              // Solid Checkboxes
+              _SolidCheckbox(
                 value: _terms,
-                label: 'I\'ve read and agree to the Terms of Service',
+                label: "I agree to the Terms of Service",
                 onChanged: (v) => setState(() => _terms = v ?? false),
               ),
-              const SizedBox(height: 8),
-              _Checkbox(
+              const SizedBox(height: 10),
+              _SolidCheckbox(
                 value: _privacy,
-                label: 'I understand and agree to the Privacy Policy',
+                label: "I agree to the Privacy Policy",
                 onChanged: (v) => setState(() => _privacy = v ?? false),
               ),
-              const SizedBox(height: 8),
-              _Checkbox(
+              const SizedBox(height: 10),
+              _SolidCheckbox(
                 value: _marketing,
-                label: 'I\'d love tips and updates by SMS (optional)',
+                label: "Send me wellness tips and updates (optional)",
                 onChanged: (v) => setState(() => _marketing = v ?? false),
               ),
               const SizedBox(height: 32),
@@ -124,7 +144,14 @@ class _AssentTermsScreenState extends State<AssentTermsScreen> {
 }
 
 class _AccordionCard extends StatelessWidget {
-  const _AccordionCard({required this.index, required this.title, required this.content, required this.expanded, required this.onTap});
+  const _AccordionCard({
+    required this.index,
+    required this.title,
+    required this.content,
+    required this.expanded,
+    required this.onTap,
+  });
+
   final int index;
   final String title, content;
   final bool expanded;
@@ -135,27 +162,55 @@ class _AccordionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        margin: const EdgeInsets.only(bottom: 10),
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceCard,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: expanded ? AppColors.purple : const Color(0xFFE9D5FF), width: 1.5),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: expanded ? AppColors.purple : const Color(0xFFE9D5FF),
+            width: expanded ? 2 : 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: expanded ? AppColors.purple.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
             Row(
               children: [
-                Text(['📌','🔒','🛡️','⚡','🤝'][index], style: const TextStyle(fontSize: 20)),
+                Text(
+                  ['📌', '🔒', '🛡️', '⚡'][index % 4],
+                  style: const TextStyle(fontSize: 20),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark))),
-                Icon(expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: AppColors.purple),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                      fontSize: 14.5,
+                    ),
+                  ),
+                ),
+                Icon(
+                  expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.purple,
+                ),
               ],
             ),
             if (expanded) ...[
               const SizedBox(height: 12),
-              Text(content, style: const TextStyle(color: AppColors.textMedium, height: 1.6)),
+              Text(
+                content,
+                style: const TextStyle(color: AppColors.textMedium, height: 1.5, fontSize: 13.5),
+              ),
             ],
           ],
         ),
@@ -164,28 +219,52 @@ class _AccordionCard extends StatelessWidget {
   }
 }
 
-class _Checkbox extends StatelessWidget {
-  const _Checkbox({required this.value, required this.label, required this.onChanged});
+class _SolidCheckbox extends StatelessWidget {
+  const _SolidCheckbox({
+    required this.value,
+    required this.label,
+    required this.onChanged,
+  });
+
   final bool value;
   final String label;
   final ValueChanged<bool?> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Checkbox(
-          value: value,
-          onChanged: onChanged,
-          activeColor: AppColors.purple,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        ),
-        Expanded(child: Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Text(label, style: const TextStyle(color: AppColors.textDark, fontSize: 14)),
-        )),
-      ],
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            margin: const EdgeInsets.only(top: 2),
+            decoration: BoxDecoration(
+              color: value ? AppColors.purple : AppColors.surface,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: value ? AppColors.purple : const Color(0xFFD8B4FE),
+                width: 1.5,
+              ),
+            ),
+            child: value ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textDark,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -19,17 +19,11 @@ class _LandingScreenState extends State<LandingScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint('[LandingScreen] initState reached ✅');
-    
-    // 1. Remove native splash as soon as we start our own loading
     FlutterNativeSplash.remove();
-    
-    // 2. Start bootstrapping ONLY if necessary.
-    // If we're already authenticated and onboarded, the router will soon move us to /home.
-    // We can skip the blocking bootstrap and let Dashboard handle background sync.
+
     final storage = context.read<LocalStorageService>();
     if (storage.authToken != null && storage.isOnboarded) {
-      debugPrint('[LandingScreen] Fast-track: Skipper server bootstrap for onboarded user.');
+      debugPrint('[LandingScreen] Fast-track: Skipped server bootstrap for onboarded user.');
     } else {
       context.read<OnboardingBloc>().add(const BootstrapApp());
     }
@@ -39,12 +33,11 @@ class _LandingScreenState extends State<LandingScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<OnboardingBloc, OnboardingState>(
       builder: (context, state) {
-        // If we are currently fetching user data from server
         if (state.isBootstrapping) {
           return const Scaffold(
-            backgroundColor: Color(0xFF6D28D9),
+            backgroundColor: AppColors.purple,
             body: Center(
-              child: CircularProgressIndicator(color: Colors.white70),
+              child: CircularProgressIndicator(color: Colors.white),
             ),
           );
         }
@@ -55,63 +48,88 @@ class _LandingScreenState extends State<LandingScreen> {
         final userName = state.displayName.isNotEmpty ? state.displayName : storage.displayName;
 
         return Scaffold(
-          body: Container(
-            decoration: const BoxDecoration(gradient: AppGradients.brandDiagonal),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Spacer(flex: 2),
-                    _LogoWheel(),
-                    const SizedBox(height: 32),
-                    Text(
-                      'Infano.Care',
-                      style: Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white),
-                    ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
-                    const SizedBox(height: 16),
-                    if (isResuming) ...[
-                      Text(
-                        'Welcome back${userName != null ? ', $userName' : ''}! ✨',
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
-                      ).animate().fadeIn(delay: 600.ms),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Ready to continue your journey?',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ).animate().fadeIn(delay: 800.ms),
-                    ] else
-                      _TaglineReveal(),
-                    const Spacer(flex: 2),
-                    GradientButton(
-                      label: isResuming ? (storage.authToken != null ? 'Resume My Journey' : 'Log In to Continue') : 'Start My Journey',
-                      icon: '✨',
-                      onPressed: () {
-                        if (isResuming && storage.authToken != null) {
-                          // Already have a session: go home (and let router handle the step)
-                          context.go('/home');
-                        } else {
-                          // No session: must go to phone login
-                          context.go('/auth/phone');
-                        }
-                      },
-                    ).animate().slideY(begin: 0.5, duration: 400.ms, delay: 1200.ms, curve: Curves.easeOut),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () async {
-                        await storage.clearAll();
-                        if (context.mounted) {
-                          context.read<OnboardingBloc>().add(const SyncFromStorage());
-                          context.go('/splash'); // Refresh the splash screen state
-                        }
-                      },
-                      child: const Text('Reset App Data', style: TextStyle(color: Colors.white54, decoration: TextDecoration.underline)),
-                    ).animate().fadeIn(delay: 1400.ms),
-                    const SizedBox(height: 16),
-                  ],
-                ),
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Spacer(flex: 2),
+                  _LogoWheel(),
+                  const SizedBox(height: 28),
+                  Text(
+                    'Infano.Care',
+                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                          color: AppColors.textDark,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                  ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+                  const SizedBox(height: 12),
+                  if (isResuming) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE9D5FF)),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Welcome back${userName != null ? ', $userName' : ''}! ✨',
+                            style: const TextStyle(
+                              color: AppColors.purple,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Ready to continue your journey?',
+                            style: TextStyle(color: AppColors.textMedium, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, duration: 300.ms),
+                  ] else
+                    _TaglineReveal(),
+                  const Spacer(flex: 2),
+                  GradientButton(
+                    label: isResuming
+                        ? (storage.authToken != null ? 'Resume My Journey' : 'Log In to Continue')
+                        : 'Start My Journey',
+                    icon: '✨',
+                    onPressed: () {
+                      if (isResuming && storage.authToken != null) {
+                        context.go('/home');
+                      } else {
+                        context.go('/auth/phone');
+                      }
+                    },
+                  ).animate().slideY(begin: 0.2, duration: 350.ms, delay: 600.ms, curve: Curves.easeOut),
+                  const SizedBox(height: 14),
+                  TextButton(
+                    onPressed: () async {
+                      await storage.clearAll();
+                      if (context.mounted) {
+                        context.read<OnboardingBloc>().add(const SyncFromStorage());
+                        context.go('/splash');
+                      }
+                    },
+                    child: const Text(
+                      'Reset App Data',
+                      style: TextStyle(
+                        color: AppColors.textLight,
+                        fontSize: 13,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 800.ms),
+                  const SizedBox(height: 16),
+                ],
               ),
             ),
           ),
@@ -125,32 +143,55 @@ class _LogoWheel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 120, height: 120,
+      width: 120,
+      height: 120,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+        color: AppColors.surface,
         shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFE9D5FF), width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purple.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: const Center(
         child: Text('🌸', style: TextStyle(fontSize: 56)),
       ),
-    ).animate().scale(begin: const Offset(0.3, 0.3), duration: 600.ms, curve: Curves.elasticOut);
+    ).animate().scale(begin: const Offset(0.7, 0.7), duration: 500.ms, curve: Curves.easeOutBack);
   }
 }
 
 class _TaglineReveal extends StatelessWidget {
-  final words = ['Your', 'Journey.', 'Your', 'Power.', 'Your', 'Safe', 'Space.'];
-
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 5,
-      children: words.asMap().entries.map((e) =>
-        Text(
-          e.value,
-          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
-        ).animate(delay: Duration(milliseconds: 600 + e.key * 120)).fadeIn(duration: 300.ms),
-      ).toList(),
-    );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purple.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: const Text(
+        'Your Journey. Your Power. Your Safe Space.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: AppColors.purple,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
+          height: 1.4,
+        ),
+      ),
+    ).animate().fadeIn(delay: 350.ms, duration: 400.ms).slideY(begin: 0.15, duration: 300.ms);
   }
 }

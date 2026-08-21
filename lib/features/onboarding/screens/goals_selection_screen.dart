@@ -24,7 +24,7 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
     ('period',     '📅', 'Managing My Period'),
     ('confidence', '💪', 'Feeling More Confident'),
     ('friends',    '👯', 'Making Good Friends'),
-    ('career',     '📚', 'School & Career'),
+    ('career',     '📚', 'School & Life Skills'),
     ('all',        '✨', 'All of the Above!'),
   ];
 
@@ -53,7 +53,7 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
   void _continue() {
     context.read<OnboardingBloc>().add(SetGoals(_selected.toList()));
     if (mounted) setState(() => _showPoints = true);
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) context.go('/onboarding/period-comfort');
     });
   }
@@ -70,12 +70,19 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
       bottomBar: Stack(
         clipBehavior: Clip.none,
         children: [
-          GradientButton(label: 'Continue', onPressed: _continue, enabled: _selected.isNotEmpty),
+          GradientButton(
+            label: _selected.isEmpty
+                ? 'Select At Least One'
+                : 'Continue (${_selected.contains('all') ? 'All' : _selected.length} Selected)',
+            onPressed: _continue,
+            enabled: _selected.isNotEmpty,
+          ),
           if (_showPoints)
             Positioned(
-              top: -50, right: 20, 
+              top: -50,
+              right: 20,
               child: PointsBurst(
-                points: 15, 
+                points: 15,
                 onComplete: () {
                   if (mounted) setState(() => _showPoints = false);
                 },
@@ -90,7 +97,18 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24),
-              Text('What would you love help with? 💭', style: Theme.of(context).textTheme.headlineLarge),
+              Text(
+                'What would you love help with? 💭',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Select whatever matters to you right now — you can change these anytime.',
+                style: TextStyle(color: AppColors.textMedium, fontSize: 15),
+              ),
               const SizedBox(height: 24),
               GridView.count(
                 crossAxisCount: 2,
@@ -98,37 +116,58 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
                 mainAxisSpacing: 12,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.4,
+                childAspectRatio: 1.3,
                 children: _goals.asMap().entries.map((e) {
                   final g = e.value;
                   final isSelected = _selected.contains(g.$1);
                   return GestureDetector(
                     onTap: () => _toggle(g.$1),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      transform: Matrix4.diagonal3Values(isSelected ? 1.04 : 1.0, isSelected ? 1.04 : 1.0, 1.0),
-                      transformAlignment: Alignment.center,
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        gradient: isSelected ? AppGradients.brand : AppGradients.softCard,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: isSelected ? [BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))] : null,
+                        color: isSelected ? AppColors.purple : AppColors.surface,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: isSelected ? AppColors.purple : const Color(0xFFE9D5FF),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isSelected
+                                ? AppColors.purple.withValues(alpha: 0.25)
+                                : Colors.black.withValues(alpha: 0.02),
+                            blurRadius: isSelected ? 12 : 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(g.$2, style: const TextStyle(fontSize: 28)),
                           const SizedBox(height: 8),
-                          Text(g.$3, textAlign: TextAlign.center,
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13,
-                              color: isSelected ? Colors.white : AppColors.textDark)),
-                          if (isSelected) const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                          Text(
+                            g.$3,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: isSelected ? Colors.white : AppColors.textDark,
+                              height: 1.2,
+                            ),
+                          ),
+                          if (isSelected) ...[
+                            const SizedBox(height: 4),
+                            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                          ],
                         ],
                       ),
                     ),
-                  ).animate(delay: Duration(milliseconds: e.key * 60)).fadeIn(duration: 250.ms).scale(begin: const Offset(0.9, 0.9), duration: 250.ms);
+                  ).animate(delay: Duration(milliseconds: e.key * 50)).fadeIn(duration: 200.ms);
                 }).toList(),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
             ],
           ),
         ),
