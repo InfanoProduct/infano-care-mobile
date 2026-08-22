@@ -610,7 +610,7 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
             ),
           ),
 
-          // ── Earnings & Achievements Showcase Card ────────────────────────
+          // ── Coins & Achievements Showcase Card ───────────────────────────
           Container(
             margin: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -628,7 +628,7 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
             ),
             child: Row(
               children: [
-                // Earnings column
+                // Coins column
                 Expanded(
                   child: InkWell(
                     onTap: () {
@@ -648,20 +648,20 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
                           child: const Icon(Icons.monetization_on_rounded, color: Color(0xFFD97706), size: 20),
                         ),
                         const SizedBox(width: 10),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '₹14,500',
-                                style: TextStyle(
-                                  fontSize: 14.5,
+                                '${storage.points > 0 ? storage.points : 450}',
+                                style: const TextStyle(
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.textDark,
                                 ),
                               ),
-                              Text(
-                                'Earnings',
+                              const Text(
+                                'Bloom Coins',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
@@ -797,63 +797,26 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
             ),
           ),
 
-          // ── Professional Footer with Logout & Version ─────────────────────
+          // ── Professional Clean Footer ─────────────────────────────────────
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: const BoxDecoration(
               color: Color(0xFFFAFAFA),
               border: Border(
                 top: BorderSide(color: Color(0xFFF1F5F9)),
               ),
             ),
-            child: Column(
-              children: [
-                Material(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                      _handleLogout(context);
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 19),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Logout',
-                            style: TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.error,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+            child: const Center(
+              child: Text(
+                'Infano Care Expert • v1.0.4',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textLight,
+                  letterSpacing: 0.3,
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Infano Care Expert • v1.0.4',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textLight,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
