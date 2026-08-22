@@ -112,7 +112,7 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
                 mainAxisSpacing: 10,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.7,
+                childAspectRatio: 1.5,
                 children: _topics.asMap().entries.map((e) {
                   final t = e.value;
                   final isSelected = _selected.contains(t.$1);
@@ -120,7 +120,7 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
                     onTap: () => _toggle(t.$1),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(
                         color: isSelected ? AppColors.purple : AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
@@ -133,28 +133,32 @@ class _InterestTopicsScreenState extends State<InterestTopicsScreen> {
                             color: isSelected
                                 ? AppColors.purple.withValues(alpha: 0.2)
                                 : Colors.black.withValues(alpha: 0.02),
-                            blurRadius: isSelected ? 8 : 4,
+                            blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
                         ],
                       ),
                       child: Row(
                         children: [
-                          Text(t.$2, style: const TextStyle(fontSize: 22)),
-                          const SizedBox(width: 8),
+                          Text(t.$2, style: const TextStyle(fontSize: 20)),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               t.$3,
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
-                                fontSize: 12,
+                                fontSize: 11.5,
                                 color: isSelected ? Colors.white : AppColors.textDark,
                                 height: 1.2,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (isSelected)
-                            const Icon(Icons.check_circle, color: Colors.white, size: 16),
+                          if (isSelected) ...[
+                            const SizedBox(width: 4),
+                            const Icon(Icons.check_circle, color: Colors.white, size: 14),
+                          ],
                         ],
                       ),
                     ),

@@ -116,7 +116,7 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
                 mainAxisSpacing: 12,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.3,
+                childAspectRatio: 1.12,
                 children: _goals.asMap().entries.map((e) {
                   final g = e.value;
                   final isSelected = _selected.contains(g.$1);
@@ -124,7 +124,7 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
                     onTap: () => _toggle(g.$1),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                       decoration: BoxDecoration(
                         color: isSelected ? AppColors.purple : AppColors.surface,
                         borderRadius: BorderRadius.circular(18),
@@ -146,15 +146,19 @@ class _GoalsSelectionScreenState extends State<GoalsSelectionScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(g.$2, style: const TextStyle(fontSize: 28)),
-                          const SizedBox(height: 8),
-                          Text(
-                            g.$3,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                              color: isSelected ? Colors.white : AppColors.textDark,
-                              height: 1.2,
+                          const SizedBox(height: 6),
+                          Flexible(
+                            child: Text(
+                              g.$3,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                color: isSelected ? Colors.white : AppColors.textDark,
+                                height: 1.2,
+                              ),
                             ),
                           ),
                           if (isSelected) ...[

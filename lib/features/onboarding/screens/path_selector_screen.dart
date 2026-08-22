@@ -41,48 +41,52 @@ class _PathSelectorScreenState extends State<PathSelectorScreen> {
       currentStep: 1,
       totalSteps: 11,
       onBack: () => context.go('/splash'),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 24),
-            Text(
-              'Who are you? ✨',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: AppColors.textDark,
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Choose your journey path to get personalized support.',
-              style: TextStyle(color: AppColors.textMedium, fontSize: 15, height: 1.4),
-            ),
-            const SizedBox(height: 32),
-            ...[
-              _PathCard(
-                emoji: '🌸',
-                title: "I'm a Girl or Young Woman",
-                subtitle: 'Ages 10–24 • Learn, track, and blossom',
-                selected: _selected == 0,
-                onTap: () => _select(0),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 24),
+              Text(
+                'Who are you? ✨',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppColors.textDark,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
-              const SizedBox(height: 16),
-              _PathCard(
-                emoji: '👨‍👧',
-                title: "I'm a Parent or Guardian",
-                subtitle: 'Set up guidance and care for my child',
-                selected: _selected == 1,
-                onTap: () => _select(1),
+              const SizedBox(height: 8),
+              const Text(
+                'Choose your journey path to get personalized support.',
+                style: TextStyle(color: AppColors.textMedium, fontSize: 15, height: 1.4),
               ),
-            ].asMap().entries.map(
-                  (e) => e.value
-                      .animate(delay: Duration(milliseconds: 150 + e.key * 100))
-                      .fadeIn(duration: 250.ms)
-                      .slideY(begin: 0.08, duration: 250.ms),
+              const SizedBox(height: 32),
+              ...[
+                _PathCard(
+                  emoji: '🌸',
+                  title: "I'm a Girl or Young Woman",
+                  subtitle: 'Ages 10–24 • Learn, track, and blossom',
+                  selected: _selected == 0,
+                  onTap: () => _select(0),
                 ),
-          ],
+                const SizedBox(height: 16),
+                _PathCard(
+                  emoji: '👨‍👧',
+                  title: "I'm a Parent or Guardian",
+                  subtitle: 'Set up guidance and care for my child',
+                  selected: _selected == 1,
+                  onTap: () => _select(1),
+                ),
+              ].asMap().entries.map(
+                    (e) => e.value
+                        .animate(delay: Duration(milliseconds: 150 + e.key * 100))
+                        .fadeIn(duration: 250.ms)
+                        .slideY(begin: 0.08, duration: 250.ms),
+                  ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );

@@ -24,7 +24,8 @@ class GradientButton extends StatelessWidget {
       child: GestureDetector(
         onTap: enabled ? onPressed : null,
         child: Container(
-          height: 52,
+          constraints: const BoxConstraints(minHeight: 52),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: enabled ? AppColors.purple : AppColors.textLight,
             borderRadius: BorderRadius.circular(16),
@@ -32,6 +33,7 @@ class GradientButton extends StatelessWidget {
           child: Center(
             child: Text(
               icon != null ? '$icon  $label' : label,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,

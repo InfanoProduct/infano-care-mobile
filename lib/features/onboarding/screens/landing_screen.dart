@@ -50,87 +50,99 @@ class _LandingScreenState extends State<LandingScreen> {
         return Scaffold(
           backgroundColor: AppColors.background,
           body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Spacer(flex: 2),
-                  _LogoWheel(),
-                  const SizedBox(height: 28),
-                  Text(
-                    'Infano.Care',
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                          color: AppColors.textDark,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Spacer(flex: 2),
+                            _LogoWheel(),
+                            const SizedBox(height: 28),
+                            Text(
+                              'Infano.Care',
+                              style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                                    color: AppColors.textDark,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.5,
+                                  ),
+                            ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+                            const SizedBox(height: 12),
+                            if (isResuming) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: const Color(0xFFE9D5FF)),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'Welcome back${userName != null ? ', $userName' : ''}! ✨',
+                                      style: const TextStyle(
+                                        color: AppColors.purple,
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Ready to continue your journey?',
+                                      style: TextStyle(color: AppColors.textMedium, fontSize: 13),
+                                    ),
+                                  ],
+                                ),
+                              ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, duration: 300.ms),
+                            ] else
+                              _TaglineReveal(),
+                            const Spacer(flex: 2),
+                            GradientButton(
+                              label: isResuming
+                                  ? (storage.authToken != null ? 'Resume My Journey' : 'Log In to Continue')
+                                  : 'Start My Journey',
+                              icon: '✨',
+                              onPressed: () {
+                                if (isResuming && storage.authToken != null) {
+                                  context.go('/home');
+                                } else {
+                                  context.go('/auth/phone');
+                                }
+                              },
+                            ).animate().slideY(begin: 0.2, duration: 350.ms, delay: 600.ms, curve: Curves.easeOut),
+                            const SizedBox(height: 14),
+                            TextButton(
+                              onPressed: () async {
+                                await storage.clearAll();
+                                if (context.mounted) {
+                                  context.read<OnboardingBloc>().add(const SyncFromStorage());
+                                  context.go('/splash');
+                                }
+                              },
+                              child: const Text(
+                                'Reset App Data',
+                                style: TextStyle(
+                                  color: AppColors.textLight,
+                                  fontSize: 13,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ).animate().fadeIn(delay: 800.ms),
+                            const SizedBox(height: 16),
+                          ],
                         ),
-                  ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-                  const SizedBox(height: 12),
-                  if (isResuming) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE9D5FF)),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Welcome back${userName != null ? ', $userName' : ''}! ✨',
-                            style: const TextStyle(
-                              color: AppColors.purple,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Ready to continue your journey?',
-                            style: TextStyle(color: AppColors.textMedium, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, duration: 300.ms),
-                  ] else
-                    _TaglineReveal(),
-                  const Spacer(flex: 2),
-                  GradientButton(
-                    label: isResuming
-                        ? (storage.authToken != null ? 'Resume My Journey' : 'Log In to Continue')
-                        : 'Start My Journey',
-                    icon: '✨',
-                    onPressed: () {
-                      if (isResuming && storage.authToken != null) {
-                        context.go('/home');
-                      } else {
-                        context.go('/auth/phone');
-                      }
-                    },
-                  ).animate().slideY(begin: 0.2, duration: 350.ms, delay: 600.ms, curve: Curves.easeOut),
-                  const SizedBox(height: 14),
-                  TextButton(
-                    onPressed: () async {
-                      await storage.clearAll();
-                      if (context.mounted) {
-                        context.read<OnboardingBloc>().add(const SyncFromStorage());
-                        context.go('/splash');
-                      }
-                    },
-                    child: const Text(
-                      'Reset App Data',
-                      style: TextStyle(
-                        color: AppColors.textLight,
-                        fontSize: 13,
-                        decoration: TextDecoration.underline,
                       ),
                     ),
-                  ).animate().fadeIn(delay: 800.ms),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                  ),
+                );
+              },
             ),
           ),
         );

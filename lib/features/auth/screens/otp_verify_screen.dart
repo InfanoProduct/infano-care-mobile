@@ -174,6 +174,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
     final sessionExpired = _countdown == 0;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
@@ -438,7 +439,8 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
                     borderRadius: BorderRadius.circular(16),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      height: 54,
+                      constraints: const BoxConstraints(minHeight: 54),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
                         gradient: (_otp.length == 4 && !sessionExpired)
                             ? const LinearGradient(
@@ -483,13 +485,16 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
                             : const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Verify & Continue',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                      letterSpacing: 0.2,
+                                  Flexible(
+                                    child: Text(
+                                      'Verify & Continue',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 16,
+                                        letterSpacing: 0.2,
+                                      ),
                                     ),
                                   ),
                                   SizedBox(width: 8),

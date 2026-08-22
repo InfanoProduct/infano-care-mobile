@@ -301,13 +301,18 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(emoji, style: const TextStyle(fontSize: 24)),
-                    const SizedBox(height: 4),
-                    Text(
-                      label,
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textMedium,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          label,
+                          style: GoogleFonts.nunito(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textMedium,
+                          ),
+                        ),
                       ),
                     ),
                   ],

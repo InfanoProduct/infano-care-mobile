@@ -111,6 +111,7 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   Widget _buildBody(BuildContext context) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
@@ -406,7 +407,8 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
                     borderRadius: BorderRadius.circular(16),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      height: 54,
+                      constraints: const BoxConstraints(minHeight: 54),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
                         gradient: _valid
                             ? const LinearGradient(
@@ -437,13 +439,16 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
                             : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Get Verification Code',
-                                    style: TextStyle(
-                                      color: _valid ? Colors.white : const Color(0xFF94A3B8),
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                      letterSpacing: 0.2,
+                                  Flexible(
+                                    child: Text(
+                                      'Get Verification Code',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: _valid ? Colors.white : const Color(0xFF94A3B8),
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 16,
+                                        letterSpacing: 0.2,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -502,7 +507,7 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   Widget _buildBenefitItem({required IconData icon, required String text}) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(14),
@@ -512,14 +517,20 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
           children: [
             Icon(icon, size: 18, color: AppColors.purple),
             const SizedBox(height: 4),
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

@@ -156,10 +156,13 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        spacing: 12,
+                        runSpacing: 4,
                         children: [
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.pink, shape: BoxShape.circle)),
                               const SizedBox(width: 6),
@@ -167,6 +170,7 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
                             ],
                           ),
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.purple.withValues(alpha: 0.4), shape: BoxShape.circle)),
                               const SizedBox(width: 6),

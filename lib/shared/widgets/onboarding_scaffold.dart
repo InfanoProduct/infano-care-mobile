@@ -121,12 +121,15 @@ class OnboardingScaffold extends StatelessWidget {
             Expanded(child: body),
             // Bottom Action Bar
             if (bottomBar != null)
-              Container(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
-                decoration: const BoxDecoration(
-                  color: AppColors.background,
+              SafeArea(
+                top: false,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
+                  decoration: const BoxDecoration(
+                    color: AppColors.background,
+                  ),
+                  child: bottomBar!,
                 ),
-                child: bottomBar!,
               ),
           ],
         ),

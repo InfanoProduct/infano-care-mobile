@@ -79,8 +79,8 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
                     onTap: () => _select(e.key),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+                      margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 2),
                       decoration: BoxDecoration(
                         color: isSelected ? AppColors.purple : AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
@@ -101,16 +101,22 @@ class _PeriodComfortScreenState extends State<PeriodComfortScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(e.value.$1, style: const TextStyle(fontSize: 30)),
-                          const SizedBox(height: 8),
-                          Text(
-                            e.value.$2,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isSelected ? Colors.white : AppColors.textDark,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              height: 1.2,
+                          Text(e.value.$1, style: const TextStyle(fontSize: 28)),
+                          const SizedBox(height: 6),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                e.value.$2,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isSelected ? Colors.white : AppColors.textDark,
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                  height: 1.2,
+                                ),
+                              ),
                             ),
                           ),
                         ],
