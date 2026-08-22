@@ -499,77 +499,453 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
   }
 
   Widget _buildDrawer(BuildContext context, LocalStorageService storage) {
+    final displayName = storage.displayName ?? 'Expert';
+    final phoneOrEmail = storage.phone?.isNotEmpty == true
+        ? storage.phone!
+        : 'Care Specialist';
+
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      backgroundColor: Colors.white,
+      child: Column(
         children: [
-          UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(color: AppColors.purple),
-            accountName: Text(storage.displayName ?? 'Expert',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            accountEmail: Text(storage.phone ?? ''),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white.withValues(alpha: 0.3),
-              backgroundImage: storage.avatarUrl != null ? NetworkImage(storage.avatarUrl!) : null,
-              child: storage.avatarUrl == null ? const Text('👤', style: TextStyle(fontSize: 32)) : null,
-            ),
-          ),
-          // Expert badge
+          // ── Light Profile Header ──────────────────────────────────────────
           Container(
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.purple.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.purple.withValues(alpha: 0.2)),
+            padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 18),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFFAF5FF), Color(0xFFF3E8FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFEDE9FE), width: 1.2),
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.verified_rounded, size: 16, color: AppColors.purple),
-                const SizedBox(width: 6),
-                const Text('Verified Expert', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w600, fontSize: 13)),
+                Row(
+                  children: [
+                    // Profile Avatar with border and soft glow
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.purple.withValues(alpha: 0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: storage.avatarUrl != null
+                            ? Image.network(
+                                storage.avatarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _buildAvatarFallback(displayName),
+                              )
+                            : _buildAvatarFallback(displayName),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textDark,
+                              letterSpacing: -0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            phoneOrEmail,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: AppColors.textMedium,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.purple.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.verified_rounded, size: 13, color: AppColors.purple),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Verified Expert',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.purple,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 4),
-          ListTile(
-            leading: const Icon(Icons.layers_outlined, color: AppColors.purple),
-            title: const Text('Program Sessions Workspace'),
-            onTap: () { Navigator.pop(context); context.push('/expert/program-sessions'); },
+
+          // ── Earnings & Achievements Showcase Card ────────────────────────
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEDE9FE)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.purple.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Earnings column
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/expert/consultations');
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.monetization_on_rounded, color: Color(0xFFD97706), size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '₹14,500',
+                                style: TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                              Text(
+                                'Earnings',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 32,
+                  color: const Color(0xFFF1F5F9),
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                // Achievements column
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/account');
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEDE9FE),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.star_rounded, color: AppColors.purple, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '4.9 ★ (120+)',
+                                style: TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                              Text(
+                                'Achievements',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.video_call_outlined, color: AppColors.purple),
-            title: const Text('1:1 Direct Consultations'),
-            onTap: () { Navigator.pop(context); context.push('/expert/consultations'); },
+
+          // ── Aligned Menu List ─────────────────────────────────────────────
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              children: [
+                _buildDrawerSectionTitle('EXPERT WORKSPACE'),
+                _buildDrawerItem(
+                  icon: Icons.layers_outlined,
+                  iconColor: const Color(0xFF4F46E5),
+                  title: 'Program Sessions Workspace',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/expert/program-sessions');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.video_call_outlined,
+                  iconColor: const Color(0xFF0D9488),
+                  title: '1:1 Direct Consultations',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/expert/consultations');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.calendar_month_outlined,
+                  iconColor: const Color(0xFFEC4899),
+                  title: 'Calendar & Availability',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/expert/calendar');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.person_outline_rounded,
+                  iconColor: const Color(0xFF7C3AED),
+                  title: 'My Profile',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/account');
+                  },
+                ),
+
+                const SizedBox(height: 8),
+                _buildDrawerSectionTitle('PREFERENCES & SUPPORT'),
+                _buildDrawerItem(
+                  icon: Icons.settings_outlined,
+                  iconColor: const Color(0xFF64748B),
+                  title: 'Settings',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/settings');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.help_outline_rounded,
+                  iconColor: const Color(0xFF64748B),
+                  title: 'Help & Support',
+                  onTap: () => Navigator.pop(context),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.calendar_month_outlined, color: AppColors.purple),
-            title: const Text('Calendar & Availability'),
-            onTap: () { Navigator.pop(context); context.push('/expert/calendar'); },
+
+          // ── Professional Footer with Logout & Version ─────────────────────
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAFAFA),
+              border: Border(
+                top: BorderSide(color: Color(0xFFF1F5F9)),
+              ),
+            ),
+            child: Column(
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _handleLogout(context);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 19),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Logout',
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Infano Care Expert • v1.0.4',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textLight,
+                  ),
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.person_outline, color: AppColors.purple),
-            title: const Text('My Profile'),
-            onTap: () { Navigator.pop(context); context.push('/account'); },
-          ),
-          ListTile(
-            leading: const Icon(Icons.smart_toy_outlined, color: AppColors.purple),
-            title: const Text('AI Assistant (Gigi)'),
-            onTap: () { Navigator.pop(context); context.push('/chat'); },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined, color: AppColors.purple),
-            title: const Text('Settings'),
-            onTap: () { Navigator.pop(context); context.push('/settings'); },
-          ),
-          ListTile(
-            leading: const Icon(Icons.help_outline, color: AppColors.purple),
-            title: const Text('Help & Support'),
-            onTap: () => Navigator.pop(context),
-          ),
-          const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatarFallback(String name) {
+    final initial = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : 'E';
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textLight,
+          letterSpacing: 1.1,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 20, color: iconColor),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: Color(0xFFCBD5E1),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

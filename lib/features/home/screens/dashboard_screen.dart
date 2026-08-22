@@ -614,98 +614,484 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   }
 
   Widget _buildDrawer(BuildContext context, LocalStorageService storage) {
+    final displayName = storage.displayName ?? 'Infano User';
+    final userRole = storage.role ?? 'MEMBER';
+    final roleLabel = userRole == 'TEEN'
+        ? 'Teen Member'
+        : (userRole == 'PARENT' || userRole == 'GUARDIAN'
+            ? 'Parent Care'
+            : (userRole == 'EXPERT' ? 'Expert Partner' : 'Bloom Member'));
+    final phoneOrEmail = storage.phone?.isNotEmpty == true
+        ? storage.phone!
+        : (storage.pronouns?.isNotEmpty == true ? storage.pronouns! : 'Infano Community');
+    final points = storage.points;
+    final earnings = points > 0 ? (points * 2) : 250;
+    final badgeCount = points > 0 ? (points ~/ 30).clamp(4, 18) : 8;
+
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      backgroundColor: Colors.white,
+      child: Column(
         children: [
-          UserAccountsDrawerHeader(
+          // ── Light Profile Header ──────────────────────────────────────────
+          Container(
+            padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 18),
             decoration: const BoxDecoration(
-              color: AppColors.purple,
+              gradient: LinearGradient(
+                colors: [Color(0xFFFAF5FF), Color(0xFFF3E8FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFEDE9FE), width: 1.2),
+              ),
             ),
-            accountName: Text(storage.displayName ?? 'Infano User', 
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            accountEmail: Text(storage.phone ?? ''),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white.withValues(alpha: 0.3),
-              backgroundImage: storage.avatarUrl != null ? NetworkImage(storage.avatarUrl!) : null,
-              child: storage.avatarUrl == null
-                  ? const Text('👤', style: TextStyle(fontSize: 32))
-                  : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Profile Avatar with border and soft glow
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.purple.withValues(alpha: 0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: storage.avatarUrl != null
+                            ? Image.network(
+                                storage.avatarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _buildAvatarFallback(displayName),
+                              )
+                            : _buildAvatarFallback(displayName),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textDark,
+                              letterSpacing: -0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            phoneOrEmail,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: AppColors.textMedium,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.purple.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.stars_rounded, size: 13, color: AppColors.purple),
+                                const SizedBox(width: 4),
+                                Text(
+                                  roleLabel,
+                                  style: const TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.purple,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person_outline, color: AppColors.purple),
-            title: const Text('Account Details'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/account');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.auto_stories_outlined, color: AppColors.purple),
-            title: const Text('My Journal ✨'),
-            subtitle: const Text('Private • always safe', style: TextStyle(fontSize: 11)),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/journal');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.smart_toy_outlined, color: AppColors.purple),
-            title: const Text('AI Assistant (Gigi)'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/chat');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.people_alt_outlined, color: AppColors.purple),
-            title: Text(storage.role == 'TEEN' ? 'Link Parent' : (storage.role == 'PARENT' || storage.role == 'GUARDIAN' ? 'Link Daughter' : 'Link Family')),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/account/family');
-            },
           ),
 
-          ListTile(
-            leading: const Icon(Icons.workspace_premium_outlined, color: AppColors.purple),
-            title: const Text('Enrolled Programs'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/learning/programs');
-            },
+          // ── Earnings & Achievements Showcase Card ────────────────────────
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEDE9FE)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.purple.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Earnings column
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/orders');
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.monetization_on_rounded, color: Color(0xFFD97706), size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '₹$earnings',
+                                style: const TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                              const Text(
+                                'Earnings',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 32,
+                  color: const Color(0xFFF1F5F9),
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                // Achievements column
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/account');
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEDE9FE),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.emoji_events_rounded, color: AppColors.purple, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$badgeCount Badges',
+                                style: const TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                              const Text(
+                                'Achievements',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.menu_book_outlined, color: AppColors.purple),
-            title: const Text('Good To Know'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/good-to-know');
-            },
+
+          // ── Aligned Menu List ─────────────────────────────────────────────
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              children: [
+                _buildDrawerSectionTitle('CARE & ACTIVITIES'),
+                _buildDrawerItem(
+                  icon: Icons.person_outline_rounded,
+                  iconColor: const Color(0xFF7C3AED),
+                  title: 'Account Details',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/account');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.auto_stories_outlined,
+                  iconColor: const Color(0xFF8B5CF6),
+                  title: 'My Journal',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/journal');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.people_alt_outlined,
+                  iconColor: const Color(0xFF06B6D4),
+                  title: storage.role == 'TEEN'
+                      ? 'Link Parent'
+                      : (storage.role == 'PARENT' || storage.role == 'GUARDIAN'
+                          ? 'Link Daughter'
+                          : 'Link Family'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/account/family');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.workspace_premium_outlined,
+                  iconColor: const Color(0xFFEC4899),
+                  title: 'Enrolled Programs',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/learning/programs');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.menu_book_outlined,
+                  iconColor: const Color(0xFF10B981),
+                  title: 'Good To Know',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/good-to-know');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.shopping_bag_outlined,
+                  iconColor: const Color(0xFFF59E0B),
+                  title: 'My Orders',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/orders');
+                  },
+                ),
+
+                const SizedBox(height: 8),
+                _buildDrawerSectionTitle('PREFERENCES'),
+                _buildDrawerItem(
+                  icon: Icons.settings_outlined,
+                  iconColor: const Color(0xFF64748B),
+                  title: 'Settings',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/settings');
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.help_outline_rounded,
+                  iconColor: const Color(0xFF64748B),
+                  title: 'Help & Support',
+                  onTap: () => Navigator.pop(context),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.shopping_bag_outlined, color: AppColors.purple),
-            title: const Text('My Orders'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/orders');
-            },
+
+          // ── Professional Footer with Logout & Version ─────────────────────
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAFAFA),
+              border: Border(
+                top: BorderSide(color: Color(0xFFF1F5F9)),
+              ),
+            ),
+            child: Column(
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _handleLogout(context);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 19),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Logout',
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Infano Care • v1.0.4',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textLight,
+                  ),
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined, color: AppColors.purple),
-            title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/settings');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.help_outline, color: AppColors.purple),
-            title: const Text('Help & Support'),
-            onTap: () => Navigator.pop(context),
-          ),
-          const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatarFallback(String name) {
+    final initial = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : 'U';
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textLight,
+          letterSpacing: 1.1,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 20, color: iconColor),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: Color(0xFFCBD5E1),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
