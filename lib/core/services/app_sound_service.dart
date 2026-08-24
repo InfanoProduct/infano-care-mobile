@@ -5,129 +5,123 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
+enum HapticFeedbackType { light, medium, heavy, selection, vibrate }
+
 /// Central Sound & Haptic Service for interactive gamified audio feedback
 class AppSoundService {
   static final AppSoundService instance = AppSoundService._internal();
-  AppSoundService._internal() {
-    _initPlayer();
-  }
+  AppSoundService._internal();
 
-  final AudioPlayer _player = AudioPlayer();
   String? _tempDir;
-
-  Future<void> _initPlayer() async {
-    try {
-      await _player.setReleaseMode(ReleaseMode.stop);
-      await _player.setPlayerMode(PlayerMode.lowLatency);
-    } catch (_) {}
-  }
 
   Future<String> _getTempPath(String filename) async {
     _tempDir ??= (await getTemporaryDirectory()).path;
     return '$_tempDir/$filename';
   }
 
-  /// Play realistic multi-note metallic coin cascade sound effect when coins are collected
-  Future<void> playBunchOfCoinsSound() async {
+  Future<void> _playWav(
+    String filename,
+    List<int> Function() byteGenerator, {
+    HapticFeedbackType haptic = HapticFeedbackType.medium,
+  }) async {
     try {
-      HapticFeedback.mediumImpact();
-      final path = await _getTempPath('coin_bunch_cascade.wav');
+      if (haptic == HapticFeedbackType.medium) {
+        HapticFeedback.mediumImpact();
+      } else if (haptic == HapticFeedbackType.heavy) {
+        HapticFeedback.heavyImpact();
+      } else if (haptic == HapticFeedbackType.selection) {
+        HapticFeedback.selectionClick();
+      } else if (haptic == HapticFeedbackType.vibrate) {
+        HapticFeedback.vibrate();
+      } else {
+        HapticFeedback.lightImpact();
+      }
+
+      SystemSound.play(SystemSoundType.click);
+
+      final path = await _getTempPath(filename);
       final file = File(path);
       if (!await file.exists()) {
-        final bytes = _generateCoinBunchWav();
+        final bytes = byteGenerator();
         await file.writeAsBytes(bytes);
       }
-      await _player.stop();
-      await _player.play(DeviceFileSource(path));
+
+      final player = AudioPlayer();
+      await player.setVolume(1.0);
+      await player.setPlayerMode(PlayerMode.lowLatency);
+      await player.play(DeviceFileSource(path), volume: 1.0);
+      player.onPlayerComplete.listen((_) {
+        player.dispose();
+      });
     } catch (_) {
-      HapticFeedback.vibrate();
+      SystemSound.play(SystemSoundType.click);
     }
+  }
+
+  /// Play realistic multi-note metallic coin cascade sound effect when coins are collected
+  Future<void> playBunchOfCoinsSound() async {
+    await _playWav(
+      'coin_bunch_cascade.wav',
+      _generateCoinBunchWav,
+      haptic: HapticFeedbackType.heavy,
+    );
   }
 
   /// Play metallic coin collection sequence
   Future<void> playCoinChime() async {
-    try {
-      HapticFeedback.lightImpact();
-      final path = await _getTempPath('coin_chime.wav');
-      final file = File(path);
-      if (!await file.exists()) {
-        final bytes = _generateChimeWav(frequencies: [987.77, 1318.51, 1567.98, 1975.53], durationMs: 280);
-        await file.writeAsBytes(bytes);
-      }
-      await _player.stop();
-      await _player.play(DeviceFileSource(path));
-    } catch (_) {
-      HapticFeedback.mediumImpact();
-    }
+    await _playWav(
+      'coin_chime.wav',
+      () => _generateChimeWav(frequencies: [987.77, 1318.51, 1567.98, 1975.53], durationMs: 280),
+      haptic: HapticFeedbackType.light,
+    );
+  }
+
+  /// Play sparkling glass gem drop chime when a superpower gem is added to the jar
+  Future<void> playGemDrop() async {
+    await _playWav(
+      'gem_drop_glass.wav',
+      () => _generateChimeWav(frequencies: [1046.50, 1318.51, 1567.98, 2093.00], durationMs: 320),
+      haptic: HapticFeedbackType.heavy,
+    );
   }
 
   /// Play cheerful "Ting" chime tone for correct answers
   Future<void> playCorrect() async {
-    try {
-      HapticFeedback.mediumImpact();
-      final path = await _getTempPath('ting.wav');
-      final file = File(path);
-      if (!await file.exists()) {
-        final bytes = _generateChimeWav(frequencies: [880, 1320], durationMs: 250);
-        await file.writeAsBytes(bytes);
-      }
-      await _player.stop();
-      await _player.play(DeviceFileSource(path));
-    } catch (_) {
-      SystemSound.play(SystemSoundType.click);
-    }
+    await _playWav(
+      'correct_ding_v2.wav',
+      () => _generateChimeWav(frequencies: [783.99, 1046.50, 1318.51], durationMs: 320),
+      haptic: HapticFeedbackType.medium,
+    );
   }
 
   /// Play double "Buzz" error tone for incorrect answers
   Future<void> playIncorrect() async {
-    try {
-      HapticFeedback.heavyImpact();
-      final path = await _getTempPath('buzz.wav');
-      final file = File(path);
-      if (!await file.exists()) {
-        final bytes = _generateBuzzWav(freq: 140, durationMs: 300);
-        await file.writeAsBytes(bytes);
-      }
-      await _player.stop();
-      await _player.play(DeviceFileSource(path));
-    } catch (_) {
-      HapticFeedback.vibrate();
-    }
+    await _playWav(
+      'buzz.wav',
+      () => _generateBuzzWav(freq: 140, durationMs: 300),
+      haptic: HapticFeedbackType.heavy,
+    );
   }
 
   /// Play crisp "Pop" tap tone for selections / drag-and-drop
   Future<void> playPop() async {
-    try {
-      HapticFeedback.selectionClick();
-      final path = await _getTempPath('pop.wav');
-      final file = File(path);
-      if (!await file.exists()) {
-        final bytes = _generatePopWav(freq: 600, durationMs: 80);
-        await file.writeAsBytes(bytes);
-      }
-      await _player.stop();
-      await _player.play(DeviceFileSource(path));
-    } catch (_) {
-      SystemSound.play(SystemSoundType.click);
-    }
+    await _playWav(
+      'pop.wav',
+      () => _generatePopWav(freq: 600, durationMs: 80),
+      haptic: HapticFeedbackType.selection,
+    );
   }
 
   /// Play classy celebratory fanfare when confetti or ceremony opens
   Future<void> playFanfare() async {
-    try {
-      HapticFeedback.vibrate();
-      final path = await _getTempPath('fanfare.wav');
-      final file = File(path);
-      final bytes = _generateArpeggioWav(
+    await _playWav(
+      'fanfare.wav',
+      () => _generateArpeggioWav(
         frequencies: [523.25, 659.25, 783.99, 1046.50, 1318.51],
         durationPerNoteMs: 140,
-      );
-      await file.writeAsBytes(bytes);
-      await _player.stop();
-      await _player.play(DeviceFileSource(path));
-    } catch (_) {
-      HapticFeedback.vibrate();
-    }
+      ),
+      haptic: HapticFeedbackType.vibrate,
+    );
   }
 
   // ── Synthesized PCM Audio Generators ────────────────────────────────────────
@@ -141,11 +135,12 @@ class AppSoundService {
     for (int i = 0; i < totalSamples; i++) {
       final noteIndex = (i ~/ samplesPerNote).clamp(0, frequencies.length - 1);
       final freq = frequencies[noteIndex];
-      final t = i / sampleRate;
-
       final noteT = (i % samplesPerNote) / sampleRate;
-      final envelope = exp(-noteT * 12);
-      final sampleVal = (sin(2 * pi * freq * t) * 24000 * envelope).round();
+
+      final noteDuration = samplesPerNote / sampleRate;
+      final envelope = sin(pi * (noteT / noteDuration).clamp(0.0, 1.0));
+      final rawWave = sin(2 * pi * freq * noteT) + 0.45 * sin(2 * pi * (freq * 2.0) * noteT);
+      final sampleVal = (rawWave * 22000 * envelope).round();
       pcmData[i] = sampleVal.clamp(-32768, 32767);
     }
     return _buildWavHeader(pcmData, sampleRate);

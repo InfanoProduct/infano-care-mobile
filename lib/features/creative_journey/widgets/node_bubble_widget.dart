@@ -23,7 +23,7 @@ class NodeBubbleWidget extends StatelessWidget {
     [Color(0xFFFCE7F3), Color(0xFFFBCFE8)], // Soft Rose
     [Color(0xFFD1FAE5), Color(0xFFA7F3D0)], // Soft Mint
     [Color(0xFFDBEAFE), Color(0xFFBFDBFE)], // Soft Sky Blue
-    [Color(0xFFFEF3C7), Color(0xFFFDE68A)], // Soft Peach
+    [Color(0xFFF3E8FF), Color(0xFFE9D5FF)], // Soft Violet
   ];
 
   static const List<Color> _completedPastelBorders = [
@@ -31,7 +31,7 @@ class NodeBubbleWidget extends StatelessWidget {
     Color(0xFFF472B6),
     Color(0xFF34D399),
     Color(0xFF60A5FA),
-    Color(0xFFFBBF24),
+    Color(0xFFA855F7),
   ];
 
   @override

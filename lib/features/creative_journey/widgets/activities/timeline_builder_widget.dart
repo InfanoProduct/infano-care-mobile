@@ -23,7 +23,24 @@ class _TimelineBuilderWidgetState extends State<TimelineBuilderWidget> {
   @override
   void initState() {
     super.initState();
-    final raw = List<Map<String, dynamic>>.from(widget.content['cards'] as List? ?? []);
+    List<Map<String, dynamic>> raw = [];
+    if (widget.content['cards'] is List) {
+      raw = List<Map<String, dynamic>>.from(widget.content['cards'] as List);
+    } else if (widget.content['steps'] is List) {
+      final steps = widget.content['steps'] as List;
+      raw = steps.asMap().entries.map((e) {
+        final item = e.value;
+        if (item is Map) {
+          return {
+            'id': item['id']?.toString() ?? 'step_${e.key + 1}',
+            'label': (item['label'] ?? item['text'] ?? item['title'] ?? 'Step ${e.key + 1}').toString(),
+            'emoji': (item['emoji'] ?? '⭐').toString(),
+            'description': (item['description'] ?? '').toString(),
+          };
+        }
+        return {'id': 'step_${e.key + 1}', 'label': item.toString(), 'emoji': '⭐'};
+      }).toList();
+    }
     _cards = List.from(raw)..shuffle();
     _slots = List.filled(raw.length, null);
   }
@@ -255,91 +272,246 @@ class _TimelineBuilderWidgetState extends State<TimelineBuilderWidget> {
   }
 
   Widget _buildReveal() {
+    final placedList = _slots.whereType<Map<String, dynamic>>().toList();
+    final revealCards = List<Map<String, dynamic>>.from(placedList);
+    revealCards.sort((a, b) {
+      final orderA = a['correctOrder'] as int? ?? a['order'] as int? ?? 999;
+      final orderB = b['correctOrder'] as int? ?? b['order'] as int? ?? 999;
+      return orderA.compareTo(orderB);
+    });
+
+    final String revealTitle = widget.content['revealTitle'] as String? ??
+        widget.content['title'] as String? ??
+        'Your Completed Timeline! 🌟';
+
+    final String revealMessage = widget.content['revealMessage'] as String? ??
+        widget.content['completionMessage'] as String? ??
+        widget.content['instruction'] as String? ??
+        'Fantastic job! Here is your step-by-step master sequence for body wisdom!';
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(children: [
-        const SizedBox(height: 20),
-        const Text('🎉', style: TextStyle(fontSize: 64))
-            .animate().scale(begin: const Offset(0, 0), end: const Offset(1, 1), duration: 600.ms, curve: Curves.elasticOut),
-        const SizedBox(height: 20),
-        Text('Any order works!', style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark)),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFFF5F3FF), Color(0xFFFDF2F8)]),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.purple.withValues(alpha: 0.2)),
-          ),
-          child: Text(
-            widget.content['revealMessage'] as String? ?? '',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(fontSize: 14, color: AppColors.textDark, height: 1.6, fontWeight: FontWeight.w600),
-          ),
-        ).animate().fadeIn(delay: 300.ms, duration: 500.ms),
-        const SizedBox(height: 24),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: _isCompleting
-                ? null
-                : () {
-                    setState(() => _isCompleting = true);
-                    widget.onCompleted();
-                  },
-            borderRadius: BorderRadius.circular(20),
-            child: Ink(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 18),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Hero Badge
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.purple,
-                borderRadius: BorderRadius.circular(20),
+                color: const Color(0xFFF3E8FF),
+                shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.purple.withValues(alpha: 0.35),
+                    color: AppColors.purple.withValues(alpha: 0.2),
                     blurRadius: 16,
-                    offset: const Offset(0, 5),
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Text('🌟', style: TextStyle(fontSize: 48)),
+            ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            revealTitle,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFF5F3FF), Color(0xFFFDF2F8)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.purple.withValues(alpha: 0.15)),
+            ),
+            child: Text(
+              revealMessage,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontSize: 13.5,
+                color: AppColors.textDark,
+                height: 1.45,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Cards Sequence List
+          Text(
+            'Master Timeline Sequence:',
+            style: GoogleFonts.nunito(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textMedium,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          ...revealCards.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final card = entry.value;
+            final theme = _PastelTheme.getTheme(idx);
+
+            final String label = (card['label'] as String? ?? card['title'] as String? ?? 'Step ${idx + 1}')
+                .replaceAll(RegExp(r'^STEP\s*\d+:\s*', caseSensitive: false), '')
+                .trim();
+            final String emoji = card['emoji'] as String? ?? '⭐';
+            final String desc = card['description'] as String? ??
+                card['text'] as String? ??
+                'Step ${idx + 1} milestone in your journey.';
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.bg.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: theme.border, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.accent.withValues(alpha: 0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_isCompleting) ...[
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+                  // Step Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.accent,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Unlocking Discovery Chest... 🗝️',
+                    child: Text(
+                      'Step ${idx + 1}',
                       style: GoogleFonts.nunito(
-                        fontSize: 15,
+                        fontSize: 12,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                       ),
                     ),
-                  ] else ...[
-                    Text(
-                      'Collect 🪙 Coins',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(emoji, style: const TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                label,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          desc,
+                          style: GoogleFonts.nunito(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark.withValues(alpha: 0.85),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(delay: (100 * idx).ms, duration: 400.ms).slideX(begin: 0.1);
+          }),
+
+          const SizedBox(height: 20),
+
+          // Completion Button
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _isCompleting
+                  ? null
+                  : () {
+                      setState(() => _isCompleting = true);
+                      widget.onCompleted();
+                    },
+              borderRadius: BorderRadius.circular(20),
+              child: Ink(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                decoration: BoxDecoration(
+                  color: AppColors.purple,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.purple.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 5),
                     ),
                   ],
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_isCompleting) ...[
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Unlocking Discovery Chest... 🗝️',
+                        style: GoogleFonts.nunito(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        'Collect 🪙 Coins & Complete',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
-        ).animate().fadeIn(delay: 600.ms, duration: 500.ms),
-      ]),
+        ],
+      ),
     );
   }
 }

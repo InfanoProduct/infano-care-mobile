@@ -640,14 +640,69 @@ class _FlapCardState extends State<_FlapCard>
                 selectedAnswer: widget.selectedAnswer,
                 onAnswerSelected: widget.onAnswerSelected,
               ),
-            'fact_reflection' => _ReflectionContent(
+            'fact_reflection' || 'reflection_task' => _ReflectionContent(
                 flap: widget.flap,
                 selectedAnswer: widget.selectedAnswer,
                 onAnswerSelected: widget.onAnswerSelected,
               ),
             'sticker_reward' => _StickerContent(flap: widget.flap),
-            _ => Text(widget.flap['message']?.toString() ?? '', style: GoogleFonts.nunito()),
+            _ => _DefaultFlapContent(flap: widget.flap),
           },
+        ],
+      ),
+    );
+  }
+}
+
+class _DefaultFlapContent extends StatelessWidget {
+  final Map<String, dynamic> flap;
+  const _DefaultFlapContent({required this.flap});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = (flap['title'] ?? '').toString();
+    final bodyText = (flap['description'] ?? flap['factText'] ?? flap['message'] ?? flap['text'] ?? flap['details'] ?? '').toString();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F3FF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title.isNotEmpty) ...[
+            Text(
+              title,
+              style: GoogleFonts.nunito(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: AppColors.purple,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('💡', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  bodyText.isNotEmpty ? bodyText : 'Tap open to reveal body wisdom!',
+                  style: GoogleFonts.nunito(
+                    fontSize: 13.5,
+                    color: AppColors.textDark,
+                    height: 1.45,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -666,6 +721,7 @@ class _FactTaskContent extends StatelessWidget {
     final options = List<String>.from(task?['options'] as List? ?? []);
     final correctIdx = task?['correctIndex'] as int? ?? 0;
     final isAnswered = selectedAnswer != null;
+    final bodyText = (flap['description'] ?? flap['factText'] ?? flap['message'] ?? flap['text'] ?? '').toString();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -685,7 +741,7 @@ class _FactTaskContent extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  flap['factText'] as String? ?? '',
+                  bodyText,
                   style: GoogleFonts.nunito(
                     fontSize: 13,
                     color: AppColors.textDark,
@@ -757,7 +813,7 @@ class _FactTaskContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (icon != null) icon!,
+                    if (icon != null) icon,
                   ],
                 ),
               ),
@@ -974,7 +1030,9 @@ class _ReflectionContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emojiOptions = List<String>.from(flap['emojiOptions'] as List? ?? []);
+    final emojiOptions = List<String>.from(flap['emojiOptions'] as List? ?? ['🌸', '💖', '✨']);
+    final bodyText = (flap['description'] ?? flap['factText'] ?? flap['message'] ?? flap['text'] ?? '').toString();
+    final promptText = (flap['reflectionPrompt'] ?? flap['prompt'] ?? flap['title'] ?? '').toString();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -993,7 +1051,7 @@ class _ReflectionContent extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  flap['factText'] as String? ?? '',
+                  bodyText,
                   style: GoogleFonts.nunito(
                     fontSize: 13,
                     color: AppColors.textDark,
@@ -1005,15 +1063,17 @@ class _ReflectionContent extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 14),
-        Text(
-          flap['reflectionPrompt'] as String? ?? '',
-          style: GoogleFonts.nunito(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textDark,
+        if (promptText.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Text(
+            promptText,
+            style: GoogleFonts.nunito(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textDark,
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 10),
         Row(
           children: emojiOptions.asMap().entries.map((entry) {
@@ -1087,31 +1147,61 @@ class _StickerContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final emoji = (flap['stickerEmoji'] ?? flap['emoji'] ?? '👑🌸').toString();
+    final title = (flap['title'] ?? flap['stickerName'] ?? 'Secret Badge Earned! 👑').toString();
+    final message = (flap['message'] ?? flap['description'] ?? flap['factText'] ?? 'You unlocked the secret period power badge!').toString();
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFFBBF24)),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFFBBF24), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              emoji,
+              style: const TextStyle(fontSize: 48),
+            ),
+          ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+          const SizedBox(height: 12),
           Text(
-            flap['stickerEmoji'] as String? ?? '🧬✨',
-            style: const TextStyle(fontSize: 48),
-          ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
-          const SizedBox(height: 8),
-          Text(
-            flap['message'] as String? ?? 'You unlocked the secret sticker!',
+            title,
             textAlign: TextAlign.center,
             style: GoogleFonts.nunito(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
               color: const Color(0xFF78350F),
-              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF92400E),
+              height: 1.45,
             ),
           ),
         ],

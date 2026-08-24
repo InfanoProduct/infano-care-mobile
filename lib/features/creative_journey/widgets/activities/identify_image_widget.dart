@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 
 class IdentifyImageWidget extends StatefulWidget {
   final Map<String, dynamic> content;
@@ -95,13 +96,16 @@ class _IdentifyImageWidgetState extends State<IdentifyImageWidget> {
               return GestureDetector(
                 onTap: _submitted
                     ? null
-                    : () => setState(() {
+                    : () {
+                        AppSoundService.instance.playPop();
+                        setState(() {
                           if (_selected.contains(id)) {
                             _selected.remove(id);
                           } else {
                             _selected.add(id);
                           }
-                        }),
+                        });
+                      },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
@@ -184,7 +188,10 @@ class _IdentifyImageWidgetState extends State<IdentifyImageWidget> {
             ).animate().fadeIn(duration: 400.ms),
             const SizedBox(height: 16),
             GestureDetector(
-              onTap: widget.onCompleted,
+              onTap: () {
+                AppSoundService.instance.playBunchOfCoinsSound();
+                widget.onCompleted();
+              },
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -205,7 +212,10 @@ class _IdentifyImageWidgetState extends State<IdentifyImageWidget> {
           ] else if (_selected.isNotEmpty) ...[
             const SizedBox(height: 20),
             GestureDetector(
-              onTap: () => setState(() => _submitted = true),
+              onTap: () {
+                AppSoundService.instance.playCorrect();
+                setState(() => _submitted = true);
+              },
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),

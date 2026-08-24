@@ -1,15 +1,19 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+/// Road Path Painter that draws a paved road curve with asphalt borders, center dashes,
+/// and glowing progress lines connecting the nodes.
 class DottedCurvePainter extends CustomPainter {
   final bool startFromLeft; // true: top-left -> bottom-right; false: top-right -> bottom-left
   final Color lineColor;
   final bool isCompleted;
+  final bool isUnlocked;
 
   DottedCurvePainter({
     required this.startFromLeft,
     required this.lineColor,
     this.isCompleted = false,
+    this.isUnlocked = false,
   });
 
   @override
@@ -28,13 +32,51 @@ class DottedCurvePainter extends CustomPainter {
       endX, size.height,
     );
 
-    final paint = Paint()
-      ..color = lineColor
+    // ── 1. Road Base/Curb Underlay ──────────────────────────────────────────
+    final roadBasePaint = Paint()
+      ..color = isCompleted
+          ? const Color(0xFFEDE9FE).withValues(alpha: 0.85)
+          : isUnlocked
+              ? const Color(0xFFEDE9FE).withValues(alpha: 0.7)
+              : const Color(0xFFE5E7EB).withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = isCompleted ? 4.0 : 3.0
+      ..strokeWidth = 14.0
       ..strokeCap = StrokeCap.round;
 
-    _drawDashedPath(canvas, path, paint);
+    canvas.drawPath(path, roadBasePaint);
+
+    // ── 2. Road Border Edges ───────────────────────────────────────────────
+    final edgePaint = Paint()
+      ..color = isCompleted
+          ? const Color(0xFFA78BFA).withValues(alpha: 0.5)
+          : isUnlocked
+              ? const Color(0xFFA78BFA).withValues(alpha: 0.4)
+              : const Color(0xFFD1D5DB).withValues(alpha: 0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 15.0
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawPath(path, edgePaint);
+
+    // ── 3. Main Center Dashed Line / Glow Line ─────────────────────────────
+    final mainPaint = Paint()
+      ..color = isCompleted ? const Color(0xFF8B5CF6) : lineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = isCompleted ? 5.0 : 3.5
+      ..strokeCap = StrokeCap.round;
+
+    _drawDashedPath(canvas, path, mainPaint);
+
+    // ── 4. Completed Glow Effect ────────────────────────────────────────────
+    if (isCompleted) {
+      final glowPaint = Paint()
+        ..color = const Color(0xFFA78BFA).withValues(alpha: 0.35)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8.0
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+
+      canvas.drawPath(path, glowPaint);
+    }
   }
 
   void _drawDashedPath(Canvas canvas, Path path, Paint paint) {
@@ -58,7 +100,8 @@ class DottedCurvePainter extends CustomPainter {
   bool shouldRepaint(covariant DottedCurvePainter oldDelegate) {
     return oldDelegate.startFromLeft != startFromLeft ||
         oldDelegate.lineColor != lineColor ||
-        oldDelegate.isCompleted != isCompleted;
+        oldDelegate.isCompleted != isCompleted ||
+        oldDelegate.isUnlocked != isUnlocked;
   }
 }
 
@@ -77,19 +120,20 @@ class NodeConnectorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color color = isCompleted
-        ? const Color(0xFFF59E0B) // Gold
+        ? const Color(0xFFD97706) // Deep Gold
         : isUnlocked
-            ? const Color(0xFF7C3AED) // Purple
-            : const Color(0xFFD1D5DB); // Soft grey
+            ? const Color(0xFF7C3AED) // Deep Purple
+            : const Color(0xFF9CA3AF); // Soft grey
 
     return SizedBox(
-      height: 48,
+      height: 54,
       width: double.infinity,
       child: CustomPaint(
         painter: DottedCurvePainter(
           startFromLeft: startFromLeft,
           lineColor: color,
           isCompleted: isCompleted,
+          isUnlocked: isUnlocked,
         ),
       ),
     );

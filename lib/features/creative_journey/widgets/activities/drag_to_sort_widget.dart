@@ -40,7 +40,6 @@ class _DragToSortWidgetState extends State<DragToSortWidget>
   final Map<String, int> _count = {};
 
   int _index = 0;
-  int _xp = 0;
   bool _isDragging = false;
   Offset _drag = Offset.zero;
   String? _hovBin;
@@ -59,7 +58,8 @@ class _DragToSortWidgetState extends State<DragToSortWidget>
   ];
 
   List<Map<String, dynamic>> get _rawBins =>
-      List<Map<String, dynamic>>.from(widget.content['bins'] as List? ?? []);
+      List<Map<String, dynamic>>.from(
+          (widget.content['bins'] ?? widget.content['buckets']) as List? ?? []);
   List<Map<String, dynamic>> get _rawItems =>
       List<Map<String, dynamic>>.from(widget.content['items'] as List? ?? []);
 
@@ -120,7 +120,6 @@ class _DragToSortWidgetState extends State<DragToSortWidget>
       setState(() {
         _sorted[binId]!.add(card.id);
         _count[binId] = (_count[binId] ?? 0) + 1;
-        _xp += 3;
         _index++;
         _hovBin = null;
         _isDragging = false;
@@ -232,35 +231,6 @@ class _DragToSortWidgetState extends State<DragToSortWidget>
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          AnimatedBuilder(
-            animation: _xpCtrl,
-            builder: (context, child) {
-              final s = 1.0 + _xpCtrl.value * 0.35;
-              return Transform.scale(
-                scale: s,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)]),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFBBF24)
-                            .withValues(alpha: _xpCtrl.value > 0.2 ? 0.55 : 0.25),
-                        blurRadius: _xpCtrl.value > 0.2 ? 12 : 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    '+$_xp Coins 🪙',
-                    style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white),
-                  ),
-                ),
-              );
-            },
           ),
         ],
       ),
@@ -828,9 +798,11 @@ class _SortBin {
   const _SortBin({required this.id, required this.label, required this.emoji, required this.colorHex});
   factory _SortBin.fromMap(Map<String, dynamic> m) => _SortBin(
         id: m['id'] as String? ?? '',
-        label: m['label'] as String? ?? '',
+        label: m['label'] as String? ?? m['title'] as String? ?? '',
         emoji: m['emoji'] as String? ?? '📦',
-        colorHex: m['colorHex'] as String? ?? '7C3AED',
+        colorHex: (m['colorHex'] ?? m['color'] ?? '7C3AED')
+            .toString()
+            .replaceAll('#', ''),
       );
 }
 
@@ -840,9 +812,9 @@ class _SortItem {
   const _SortItem({required this.id, required this.text, required this.emoji, required this.correctBinId, this.learningNote});
   factory _SortItem.fromMap(Map<String, dynamic> m) => _SortItem(
         id: m['id'] as String? ?? '',
-        text: m['text'] as String? ?? '',
+        text: (m['text'] ?? m['label'] ?? '') as String,
         emoji: m['emoji'] as String? ?? '📌',
-        correctBinId: m['correctBinId'] as String? ?? '',
+        correctBinId: (m['correctBinId'] ?? m['bucketId'] ?? '') as String,
         learningNote: m['learningNote'] as String?,
       );
 }

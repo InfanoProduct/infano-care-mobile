@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -12,14 +11,10 @@ import 'package:infano_care_mobile/features/home/screens/home_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
-import 'package:infano_care_mobile/core/services/notification_service.dart';
-import 'package:infano_care_mobile/widgets/notification_center_sheet.dart';
-import 'package:infano_care_mobile/widgets/coin_badge.dart';
-import 'package:infano_care_mobile/features/home/screens/quest_screen.dart';
 import 'package:infano_care_mobile/screens/connect/connect_screen.dart';
+import 'package:infano_care_mobile/screens/connect/circle_screen.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/quest_repository.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
-import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
@@ -44,7 +39,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   StreamSubscription? _peerlineSocketSub;
   StreamSubscription? _fcmMessageSub;
   Timer? _collapseTimer;
-  bool _hasUnreadNotifications = false;
 
   final List<int> _tabHistory = [];
   int _currentTab = 0;
@@ -58,22 +52,11 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     _syncProfile();
     _startCollapseTimer();
 
-    // Register lifecycle observer — refetch badge when app comes to foreground
+    // Register lifecycle observer
     WidgetsBinding.instance.addObserver(this);
-
-    // Initial fetch once on load
-    _checkUnreadNotifications();
-
-    // Listen to foreground FCM messages — update badge instantly when a push arrives
-    _fcmMessageSub = FirebaseMessaging.onMessage.listen((_) {
-      if (mounted) _checkUnreadNotifications();
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final socket = Provider.of<CommunitySocketService>(context, listen: false);
-
-      // Listen to socket 'notification:new' event — badge updates with zero latency
-      socket.notificationNewCount.addListener(_checkUnreadNotifications);
 
       _peerlineSocketSub = socket.chatEvents.listen((event) {
         if (event['type'] == 'session_ready' && mounted) {
@@ -90,7 +73,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _checkUnreadNotifications();
     }
   }
 
@@ -157,29 +139,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     });
   }
 
-  Future<void> _checkUnreadNotifications() async {
-    final authToken = widget.storage.authToken;
-    if (authToken == null) return;
-
-    try {
-      final res = await ApiService.instance.dio.get('/parent/notifications');
-      final list = res.data as List<dynamic>;
-      if (mounted) {
-        setState(() {
-          _hasUnreadNotifications = list.isNotEmpty;
-        });
-      }
-    } catch (e) {
-      debugPrint('[DashboardScreen] Error checking notifications: $e');
-    }
-  }
-
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // Remove socket badge listener
-    final socket = context.read<CommunitySocketService>();
-    socket.notificationNewCount.removeListener(_checkUnreadNotifications);
     _peerlineSocketSub?.cancel();
     _fcmMessageSub?.cancel();
     _collapseTimer?.cancel();
@@ -221,8 +183,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               const HomeScreen(),
               LearnHubScreen(storage: storage),
               const TrackScreen(),
-              const QuestScreen(),
-              ConnectScreen(initialTab: widget.initialSubTab),
+              const ConnectScreen(),
+              CircleScreen(initialTab: widget.initialSubTab),
             ];
 
           final selectedIndex = state.selectedIndex;
@@ -246,93 +208,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             },
             child: Scaffold(
               backgroundColor: const Color(0xFFF5F4F7),
-            appBar: (state.selectedIndex != 0) 
-              ? null // Hide main AppBar for Learning Journey, Track, Quest, and Connect modules
-              : AppBar(
-                  title: const Text('Infano.Care', style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                  iconTheme: const IconThemeData(color: AppColors.purple),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: CoinBadge(
-                        coins: storage.totalCoins,
-                        onTap: () => context.push('/account'),
-                      ),
-                    ),
-                    Consumer<CommunitySocketService>(
-                      builder: (context, socketService, _) {
-                        return ValueListenableBuilder<int>(
-                          valueListenable: socketService.totalUnreadChatsCount,
-                          builder: (context, count, _) {
-                            return Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.chat_bubble_outline),
-                                  tooltip: 'My Chats',
-                                  onPressed: () => context.push('/my-chats'),
-                                ),
-                                if (count > 0)
-                                  Positioned(
-                                    right: 4,
-                                    top: 4,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      constraints: const BoxConstraints(
-                                        minWidth: 16,
-                                        minHeight: 16,
-                                      ),
-                                      child: Text(
-                                        '$count',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.notifications_none_outlined),
-                          onPressed: () async {
-                            await NotificationCenterSheet.show(context);
-                            _checkUnreadNotifications();
-                          },
-                        ),
-                        if (_hasUnreadNotifications)
-                          Positioned(
-                            right: 12,
-                            top: 12,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-            drawer: (state.selectedIndex != 0) ? null : _buildDrawer(context, storage),
+            appBar: null,
+            drawer: _buildDrawer(context, storage),
             body: NotificationListener<ScrollNotification>(
               onNotification: (scrollNotification) {
                 if (scrollNotification is ScrollUpdateNotification) {
@@ -406,30 +283,30 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   ),
                   BottomNavigationBarItem(
                     icon: _buildBadgeIcon(
-                      icon: Icons.military_tech_outlined,
-                      badgeCount: state.questBadgeCount,
-                    ),
-                    activeIcon: _buildBadgeIcon(
-                      icon: Icons.military_tech,
-                      badgeCount: state.questBadgeCount,
-                    ),
-                    label: 'Quest',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: _buildBadgeIcon(
-                      icon: Icons.people_outline,
+                      icon: Icons.favorite_outline,
                       showRedDot: state.hasConnectNotification,
                     ),
                     activeIcon: _buildBadgeIcon(
-                      icon: Icons.people,
+                      icon: Icons.favorite_rounded,
                       showRedDot: state.hasConnectNotification,
                     ),
                     label: 'Connect',
                   ),
+                  BottomNavigationBarItem(
+                    icon: _buildBadgeIcon(
+                      icon: Icons.groups_outlined,
+                      showRedDot: false,
+                    ),
+                    activeIcon: _buildBadgeIcon(
+                      icon: Icons.groups_rounded,
+                      showRedDot: false,
+                    ),
+                    label: 'Circle',
+                  ),
                 ],
               ),
             ),
-            floatingActionButton: (state.selectedIndex == 2 || state.selectedIndex == 3 || state.selectedIndex == 4) 
+            floatingActionButton: (state.selectedIndex != 0) 
               ? null 
               : Stack(
                   alignment: Alignment.bottomRight,
@@ -659,6 +536,15 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             },
           ),
           ListTile(
+            leading: const Icon(Icons.military_tech_outlined, color: AppColors.purple),
+            title: const Text('Quests & Rewards 🏆'),
+            subtitle: const Text('Earn coins, badges & level up', style: TextStyle(fontSize: 11)),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/quests');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.people_alt_outlined, color: AppColors.purple),
             title: Text(storage.role == 'TEEN' ? 'Link Parent' : (storage.role == 'PARENT' || storage.role == 'GUARDIAN' ? 'Link Daughter' : 'Link Family')),
             onTap: () {
@@ -708,50 +594,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         ],
       ),
     );
-  }
-
-  Future<void> _handleLogout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout?'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      if (context.mounted) {
-        // If mentor, clear availability on server before clearing local storage
-        try {
-          final api = Provider.of<CommunityApi>(context, listen: false);
-          final status = await api.getMentorStatus();
-          if (status['is_certified'] == true) {
-            await api.updateMentorAvailability(false);
-          }
-        } catch (e) {
-          debugPrint('Logout: Could not clear availability: $e');
-        }
-
-        // Unregister FCM token from backend so logged out users don't receive notifications
-        try {
-          await NotificationService().unregisterToken();
-        } catch (e) {
-          debugPrint('Logout: Could not unregister FCM token: $e');
-        }
-
-        await widget.storage.clearAll();
-        if (context.mounted) {
-          context.go('/splash');
-        }
-      }
-    }
   }
 }
 

@@ -847,7 +847,10 @@ class _DiscoveryChestScreenState extends State<DiscoveryChestScreen> {
 
                           // Default Dark Purple Continue Button
                           GestureDetector(
-                            onTap: widget.onClose,
+                            onTap: () {
+                              AppSoundService.instance.playBunchOfCoinsSound();
+                              widget.onClose();
+                            },
                             child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(vertical: 14),

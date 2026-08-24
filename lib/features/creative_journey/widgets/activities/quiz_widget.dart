@@ -7,7 +7,7 @@ import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 
 class QuizWidget extends StatefulWidget {
   final Map<String, dynamic> content;
-  final VoidCallback onCompleted;
+  final void Function([int? customCoins]) onCompleted;
 
   const QuizWidget({
     super.key,
@@ -469,6 +469,7 @@ class _QuizWidgetState extends State<QuizWidget> {
             GestureDetector(
               onTap: () {
                 if (_currentQ < questions.length - 1) {
+                  AppSoundService.instance.playPop();
                   setState(() => _currentQ++);
                 } else {
                   AppSoundService.instance.playFanfare();
@@ -518,9 +519,14 @@ class _QuizWidgetState extends State<QuizWidget> {
 
   // ── 🏆 GAMIFIED RESULTS SCREEN ─────────────────────────────────────────────
   Widget _buildResults() {
-    final passed = accuracy >= 0.6;
     final maxCoins = widget.content['coinsReward'] as int? ?? widget.content['xpReward'] as int? ?? 10;
-    final totalXp = passed ? (accuracy * maxCoins).round().clamp(1, maxCoins) : 0;
+    final int coinsEarned = questions.isEmpty
+        ? 0
+        : (correctCount > 0
+            ? (correctCount * (maxCoins / questions.length)).round().clamp(1, maxCoins)
+            : 0);
+
+    final passed = correctCount > 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -555,7 +561,7 @@ class _QuizWidgetState extends State<QuizWidget> {
 
           const SizedBox(height: 20),
           Text(
-            passed ? 'Quiz Mastered!' : 'Great Effort!',
+            passed ? 'Quiz Completed!' : 'Great Effort!',
             style: GoogleFonts.nunito(
               fontSize: 24,
               fontWeight: FontWeight.w900,
@@ -619,7 +625,7 @@ class _QuizWidgetState extends State<QuizWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '+$totalXp COINS EARNED! 🪙',
+                      '+$coinsEarned COINS EARNED! 🪙',
                       style: GoogleFonts.nunito(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
@@ -674,9 +680,9 @@ class _QuizWidgetState extends State<QuizWidget> {
           // COLLECT XP BUTTON
           GestureDetector(
             onTap: () {
-              AppSoundService.instance.playPop();
+              AppSoundService.instance.playBunchOfCoinsSound();
               HapticFeedback.selectionClick();
-              widget.onCompleted();
+              widget.onCompleted(coinsEarned);
             },
             child: Container(
               width: double.infinity,

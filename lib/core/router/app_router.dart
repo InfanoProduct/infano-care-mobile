@@ -20,7 +20,7 @@ import 'package:infano_care_mobile/screens/connect/friend_chat_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/birthday_input_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/parental_consent_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/consent_waiting_screen.dart';
-import 'package:infano_care_mobile/screens/connect/circle_screen.dart';
+import 'package:infano_care_mobile/widgets/circle_details_sheet.dart';
 import 'package:infano_care_mobile/models/circle.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/assent_terms_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/goals_selection_screen.dart';
@@ -354,6 +354,10 @@ GoRouter createRouter(
 
       // Deep Link Routes for Notifications
       GoRoute(
+        path: '/track',
+        builder: (_, _) => const TrackScreen(),
+      ),
+      GoRoute(
         path: '/tracker/log',
         builder: (_, _) => const TrackScreen(),
       ), // Placeholder for direct log sheet
@@ -440,7 +444,7 @@ GoRouter createRouter(
       // Community Circles
       GoRoute(
         path: '/community/circle',
-        builder: (_, state) => CircleScreen(circle: state.extra as Circle),
+        builder: (_, state) => CircleDetailsSheet(circle: state.extra as Circle),
       ),
       // Home
       GoRoute(

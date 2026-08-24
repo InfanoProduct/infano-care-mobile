@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
-import 'package:infano_care_mobile/core/services/api_service.dart';
 import '../application/journey_map_cubit.dart';
 import '../models/creative_journey_models.dart';
-import '../repositories/creative_journey_repository.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
+import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 import '../widgets/gigi_welcome_banner.dart';
+import 'journey_detail_screen.dart';
 
 // ── Pastel Design System ───────────────────────────────────────────────────────
 
@@ -31,13 +31,13 @@ class PastelCardStyle {
   });
 
   static const List<PastelCardStyle> styles = [
-    // 0: Soft Lavender / Purple
+    // 0: Soft Lavender / Purple (#F3E7FE)
     PastelCardStyle(
-      bg: Color(0xFFF5F3FF),
-      border: Color(0xFFDDD6FE),
-      ctaColor: Color(0xFF8B5CF6),
-      badgeBg: Color(0xFFEDE9FE),
-      badgeTextColor: Color(0xFF6D28D9),
+      bg: Color(0xFFF3E7FE),
+      border: Color(0xFFE2C9F8),
+      ctaColor: Color(0xFF6D28D9),
+      badgeBg: Color(0xFFEADBFE),
+      badgeTextColor: Color(0xFF5B21B6),
       assetImage: 'assets/images/community_banner.png',
     ),
     // 1: Soft Rose / Pink
@@ -80,12 +80,7 @@ class CreativeJourneyHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (ctx) => JourneyMapCubit(
-        CreativeJourneyRepository(ApiService.instance.dio),
-      )..load(),
-      child: const _CreativeJourneyHubView(),
-    );
+    return const _CreativeJourneyHubView();
   }
 }
 
@@ -95,15 +90,15 @@ class _CreativeJourneyHubView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F5FF),
+      backgroundColor: const Color(0xFFF4F3FF), // 3D Clay periwinkle/lavender background tint
       body: BlocBuilder<JourneyMapCubit, JourneyMapState>(
         builder: (context, state) {
           return switch (state) {
-            JourneyMapLoading() || JourneyMapInitial() => const Center(child: CircularProgressIndicator()),
+            JourneyMapLoading() || JourneyMapInitial() => const Center(child: CircularProgressIndicator(color: AppColors.purple)),
             JourneyMapError(message: final msg) => Center(child: Text('Error: $msg')),
             JourneyMapLoaded(journeys: final journeys, growthStreakDays: final streak, allProgress: final progress) =>
               _buildLoaded(context, journeys, streak, progress),
-            _ => const Center(child: CircularProgressIndicator()),
+            _ => const Center(child: CircularProgressIndicator(color: AppColors.purple)),
           };
         },
       ),
@@ -112,15 +107,16 @@ class _CreativeJourneyHubView extends StatelessWidget {
 
   Widget _buildLoaded(BuildContext context, List<CreativeJourney> journeys, int streak, List<NodeProgress> progress) {
     return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
       slivers: [
-        // App Bar
+        // 3D Neumorphic App Bar
         SliverAppBar(
           floating: true,
           pinned: true,
-          backgroundColor: const Color(0xFFEDE9FE),
+          backgroundColor: const Color(0xFFF4F3FF),
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDark),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDark, size: 20),
             onPressed: () {
               if (Navigator.of(context).canPop()) {
                 Navigator.of(context).pop();
@@ -135,12 +131,12 @@ class _CreativeJourneyHubView extends StatelessWidget {
           ),
           title: Text(
             'Learning Journey',
-            style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textDark),
+            style: GoogleFonts.nunito(fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.textDark),
           ),
           centerTitle: true,
         ),
 
-        // 1. Dynamic Gigi Welcome Banner (Beanbag image + speech bubble tip)
+        // 1. Dynamic Gigi 3D Welcome Banner & Pedestal
         SliverToBoxAdapter(
           child: GigiWelcomeBanner(
             streakDays: streak,
@@ -148,26 +144,39 @@ class _CreativeJourneyHubView extends StatelessWidget {
           ),
         ),
 
-        // 2. Section Header
+        // 2. Section Header: Choose Your Journey
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
           sliver: SliverToBoxAdapter(
-            child: Text(
-              '🗺️ Choose Your Journey',
-              style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textDark),
+            child: Row(
+              children: [
+                const Text('🗺️', style: TextStyle(fontSize: 22)),
+                const SizedBox(width: 8),
+                Text(
+                  'Choose Your Journey',
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF1F1D2B),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
 
-        // 3. Journeys List Cards
+        // 3. Journeys List 3D Neumorphic Cards
         if (journeys.isEmpty)
           SliverFillRemaining(
             child: Center(
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Text('🌱', style: TextStyle(fontSize: 56)),
-                const SizedBox(height: 16),
-                Text('Journeys coming soon!', style: GoogleFonts.nunito(fontSize: 16, color: AppColors.textMedium)),
-              ]),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🌱', style: TextStyle(fontSize: 56)),
+                  const SizedBox(height: 16),
+                  Text('Journeys coming soon!', style: GoogleFonts.nunito(fontSize: 16, color: AppColors.textMedium)),
+                ],
+              ),
             ),
           )
         else
@@ -184,8 +193,16 @@ class _CreativeJourneyHubView extends StatelessWidget {
                   if (index > 0) {
                     final prevJourney = journeys[index - 1];
                     prevJourneyTitle = prevJourney.title;
-                    final completedCount = progress.where((p) => p.isCompleted).length;
-                    isUnlocked = completedCount >= 5; // Episode 1 has 5 nodes completed
+                    final prevNodeIds = <String>{};
+                    for (final ep in prevJourney.episodes) {
+                      for (final n in ep.nodes) {
+                        prevNodeIds.add(n.nodeId);
+                      }
+                    }
+                    final completedInPrev = progress
+                        .where((p) => p.isCompleted && prevNodeIds.contains(p.nodeId))
+                        .length;
+                    isUnlocked = prevNodeIds.isNotEmpty && completedInPrev >= prevNodeIds.length;
                   }
 
                   return _JourneyCard(
@@ -194,16 +211,16 @@ class _CreativeJourneyHubView extends StatelessWidget {
                     isUnlocked: isUnlocked,
                     prevJourneyTitle: prevJourneyTitle,
                   )
-                      .animate().fadeIn(delay: (index * 100).ms, duration: 400.ms).slideY(begin: 0.1);
+                      .animate().fadeIn(delay: (index * 100).ms, duration: 400.ms).slideY(begin: 0.08);
                 },
                 childCount: journeys.length,
               ),
             ),
           ),
 
-        // 4. Coming Soon Teaser
+        // 4. Coming Soon Teaser Card
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
           sliver: SliverToBoxAdapter(
             child: _buildComingSoonTeaser(),
           ),
@@ -218,37 +235,53 @@ class _CreativeJourneyHubView extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12)],
-      ),
-      child: Row(children: [
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFFE9D5FF), Color(0xFFFBCFE8)]),
-            borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF5B21B6).withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
-          child: const Center(child: Text('🧠', style: TextStyle(fontSize: 28))),
-        ),
-        const SizedBox(width: 14),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Mind & Mood Waves', style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.textDark)),
-          const SizedBox(height: 2),
-          Text('Coming soon — Journey 3', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textLight)),
-        ])),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(12)),
-          child: Text('🔒 Soon', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textLight)),
-        ),
-      ]),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFFE9D5FF), Color(0xFFFBCFE8)]),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Center(child: Text('🧠', style: TextStyle(fontSize: 28))),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Mind & Mood Waves',
+                  style: GoogleFonts.nunito(fontSize: 15.5, fontWeight: FontWeight.w900, color: AppColors.textDark),
+                ),
+                const SizedBox(height: 2),
+                Text('Coming soon — Journey 3', style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textLight)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(12)),
+            child: Text('🔒 Soon', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textLight)),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ── Pastel Journey Card ─────────────────────────────────────────────────────────
+// ── 3D Neumorphic Journey Card ──────────────────────────────────────────────────
 
 class _JourneyCard extends StatelessWidget {
   final CreativeJourney journey;
@@ -269,61 +302,113 @@ class _JourneyCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
+        AppSoundService.instance.playPop();
         if (isUnlocked) {
-          context.push('/creative-journey/journey/${journey.id}');
+          try {
+            context.push('/creative-journey/journey/${journey.id}');
+          } catch (_) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => CreativeJourneyDetailScreen(journeyId: journey.id),
+              ),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '🔒 Complete all episodes in "${prevJourneyTitle ?? 'the previous journey'}" to unlock this journey! ✨',
+                'Complete ${prevJourneyTitle ?? "the previous journey"} to unlock this journey! 🔒',
                 style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
               ),
-              backgroundColor: AppColors.purple,
+              backgroundColor: const Color(0xFFDC2626),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              duration: const Duration(seconds: 3),
             ),
           );
         }
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
+        margin: const EdgeInsets.only(bottom: 24),
         decoration: BoxDecoration(
           color: isUnlocked ? style.bg : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: isUnlocked ? style.border : Colors.grey.shade300,
-            width: 1.5,
-          ),
+          borderRadius: BorderRadius.circular(26),
           boxShadow: [
             BoxShadow(
               color: isUnlocked
-                  ? style.ctaColor.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.03),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+                  ? (index == 0
+                      ? const Color(0xFF644D95).withValues(alpha: 0.32)
+                      : const Color(0xFF5B21B6).withValues(alpha: 0.16))
+                  : Colors.black.withValues(alpha: 0.04),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.85),
+              blurRadius: 6,
+              offset: const Offset(-2, -2),
             ),
           ],
         ),
-        child: Column(
-          children: [
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: Stack(
+            children: [
+              // Live Background Element 1: Glowing Glass Specular Radial Orb (Top-Right)
+              Positioned(
+                top: -30,
+                right: -30,
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.85),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Live Background Element 2: Soft Watermark Motif (Bottom-Right)
+              Positioned(
+                bottom: -15,
+                right: -15,
+                child: Opacity(
+                  opacity: 0.08,
+                  child: Text(
+                    journey.icon ?? '🌸',
+                    style: const TextStyle(fontSize: 120),
+                  ),
+                ),
+              ),
+
+              // Card Main Layout
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             // 1. Thumbnail Header Image with overlay & title
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                   child: Image.asset(
                     style.assetImage,
-                    height: 150,
+                    height: 155,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (ctx, err, stack) => _buildGradientPlaceholder(journey, style),
                   ),
                 ),
-                // Gradient overlay for contrast
+
+                // Soft Gradient Overlay
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -331,12 +416,13 @@ class _JourneyCard extends StatelessWidget {
                           Colors.transparent,
                           isUnlocked
                               ? Colors.black.withValues(alpha: 0.65)
-                              : Colors.black.withValues(alpha: 0.75),
+                              : Colors.black.withValues(alpha: 0.8),
                         ],
                       ),
                     ),
                   ),
                 ),
+
                 // Title & Icon over image
                 Positioned(
                   left: 16,
@@ -344,19 +430,19 @@ class _JourneyCard extends StatelessWidget {
                   bottom: 14,
                   child: Row(
                     children: [
-                      Text(journey.icon ?? '🌸', style: const TextStyle(fontSize: 32)),
-                      const SizedBox(width: 10),
+                      Text(journey.icon ?? '🌸', style: const TextStyle(fontSize: 28)),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           journey.title,
                           style: GoogleFonts.nunito(
-                            fontSize: 20,
+                            fontSize: 21,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
                             shadows: [
                               const Shadow(
-                                color: Colors.black45,
-                                blurRadius: 6,
+                                color: Colors.black54,
+                                blurRadius: 8,
                                 offset: Offset(0, 2),
                               ),
                             ],
@@ -366,21 +452,28 @@ class _JourneyCard extends StatelessWidget {
                     ],
                   ),
                 ),
+
                 // Status Chip (Age Band / Lock Badge)
                 Positioned(
                   top: 14,
                   right: 14,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
-                      color: isUnlocked ? Colors.black.withValues(alpha: 0.45) : const Color(0xFFDC2626),
-                      borderRadius: BorderRadius.circular(12),
+                      color: isUnlocked ? const Color(0xFF5B21B6) : const Color(0xFFDC2626),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 6,
+                        ),
+                      ],
                     ),
                     child: Text(
                       isUnlocked ? 'Ages ${journey.ageBand ?? "9-15"}' : '🔒 LOCKED',
                       style: GoogleFonts.nunito(
                         fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w900,
                         color: Colors.white,
                       ),
                     ),
@@ -400,27 +493,32 @@ class _JourneyCard extends StatelessWidget {
                     style: GoogleFonts.nunito(
                       fontSize: 13,
                       color: AppColors.textMedium,
-                      height: 1.5,
+                      height: 1.45,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+
                   const SizedBox(height: 14),
 
                   // Info Badges Row
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: isUnlocked ? style.badgeBg : Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isUnlocked ? style.border : Colors.grey.shade300,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('📖', style: TextStyle(fontSize: 12)),
-                            const SizedBox(width: 4),
+                            const Text('📖', style: TextStyle(fontSize: 13)),
+                            const SizedBox(width: 5),
                             Text(
                               '${journey.episodes.length} Episodes',
                               style: GoogleFonts.nunito(
@@ -432,24 +530,27 @@ class _JourneyCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: isUnlocked ? const Color(0xFFFEF9C3) : Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(10),
+                          color: isUnlocked ? const Color(0xFFFEF3C7) : Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isUnlocked ? const Color(0xFFFDE68A) : Colors.grey.shade300,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('🪙', style: TextStyle(fontSize: 12)),
-                            const SizedBox(width: 4),
+                            const Text('🪙', style: TextStyle(fontSize: 13)),
+                            const SizedBox(width: 5),
                             Text(
                               '500 Coins',
                               style: GoogleFonts.nunito(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
-                                color: isUnlocked ? const Color(0xFF92400E) : AppColors.textLight,
+                                color: isUnlocked ? const Color(0xFFB45309) : AppColors.textLight,
                               ),
                             ),
                           ],
@@ -457,21 +558,29 @@ class _JourneyCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
 
-                  // 3. CTA Button
+                  const SizedBox(height: 18),
+
+                  // 3. Primary 3D Pill Button
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     decoration: BoxDecoration(
-                      color: isUnlocked ? style.ctaColor : Colors.grey.shade400,
-                      borderRadius: BorderRadius.circular(16),
+                      gradient: isUnlocked
+                          ? const LinearGradient(
+                              colors: [Color(0xFF6D28D9), Color(0xFF5B21B6)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            )
+                          : null,
+                      color: isUnlocked ? null : Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(25),
                       boxShadow: isUnlocked
                           ? [
                               BoxShadow(
-                                color: style.ctaColor.withValues(alpha: 0.35),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
+                                color: const Color(0xFF5B21B6).withValues(alpha: 0.35),
+                                blurRadius: 14,
+                                offset: const Offset(0, 6),
                               ),
                             ]
                           : [],
@@ -484,12 +593,12 @@ class _JourneyCard extends StatelessWidget {
                               ? 'Explore Journey (${journey.episodes.length} Ep)'
                               : '🔒 Locked (Complete ${prevJourneyTitle ?? "Previous Journey"})',
                           style: GoogleFonts.nunito(
-                            fontSize: 14.5,
+                            fontSize: 15,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Icon(
                           isUnlocked ? Icons.arrow_forward_rounded : Icons.lock_outline_rounded,
                           color: Colors.white,
@@ -501,15 +610,18 @@ class _JourneyCard extends StatelessWidget {
                 ],
               ),
             ),
+              ],
+            ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildGradientPlaceholder(CreativeJourney journey, PastelCardStyle style) {
     return Container(
-      height: 150,
+      height: 155,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [style.ctaColor, style.badgeTextColor],
