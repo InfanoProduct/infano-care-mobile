@@ -176,14 +176,14 @@ class _SosActiveScreenState extends State<SosActiveScreen>
         body: Stack(
           children: [
             // Immersive Deep Dark Radar Background
-            Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF0F0206), Color(0xFF2D040E)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0F0206), Color(0xFF2D040E)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
               ),
             ),

@@ -479,14 +479,18 @@ class _JourneyCard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          isUnlocked
-                              ? 'Explore Journey (${journey.episodes.length} Ep)'
-                              : '🔒 Locked (Complete ${prevJourneyTitle ?? "Previous Journey"})',
-                          style: GoogleFonts.nunito(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
+                        Flexible(
+                          child: Text(
+                            isUnlocked
+                                ? 'Explore Journey (${journey.episodes.length} Ep)'
+                                : '🔒 Locked (Complete ${prevJourneyTitle ?? "Previous Journey"})',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: GoogleFonts.nunito(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 6),

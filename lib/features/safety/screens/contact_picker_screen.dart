@@ -190,12 +190,14 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, setSheetState) {
           return Padding(
-            padding: EdgeInsets.fromLTRB(
-                24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Center(
                   child: Container(
                     width: 44,
@@ -354,7 +356,8 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
                     ),
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
           );
         });
@@ -458,6 +461,7 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
   Widget build(BuildContext context) {
     final isWizard = widget.fromWizard;
     return Scaffold(
+      extendBodyBehindAppBar: false,
       backgroundColor: const Color(0xFFFAF5FF),
       appBar: AppBar(
         title: Text(
@@ -492,10 +496,12 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
                     ],
                   ),
                 )
-              : Column(
-                  children: [
-                    // Premium Ambient Tip Card
-                    Container(
+              : SafeArea(
+                  top: false,
+                  child: Column(
+                    children: [
+                      // Premium Ambient Tip Card
+                      Container(
                       margin: const EdgeInsets.all(16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -724,71 +730,72 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
                       ).animate().fade(delay: 200.ms),
                   ],
                 ),
+              ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('👥', style: TextStyle(fontSize: 64)),
-            const SizedBox(height: 20),
-            Text(
-              'No Contacts Added Yet',
-              style: GoogleFonts.nunito(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textDark,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 24),
+          const Text('👥', style: TextStyle(fontSize: 64)),
+          const SizedBox(height: 20),
+          Text(
+            'No Contacts Added Yet',
+            style: GoogleFonts.nunito(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add at least one person who should\nbe notified during an emergency.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+                fontSize: 14, color: AppColors.textMedium, height: 1.5),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _pickFromPhoneContacts,
+                icon: const Icon(Icons.contacts_rounded, size: 18),
+                label: const Text('From Phone'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.purple,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Add at least one person who should\nbe notified during an emergency.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                  fontSize: 14, color: AppColors.textMedium, height: 1.5),
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _pickFromPhoneContacts,
-                  icon: const Icon(Icons.contacts_rounded, size: 18),
-                  label: const Text('From Phone'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.purple,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                  ),
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                onPressed: () => _showConfirmContactSheet(
+                    name: '', phone: '', isManual: true),
+                icon: const Icon(Icons.edit_note_rounded,
+                    size: 20, color: AppColors.purple),
+                label: const Text('Manual Entry',
+                    style: TextStyle(color: AppColors.purple)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.purple, width: 1.5),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                 ),
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: () => _showConfirmContactSheet(
-                      name: '', phone: '', isManual: true),
-                  icon: const Icon(Icons.edit_note_rounded,
-                      size: 20, color: AppColors.purple),
-                  label: const Text('Manual Entry',
-                      style: TextStyle(color: AppColors.purple)),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.purple, width: 1.5),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

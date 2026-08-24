@@ -91,9 +91,11 @@ class _SosTestScreenState extends State<SosTestScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: _testSent ? _buildSuccessState() : _buildPreTestState(),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: _testSent ? _buildSuccessState() : _buildPreTestState(),
+        ),
       ),
     );
   }
@@ -101,6 +103,7 @@ class _SosTestScreenState extends State<SosTestScreen> {
   Widget _buildPreTestState() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           'Ready to test?',
@@ -127,7 +130,7 @@ class _SosTestScreenState extends State<SosTestScreen> {
         _buildCheckItem('⏳', 'Establish Test Link', 'Pending connection test')
             .animate().fade(delay: 400.ms).slideX(begin: 0.05),
 
-        const Spacer(),
+        const SizedBox(height: 24),
 
         // Alert explanation box
         Container(
@@ -213,6 +216,7 @@ class _SosTestScreenState extends State<SosTestScreen> {
             ),
           ),
         ).animate().fade(delay: 600.ms),
+        const SizedBox(height: 16),
       ],
     );
   }

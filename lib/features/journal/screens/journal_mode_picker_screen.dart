@@ -34,7 +34,7 @@ class _JournalModePickerScreenState extends State<JournalModePickerScreen> {
                 crossAxisCount: 3,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.88,
+                childAspectRatio: 0.82,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) => _buildModeTile(context, _allModes[index], index),
@@ -136,7 +136,7 @@ class _JournalModePickerScreenState extends State<JournalModePickerScreen> {
                   child: Text(mode.emoji, style: const TextStyle(fontSize: 22)),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(height: 10),
               Text(mode.displayName,
                 style: GoogleFonts.nunito(
                   color: Colors.white,

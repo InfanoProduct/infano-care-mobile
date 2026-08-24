@@ -132,14 +132,14 @@ class _SosCountdownScreenState extends State<SosCountdownScreen>
         body: Stack(
           children: [
             // Dark Crimson Gradient Background
-            Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF3B0712), Color(0xFF991B1B)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF3B0712), Color(0xFF991B1B)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
               ),
             ),

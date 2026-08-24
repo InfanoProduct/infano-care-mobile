@@ -463,8 +463,9 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
                   Text(
                     'Continue Journey • Collect 🪙 Coins',
                     textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.nunito(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
                     ),

@@ -292,7 +292,8 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget>
                     children: [
                       Text(
                         _currentIndex < scenarios.length - 1 ? 'Spin for Question ${_currentIndex + 2} →' : 'Continue Journey • Collect 🪙 Coins',
-                        style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
                       ),
                       const SizedBox(width: 8),
                       Icon(

@@ -330,9 +330,15 @@ class _ReflectionRewardScreenState extends State<ReflectionRewardScreen> {
               ],
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const Text('🏆', style: TextStyle(fontSize: 22)),
+              const Text('🏆', style: TextStyle(fontSize: 20)),
               const SizedBox(width: 8),
-              Text('Claim Your Badge & Collect 🪙 Coins!', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+              Flexible(
+                child: Text(
+                  'Claim Your Badge & Collect 🪙 Coins!',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+                ),
+              ),
             ]),
           ),
         ).animate().fadeIn(delay: 300.ms, duration: 500.ms).scaleXY(begin: 0.9, end: 1.0, curve: Curves.elasticOut),

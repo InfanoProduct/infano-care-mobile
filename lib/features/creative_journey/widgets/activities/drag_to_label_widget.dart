@@ -891,8 +891,9 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
                 children: [
                   Text(
                     'Continue Journey • Collect 🪙 Coins',
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.nunito(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
                     ),

@@ -899,8 +899,9 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                 children: [
                   Text(
                     'Continue Journey • Collect 🪙 Coins',
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.nunito(
-                      fontSize: 15.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.w900,
                       color: const Color(0xFFDB2777),
                     ),

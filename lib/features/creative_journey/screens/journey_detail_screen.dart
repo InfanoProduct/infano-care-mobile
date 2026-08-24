@@ -182,7 +182,7 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
         slivers: [
           // App bar with matching pastel hero header
           SliverAppBar(
-            expandedHeight: 175,
+            expandedHeight: 200,
             pinned: true,
             backgroundColor: style.heroGradientStart,
             leading: IconButton(
@@ -307,7 +307,7 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
+          padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
