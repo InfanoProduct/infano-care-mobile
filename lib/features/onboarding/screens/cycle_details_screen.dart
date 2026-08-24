@@ -185,12 +185,14 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
                                       children: [
                                         _RegularityChip(
                                           label: 'Regular',
+                                          icon: '🔄',
                                           isSelected: !state.isIrregular,
                                           onTap: () => context.read<OnboardingBloc>().add(const SetRegularity(false)),
                                         ),
                                         const SizedBox(width: 12),
                                         _RegularityChip(
                                           label: 'Irregular',
+                                          icon: '⚡',
                                           isSelected: state.isIrregular,
                                           onTap: () => context.read<OnboardingBloc>().add(const SetRegularity(true)),
                                         ),
@@ -349,7 +351,7 @@ class _RegularityChip extends StatelessWidget {
 
   const _RegularityChip({
     required this.label,
-    required this.icon,
+    this.icon = '',
     required this.isSelected,
     required this.onTap,
   });
@@ -370,14 +372,23 @@ class _RegularityChip extends StatelessWidget {
                 : [],
           ),
           child: Center(
-            child: Text(
-              label,
-              style: GoogleFonts.nunito(
-                color: isSelected ? Colors.white : const Color(0xFF4B5563),
-                fontWeight: FontWeight.w900,
-                fontSize: 14,
-              ),
-            ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon.isNotEmpty) ...[
+                  Text(icon, style: const TextStyle(fontSize: 14)),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  label,
+                  style: GoogleFonts.nunito(
+                    color: isSelected ? Colors.white : const Color(0xFF4B5563),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
