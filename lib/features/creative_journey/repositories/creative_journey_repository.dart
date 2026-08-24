@@ -10,27 +10,45 @@ class CreativeJourneyRepository {
 
   Future<List<CreativeJourney>> listJourneys() async {
     final response = await _dio.get('/creative-journey/journeys');
-    return (response.data as List)
+    final data = response.data;
+    final List rawList = data is List
+        ? data
+        : (data is Map && data['data'] is List ? data['data'] as List : []);
+    return rawList
         .map((j) => CreativeJourney.fromJson(j as Map<String, dynamic>))
         .toList();
   }
 
   Future<CreativeJourney> getJourney(String id) async {
     final response = await _dio.get('/creative-journey/journeys/$id');
-    return CreativeJourney.fromJson(response.data as Map<String, dynamic>);
+    final data = response.data;
+    final map = data is Map<String, dynamic>
+        ? (data['data'] is Map<String, dynamic> ? data['data'] as Map<String, dynamic> : data)
+        : <String, dynamic>{};
+    return CreativeJourney.fromJson(map);
   }
 
   Future<CreativeEpisode> getEpisode(String episodeId) async {
     final response = await _dio.get('/creative-journey/episodes/$episodeId');
-    return CreativeEpisode.fromJson(response.data as Map<String, dynamic>);
+    final data = response.data;
+    final map = data is Map<String, dynamic>
+        ? (data['data'] is Map<String, dynamic> ? data['data'] as Map<String, dynamic> : data)
+        : <String, dynamic>{};
+    return CreativeEpisode.fromJson(map);
   }
 
   // ── Node Order (seeded shuffle) ─────────────────────────────────────────────
 
   Future<List<String>> getOrCreateNodeOrder(String episodeId) async {
-    final response =
-        await _dio.get('/creative-journey/episodes/$episodeId/node-order');
-    return List<String>.from(response.data['nodeOrder'] as List);
+    try {
+      final response =
+          await _dio.get('/creative-journey/episodes/$episodeId/node-order');
+      final data = response.data;
+      if (data is Map && data['nodeOrder'] is List) {
+        return List<String>.from(data['nodeOrder'] as List);
+      }
+    } catch (_) {}
+    return [];
   }
 
   // ── Progress ────────────────────────────────────────────────────────────────
@@ -39,7 +57,11 @@ class CreativeJourneyRepository {
     try {
       final response =
           await _dio.get('/creative-journey/episodes/$episodeId/progress');
-      return (response.data as List)
+      final data = response.data;
+      final List rawList = data is List
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : []);
+      return rawList
           .map((p) => NodeProgress.fromJson(p as Map<String, dynamic>))
           .toList();
     } catch (_) {
@@ -69,10 +91,18 @@ class CreativeJourneyRepository {
   }
 
   Future<List<NodeProgress>> getMyProgress() async {
-    final response = await _dio.get('/creative-journey/my-progress');
-    return (response.data as List)
-        .map((p) => NodeProgress.fromJson(p as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await _dio.get('/creative-journey/my-progress');
+      final data = response.data;
+      final List rawList = data is List
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : []);
+      return rawList
+          .map((p) => NodeProgress.fromJson(p as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   // ── Ask Gigi ────────────────────────────────────────────────────────────────

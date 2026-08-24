@@ -24,9 +24,9 @@ class CreativeJourney {
 
   factory CreativeJourney.fromJson(Map<String, dynamic> json) {
     return CreativeJourney(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
       ageBand: json['ageBand'] as String?,
       icon: json['icon'] as String?,
       isActive: json['isActive'] as bool? ?? true,
@@ -63,9 +63,9 @@ class CreativeEpisode {
 
   factory CreativeEpisode.fromJson(Map<String, dynamic> json) {
     return CreativeEpisode(
-      id: json['id'] as String,
-      journeyId: json['journeyId'] as String,
-      title: json['title'] as String,
+      id: json['id'] as String? ?? '',
+      journeyId: json['journeyId'] as String? ?? '',
+      title: json['title'] as String? ?? '',
       description: json['description'] as String?,
       episodeIcon: json['episodeIcon'] as String?,
       order: json['order'] as int? ?? 0,
@@ -100,10 +100,10 @@ class CreativeNode {
 
   factory CreativeNode.fromJson(Map<String, dynamic> json) {
     return CreativeNode(
-      nodeId: json['nodeId'] as String,
-      type: json['type'] as String,
-      title: json['title'] as String,
-      position: json['position'] as String,
+      nodeId: json['nodeId'] as String? ?? '',
+      type: json['type'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      position: json['position'] as String? ?? 'random_pool',
       energyTag: json['energyTag'] as String?,
       xpReward: json['xpReward'] as int? ?? 10,
       content: json['content'] as Map<String, dynamic>?,
@@ -163,10 +163,10 @@ class CreativeNodeProgress {
 
   factory CreativeNodeProgress.fromJson(Map<String, dynamic> json) {
     return CreativeNodeProgress(
-      nodeId: json['nodeId'] as String,
+      nodeId: json['nodeId'] as String? ?? '',
       episodeId: json['episodeId'] as String?,
       status: json['status'] as String? ?? 'LOCKED',
-      xpEarned: json['xpEarned'] as int? ?? 0,
+      xpEarned: json['xpEarned'] as int? ?? json['coinsEarned'] as int? ?? 0,
       lastScreen: json['lastScreen'] as String?,
     );
   }

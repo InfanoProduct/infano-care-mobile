@@ -99,7 +99,55 @@ class _CreativeJourneyHubView extends StatelessWidget {
               child: CircularProgressIndicator(color: AppColors.purple),
             ),
             JourneyMapError(message: final msg) => Center(
-              child: Text('Error: $msg'),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('🌸', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Could not load journeys',
+                      style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      msg.contains('DioException') || msg.contains('SocketException')
+                          ? 'Please check your internet connection and try again.'
+                          : msg,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        color: AppColors.textMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => context.read<JourneyMapCubit>().load(isRefresh: true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6D28D9),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: Text(
+                        'Retry',
+                        style: GoogleFonts.nunito(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             JourneyMapLoaded(
               journeys: final journeys,
