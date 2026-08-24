@@ -10,6 +10,8 @@ import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart
 import 'package:infano_care_mobile/features/onboarding/data/onboarding_repository.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
+import 'package:infano_care_mobile/features/creative_journey/application/journey_map_cubit.dart';
+import 'package:infano_care_mobile/features/creative_journey/repositories/creative_journey_repository.dart';
 
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
@@ -113,6 +115,11 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
           BlocProvider(
             create: (_) =>
                 TrackerBloc(trackerRepo, widget.storage)..add(const TrackerEvent.load()),
+          ),
+          BlocProvider(
+            create: (_) => JourneyMapCubit(
+              CreativeJourneyRepository(ApiService.instance.dio),
+            )..load(),
           ),
         ],
         child: MaterialApp.router(

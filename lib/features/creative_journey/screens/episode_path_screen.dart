@@ -11,6 +11,7 @@ import '../repositories/creative_journey_repository.dart';
 import '../widgets/node_bubble_widget.dart';
 import '../widgets/badge_ceremony_widget.dart';
 import '../widgets/journey_path_painter.dart';
+import '../widgets/animated_world_background.dart';
 import 'node_activity_screen.dart';
 
 class EpisodePathScreen extends StatelessWidget {
@@ -105,50 +106,53 @@ class _EpisodePathView extends StatelessWidget {
     final totalNodes = state.orderedNodes.length;
     final totalItems = totalNodes > 0 ? totalNodes * 2 - 1 : 0;
 
-    return CustomScrollView(
-      slivers: [
-        // Header
-        SliverAppBar(
-          expandedHeight: 180,
-          pinned: true,
-          backgroundColor: AppColors.purple,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-            onPressed: () => context.pop(),
-          ),
-          flexibleSpace: FlexibleSpaceBar(
-            background: _buildEpisodeHeader(context, state),
-          ),
-        ),
-
-        // Path nodes & dotted connectors
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, itemIndex) {
-                if (itemIndex.isEven) {
-                  final nodeIndex = itemIndex ~/ 2;
-                  return _buildNodeRow(context, state, nodeIndex);
-                } else {
-                  final fromNodeIndex = itemIndex ~/ 2;
-                  final fromNode = state.orderedNodes[fromNodeIndex];
-                  final toNode = state.orderedNodes[fromNodeIndex + 1];
-                  final fromProgress = state.progressForNode(fromNode.nodeId);
-                  final toProgress = state.progressForNode(toNode.nodeId);
-
-                  return NodeConnectorWidget(
-                    startFromLeft: fromNodeIndex.isEven,
-                    isCompleted: fromProgress.isCompleted && toProgress.isCompleted,
-                    isUnlocked: toProgress.isUnlocked || toProgress.isInProgress || toProgress.isCompleted,
-                  );
-                }
-              },
-              childCount: totalItems,
+    return AnimatedWorldBackgroundWidget(
+      showMascotVehicle: true,
+      child: CustomScrollView(
+        slivers: [
+          // Header
+          SliverAppBar(
+            expandedHeight: 180,
+            pinned: true,
+            backgroundColor: const Color(0xFF8B5CF6),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+              onPressed: () => context.pop(),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: _buildEpisodeHeader(context, state),
             ),
           ),
-        ),
-      ],
+
+          // Path nodes, scenery buildings & road connectors
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(12, 20, 12, 36),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, itemIndex) {
+                  if (itemIndex.isEven) {
+                    final nodeIndex = itemIndex ~/ 2;
+                    return _buildNodeRow(context, state, nodeIndex);
+                  } else {
+                    final fromNodeIndex = itemIndex ~/ 2;
+                    final fromNode = state.orderedNodes[fromNodeIndex];
+                    final toNode = state.orderedNodes[fromNodeIndex + 1];
+                    final fromProgress = state.progressForNode(fromNode.nodeId);
+                    final toProgress = state.progressForNode(toNode.nodeId);
+
+                    return NodeConnectorWidget(
+                      startFromLeft: fromNodeIndex.isEven,
+                      isCompleted: fromProgress.isCompleted && toProgress.isCompleted,
+                      isUnlocked: toProgress.isUnlocked || toProgress.isInProgress || toProgress.isCompleted,
+                    );
+                  }
+                },
+                childCount: totalItems,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -166,33 +170,36 @@ class _EpisodePathView extends StatelessWidget {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 50, 20, 16),
+          padding: const EdgeInsets.fromLTRB(16, 44, 16, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Text(state.episode.episodeIcon ?? '🗺️', style: const TextStyle(fontSize: 28)),
-                const SizedBox(width: 10),
+                Text(state.episode.episodeIcon ?? '🗺️', style: const TextStyle(fontSize: 26)),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     state.episode.title,
-                    style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textDark),
+                    style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textDark),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 6),
                 // XP counter
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(14),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6),
                     ],
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('🪙', style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 4),
-                    Text('${state.totalXpEarned} Coins', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF92400E))),
+                    const Text('🪙', style: TextStyle(fontSize: 13)),
+                    const SizedBox(width: 3),
+                    Text('${state.totalXpEarned} Coins', style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF92400E))),
                   ]),
                 ),
               ]),
@@ -206,7 +213,7 @@ class _EpisodePathView extends StatelessWidget {
                       : state.completedCount / state.orderedNodes.length,
                   backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                   valueColor: const AlwaysStoppedAnimation(AppColors.purple),
-                  minHeight: 6,
+                  minHeight: 5.5,
                 ),
               ),
               const SizedBox(height: 6),
@@ -255,46 +262,93 @@ class _EpisodePathView extends StatelessWidget {
     // Alternating left-right layout for winding path feel
     final isLeft = index.isEven;
 
-    return Container(
-      child: Row(
-        children: [
-          if (!isLeft) const Spacer(),
+    // Scenery building prop for the side opposite the node
+    final sceneryProp = _getSceneryPropForNode(index);
 
-          // Node bubble
-          SizedBox(
-            width: 200,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isLeft) ...[
-                  NodeBubbleWidget(
-                    node: node,
-                    progress: progress,
-                    index: index,
-                    onTap: () => _openActivity(context, state, node, progress),
-                  ).animate(target: progress.isUnlocked ? 1 : 0)
-                      .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.3)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildNodeLabel(node, progress, isLeft: true)),
-                ] else ...[
-                  Expanded(child: _buildNodeLabel(node, progress, isLeft: false)),
-                  const SizedBox(width: 12),
-                  NodeBubbleWidget(
-                    node: node,
-                    progress: progress,
-                    index: index,
-                    onTap: () => _openActivity(context, state, node, progress),
-                  ).animate(target: progress.isUnlocked ? 1 : 0)
-                      .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.3)),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // If node is on right, put scenery on left
+          if (!isLeft)
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: sceneryProp,
+            )
+          else
+            const SizedBox(width: 4),
+
+          // Node bubble + Label container
+          Flexible(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLeft) ...[
+                    NodeBubbleWidget(
+                      node: node,
+                      progress: progress,
+                      index: index,
+                      onTap: () => _openActivity(context, state, node, progress),
+                    ).animate(target: progress.isUnlocked ? 1 : 0)
+                        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.3)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildNodeLabel(node, progress, isLeft: true)),
+                  ] else ...[
+                    Expanded(child: _buildNodeLabel(node, progress, isLeft: false)),
+                    const SizedBox(width: 8),
+                    NodeBubbleWidget(
+                      node: node,
+                      progress: progress,
+                      index: index,
+                      onTap: () => _openActivity(context, state, node, progress),
+                    ).animate(target: progress.isUnlocked ? 1 : 0)
+                        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.3)),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
 
-          if (isLeft) const Spacer(),
+          // If node is on left, put scenery on right
+          if (isLeft)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: sceneryProp,
+            )
+          else
+            const SizedBox(width: 4),
         ],
-      ).animate().fadeIn(delay: (index * 60).ms, duration: 400.ms).slideY(begin: 0.1),
+      ).animate().fadeIn(delay: (index * 50).ms, duration: 350.ms).slideY(begin: 0.08),
     );
+  }
+
+  Widget _getSceneryPropForNode(int index) {
+    switch (index % 10) {
+      case 0:
+        return SceneryBuildingWidget.home();
+      case 1:
+        return SceneryBuildingWidget.library();
+      case 2:
+        return SceneryBuildingWidget.windmill();
+      case 3:
+        return SceneryBuildingWidget.park();
+      case 4:
+        return SceneryBuildingWidget.fountain();
+      case 5:
+        return SceneryBuildingWidget.observatory();
+      case 6:
+        return SceneryBuildingWidget.greenhouse();
+      case 7:
+        return SceneryBuildingWidget.puzzleStudio();
+      case 8:
+        return SceneryBuildingWidget.harmonyPlaza();
+      case 9:
+      default:
+        return SceneryBuildingWidget.tower();
+    }
   }
 
   Widget _buildNodeLabel(CreativeNode node, NodeProgress progress, {required bool isLeft}) {
@@ -303,29 +357,34 @@ class _EpisodePathView extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           typeLabel,
           style: GoogleFonts.nunito(
-            fontSize: 9,
+            fontSize: 8.5,
             fontWeight: FontWeight.w800,
             color: progress.isCompleted
                 ? AppColors.purple
                 : progress.isUnlocked
                     ? AppColors.pink
                     : AppColors.textLight,
-            letterSpacing: 0.8,
+            letterSpacing: 0.6,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
         Text(
           title,
           textAlign: isLeft ? TextAlign.left : TextAlign.right,
           style: GoogleFonts.nunito(
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: FontWeight.w800,
             color: progress.isLocked ? AppColors.textLight : AppColors.textDark,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

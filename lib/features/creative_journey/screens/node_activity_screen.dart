@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 import '../models/creative_journey_models.dart';
 import '../repositories/creative_journey_repository.dart';
 import '../widgets/activities/mystery_task_box_widget.dart';
@@ -91,11 +92,15 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
               ],
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Text('🪙', style: TextStyle(fontSize: 12)),
+              Text(widget.isAlreadyCompleted ? '✓' : '🪙', style: const TextStyle(fontSize: 12)),
               const SizedBox(width: 4),
               Text(
-                '+${widget.node.xpReward} Coins',
-                style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFFB45309)),
+                widget.isAlreadyCompleted ? 'Completed ✓' : '+${widget.node.xpReward} Coins',
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: widget.isAlreadyCompleted ? AppColors.success : const Color(0xFFB45309),
+                ),
               ),
             ]),
           ),
@@ -277,14 +282,22 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
       'coinsReward': widget.node.xpReward,
     };
     void complete([int? customCoins]) {
-      final earnedCoins = customCoins ?? widget.node.xpReward;
-      CoinBurstOverlay.show(
-        context,
-        coinsEarned: earnedCoins,
-        onComplete: () {
-          widget.onCompleted(earnedCoins);
-        },
-      );
+      final earnedCoins = widget.isAlreadyCompleted
+          ? 0
+          : (customCoins ?? widget.node.xpReward);
+
+      AppSoundService.instance.playBunchOfCoinsSound();
+      if (earnedCoins > 0) {
+        CoinBurstOverlay.show(
+          context,
+          coinsEarned: earnedCoins,
+          onComplete: () {
+            widget.onCompleted(earnedCoins);
+          },
+        );
+      } else {
+        widget.onCompleted(0);
+      }
     }
 
     return switch (widget.node.type) {

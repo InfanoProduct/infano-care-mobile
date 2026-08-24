@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -90,10 +91,10 @@ class PastelEpisodeTheme {
       iconGradientEnd: Color(0xFF34D399),
     ),
     PastelEpisodeTheme(
-      bg: Color(0xFFFFFBEB),
-      border: Color(0xFFFDE68A),
-      iconGradientStart: Color(0xFFFDE68A),
-      iconGradientEnd: Color(0xFFFBBF24),
+      bg: Color(0xFFFAF5FF),
+      border: Color(0xFFE9D5FF),
+      iconGradientStart: Color(0xFFE9D5FF),
+      iconGradientEnd: Color(0xFFC4B5FD),
     ),
     PastelEpisodeTheme(
       bg: Color(0xFFEFF6FF),
@@ -112,16 +113,15 @@ class PastelEpisodeTheme {
 class CreativeJourneyDetailScreen extends StatefulWidget {
   final String journeyId;
 
-  const CreativeJourneyDetailScreen({
-    super.key,
-    required this.journeyId,
-  });
+  const CreativeJourneyDetailScreen({super.key, required this.journeyId});
 
   @override
-  State<CreativeJourneyDetailScreen> createState() => _CreativeJourneyDetailScreenState();
+  State<CreativeJourneyDetailScreen> createState() =>
+      _CreativeJourneyDetailScreenState();
 }
 
-class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScreen> {
+class _CreativeJourneyDetailScreenState
+    extends State<CreativeJourneyDetailScreen> {
   late CreativeJourneyRepository _repo;
   CreativeJourney? _journey;
   List<NodeProgress> _progress = [];
@@ -159,7 +159,10 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
     if (_loading) {
       return Scaffold(
         backgroundColor: const Color(0xFFF8F5FF),
-        appBar: AppBar(backgroundColor: style.heroGradientStart, leading: const BackButton(color: AppColors.textDark)),
+        appBar: AppBar(
+          backgroundColor: style.heroGradientStart,
+          leading: const BackButton(color: AppColors.textDark),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -167,125 +170,189 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
     if (_error != null || _journey == null) {
       return Scaffold(
         backgroundColor: const Color(0xFFF8F5FF),
-        appBar: AppBar(backgroundColor: style.heroGradientStart, leading: const BackButton(color: AppColors.textDark)),
+        appBar: AppBar(
+          backgroundColor: style.heroGradientStart,
+          leading: const BackButton(color: AppColors.textDark),
+        ),
         body: Center(child: Text('Error: ${_error ?? "Journey not found"}')),
       );
     }
 
     final journey = _journey!;
-    final totalXp = journey.episodes.fold(0, (sum, e) => sum + e.totalXP);
-    final completedEpisodeCount = journey.episodes.where((e) => _isEpisodeCompleted(e)).length;
+    final completedEpisodeCount =
+        journey.episodes.where((e) => _isEpisodeCompleted(e)).length;
+    final totalEpisodes = journey.episodes.length;
+    final overallRatio =
+        totalEpisodes > 0 ? completedEpisodeCount / totalEpisodes : 0.0;
+
+    // Find the next episode to feature in "Quick Continue Target Banner"
+    CreativeEpisode? targetEpisode;
+    for (int i = 0; i < journey.episodes.length; i++) {
+      final ep = journey.episodes[i];
+      if (_isEpisodeUnlocked(ep, i) && !_isEpisodeCompleted(ep)) {
+        targetEpisode = ep;
+        break;
+      }
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5FF),
-      body: CustomScrollView(
-        slivers: [
-          // App bar with matching pastel hero header
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            backgroundColor: style.heroGradientStart,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: AppColors.textDark),
-              onPressed: () => context.pop(),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: _buildCreativeHero(journey, totalXp, style),
-            ),
-          ),
-
-          // Title header for episode list
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
-            sliver: SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  Text(
-                    '📖 Episodes (${journey.episodes.length})',
-                    style: GoogleFonts.nunito(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: style.ctaColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '$completedEpisodeCount / ${journey.episodes.length} Done',
-                      style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w800, color: style.ctaColor),
-                    ),
-                  ),
-                ],
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: AppColors.purple,
+        child: CustomScrollView(
+          slivers: [
+            // App bar with matching pastel hero header & overall progress stats
+            SliverAppBar(
+              expandedHeight: 210,
+              pinned: true,
+              backgroundColor: style.heroGradientStart,
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios,
+                  color: AppColors.textDark,
+                ),
+                onPressed: () => context.pop(),
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                background: _buildCreativeHero(
+                  journey,
+                  completedEpisodeCount,
+                  totalEpisodes,
+                  overallRatio,
+                  style,
+                ),
               ),
             ),
-          ),
 
-          // Episode List
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
+            // Pinned Target "Continue Journey" Quick Action Card (if next episode available)
+            if (targetEpisode != null)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                sliver: SliverToBoxAdapter(
+                  child: _buildContinueTargetCard(targetEpisode, style),
+                ),
+              ),
+
+            // Title header for episode list
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '📖 Episodes (${journey.episodes.length})',
+                        style: GoogleFonts.nunito(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textDark,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: style.ctaColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$completedEpisodeCount / ${journey.episodes.length} Done',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: style.ctaColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Episode List
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 36),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
                   final episode = journey.episodes[index];
                   final isUnlocked = _isEpisodeUnlocked(episode, index);
                   final isCompleted = _isEpisodeCompleted(episode);
-
-                  // Next episode is the first unlocked episode that is not yet completed
                   final isNext = isUnlocked && !isCompleted;
+                  final completedNodes = _getEpisodeCompletedNodeCount(episode);
+                  final totalNodes = episode.nodes.length;
 
                   return _EpisodeCard(
-                    episode: episode,
-                    index: index,
-                    isUnlocked: isUnlocked,
-                    isCompleted: isCompleted,
-                    isNextEpisode: isNext,
-                    onTap: () {
-                      if (isUnlocked) {
-                        context.push('/creative-journey/episode/${episode.id}');
-                      } else {
-                        final prevTitle = journey.episodes[index - 1].title;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '🔒 Complete "$prevTitle" to unlock this episode!',
-                              style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
-                            ),
-                            backgroundColor: AppColors.purple,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          ),
-                        );
-                      }
-                    },
-                  ).animate().fadeIn(delay: (index * 60).ms, duration: 400.ms).slideY(begin: 0.1);
-                },
-                childCount: journey.episodes.length,
+                        episode: episode,
+                        index: index,
+                        isUnlocked: isUnlocked,
+                        isCompleted: isCompleted,
+                        isNextEpisode: isNext,
+                        completedNodes: completedNodes,
+                        totalNodes: totalNodes,
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          if (isUnlocked) {
+                            context
+                                .push('/creative-journey/episode/${episode.id}')
+                                .then((_) {
+                                  if (mounted) _loadData();
+                                });
+                          } else {
+                            final prevTitle = journey.episodes[index - 1].title;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '🔒 Complete "$prevTitle" to unlock this episode!',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                backgroundColor: AppColors.purple,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      )
+                      .animate()
+                      .fadeIn(delay: (index * 50).ms, duration: 350.ms)
+                      .slideY(begin: 0.08);
+                }, childCount: journey.episodes.length),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   bool _isEpisodeCompleted(CreativeEpisode episode) {
     if (episode.nodes.isEmpty) return false;
-
-    // Collect all node IDs for this episode
     final epNodeIds = episode.nodes.map((n) => n.nodeId).toSet();
+    final completedCount =
+        _progress
+            .where((p) => p.isCompleted && epNodeIds.contains(p.nodeId))
+            .length;
 
-    // Count completed nodes matching this episode's node IDs
-    final completedCount = _progress
+    return completedCount == epNodeIds.length;
+  }
+
+  int _getEpisodeCompletedNodeCount(CreativeEpisode episode) {
+    if (episode.nodes.isEmpty) return 0;
+    final epNodeIds = episode.nodes.map((n) => n.nodeId).toSet();
+    return _progress
         .where((p) => p.isCompleted && epNodeIds.contains(p.nodeId))
         .length;
-
-    // Episode is completed ONLY when ALL nodes in this episode are completed
-    return completedCount >= epNodeIds.length;
   }
 
   bool _isEpisodeUnlocked(CreativeEpisode episode, int index) {
@@ -296,7 +363,15 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
     return _isEpisodeCompleted(prevEpisode);
   }
 
-  Widget _buildCreativeHero(CreativeJourney journey, int totalXp, JourneyPastelStyle style) {
+  Widget _buildCreativeHero(
+    CreativeJourney journey,
+    int completedEpisodeCount,
+    int totalEpisodes,
+    double overallRatio,
+    JourneyPastelStyle style,
+  ) {
+    final percentage = (overallRatio * 100).round();
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -307,16 +382,20 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
+          padding: const EdgeInsets.fromLTRB(16, 36, 16, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               // Top Title + XP Pill Row
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(journey.icon ?? '🌸', style: const TextStyle(fontSize: 36)),
-                  const SizedBox(width: 12),
+                  Text(
+                    journey.icon ?? '🌸',
+                    style: const TextStyle(fontSize: 30),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,40 +403,52 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
                         Text(
                           journey.title,
                           style: GoogleFonts.nunito(
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: style.textColor,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Ages ${journey.ageBand ?? "9-15"} • ${journey.episodes.length} Episodes',
+                          'Ages ${journey.ageBand ?? "9-15"} • $completedEpisodeCount/$totalEpisodes Done ($percentage%)',
                           style: GoogleFonts.nunito(
-                            fontSize: 13,
+                            fontSize: 11.5,
                             color: AppColors.textMedium,
                             fontWeight: FontWeight.w700,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 6),
                   // Total XP Pill
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(14),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 6,
+                        ),
                       ],
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('🪙', style: TextStyle(fontSize: 14)),
-                        const SizedBox(width: 4),
+                        const Text('🪙', style: TextStyle(fontSize: 13)),
+                        const SizedBox(width: 3),
                         Text(
                           '500 Coins',
                           style: GoogleFonts.nunito(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFF92400E),
                           ),
@@ -367,18 +458,33 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
+
+              // Overall Journey Linear Progress Gauge
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: overallRatio,
+                  backgroundColor: style.ctaColor.withValues(alpha: 0.12),
+                  valueColor: AlwaysStoppedAnimation(style.ctaColor),
+                  minHeight: 5.5,
+                ),
+              ),
+              const SizedBox(height: 8),
 
               // Creative Highlight Pill: "Designed by experts with Love & Care 💖"
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
                       color: style.ctaColor.withValues(alpha: 0.08),
-                      blurRadius: 10,
+                      blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
                   ],
@@ -389,14 +495,22 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.favorite_rounded, color: Color(0xFFEC4899), size: 14),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Designed by experts with Love & Care',
-                      style: GoogleFonts.nunito(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        color: style.ctaColor,
+                    const Icon(
+                      Icons.favorite_rounded,
+                      color: Color(0xFFEC4899),
+                      size: 13,
+                    ),
+                    const SizedBox(width: 5),
+                    Flexible(
+                      child: Text(
+                        'Designed by experts with Love & Care',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: style.ctaColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -410,6 +524,139 @@ class _CreativeJourneyDetailScreenState extends State<CreativeJourneyDetailScree
       ),
     );
   }
+
+  Widget _buildContinueTargetCard(
+    CreativeEpisode episode,
+    JourneyPastelStyle style,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [style.ctaColor, style.ctaColor.withValues(alpha: 0.85)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: style.ctaColor.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            context.push('/creative-journey/episode/${episode.id}').then((_) {
+              if (mounted) _loadData();
+            });
+          },
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      episode.episodeIcon ?? '🎯',
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'UP NEXT TARGET',
+                            style: GoogleFonts.nunito(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Text('🚀', style: TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        episode.title,
+                        style: GoogleFonts.nunito(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Start Now',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w900,
+                          color: style.ctaColor,
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 13,
+                        color: style.ctaColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().scale(
+      begin: const Offset(0.98, 0.98),
+      end: const Offset(1.0, 1.0),
+      duration: 600.ms,
+      curve: Curves.easeInOut,
+    );
+  }
 }
 
 // ── Spacious Creative Pastel Episode Card ──────────────────────────────────────
@@ -420,6 +667,8 @@ class _EpisodeCard extends StatelessWidget {
   final bool isUnlocked;
   final bool isCompleted;
   final bool isNextEpisode;
+  final int completedNodes;
+  final int totalNodes;
   final VoidCallback? onTap;
 
   const _EpisodeCard({
@@ -428,245 +677,434 @@ class _EpisodeCard extends StatelessWidget {
     required this.isUnlocked,
     this.isCompleted = false,
     this.isNextEpisode = false,
+    this.completedNodes = 0,
+    this.totalNodes = 0,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = PastelEpisodeTheme.getTheme(index);
+    final nodeProgressRatio =
+        totalNodes > 0 ? completedNodes / totalNodes : 0.0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 18),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: isUnlocked ? theme.bg : const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isUnlocked ? theme.border : Colors.grey.shade200,
-          width: 1.5,
-        ),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: isUnlocked
-                ? theme.iconGradientStart.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.02),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color:
+                isNextEpisode
+                    ? const Color(0xFF8B5CF6).withValues(alpha: 0.28)
+                    : isUnlocked
+                    ? const Color(0xFF644D95).withValues(alpha: 0.18)
+                    : Colors.black.withValues(alpha: 0.04),
+            blurRadius: isNextEpisode ? 20 : 16,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.85),
+            blurRadius: 6,
+            offset: const Offset(-2, -2),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Episode Icon Thumbnail
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        gradient: isUnlocked
-                            ? LinearGradient(
-                                colors: [theme.iconGradientStart, theme.iconGradientEnd],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                            : LinearGradient(
-                                colors: [Colors.grey.shade200, Colors.grey.shade300],
-                              ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: isUnlocked
-                            ? [
-                                BoxShadow(
-                                  color: theme.iconGradientStart.withValues(alpha: 0.3),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ]
-                            : [],
-                      ),
-                      child: Center(
-                        child: Text(
-                          episode.episodeIcon ?? '🗺️',
-                          style: TextStyle(
-                            fontSize: 28,
-                            color: isUnlocked ? Colors.white : Colors.grey.shade400,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (!isUnlocked)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 22,
-                          height: 22,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.lock_rounded,
-                            color: Color(0xFF9CA3AF),
-                            size: 13,
-                          ),
-                        ),
-                      ),
-                  ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Stack(
+          children: [
+            // Live Background Element 1: Glowing Glass Specular Radial Orb (Top-Right)
+            Positioned(
+              top: -25,
+              right: -25,
+              child: Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.85),
+                      Colors.white.withValues(alpha: 0.0),
+                    ],
+                  ),
                 ),
+              ),
+            ),
 
-                const SizedBox(width: 16),
+            // Live Background Element 2: Soft Watermark Motif (Bottom-Right)
+            Positioned(
+              bottom: -15,
+              right: -15,
+              child: Opacity(
+                opacity: 0.08,
+                child: Text(
+                  episode.episodeIcon ?? '🗺️',
+                  style: const TextStyle(fontSize: 90),
+                ),
+              ),
+            ),
 
-                // 2. Episode Details
-                Expanded(
-                  child: Column(
+            // Main Card Content & InkWell Feedback
+            Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(22),
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(22),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title + XP Pill Row
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // 1. Episode Icon Thumbnail
+                      Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Expanded(
-                            child: Text(
-                              episode.title,
-                              style: GoogleFonts.nunito(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: isUnlocked ? AppColors.textDark : AppColors.textMedium,
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              gradient:
+                                  isUnlocked
+                                      ? LinearGradient(
+                                        colors: [
+                                          theme.iconGradientStart,
+                                          theme.iconGradientEnd,
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      )
+                                      : LinearGradient(
+                                        colors: [
+                                          Colors.grey.shade200,
+                                          Colors.grey.shade300,
+                                        ],
+                                      ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow:
+                                  isUnlocked
+                                      ? [
+                                        BoxShadow(
+                                          color: theme.iconGradientStart
+                                              .withValues(alpha: 0.25),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                      : [],
+                            ),
+                            child: Center(
+                              child: Text(
+                                episode.episodeIcon ?? '🗺️',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  color:
+                                      isUnlocked
+                                          ? Colors.white
+                                          : Colors.grey.shade400,
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isUnlocked
-                                  ? const Color(0xFFFEF9C3)
-                                  : Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(12),
+                          if (isCompleted)
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: Color(0xFF10B981),
+                                  size: 20,
+                                ),
+                              ),
+                            )
+                          else if (!isUnlocked)
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      blurRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.lock_rounded,
+                                  color: Color(0xFF9CA3AF),
+                                  size: 12,
+                                ),
+                              ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                        ],
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // 2. Episode Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title + XP Pill Row
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('🪙', style: TextStyle(fontSize: 11)),
-                                const SizedBox(width: 3),
-                                Text(
-                                  '+83 Coins',
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: isUnlocked ? const Color(0xFF92400E) : AppColors.textLight,
+                                Expanded(
+                                  child: Text(
+                                    episode.title,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      color:
+                                          isUnlocked
+                                              ? AppColors.textDark
+                                              : AppColors.textMedium,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isUnlocked
+                                            ? const Color(0xFFFEF9C3)
+                                            : Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        '🪙',
+                                        style: TextStyle(fontSize: 10),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        '+83 Coins',
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color:
+                                              isUnlocked
+                                                  ? const Color(0xFF92400E)
+                                                  : AppColors.textLight,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        episode.description ?? '',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12.5,
-                          color: isUnlocked ? AppColors.textMedium : AppColors.textLight,
-                          height: 1.45,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 3. Bottom Row: Clean CTA
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          if (isUnlocked)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: isNextEpisode
-                                      ? const [Color(0xFFEDE9FE), Color(0xFFFCE7F3)]
-                                      : [theme.iconGradientStart, theme.iconGradientEnd],
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                                border: isNextEpisode
-                                    ? Border.all(color: const Color(0xFFC4B5FD), width: 1.5)
-                                    : null,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (isNextEpisode ? const Color(0xFFA78BFA) : theme.iconGradientStart).withValues(alpha: 0.25),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
+                            const SizedBox(height: 4),
+                            Text(
+                              episode.description ?? '',
+                              style: GoogleFonts.nunito(
+                                fontSize: 12,
+                                color:
+                                    isUnlocked
+                                        ? AppColors.textMedium
+                                        : AppColors.textLight,
+                                height: 1.4,
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    isNextEpisode ? 'Next Episode' : 'Explore Path',
-                                    style: GoogleFonts.nunito(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w900,
-                                      color: isNextEpisode ? const Color(0xFF4C1D95) : Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    Icons.arrow_forward_rounded,
-                                    size: 13,
-                                    color: isNextEpisode ? const Color(0xFF4C1D95) : Colors.white,
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.lock_rounded, size: 12, color: AppColors.textLight),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Locked Episode',
-                                    style: GoogleFonts.nunito(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textLight,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                        ],
+                            const SizedBox(height: 8),
+
+                            // Node Progress Indicator Bar (Responsive & Non-Overflowing)
+                            if (isUnlocked && totalNodes > 0) ...[
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '$completedNodes of $totalNodes nodes done',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color:
+                                            isCompleted
+                                                ? const Color(0xFF059669)
+                                                : AppColors.textMedium,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (isCompleted)
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          '🏆',
+                                          style: TextStyle(fontSize: 10),
+                                        ),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          'Badge Earned',
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFF059669),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: nodeProgressRatio,
+                                  backgroundColor: Colors.grey.shade200,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    isCompleted
+                                        ? const Color(0xFF10B981)
+                                        : theme.iconGradientEnd,
+                                  ),
+                                  minHeight: 4,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+
+                            // 3. Bottom Row: Clean Responsive CTA Button
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                if (isUnlocked)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 7,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors:
+                                            isNextEpisode
+                                                ? const [
+                                                  Color(0xFFEDE9FE),
+                                                  Color(0xFFFCE7F3),
+                                                ]
+                                                : [
+                                                  theme.iconGradientStart,
+                                                  theme.iconGradientEnd,
+                                                ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border:
+                                          isNextEpisode
+                                              ? Border.all(
+                                                color: const Color(0xFFC4B5FD),
+                                                width: 1.2,
+                                              )
+                                              : null,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: (isNextEpisode
+                                                  ? const Color(0xFFA78BFA)
+                                                  : theme.iconGradientStart)
+                                              .withValues(alpha: 0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          isNextEpisode
+                                              ? 'Next Episode'
+                                              : isCompleted
+                                              ? 'Revisit Path'
+                                              : 'Explore Path',
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w900,
+                                            color:
+                                                isNextEpisode
+                                                    ? const Color(0xFF4C1D95)
+                                                    : Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.arrow_forward_rounded,
+                                          size: 12,
+                                          color:
+                                              isNextEpisode
+                                                  ? const Color(0xFF4C1D95)
+                                                  : Colors.white,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.lock_rounded,
+                                          size: 11,
+                                          color: AppColors.textLight,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          'Locked Episode',
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.textLight,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
@@ -8,6 +9,7 @@ import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:infano_care_mobile/features/auth/repository/auth_repository.dart';
+import 'package:infano_care_mobile/features/creative_journey/widgets/creative_certificate_dialog.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:dio/dio.dart';
@@ -164,15 +166,244 @@ class _AccountScreenState extends State<AccountScreen> {
         child: Column(
           children: [
             _buildProfileHeader(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            _buildCertificatesSection(context),
+            const SizedBox(height: 24),
             _buildInfoSection(context),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             _buildNavigationSection(context),
             const SizedBox(height: 48),
             _buildLogoutButton(context),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCertificatesSection(BuildContext context) {
+    return FutureBuilder<List<CreativeCertificate>>(
+      future: CreativeCertificateService.getCertificates(),
+      builder: (context, snapshot) {
+        final certs = snapshot.data ?? [];
+        final hasCert = certs.isNotEmpty;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFFFAF5FF), // Soft Lavender Mist
+                Color(0xFFFCE7F3), // Pastel Rose Powder
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFC4B5FD), width: 1.8),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFA78BFA).withValues(alpha: 0.18),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFA78BFA).withValues(alpha: 0.2),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: const Text('🎓', style: TextStyle(fontSize: 22)),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Graduation Certificates',
+                            style: GoogleFonts.nunito(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF4C1D95),
+                            ),
+                          ),
+                          Text(
+                            hasCert
+                                ? '${certs.length} Official Certificate${certs.length > 1 ? 's' : ''} Earned'
+                                : 'Complete Journeys to Earn Certificates',
+                            style: GoogleFonts.nunito(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF6D28D9),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEDE9FE),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFDDD6FE)),
+                    ),
+                    child: Text(
+                      hasCert ? '🏆 ACTIVE' : '✨ PREVIEW',
+                      style: GoogleFonts.nunito(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFF5B21B6),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              if (hasCert) ...[
+                // List of Earned Certificates
+                ...certs.map((cert) => Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            CreativeCertificateDialog.show(context, certificate: cert);
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFDDD6FE)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Text('📜', style: TextStyle(fontSize: 24)),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        cert.journeyTitle,
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF4C1D95),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Issued ${cert.issueDate} • ${cert.totalEpisodes} Episodes',
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textMedium,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF5F3FF),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 14,
+                                    color: Color(0xFF6D28D9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    )),
+              ] else ...[
+                // Empty state preview container
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFDDD6FE)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('🌟', style: TextStyle(fontSize: 24)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Complete all episodes in a Creative Journey to claim your official signed certificate!',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF5B21B6),
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          CreativeCertificateDialog.show(
+                            context,
+                            certificate: CreativeCertificate(
+                              id: 'INF-CERT-2026-PREVIEW',
+                              journeyId: 'cj_my_changing_body',
+                              journeyTitle: 'My Changing Body',
+                              recipientName: widget.storage.displayName ?? 'Young Explorer',
+                              issueDate: 'August 21, 2026',
+                              totalEpisodes: 6,
+                              totalNodes: 58,
+                              gigiQuote: 'Embrace your unique growth with courage, body gratitude, and wisdom!',
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B5CF6),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Preview',
+                          style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.1);
+      },
     );
   }
 

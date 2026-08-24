@@ -1,8 +1,10 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/app_sound_service.dart';
+import 'package:infano_care_mobile/features/creative_journey/widgets/creative_certificate_dialog.dart';
 
 /// Fixed final node — mood tap + recap carousel + badge ceremony lead-in
 class ReflectionRewardScreen extends StatefulWidget {
@@ -22,62 +24,148 @@ class ReflectionRewardScreen extends StatefulWidget {
 }
 
 class _ReflectionRewardScreenState extends State<ReflectionRewardScreen> {
+  late final ConfettiController _confettiCtrl;
   int? _selectedMood;
   final PageController _recapController = PageController();
   int _recapPage = 0;
   bool _recapDone = false;
 
   @override
+  void initState() {
+    super.initState();
+    _confettiCtrl = ConfettiController(duration: const Duration(seconds: 4));
+  }
+
+  @override
   void dispose() {
+    _confettiCtrl.dispose();
     _recapController.dispose();
     super.dispose();
   }
 
-  Map<String, dynamic> get moodQ =>
-      widget.content['moodQuestion'] as Map<String, dynamic>? ?? {};
+  Map<String, dynamic> get moodQ {
+    final raw = widget.content['moodQuestion'];
+    if (raw is Map<String, dynamic> && raw.isNotEmpty) return raw;
+    return {
+      'prompt': widget.content['prompt'] as String? ?? 'How are you feeling after completing ${widget.episodeTitle}?',
+      'options': [
+        {
+          'emoji': '💪',
+          'label': 'Empowered',
+          'gigiResponse': 'Awesome! You have gained fantastic body wisdom and strength today!',
+        },
+        {
+          'emoji': '🌸',
+          'label': 'Reassured',
+          'gigiResponse': 'Remember, every change in your body is completely natural, safe, and beautiful!',
+        },
+        {
+          'emoji': '✨',
+          'label': 'Confident',
+          'gigiResponse': 'Your self-belief and knowledge will guide you through every milestone!',
+        },
+        {
+          'emoji': '🧠',
+          'label': 'Wise',
+          'gigiResponse': 'Knowledge is your greatest superpower! Keep shining brightly!',
+        },
+      ],
+    };
+  }
+
   List<Map<String, dynamic>> get moodOptions =>
       List<Map<String, dynamic>>.from(moodQ['options'] as List? ?? []);
-  List<Map<String, dynamic>> get recapCards =>
-      List<Map<String, dynamic>>.from(widget.content['recapCards'] as List? ?? []);
-  Map<String, dynamic> get closingMessage =>
-      widget.content['closingMessage'] as Map<String, dynamic>? ?? {};
+
+  List<Map<String, dynamic>> get recapCards {
+    final raw = widget.content['recapCards'] as List?;
+    if (raw != null && raw.isNotEmpty) {
+      return List<Map<String, dynamic>>.from(raw);
+    }
+    // Default recap cards fallback
+    return [
+      {
+        'emoji': '🌱',
+        'text': 'Milestone 1: Every growth phase is a natural signal of your body flourishing.',
+      },
+      {
+        'emoji': '💡',
+        'text': 'Milestone 2: Understanding your body replaces worry with confidence.',
+      },
+      {
+        'emoji': '🎒',
+        'text': 'Milestone 3: You are equipped with practical tips and care routines.',
+      },
+      {
+        'emoji': '👑',
+        'text': 'Milestone 4: Celebrate your uniqueness and embrace your personal journey!',
+      },
+    ];
+  }
+
+  Map<String, dynamic> get closingMessage {
+    final raw = widget.content['closingMessage'];
+    if (raw is Map<String, dynamic> && raw.isNotEmpty) return raw;
+    return {
+      'character': 'Gigi',
+      'text': 'Thank you for exploring ${widget.episodeTitle} with me! You are fully prepared, wise, and empowered!',
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          // Trophy header
-          const Text('🏆', style: TextStyle(fontSize: 64))
-              .animate().scale(begin: const Offset(0, 0), end: const Offset(1, 1), duration: 600.ms, curve: Curves.elasticOut),
-          const SizedBox(height: 8),
-          Text(
-            'You reached the end!',
-            style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark),
-          ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
-          const SizedBox(height: 4),
-          Text(
-            widget.episodeTitle,
-            style: GoogleFonts.nunito(fontSize: 14, color: AppColors.purple, fontWeight: FontWeight.w700),
-          ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              // Trophy header
+              const Text('🏆', style: TextStyle(fontSize: 64))
+                  .animate().scale(begin: const Offset(0, 0), end: const Offset(1, 1), duration: 600.ms, curve: Curves.elasticOut),
+              const SizedBox(height: 8),
+              Text(
+                'You reached the end!',
+                style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark),
+              ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
+              const SizedBox(height: 4),
+              Text(
+                widget.episodeTitle,
+                style: GoogleFonts.nunito(fontSize: 14, color: AppColors.purple, fontWeight: FontWeight.w700),
+              ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
 
-          const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-          // Mood question
-          if (_selectedMood == null) _buildMoodSection(),
+              // Mood question
+              if (_selectedMood == null) _buildMoodSection(),
 
-          // Gigi response
-          if (_selectedMood != null && !_recapDone) ...[
-            _buildGigiResponse(),
-            const SizedBox(height: 20),
-            _buildRecapCarousel(),
+              // Gigi response
+              if (_selectedMood != null && !_recapDone) ...[
+                _buildGigiResponse(),
+                const SizedBox(height: 20),
+                _buildRecapCarousel(),
+              ],
+
+              // Closing message + CTA
+              if (_recapDone) _buildClosingCTA(),
+            ],
+          ),
+        ),
+
+        // Screen Confetti Overlay
+        ConfettiWidget(
+          confettiController: _confettiCtrl,
+          blastDirectionality: BlastDirectionality.explosive,
+          shouldLoop: false,
+          colors: const [
+            Color(0xFFA78BFA),
+            Color(0xFFF472B6),
+            Color(0xFF34D399),
+            Color(0xFF60A5FA),
+            Color(0xFFFBBF24),
           ],
-
-          // Closing message + CTA
-          if (_recapDone) _buildClosingCTA(),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -308,6 +396,67 @@ class _ReflectionRewardScreenState extends State<ReflectionRewardScreen> {
           ]),
         ).animate().fadeIn(duration: 500.ms),
         const SizedBox(height: 20),
+        // Special Graduation Certificate CTA (Pastel Styling + Confetti Trigger!)
+        GestureDetector(
+          onTap: () {
+            _confettiCtrl.play();
+            AppSoundService.instance.playFanfare();
+            CreativeCertificateDialog.show(
+              context,
+              certificate: CreativeCertificate(
+                id: 'INF-CERT-2026-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+                journeyId: 'cj_my_changing_body',
+                journeyTitle: 'My Changing Body',
+                recipientName: 'Young Explorer',
+                issueDate: 'August 21, 2026',
+                totalEpisodes: 6,
+                totalNodes: 58,
+                gigiQuote: 'Embrace your unique growth with courage, body gratitude, and wisdom!',
+              ),
+              onClaimed: () {
+                AppSoundService.instance.playBunchOfCoinsSound();
+                widget.onCompleted();
+              },
+            );
+          },
+          child: Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFEDE9FE), Color(0xFFFCE7F3)], // Dreamy Pastel Lavender to Soft Rose!
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFFC4B5FD),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFA78BFA).withValues(alpha: 0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Text('🎓', style: TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              Text(
+                'Claim Graduation Certificate 🎓✨',
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF5B21B6), // Deep Royal Pastel Purple Text!
+                ),
+              ),
+            ]),
+          ),
+        ).animate().fadeIn(delay: 200.ms, duration: 500.ms).scaleXY(begin: 0.9, end: 1.0, curve: Curves.elasticOut),
+
         GestureDetector(
           onTap: () {
             AppSoundService.instance.playBunchOfCoinsSound();

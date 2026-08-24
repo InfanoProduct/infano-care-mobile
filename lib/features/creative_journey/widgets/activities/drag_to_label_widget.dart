@@ -99,8 +99,57 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
   @override
   void initState() {
     super.initState();
-    _targets =
-        List<Map<String, dynamic>>.from(widget.content['targets'] as List? ?? []);
+    final rawTargets = (widget.content['targets'] as List?) ?? (widget.content['labels'] as List?);
+    if (rawTargets != null && rawTargets.isNotEmpty) {
+      _targets = rawTargets.map((item) {
+        final m = Map<String, dynamic>.from(item as Map);
+        return {
+          'id': m['id'] ?? m['nodeId'] ?? 'target_${m.hashCode}',
+          'label': m['label'] ?? m['text'] ?? 'Phase',
+          'emoji': m['emoji'] ?? '🌸',
+          'correctZone': m['correctZone'] ?? 'zone_1',
+          'desc': m['desc'] ?? m['text'] ?? '',
+          'superpower': m['superpower'] ?? '✨ Wisdom',
+        };
+      }).toList();
+    } else {
+      _targets = [
+        {
+          'id': 'cm1',
+          'label': 'Period (Days 1–5)',
+          'emoji': '🩸',
+          'correctZone': 'zone_1',
+          'desc': 'Lining sheds naturally to start fresh. Rest and hydrate.',
+          'superpower': '🛀 Rest & Recharging',
+        },
+        {
+          'id': 'cm2',
+          'label': 'Follicular Phase',
+          'emoji': '🌱',
+          'correctZone': 'zone_2',
+          'desc': 'Estrogen rises, energy climbs, and a fresh egg matures.',
+          'superpower': '💡 Focus & Creativity',
+        },
+        {
+          'id': 'cm3',
+          'label': 'Ovulation',
+          'emoji': '☀️',
+          'correctZone': 'zone_3',
+          'desc': 'The mature egg releases. Confidence and glow peak.',
+          'superpower': '🌟 Vitality & Confidence',
+        },
+        {
+          'id': 'cm4',
+          'label': 'Luteal Phase',
+          'emoji': '🍂',
+          'correctZone': 'zone_4',
+          'desc': 'Progesterone warms the body and prepares for wind-down.',
+          'superpower': '🧘 Intuition & Self-Care',
+        },
+      ];
+    }
+
+    _targets.shuffle();
 
     _pulseController = AnimationController(
       vsync: this,
@@ -406,9 +455,9 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
   Widget _buildDropZone(
       int zoneIndex, double diagramSize, Map<int, Map<String, dynamic>> activePlacedMap) {
     final placedTarget = activePlacedMap[zoneIndex];
-    final bgColor = _kPhaseColors[zoneIndex];
-    final borderColor = _kPhaseBorders[zoneIndex];
-    final textColor = _kPhaseText[zoneIndex];
+    final bgColor = _revealed ? _kPhaseColors[zoneIndex] : const Color(0xFFF3E8FF);
+    final borderColor = _revealed ? _kPhaseBorders[zoneIndex] : const Color(0xFFC4B5FD);
+    final textColor = _revealed ? _kPhaseText[zoneIndex] : AppColors.purple;
     final hint = _zoneHints[zoneIndex];
     final zoneSize = diagramSize * 0.30;
 
@@ -552,9 +601,9 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
     final emoji = target['emoji'] as String? ?? '🌸';
     final label = target['label'] as String? ?? '';
     final idx = _targets.indexOf(target);
-    final color = idx >= 0 ? _kPhaseColors[idx % 4] : const Color(0xFFFCE7F3);
-    final border = idx >= 0 ? _kPhaseBorders[idx % 4] : AppColors.pink;
-    final text = idx >= 0 ? _kPhaseText[idx % 4] : AppColors.textDark;
+    final color = _revealed ? (idx >= 0 ? _kPhaseColors[idx % 4] : const Color(0xFFFCE7F3)) : const Color(0xFFF5F3FF);
+    final border = _revealed ? (idx >= 0 ? _kPhaseBorders[idx % 4] : AppColors.purple) : const Color(0xFFDDD6FE);
+    final text = _revealed ? (idx >= 0 ? _kPhaseText[idx % 4] : AppColors.textDark) : const Color(0xFF6D28D9);
 
     return Draggable<Map<String, dynamic>>(
       data: target,

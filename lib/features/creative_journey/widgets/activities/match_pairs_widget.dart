@@ -6,7 +6,7 @@ import 'package:confetti/confetti.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 
-/// MatchPairsWidget — "Pad & Product Matcher"
+/// MatchPairsWidget — "Match Terms & Solutions"
 /// A gamified, interactive product-to-description matching activity with
 /// side-by-side tap-to-connect layout, match animations, particle effects & sound feedback.
 class MatchPairsWidget extends StatefulWidget {
@@ -75,8 +75,8 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
     for (final pair in _pairs) {
       final id = pair['id'] as String? ?? '';
       final rawEmoji = pair['emoji'] as String? ?? '';
-      final term = pair['term'] as String? ?? '';
-      final definition = pair['definition'] as String? ?? '';
+      final term = (pair['term'] ?? pair['left'] ?? '') as String;
+      final definition = (pair['definition'] ?? pair['right'] ?? '') as String;
       final accurateEmoji = _getAccurateEmoji(term, rawEmoji);
 
       termsList.add(_ProductItem(id: id, emoji: accurateEmoji, term: term));
@@ -94,7 +94,8 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
     for (final pair in _pairs) {
       final id = pair['id'] as String? ?? '';
       final rawEmoji = pair['emoji'] as String? ?? '';
-      final term = pair['term'] as String? ?? '';
+      final term = (pair['term'] ?? pair['left'] ?? '') as String;
+      final definition = (pair['definition'] ?? pair['right'] ?? '') as String;
       final accurateEmoji = _getAccurateEmoji(term, rawEmoji);
 
       cards.add(_MatchCard(
@@ -107,7 +108,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
       cards.add(_MatchCard(
         uid: '${id}_def',
         pairId: id,
-        text: pair['definition'] as String? ?? '',
+        text: definition,
         emoji: '💡',
         isDefinition: true,
       ));
@@ -306,7 +307,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.content['title'] as String? ?? 'Pad & Product Matcher',
+                                widget.content['title'] as String? ?? 'Match Skin Terms & Solutions 🧩',
                                 style: GoogleFonts.nunito(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w900,
@@ -318,7 +319,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                                 _isFlipMode
                                     ? 'Tap a card to flip and find its matching pair!'
                                     : (widget.content['instruction'] as String? ??
-                                        'Tap a product on the left, then tap its description on the right!'),
+                                        'Tap a term on the left, then tap its solution on the right!'),
                                 style: GoogleFonts.nunito(
                                   fontSize: 12,
                                   color: AppColors.textMedium,
@@ -330,34 +331,12 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
                     // Layout Mode Switcher pill button
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFFBCFE8)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Text('🪙', style: TextStyle(fontSize: 12)),
-                              const SizedBox(width: 4),
-                              Text(
-                                '+20 Coins 🪙',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFFD97706),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                         GestureDetector(
                           onTap: () {
                             AppSoundService.instance.playPop();

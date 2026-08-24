@@ -571,20 +571,18 @@ class _PeerLineHeaderCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF7C3AED), // Deep Violet
-            Color(0xFFEC4899), // Pink
-          ],
-        ),
+        color: const Color(0xFFF3E7FE),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
-            blurRadius: 20,
+            color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+            blurRadius: 24,
             offset: const Offset(0, 10),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.85),
+            blurRadius: 6,
+            offset: const Offset(-2, -2),
           ),
         ],
       ),
@@ -592,40 +590,55 @@ class _PeerLineHeaderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         child: Stack(
           children: [
+            // Live Element 1: Glowing Glass Radial Orb (Top-Right)
             Positioned(
               right: -30,
               top: -30,
               child: Container(
-                width: 160,
-                height: 160,
+                width: 150,
+                height: 150,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.1),
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.85),
+                      Colors.white.withValues(alpha: 0.0),
+                    ],
+                  ),
                 ),
               ),
             ),
+
+            // Live Element 2: Watermark Motif (Bottom-Right)
             Positioned(
-              left: -40,
-              bottom: -40,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.08),
+              right: -15,
+              bottom: -15,
+              child: Opacity(
+                opacity: 0.08,
+                child: const Text(
+                  '💖',
+                  style: TextStyle(fontSize: 110),
                 ),
               ),
             ),
+
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Status Chip
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 6,
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -636,7 +649,7 @@ class _PeerLineHeaderCard extends StatelessWidget {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: isAvailable ? const Color(0xFF10B981) : Colors.orange,
+                              color: isAvailable ? const Color(0xFF10B981) : Colors.orange.shade800,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -645,9 +658,9 @@ class _PeerLineHeaderCard extends StatelessWidget {
                         Text(
                           isAvailable ? 'MENTORS ONLINE' : 'MENTORS OFFLINE',
                           style: GoogleFonts.nunito(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            color: isAvailable ? const Color(0xFF047857) : Colors.orange.shade900,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -660,7 +673,7 @@ class _PeerLineHeaderCard extends StatelessWidget {
                     style: GoogleFonts.nunito(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: const Color(0xFF1E1B4B),
                       height: 1.2,
                     ),
                   ),
@@ -669,30 +682,53 @@ class _PeerLineHeaderCard extends StatelessWidget {
                     'Connect with a certified Peer Mentor who has been where you are. Share, get support, and talk privately.',
                     style: GoogleFonts.nunito(
                       fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      height: 1.4,
+                      color: const Color(0xFF4B5563),
+                      height: 1.45,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 22),
+
+                  // CTA Button
                   ElevatedButton(
                     onPressed: onTapSupport,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF7C3AED),
+                      backgroundColor: const Color(0xFFDB2777),
+                      foregroundColor: Colors.white,
                       elevation: 0,
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shadowColor: const Color(0xFFDB2777).withValues(alpha: 0.3),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           'I want support',
-                          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16),
+                          style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.favorite_rounded, size: 18),
+                        const Icon(Icons.favorite_rounded, size: 18, color: Colors.white),
                       ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Tagline inside the card below CTA
+                  Center(
+                    child: Text(
+                      '1-on-1 Peer Mentor Chat & Safe Support',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF6B21A8),
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],

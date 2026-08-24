@@ -45,10 +45,12 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
     [Color(0xFFCCFBF1), Color(0xFFF0FDFA)], // Soft Pastel Mint
   ];
 
-  List<Map<String, dynamic>> get _rawGems =>
-      List<Map<String, dynamic>>.from(widget.content['gems'] as List? ?? []);
+  int get _maxCapacity => (widget.content['maxCapacity'] as int?) ?? 4;
 
-  bool get _allCollected => _collectedGemIds.length >= _gems.length;
+  List<Map<String, dynamic>> get _rawGems =>
+      List<Map<String, dynamic>>.from(
+        widget.content['gems'] as List? ?? widget.content['slips'] as List? ?? [],
+      );
 
   @override
   void initState() {
@@ -64,9 +66,9 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
       duration: const Duration(milliseconds: 300),
     );
 
-    _gems = _rawGems.map(_BodySuperpowerGem.fromMap).toList();
+    _gems = (_rawGems.map(_BodySuperpowerGem.fromMap).toList())..shuffle();
     if (_gems.isEmpty) {
-      _gems.addAll(_defaultFallbackGems);
+      _gems.addAll(List.from(_defaultFallbackGems)..shuffle());
     }
   }
 
@@ -80,8 +82,38 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
 
   void _collectGem(_BodySuperpowerGem gem) {
     if (_collectedGemIds.contains(gem.id)) return;
+    if (_collectedGemIds.length >= _maxCapacity) return;
 
-    AppSoundService.instance.playCorrect();
+    if (!gem.isCorrect) {
+      AppSoundService.instance.playIncorrect();
+      HapticFeedback.heavyImpact();
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Text('🙅‍♀️', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  gem.rejectionHint ??
+                      'Oops! Negative habits don\'t belong in your Appreciation Jar! Choose a positive body gem instead ✨',
+                  style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    AppSoundService.instance.playGemDrop();
+    SystemSound.play(SystemSoundType.click);
     HapticFeedback.mediumImpact();
 
     // Trigger lid pop animation
@@ -92,9 +124,9 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
       _isJarHovered = false;
     });
 
-    if (_allCollected) {
+    if (_collectedGemIds.length >= _maxCapacity) {
       Future.delayed(const Duration(milliseconds: 650), () {
-        AppSoundService.instance.playFanfare();
+        AppSoundService.instance.playBunchOfCoinsSound();
         _confettiCtrl.play();
         setState(() => _showResults = true);
       });
@@ -195,7 +227,7 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
   }
 
   Widget _buildJarProgressMeter() {
-    final pct = _gems.isEmpty ? 0.0 : (_collectedGemIds.length / _gems.length).clamp(0.0, 1.0);
+    final pct = _maxCapacity == 0 ? 0.0 : (_collectedGemIds.length / _maxCapacity).clamp(0.0, 1.0);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
@@ -218,7 +250,7 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
           ),
           const SizedBox(width: 14),
           Text(
-            '${_collectedGemIds.length} / ${_gems.length} Superpowers 💎',
+            '${_collectedGemIds.length} / $_maxCapacity Gems 💎',
             style: GoogleFonts.nunito(
               fontSize: 12,
               fontWeight: FontWeight.w900,
@@ -475,6 +507,7 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
               padding: const EdgeInsets.only(bottom: 10),
               child: Draggable<String>(
                 data: gem.id,
+                onDragStarted: () => AppSoundService.instance.playPop(),
                 feedback: Material(
                   color: Colors.transparent,
                   child: SizedBox(
@@ -631,7 +664,7 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
           ),
           const SizedBox(height: 20),
 
-          ..._gems.map((g) => Container(
+          ..._gems.where((g) => _collectedGemIds.contains(g.id)).map((g) => Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -658,6 +691,7 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
           GestureDetector(
             onTap: () {
               if (!_isCompleting) {
+                AppSoundService.instance.playBunchOfCoinsSound();
                 setState(() => _isCompleting = true);
                 widget.onCompleted();
               }
@@ -666,10 +700,18 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 18),
               decoration: BoxDecoration(
-                color: AppColors.purple,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(color: AppColors.purple.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 4)),
+                  BoxShadow(
+                    color: const Color(0xFF6D28D9).withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
               child: Row(
@@ -677,8 +719,14 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
                 children: [
                   const Text('🪙', style: TextStyle(fontSize: 22)),
                   const SizedBox(width: 10),
-                  Text('Collect 🪙 Coins & Continue!',
-                      style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text(
+                    'Collect 🪙 Coins & Continue!',
+                    style: GoogleFonts.nunito(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -694,19 +742,25 @@ class _BodySuperpowerGem {
   final String emoji;
   final String shortLabel;
   final String actionText;
+  final bool isCorrect;
+  final String? rejectionHint;
 
   _BodySuperpowerGem({
     required this.id,
     required this.emoji,
     required this.shortLabel,
     required this.actionText,
+    this.isCorrect = true,
+    this.rejectionHint,
   });
 
   factory _BodySuperpowerGem.fromMap(Map<String, dynamic> m) => _BodySuperpowerGem(
         id: m['id'] as String? ?? '',
-        emoji: m['emoji'] as String? ?? '⭐',
-        shortLabel: m['shortLabel'] as String? ?? m['title'] as String? ?? 'Superpower',
+        emoji: m['emoji'] as String? ?? '🌸',
+        shortLabel: m['shortLabel'] as String? ?? m['category'] as String? ?? m['title'] as String? ?? 'Body Appreciation',
         actionText: m['actionText'] as String? ?? m['text'] as String? ?? m['shortLabel'] as String? ?? '',
+        isCorrect: (m['isCorrect'] as bool?) ?? !(m['isBluff'] as bool? ?? false),
+        rejectionHint: m['rejectionHint'] as String? ?? m['distractorNote'] as String? ?? m['hint'] as String?,
       );
 }
 

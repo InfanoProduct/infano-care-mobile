@@ -24,8 +24,35 @@ class _ScenarioChoiceWidgetState extends State<ScenarioChoiceWidget> {
   bool _revealed = false;
   bool _isCompleting = false;
 
-  List<Map<String, dynamic>> get _scenarios =>
-      List<Map<String, dynamic>>.from(widget.content['scenarios'] as List? ?? []);
+  List<Map<String, dynamic>> get _scenarios {
+    final list = widget.content['scenarios'] as List?;
+    if (list != null && list.isNotEmpty) {
+      return List<Map<String, dynamic>>.from(list);
+    }
+    final singleSituation = widget.content['situation'] as String?;
+    final singleChoices = widget.content['choices'] as List?;
+    if (singleSituation != null && singleChoices != null && singleChoices.isNotEmpty) {
+      return [
+        {
+          'id': 'sc1',
+          'rolePrompt': widget.content['rolePrompt'] as String? ?? widget.content['title'] as String? ?? 'What Would You Say?',
+          'situation': singleSituation,
+          'situationEmoji': widget.content['situationEmoji'] as String? ?? '💬',
+          'choices': singleChoices.map((c) {
+            final cm = Map<String, dynamic>.from(c as Map);
+            return {
+              'id': cm['id'] ?? 'c_${cm.hashCode}',
+              'text': cm['text'] ?? cm['label'] ?? cm['choiceText'] ?? '',
+              'feedback': cm['feedback'] ?? cm['outcome'] ?? cm['explanation'] ?? '',
+              'gigiNote': cm['gigiNote'] ?? cm['outcome'] ?? '',
+              'isBest': (cm['isBest'] as bool?) ?? (cm['isOptimal'] as bool?) ?? false,
+            };
+          }).toList(),
+        }
+      ];
+    }
+    return [];
+  }
 
   Map<String, dynamic> get _current => _scenarios[_currentIndex];
 

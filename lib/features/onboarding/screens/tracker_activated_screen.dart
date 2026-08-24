@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
-import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 
 class TrackerActivatedScreen extends StatefulWidget {
   const TrackerActivatedScreen({super.key});
@@ -21,153 +22,266 @@ class _TrackerActivatedScreenState extends State<TrackerActivatedScreen> {
   Future<void> _autoRoute() async {
     await Future.delayed(const Duration(seconds: 5));
     if (!mounted) return;
+    _onComplete();
+  }
+
+  void _onComplete() {
+    // 1. Instantly trigger global TrackerBloc reload so Homepage card updates to active state!
+    try {
+      context.read<TrackerBloc>().add(const TrackerEvent.load());
+    } catch (_) {}
+
+    // 2. Navigate to Homepage
     context.go('/home');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Spacer(),
-                        Container(
-                          width: 100,
-                          height: 100,
+      backgroundColor: const Color(0xFF8B7CD8),
+      body: Stack(
+        children: [
+          // 1. 3D Background Illustration
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/period_tracker_bg.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+            ),
+          ),
+
+          // 2. Soft Gradient Overlay
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xFF5B21B6).withValues(alpha: 0.1),
+                    const Color(0xFF2D1557).withValues(alpha: 0.38),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Main Glassmorphic Activation Card (Center/Middle Aligned)
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 20,
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 22,
+                    vertical: 28,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(color: Colors.white, width: 2.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF4C1D95).withValues(alpha: 0.22),
+                        blurRadius: 28,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 3D Animated Coin / Reward Icon Badge
+                      Container(
+                            width: 68,
+                            height: 68,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFD97706,
+                                  ).withValues(alpha: 0.25),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Text('🪙', style: TextStyle(fontSize: 34)),
+                            ),
+                          )
+                          .animate(onPlay: (c) => c.repeat(reverse: true))
+                          .scaleXY(
+                            begin: 0.95,
+                            end: 1.08,
+                            duration: 1600.ms,
+                            curve: Curves.easeInOut,
+                          ),
+
+                      const SizedBox(height: 16),
+
+                      Text(
+                        'Tracker Activated!',
+                        style: GoogleFonts.nunito(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF2D1557),
+                        ),
+                      ).animate().fadeIn(duration: 400.ms),
+
+                      const SizedBox(height: 6),
+
+                      Text(
+                        "Your cycle prediction is live 🌸\nCheck your dashboard anytime.",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF6B7280),
+                          height: 1.4,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // 20 Coins Reward Container
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                            color: const Color(0xFFFCD34D),
+                            width: 1.4,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFFF59E0B,
+                              ).withValues(alpha: 0.08),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '🪙',
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'SETUP REWARD',
+                                  style: GoogleFonts.nunito(
+                                    color: const Color(0xFFB45309),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 12,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '+20 Coins',
+                              style: GoogleFonts.nunito(
+                                color: const Color(0xFFD97706),
+                                fontSize: 40,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ).animate().scale(
+                              begin: const Offset(0.6, 0.6),
+                              duration: 600.ms,
+                              curve: Curves.elasticOut,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '20 Coins added to your profile balance! 🎉',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.nunito(
+                                color: const Color(0xFF92400E),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Primary Button (Phone Entry CTA Style)
+                      GestureDetector(
+                        onTap: _onComplete,
+                        child: Container(
+                          height: 50,
+                          width: double.infinity,
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFE9D5FF), width: 3),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6D28D9), Color(0xFF5B21B6)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                            borderRadius: BorderRadius.circular(25),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.purple.withValues(alpha: 0.12),
-                                blurRadius: 20,
+                                color: const Color(
+                                  0xFF5B21B6,
+                                ).withValues(alpha: 0.35),
+                                blurRadius: 14,
                                 offset: const Offset(0, 6),
                               ),
                             ],
                           ),
-                          child: const Center(
-                            child: Text('🌙', style: TextStyle(fontSize: 48)),
-                          ),
-                        ).animate().scale(begin: const Offset(0.6, 0.6), duration: 500.ms, curve: Curves.easeOutBack),
-                        const SizedBox(height: 28),
-                        Text(
-                          'Tracker Activated!',
-                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                color: AppColors.textDark,
-                                fontWeight: FontWeight.w900,
-                              ),
-                        ).animate(delay: 200.ms).fadeIn(duration: 300.ms).slideY(begin: 0.2, duration: 300.ms),
-                        const SizedBox(height: 10),
-                        const Text(
-                          "Your cycle predictions and reminders are now live 🌸\nCheck your dashboard anytime.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.textMedium, fontSize: 15, height: 1.4),
-                        ).animate(delay: 350.ms).fadeIn(duration: 300.ms),
-                        const SizedBox(height: 32),
-                        // Points & Milestone summary card
-                        Container(
-                          padding: const EdgeInsets.all(22),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.purple.withValues(alpha: 0.05),
-                                blurRadius: 14,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Your Total Bloom Points 🌸',
-                                style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.w800, fontSize: 15),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                '145',
-                                style: const TextStyle(
-                                  color: AppColors.textDark,
-                                  fontSize: 52,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -1,
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Enter My World',
+                                  style: GoogleFonts.nunito(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ).animate(delay: 500.ms).scale(begin: const Offset(0.7, 0.7), duration: 400.ms, curve: Curves.elasticOut),
-                              const Text(
-                                'Points Earned During Setup! 🎉',
-                                style: TextStyle(color: AppColors.textMedium, fontSize: 13, fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(height: 18),
-                              const Divider(color: Color(0xFFE9D5FF)),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                alignment: WrapAlignment.center,
-                                children: const [
-                                  _SolidPointBadge('10', 'Name'),
-                                  _SolidPointBadge('15', 'Goals'),
-                                  _SolidPointBadge('10', 'Comfort'),
-                                  _SolidPointBadge('20', 'Topics'),
-                                  _SolidPointBadge('25', 'Safety'),
-                                  _SolidPointBadge('65', 'Tracker'),
-                                ],
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                const Text(
+                                  '🌸',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
                           ),
-                        ).animate(delay: 450.ms).fadeIn(duration: 350.ms),
-                        const Spacer(),
-                        GradientButton(
-                          label: 'Enter My Dashboard 🌸',
-                          onPressed: () => context.go('/home'),
-                        ).animate(delay: 700.ms).fadeIn(),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _SolidPointBadge extends StatelessWidget {
-  const _SolidPointBadge(this.pts, this.label);
-  final String pts, label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.purple.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        '+$pts $label',
-        style: const TextStyle(
-          color: AppColors.purple,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

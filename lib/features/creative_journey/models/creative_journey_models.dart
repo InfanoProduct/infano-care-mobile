@@ -148,12 +148,14 @@ enum NodeStatus { locked, unlocked, inProgress, completed }
 
 class CreativeNodeProgress {
   final String nodeId;
+  final String? episodeId;
   final String status;
   final int xpEarned;
   final String? lastScreen;
 
   const CreativeNodeProgress({
     required this.nodeId,
+    this.episodeId,
     this.status = 'LOCKED',
     this.xpEarned = 0,
     this.lastScreen,
@@ -162,15 +164,17 @@ class CreativeNodeProgress {
   factory CreativeNodeProgress.fromJson(Map<String, dynamic> json) {
     return CreativeNodeProgress(
       nodeId: json['nodeId'] as String,
+      episodeId: json['episodeId'] as String?,
       status: json['status'] as String? ?? 'LOCKED',
       xpEarned: json['xpEarned'] as int? ?? 0,
       lastScreen: json['lastScreen'] as String?,
     );
   }
 
-  CreativeNodeProgress copyWith({String? status, int? xpEarned, String? lastScreen}) {
+  CreativeNodeProgress copyWith({String? episodeId, String? status, int? xpEarned, String? lastScreen}) {
     return CreativeNodeProgress(
       nodeId: nodeId,
+      episodeId: episodeId ?? this.episodeId,
       status: status ?? this.status,
       xpEarned: xpEarned ?? this.xpEarned,
       lastScreen: lastScreen ?? this.lastScreen,

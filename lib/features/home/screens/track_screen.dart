@@ -8,8 +8,6 @@ import 'package:infano_care_mobile/features/tracker/data/models/insight_models.d
 import 'package:infano_care_mobile/features/tracker/presentation/screens/story_screen.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
-import 'package:infano_care_mobile/features/tracker/data/repositories/tracker_repository.dart';
-import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,58 +25,49 @@ class TrackScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => TrackerBloc(
-        TrackerRepository(
-          ApiService.instance.dio,
-        ),
-        context.read<LocalStorageService>(),
-      )..add(const TrackerEvent.load()),
-
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF5F4F7),
-        body: BlocListener<TrackerBloc, TrackerState>(
-          listener: (context, state) {
-            state.maybeWhen(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F4F7),
+      body: BlocListener<TrackerBloc, TrackerState>(
+        listener: (context, state) {
+          state.maybeWhen(
+            loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, pointsEarned, isRefreshing) {
+              debugPrint('[TrackScreen] Listener receivedLoaded. Milestone: $milestone');
+              if (milestone == 'first_period') {
+                debugPrint('[TrackScreen] Milestone detected. Navigating with Navigator.push...');
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const FirstPeriodCelebrationScreen()),
+                );
+              }
+            },
+            orElse: () {},
+          );
+        },
+        child: BlocBuilder<TrackerBloc, TrackerState>(
+          builder: (context, state) {
+            return state.when(
+              initial: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
+              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
+              error: (msg) => _buildErrorState(context, msg),
+              notStarted: () => _buildNotStartedState(context),
               loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, pointsEarned, isRefreshing) {
-                debugPrint('[TrackScreen] Listener receivedLoaded. Milestone: $milestone');
-                if (milestone == 'first_period') {
-                  debugPrint('[TrackScreen] Milestone detected. Navigating with Navigator.push...');
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const FirstPeriodCelebrationScreen()),
-                  );
+                if (profile.trackerMode == 'watching_waiting' && profile.lastPeriodStart == null) {
+                  return _buildNotStartedState(context);
                 }
+                final isUpdating = milestone == 'updating_tracker';
+                return _buildRedesignedDashboard(
+                  context, 
+                  profile, 
+                  prediction, 
+                  logs, 
+                  history, 
+                  dailyInsights, 
+                  articles,
+                  isRefreshing,
+                  isUpdating,
+                );
               },
-              orElse: () {},
             );
           },
-          child: BlocBuilder<TrackerBloc, TrackerState>(
-            builder: (context, state) {
-              return state.when(
-                initial: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.purpleLight)),
-                error: (msg) => _buildErrorState(context, msg),
-                notStarted: () => _buildNotStartedState(context),
-                loaded: (profile, prediction, logs, history, dailyInsights, articles, milestone, pointsEarned, isRefreshing) {
-                  if (profile.trackerMode == 'watching_waiting' && profile.lastPeriodStart == null) {
-                    return _buildNotStartedState(context);
-                  }
-                  final isUpdating = milestone == 'updating_tracker';
-                  return _buildRedesignedDashboard(
-                    context, 
-                    profile, 
-                    prediction, 
-                    logs, 
-                    history, 
-                    dailyInsights, 
-                    articles,
-                    isRefreshing,
-                    isUpdating,
-                  );
-                },
-              );
-            },
-          ),
         ),
       ),
     );

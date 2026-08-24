@@ -259,32 +259,50 @@ class EpisodePathCubit extends Cubit<EpisodePathState> {
         }
       }
 
-      final nodeIdx = orderedNodes.indexWhere((n) => n.nodeId == nodeId);
-      final totalNodes = orderedNodes.length;
+      // Enforce strict single-node sequential unlocking:
+      // Exactly ONE next node is UNLOCKED after the completed node. All subsequent nodes are LOCKED.
+      final computedProgressMap = <String, CreativeNodeProgress>{};
+      bool previousCompleted = true;
 
-      // Ensure current node is marked COMPLETED in progress map
-      updatedMap[nodeId] = CreativeNodeProgress(
-        nodeId: nodeId,
-        status: 'COMPLETED',
-        xpEarned: xpEarned,
-      );
+      for (int i = 0; i < orderedNodes.length; i++) {
+        final n = orderedNodes[i];
+        final raw = updatedMap[n.nodeId];
 
-      // Ensure next node in orderedNodes is marked UNLOCKED in progress map
-      if (nodeIdx != -1 && nodeIdx + 1 < orderedNodes.length) {
-        final nextNodeId = orderedNodes[nodeIdx + 1].nodeId;
-        final nextProg = updatedMap[nextNodeId];
-        if (nextProg == null || nextProg.isLocked) {
-          updatedMap[nextNodeId] = CreativeNodeProgress(
-            nodeId: nextNodeId,
-            status: 'UNLOCKED',
+        if (previousCompleted) {
+          if (raw != null && (raw.status == 'COMPLETED' || n.nodeId == nodeId)) {
+            computedProgressMap[n.nodeId] = CreativeNodeProgress(
+              nodeId: n.nodeId,
+              status: 'COMPLETED',
+              xpEarned: raw.xpEarned > 0 ? raw.xpEarned : (n.nodeId == nodeId ? xpEarned : 10),
+              lastScreen: raw.lastScreen,
+            );
+            previousCompleted = true;
+          } else {
+            computedProgressMap[n.nodeId] = CreativeNodeProgress(
+              nodeId: n.nodeId,
+              status: 'UNLOCKED',
+              xpEarned: raw?.xpEarned ?? 0,
+              lastScreen: raw?.lastScreen,
+            );
+            previousCompleted = false;
+          }
+        } else {
+          computedProgressMap[n.nodeId] = CreativeNodeProgress(
+            nodeId: n.nodeId,
+            status: 'LOCKED',
+            xpEarned: 0,
           );
+          previousCompleted = false;
         }
       }
+
+      final nodeIdx = orderedNodes.indexWhere((n) => n.nodeId == nodeId);
+      final totalNodes = orderedNodes.length;
 
       // Determine Badge Asset piece reward for this node
       final totalPieces = totalNodes > 0 ? totalNodes : 5;
       final pieceIndex = (nodeIdx >= 0 ? nodeIdx : 0) + 1;
-      final template = _badgeAssetTemplates[nodeIdx % _badgeAssetTemplates.length];
+      final template = _badgeAssetTemplates[(nodeIdx >= 0 ? nodeIdx : 0) % _badgeAssetTemplates.length];
 
       final reward = ChestReward(
         assetName: template['name']!,
@@ -296,14 +314,14 @@ class EpisodePathCubit extends Cubit<EpisodePathState> {
         badgeTitle: '${curr.episode.title.replaceAll(RegExp(r'^\d+\.\s*'), '')} Master Badge',
       );
 
-      final isAllCompleted = orderedNodes.every((n) => updatedMap[n.nodeId]?.status == 'COMPLETED') ||
+      final isAllCompleted = orderedNodes.every((n) => computedProgressMap[n.nodeId]?.status == 'COMPLETED') ||
           nodeId == 'bb_reflection' ||
           nodeId.endsWith('_reflection') ||
           (orderedNodes.isNotEmpty && orderedNodes.last.nodeId == nodeId);
 
       emit(curr.copyWith(
         orderedNodes: orderedNodes,
-        nodeProgressMap: updatedMap,
+        nodeProgressMap: computedProgressMap,
         pendingRewards: [reward],
         showBadgeCeremony: isAllCompleted,
       ));

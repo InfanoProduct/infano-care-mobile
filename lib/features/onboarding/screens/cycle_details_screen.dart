@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
-import 'package:infano_care_mobile/core/theme/app_theme.dart';
-import 'package:infano_care_mobile/shared/widgets/gradient_button.dart';
-import 'package:infano_care_mobile/shared/widgets/onboarding_scaffold.dart';
 
 class CycleDetailsScreen extends StatefulWidget {
   const CycleDetailsScreen({super.key});
@@ -16,226 +14,328 @@ class CycleDetailsScreen extends StatefulWidget {
 
 class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
   int _periodLength = 5;
-  int _cycleLength  = 28;
+  int _cycleLength = 28;
 
   @override
   Widget build(BuildContext context) {
-    return OnboardingScaffold(
-      currentStep: 11,
-      totalSteps: 11,
-      onBack: () => context.go('/onboarding/tracker/date'),
-      bottomBar: BlocBuilder<OnboardingBloc, OnboardingState>(
-        builder: (context, state) {
-          return GradientButton(
-            label: state.isLoading ? 'Setting Up...' : 'Save & Activate Tracker 🌸',
-            onPressed: state.isLoading
-                ? null
-                : () async {
-                    final bloc = context.read<OnboardingBloc>();
-                    bloc.add(SetTrackerDetails(_periodLength, _cycleLength, bloc.state.lastPeriod));
-                    bloc.add(const SubmitTrackerSetup('active'));
+    return Scaffold(
+      backgroundColor: const Color(0xFF8B7CD8),
+      body: Stack(
+        children: [
+          // 1. 3D Background Illustration (Optimized room image)
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/period_tracker_bg.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+            ),
+          ),
 
-                    await for (final s in bloc.stream) {
-                      if (!s.isLoading) {
-                        if (s.errorMessage == null) {
-                          if (mounted) context.go('/onboarding/tracker/done');
-                        } else {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(s.errorMessage!),
-                                backgroundColor: AppColors.error,
+          // 2. Subtle Soft Gradient Overlay
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xFF5B21B6).withValues(alpha: 0.1),
+                    const Color(0xFF2D1557).withValues(alpha: 0.38),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Back Button (Top Left)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 16,
+            child: GestureDetector(
+              onTap: () => context.go('/onboarding/tracker/date'),
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Color(0xFF5B21B6)),
+              ),
+            ),
+          ),
+
+          // 4. Interactive Glassmorphic Setup Card
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+
+                        // 3D Glassmorphic Details Card
+                        BlocBuilder<OnboardingBloc, OnboardingState>(
+                          builder: (context, state) {
+                            final isPeriodActive = state.periodStatus == 'active';
+
+                            return Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.94),
+                                borderRadius: BorderRadius.circular(32),
+                                border: Border.all(color: Colors.white, width: 2.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF4C1D95).withValues(alpha: 0.22),
+                                    blurRadius: 28,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // 3D Badge Icon
+                                  Container(
+                                    width: 54,
+                                    height: 54,
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFFEDE9FE), Color(0xFFF5F3FF)],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(18),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF6D28D9).withValues(alpha: 0.16),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Center(
+                                      child: Icon(Icons.show_chart_rounded, size: 28, color: Color(0xFF6D28D9)),
+                                    ),
+                                  ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
+
+                                  const SizedBox(height: 14),
+
+                                  // Title
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Cycle Details",
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w900,
+                                          color: const Color(0xFF2D1557),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Text('🌙', style: TextStyle(fontSize: 18)),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 4),
+
+                                  // Subtitle
+                                  Text(
+                                    "Don't worry if you're not sure — we'll refine predictions as you track!",
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF6B7280),
+                                      height: 1.35,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 20),
+
+                                  if (isPeriodActive) ...[
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Is your cycle regular?',
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF374151),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      children: [
+                                        _RegularityChip(
+                                          label: 'Regular',
+                                          isSelected: !state.isIrregular,
+                                          onTap: () => context.read<OnboardingBloc>().add(const SetRegularity(false)),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        _RegularityChip(
+                                          label: 'Irregular',
+                                          isSelected: state.isIrregular,
+                                          onTap: () => context.read<OnboardingBloc>().add(const SetRegularity(true)),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+
+                                  // Period length slider card
+                                  _SliderCard(
+                                    title: 'Period length',
+                                    value: _periodLength.toDouble(),
+                                    min: 2,
+                                    max: 10,
+                                    unit: 'days',
+                                    color: const Color(0xFFE11D48),
+                                    onChanged: (v) => setState(() => _periodLength = v.round()),
+                                  ),
+
+                                  const SizedBox(height: 14),
+
+                                  // Cycle length slider card
+                                  _SliderCard(
+                                    title: 'Cycle length',
+                                    value: _cycleLength.toDouble(),
+                                    min: 21,
+                                    max: 45,
+                                    unit: 'days',
+                                    color: const Color(0xFF6D28D9),
+                                    onChanged: (v) => setState(() => _cycleLength = v.round()),
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  // Info Card
+                                  Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF3F4F6),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Text('📊', style: TextStyle(fontSize: 20)),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            state.isIrregular
+                                                ? 'Irregular cycles are very common, especially in the first few years! We\'ll help you identify your rhythm. 💜'
+                                                : 'Average period: 5 days · Average cycle: 28 days.',
+                                            style: GoogleFonts.nunito(
+                                              color: const Color(0xFF4B5563),
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 24),
+
+                                  // Primary Setup CTA Button
+                                  GestureDetector(
+                                    onTap: state.isLoading
+                                        ? null
+                                        : () async {
+                                            final bloc = context.read<OnboardingBloc>();
+                                            bloc.add(SetTrackerDetails(_periodLength, _cycleLength, bloc.state.lastPeriod));
+                                            bloc.add(const SubmitTrackerSetup('active'));
+
+                                            await for (final s in bloc.stream) {
+                                              if (!s.isLoading) {
+                                                if (s.errorMessage == null) {
+                                                  if (mounted) context.go('/onboarding/tracker/done');
+                                                } else {
+                                                  if (mounted) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(content: Text(s.errorMessage!)),
+                                                    );
+                                                  }
+                                                }
+                                                break;
+                                              }
+                                            }
+                                          },
+                                    child: Container(
+                                      height: 50,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [Color(0xFF6D28D9), Color(0xFF5B21B6)],
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                        ),
+                                        borderRadius: BorderRadius.circular(25),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(0xFF5B21B6).withValues(alpha: 0.35),
+                                            blurRadius: 14,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: state.isLoading
+                                            ? const SizedBox(
+                                                width: 22,
+                                                height: 22,
+                                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                              )
+                                            : Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    'Set Up My Tracker',
+                                                    style: GoogleFonts.nunito(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.w900,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  const Text('🌸', style: TextStyle(fontSize: 16)),
+                                                ],
+                                              ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
-                          }
-                        }
-                        break;
-                      }
-                    }
-                  },
-          );
-        },
-      ),
-      body: BlocBuilder<OnboardingBloc, OnboardingState>(
-        builder: (context, state) {
-          final isPeriodActive = state.periodStatus == 'active';
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                Text(
-                  'How does your cycle usually go? 🌙',
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        color: AppColors.textDark,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Don't worry if it varies — predictions continuously adapt as you track!",
-                  style: TextStyle(color: AppColors.textMedium, fontSize: 15),
-                ),
-                const SizedBox(height: 28),
-
-                if (isPeriodActive) ...[
-                  Text(
-                    'Is your cycle regular?',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textDark,
+                          },
                         ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _RegularityChip(
-                        label: 'Mostly Regular',
-                        icon: '📅',
-                        isSelected: !state.isIrregular,
-                        onTap: () => context.read<OnboardingBloc>().add(const SetRegularity(false)),
-                      ),
-                      const SizedBox(width: 12),
-                      _RegularityChip(
-                        label: 'Irregular / Varies',
-                        icon: '🌊',
-                        isSelected: state.isIrregular,
-                        onTap: () => context.read<OnboardingBloc>().add(const SetRegularity(true)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
-
-                // Live Visual Cycle Bar
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Cycle Overview Preview',
-                            style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w700, fontSize: 13),
-                          ),
-                          Text(
-                            '$_cycleLength days total',
-                            style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.w800, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          height: 14,
-                          child: Row(
-                            children: [
-                              // Period days
-                              Expanded(
-                                flex: _periodLength,
-                                child: Container(color: AppColors.pink),
-                              ),
-                              // Remaining cycle
-                              Expanded(
-                                flex: (_cycleLength - _periodLength).clamp(1, 45),
-                                child: Container(color: AppColors.purple.withValues(alpha: 0.2)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        spacing: 12,
-                        runSpacing: 4,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.pink, shape: BoxShape.circle)),
-                              const SizedBox(width: 6),
-                              Text('$_periodLength days period', style: const TextStyle(color: AppColors.textMedium, fontSize: 11.5)),
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.purple.withValues(alpha: 0.4), shape: BoxShape.circle)),
-                              const SizedBox(width: 6),
-                              Text('${_cycleLength - _periodLength} days follicular/luteal', style: const TextStyle(color: AppColors.textMedium, fontSize: 11.5)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(duration: 250.ms),
-
-                const SizedBox(height: 20),
-
-                // Period length slider
-                _SliderCard(
-                  title: 'Period duration',
-                  value: _periodLength.toDouble(),
-                  min: 2,
-                  max: 10,
-                  unit: 'days',
-                  color: AppColors.pink,
-                  onChanged: (v) => setState(() => _periodLength = v.round()),
-                ).animate().fadeIn(delay: 100.ms),
-                const SizedBox(height: 16),
-
-                // Cycle length slider
-                _SliderCard(
-                  title: 'Cycle duration',
-                  value: _cycleLength.toDouble(),
-                  min: 21,
-                  max: 45,
-                  unit: 'days',
-                  color: AppColors.purple,
-                  onChanged: (v) => setState(() => _cycleLength = v.round()),
-                ).animate().fadeIn(delay: 150.ms),
-                const SizedBox(height: 20),
-
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE9D5FF)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Text('💡', style: TextStyle(fontSize: 20)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          state.isIrregular
-                              ? 'Irregular cycles are very common in the first few years. We\'ll help you discover your natural rhythm!'
-                              : 'Standard average: 5 days period, 28 days cycle. You can adjust anytime.',
-                          style: const TextStyle(color: AppColors.textMedium, fontSize: 12.5, height: 1.35),
-                        ),
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(delay: 200.ms),
-                const SizedBox(height: 32),
-              ],
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -259,41 +359,23 @@ class _RegularityChip extends StatelessWidget {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 13),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.purple : AppColors.surface,
+            color: isSelected ? const Color(0xFF6D28D9) : const Color(0xFFF3F4F6),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? AppColors.purple : const Color(0xFFE9D5FF),
-              width: 1.5,
-            ),
+            border: Border.all(color: isSelected ? const Color(0xFF6D28D9) : const Color(0xFFE5E7EB), width: 1.2),
             boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.purple.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
+                ? [BoxShadow(color: const Color(0xFF6D28D9).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]
+                : [],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(icon, style: const TextStyle(fontSize: 16)),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textDark,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+          child: Center(
+            child: Text(
+              label,
+              style: GoogleFonts.nunito(
+                color: isSelected ? Colors.white : const Color(0xFF4B5563),
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
               ),
             ],
           ),
@@ -322,18 +404,11 @@ class _SliderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE9D5FF), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
       ),
       child: Column(
         children: [
@@ -342,31 +417,44 @@ class _SliderCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark, fontSize: 15),
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1F2937),
+                  fontSize: 15,
+                ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
                   '${value.round()} $unit',
-                  style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 14),
+                  style: GoogleFonts.nunito(
+                    color: color,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: color,
               inactiveTrackColor: color.withValues(alpha: 0.15),
               thumbColor: color,
-              overlayColor: color.withValues(alpha: 0.15),
-              trackHeight: 5,
+              overlayColor: color.withValues(alpha: 0.1),
+              trackHeight: 6,
             ),
-            child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              onChanged: onChanged,
+            ),
           ),
         ],
       ),

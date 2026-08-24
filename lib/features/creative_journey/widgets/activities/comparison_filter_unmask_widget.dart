@@ -498,6 +498,15 @@ class _ComparisonFilterUnmaskWidgetState extends State<ComparisonFilterUnmaskWid
 
   Widget _buildImageWithFallback(String? url, {required Gradient fallbackGradient}) {
     if (url != null && url.isNotEmpty) {
+      if (url.startsWith('assets/')) {
+        return Image.asset(
+          url,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (context, error, stackTrace) => _fallbackBox(fallbackGradient),
+        );
+      }
       return Image.network(
         url,
         fit: BoxFit.cover,
