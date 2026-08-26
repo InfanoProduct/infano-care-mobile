@@ -325,6 +325,12 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
     _startCollapseTimer();
     // Background profile sync
     AuthRepository(widget.storage).syncProfile().catchError((_) {});
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<CommunitySocketService>(context, listen: false).connect();
+      }
+    });
   }
 
   void _startCollapseTimer() {

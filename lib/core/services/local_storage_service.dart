@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:infano_care_mobile/core/utils/url_utils.dart';
 
-/// Typed wrapper around SharedPreferences for onboarding state persistence.
+/// Typed wrapper around SharedPreferences and FlutterSecureStorage for persistence.
 class LocalStorageService extends ChangeNotifier {
   static const _userType       = 'ob_user_type';
   static const _displayName    = 'ob_display_name';
@@ -30,11 +31,62 @@ class LocalStorageService extends ChangeNotifier {
   static const _avatarUrl         = 'user_avatar_url';
 
   final SharedPreferences _prefs;
-  LocalStorageService(this._prefs);
+  final FlutterSecureStorage _secureStorage;
+
+  String? _cachedAuthToken;
+  String? _cachedRefreshToken;
+  String? _cachedTempToken;
+
+  LocalStorageService(
+    this._prefs,
+    this._secureStorage, {
+    String? initialAuthToken,
+    String? initialRefreshToken,
+    String? initialTempToken,
+  })  : _cachedAuthToken = initialAuthToken,
+        _cachedRefreshToken = initialRefreshToken,
+        _cachedTempToken = initialTempToken;
 
   static Future<LocalStorageService> create() async {
     final prefs = await SharedPreferences.getInstance();
-    return LocalStorageService(prefs);
+    const secureStorage = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+    );
+
+    // 1. Read tokens from secure storage
+    String? authToken = await secureStorage.read(key: _authToken);
+    String? refreshToken = await secureStorage.read(key: _refreshToken);
+    String? tempToken = await secureStorage.read(key: _tempToken);
+
+    // 2. Migration: If tokens exist in SharedPreferences, migrate them
+    final legacyAuth = prefs.getString(_authToken);
+    final legacyRefresh = prefs.getString(_refreshToken);
+    final legacyTemp = prefs.getString(_tempToken);
+
+    if (authToken == null && legacyAuth != null) {
+      authToken = legacyAuth;
+      await secureStorage.write(key: _authToken, value: legacyAuth);
+      await prefs.remove(_authToken);
+    }
+    if (refreshToken == null && legacyRefresh != null) {
+      refreshToken = legacyRefresh;
+      await secureStorage.write(key: _refreshToken, value: legacyRefresh);
+      await prefs.remove(_refreshToken);
+    }
+    if (tempToken == null && legacyTemp != null) {
+      tempToken = legacyTemp;
+      await secureStorage.write(key: _tempToken, value: legacyTemp);
+      await prefs.remove(_tempToken);
+    }
+
+    return LocalStorageService(
+      prefs,
+      secureStorage,
+      initialAuthToken: authToken,
+      initialRefreshToken: refreshToken,
+      initialTempToken: tempToken,
+    );
   }
 
   // ── Onboarding step checkpoints ──────────────────────────────────────────
@@ -119,17 +171,19 @@ class LocalStorageService extends ChangeNotifier {
   }
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  String? get authToken         => _prefs.getString(_authToken);
-  String? get refreshToken      => _prefs.getString(_refreshToken);
-  String? get userId            => _prefs.getString(_userId);
+  String? get authToken    => _cachedAuthToken;
+  String? get refreshToken => _cachedRefreshToken;
+  String? get userId       => _prefs.getString(_userId);
 
   Future<void> setAuthToken(String t) async {
-    await _prefs.setString(_authToken, t);
+    _cachedAuthToken = t;
+    await _secureStorage.write(key: _authToken, value: t);
     notifyListeners();
   }
   
   Future<void> setRefreshToken(String t) async {
-    await _prefs.setString(_refreshToken, t);
+    _cachedRefreshToken = t;
+    await _secureStorage.write(key: _refreshToken, value: t);
     notifyListeners();
   }
 
@@ -138,9 +192,17 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
 
-  String? get tempToken                  => _prefs.getString(_tempToken);
-  Future<void> setTempToken(String t)    => _prefs.setString(_tempToken, t);
-  Future<void> clearTempToken()          => _prefs.remove(_tempToken);
+  String? get tempToken                  => _cachedTempToken;
+  Future<void> setTempToken(String t) async {
+    _cachedTempToken = t;
+    await _secureStorage.write(key: _tempToken, value: t);
+    notifyListeners();
+  }
+  Future<void> clearTempToken() async {
+    _cachedTempToken = null;
+    await _secureStorage.delete(key: _tempToken);
+    notifyListeners();
+  }
 
   int? get birthMonth                   => _prefs.getInt(_birthMonth);
   int? get birthYear                    => _prefs.getInt(_birthYear);
@@ -159,6 +221,12 @@ class LocalStorageService extends ChangeNotifier {
   }
 
   Future<void> clearAuthTokens() async {
+    _cachedAuthToken = null;
+    _cachedRefreshToken = null;
+    _cachedTempToken = null;
+    await _secureStorage.delete(key: _authToken);
+    await _secureStorage.delete(key: _refreshToken);
+    await _secureStorage.delete(key: _tempToken);
     await _prefs.remove(_authToken);
     await _prefs.remove(_refreshToken);
     await _prefs.remove(_tempToken);
@@ -177,6 +245,10 @@ class LocalStorageService extends ChangeNotifier {
 
   // ── Clear all onboarding state ────────────────────────────────────────────
   Future<void> clearAll() async {
+    _cachedAuthToken = null;
+    _cachedRefreshToken = null;
+    _cachedTempToken = null;
+    await _secureStorage.deleteAll();
     await _prefs.clear();
     notifyListeners();
   }

@@ -22,9 +22,7 @@ class _LandingScreenState extends State<LandingScreen> {
     FlutterNativeSplash.remove();
 
     final storage = context.read<LocalStorageService>();
-    if (storage.authToken != null && storage.isOnboarded) {
-      debugPrint('[LandingScreen] Fast-track: Skipped server bootstrap for onboarded user.');
-    } else {
+    if (storage.authToken != null && !storage.isOnboarded) {
       context.read<OnboardingBloc>().add(const BootstrapApp());
     }
   }
@@ -33,15 +31,6 @@ class _LandingScreenState extends State<LandingScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<OnboardingBloc, OnboardingState>(
       builder: (context, state) {
-        if (state.isBootstrapping) {
-          return const Scaffold(
-            backgroundColor: AppColors.purple,
-            body: Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-          );
-        }
-
         final storage = context.read<LocalStorageService>();
         final step = storage.stepComplete;
         final isResuming = (step != null && int.parse(step) >= 1) || storage.authToken != null;

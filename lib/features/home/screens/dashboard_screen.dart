@@ -66,6 +66,12 @@ class _DashboardScreenState extends State<DashboardScreen>
         context,
         listen: false,
       );
+      final friendsSocket = Provider.of<FriendsSocketService>(
+        context,
+        listen: false,
+      );
+      socket.connect();
+      friendsSocket.connect();
 
       _peerlineSocketSub = socket.chatEvents.listen((event) {
         if (event['type'] == 'session_ready' && mounted) {

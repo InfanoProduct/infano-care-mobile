@@ -23,32 +23,34 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
 
 void main() async {
-  debugPrint('[App] Starting initialization...');
+  debugPrint('[App] Starting optimized initialization...');
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   try {
-    // 1. Initialize Firebase
-    debugPrint('[App] Initializing Firebase...');
-    await Firebase.initializeApp().timeout(const Duration(seconds: 10));
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    debugPrint('[App] Firebase initialized ✅');
-  } catch (e) {
-    debugPrint('[App] Firebase initialization failed ❌: $e');
-  }
+    // 1. Initialize Local Storage and Firebase in parallel
+    final results = await Future.wait([
+      LocalStorageService.create(),
+      Firebase.initializeApp()
+          .then((app) {
+            FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+            return app;
+          })
+          .catchError((e) {
+            debugPrint('[App] Firebase initialization warning ⚠️: $e');
+            return null;
+          }),
+    ]);
 
-  try {
-    // 2. Bootstrap services
-    debugPrint('[App] Initializing services...');
-    final storage = await LocalStorageService.create();
+    final storage = results[0] as LocalStorageService;
     ApiService.init(storage);
-    debugPrint('[App] Services initialized ✅');
+    debugPrint('[App] Core services initialized ✅');
 
     runApp(InfanoCareApp(storage: storage));
   } catch (e) {
-    debugPrint('[App] Critical initialization error ❌: $e');
-    // Still try to run app to show some UI or handle the error
+    debugPrint('[App] Critical initialization fallback ❌: $e');
     final storage = await LocalStorageService.create();
+    ApiService.init(storage);
     runApp(InfanoCareApp(storage: storage));
   }
 }
@@ -71,12 +73,14 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
     super.initState();
     _repo = OnboardingRepository(ApiService.instance);
     _router = createRouter(widget.storage, _navigatorKey);
-    
-    // Initialize notifications
+
+    // Initialize notifications asynchronously without blocking the UI thread
     NotificationService().initialize(_navigatorKey, storage: widget.storage);
 
-    // Ensure native splash is removed once the router is ready
-    FlutterNativeSplash.remove();
+    // Remove native splash as soon as the first frame is successfully rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
   }
 
   @override
@@ -97,11 +101,11 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
           create: (_) => MindfulApi(ApiService.instance.dio),
         ),
         Provider<CommunitySocketService>(
-          create: (_) => CommunitySocketService(widget.storage)..connect(),
+          create: (_) => CommunitySocketService(widget.storage),
           dispose: (_, s) => s.dispose(),
         ),
         Provider<FriendsSocketService>(
-          create: (_) => FriendsSocketService(widget.storage)..connect(),
+          create: (_) => FriendsSocketService(widget.storage),
           dispose: (_, s) => s.dispose(),
         ),
       ],
@@ -109,8 +113,7 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
         providers: [
           BlocProvider(
             create: (_) => OnboardingBloc(_repo, widget.storage)
-              ..add(const SyncFromStorage())
-              ..add(const BootstrapApp()),
+              ..add(const SyncFromStorage()),
           ),
           BlocProvider(
             create: (_) =>
