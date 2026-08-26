@@ -256,8 +256,22 @@ GoRouter createRouter(
         },
       ),
 
-      // Gigi assistant (Redirect /chat to universal MyChatsScreen)
-      GoRoute(path: '/chat', builder: (_, _) => const MyChatsScreen()),
+      // Gigi assistant
+      GoRoute(
+        path: '/chat',
+        builder: (_, state) {
+          final sessionId = state.uri.queryParameters['sessionId'] ?? '';
+          return BlocProvider(
+            create: (context) =>
+                ChatBloc(chatRepo)..add(
+                  sessionId.isNotEmpty
+                      ? SelectSession(sessionId)
+                      : LoadSessions(),
+                ),
+            child: ChatScreen(sessionId: sessionId),
+          );
+        },
+      ),
       GoRoute(
         path: '/gigi/chat/:sessionId',
         builder: (_, state) => BlocProvider(

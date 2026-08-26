@@ -6,7 +6,7 @@ import '../bloc/chat_bloc.dart';
 
 class ChatScreen extends StatefulWidget {
   final String sessionId;
-  const ChatScreen({super.key, required this.sessionId});
+  const ChatScreen({super.key, this.sessionId = ''});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -22,7 +22,11 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatBloc>().add(SelectSession(widget.sessionId));
+      if (widget.sessionId.isNotEmpty && widget.sessionId != 'new') {
+        context.read<ChatBloc>().add(SelectSession(widget.sessionId));
+      } else {
+        context.read<ChatBloc>().add(LoadSessions());
+      }
     });
   }
 

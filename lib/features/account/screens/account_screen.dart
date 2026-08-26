@@ -38,6 +38,9 @@ class _AccountScreenState extends State<AccountScreen> {
     try {
       final repo = AuthRepository(widget.storage);
       await repo.syncProfile();
+      if (mounted) {
+        setState(() {});
+      }
     } catch (e) {
       debugPrint('[AccountScreen] Profile sync failed: $e');
     }
@@ -509,6 +512,17 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget _buildInfoSection(BuildContext context) {
+    final uid = widget.storage.userId;
+    final displayUid = (uid != null && uid.isNotEmpty)
+        ? (uid.length >= 8 ? uid.substring(0, 8) : uid)
+        : 'N/A';
+    final role = widget.storage.role ?? 'MEMBER';
+    final roleLabel = role == 'TEEN'
+        ? 'Teen Member'
+        : (role == 'PARENT' || role == 'GUARDIAN'
+            ? 'Parent Care'
+            : (role == 'EXPERT' ? 'Expert Partner' : 'Bloom Member'));
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -526,10 +540,17 @@ class _AccountScreenState extends State<AccountScreen> {
         children: [
           _buildInfoRow(Icons.stars, 'Points earned', '${widget.storage.points} ✨'),
           const Divider(height: 32),
-          _buildInfoRow(Icons.verified_user_outlined, 'User ID', widget.storage.userId?.substring(0, 8) ?? 'N/A'),
+          _buildInfoRow(Icons.verified_user_outlined, 'User ID', displayUid),
           const Divider(height: 32),
-          _buildInfoRow(Icons.calendar_today_outlined, 'Birthday', 
-            widget.storage.birthMonth != null ? '${widget.storage.birthMonth}/${widget.storage.birthYear}' : 'Not set'),
+          _buildInfoRow(Icons.badge_outlined, 'Account Type', roleLabel),
+          const Divider(height: 32),
+          _buildInfoRow(
+            Icons.calendar_today_outlined,
+            'Birthday',
+            widget.storage.birthMonth != null && widget.storage.birthYear != null
+                ? '${widget.storage.birthMonth}/${widget.storage.birthYear}'
+                : 'Not set',
+          ),
         ],
       ),
     ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1);
@@ -547,6 +568,14 @@ class _AccountScreenState extends State<AccountScreen> {
         children: [
           _buildNavRow(
             context,
+            icon: Icons.family_restroom_rounded,
+            label: 'Family & Linked Accounts',
+            route: '/account/family',
+            iconColor: const Color(0xFF8B5CF6),
+          ),
+          const Divider(height: 1, indent: 56),
+          _buildNavRow(
+            context,
             icon: Icons.bookmark_outline,
             label: 'My Library',
             route: '/account/saved',
@@ -558,6 +587,14 @@ class _AccountScreenState extends State<AccountScreen> {
             label: 'Location & GPS Settings',
             route: '/safety/location',
             iconColor: const Color(0xFF10B981),
+          ),
+          const Divider(height: 1, indent: 56),
+          _buildNavRow(
+            context,
+            icon: Icons.notifications_none_rounded,
+            label: 'Notification Preferences',
+            route: '/account/notifications',
+            iconColor: const Color(0xFFF59E0B),
           ),
           const Divider(height: 1, indent: 56),
           _buildNavRow(

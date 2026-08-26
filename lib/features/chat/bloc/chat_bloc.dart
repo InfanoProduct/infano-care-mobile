@@ -134,7 +134,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoading());
     try {
       final sessions = await _repo.getSessions();
-      emit(ChatSuccess(messages: const [], sessions: sessions));
+      if (sessions.isNotEmpty) {
+        final latestSessionId = sessions.first['id'] as String;
+        final history = await _repo.getHistory(latestSessionId);
+        emit(ChatSuccess(
+          messages: history,
+          sessionId: latestSessionId,
+          sessions: sessions,
+          hasReachedMax: history.length < 20,
+        ));
+      } else {
+        emit(ChatSuccess(messages: const [], sessions: sessions));
+      }
     } catch (e) {
       emit(ChatError(e.toString()));
     }
@@ -160,10 +171,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoading());
     try {
       final history = await _repo.getHistory(event.sessionId);
+      final allSessions = sessions.isNotEmpty ? sessions : await _repo.getSessions();
       emit(ChatSuccess(
         messages: history,
         sessionId: event.sessionId,
-        sessions: sessions,
+        sessions: allSessions,
         hasReachedMax: history.length < 20, // Check if we fetched less than limit
       ));
     } catch (e) {
