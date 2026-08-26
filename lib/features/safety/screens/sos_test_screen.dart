@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/location_service.dart';
 import 'package:infano_care_mobile/features/safety/data/safety_repository.dart';
 
 class SosTestScreen extends StatefulWidget {
@@ -28,21 +29,11 @@ class _SosTestScreenState extends State<SosTestScreen> {
   Future<void> _sendTestAlert() async {
     setState(() => _isSending = true);
     try {
-      double lat = 0, lng = 0;
-      try {
-        final perm = await Geolocator.requestPermission();
-        if (perm == LocationPermission.always ||
-            perm == LocationPermission.whileInUse) {
-          final pos = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.high,
-              timeLimit: Duration(seconds: 10),
-            ),
-          );
-          lat = pos.latitude;
-          lng = pos.longitude;
-        }
-      } catch (_) {}
+      final pos = await LocationHelperService.instance.getCurrentPosition(
+        timeout: const Duration(seconds: 4),
+      );
+      final double lat = pos?.latitude ?? 0.0;
+      final double lng = pos?.longitude ?? 0.0;
 
       final prefs = await _repo.getPreferences();
       await _repo.testSos(lat, lng,

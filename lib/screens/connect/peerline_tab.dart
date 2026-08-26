@@ -9,6 +9,7 @@ import 'package:infano_care_mobile/models/peerline_session.dart';
 import 'package:infano_care_mobile/models/peerline_topic.dart';
 import 'package:infano_care_mobile/widgets/mentor_dashboard.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
+import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 
 class PeerLineTab extends StatefulWidget {
@@ -24,11 +25,18 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
   bool _isLoadingRole = true;
   bool _viewAsMentee = false;
 
+  static final List<PeerLineTopic> _defaultTopics = [
+    PeerLineTopic(id: 'mental_health', name: 'Mental & Emotional Health', emoji: '🧠', accentColor: '#6D28D9', isActive: true, sortOrder: 1),
+    PeerLineTopic(id: 'academic', name: 'Academic & School Support', emoji: '📚', accentColor: '#3B82F6', isActive: true, sortOrder: 2),
+    PeerLineTopic(id: 'body_confidence', name: 'Body Confidence & Growth', emoji: '💖', accentColor: '#EC4899', isActive: true, sortOrder: 3),
+    PeerLineTopic(id: 'relationships', name: 'Friendship & Relationships', emoji: '🤝', accentColor: '#10B981', isActive: true, sortOrder: 4),
+  ];
+
   Future<List<PeerLineSession>>? _sessionsFuture;
   Future<List<Map<String, dynamic>>>? _mentorsFuture;
 
   List<PeerLineSession> _allSessions = [];
-  List<PeerLineTopic> _topics = [];
+  List<PeerLineTopic> _topics = List.from(_defaultTopics);
   String? _selectedTopicId;
 
   // Animation controllers
@@ -273,52 +281,144 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
   }
 
   Widget _buildTopicFilters() {
-    if (_topics.isEmpty) return const SizedBox.shrink();
+    final displayTopics = _topics.isNotEmpty ? _topics : _defaultTopics;
+    const purpleTheme = Color(0xFF644D95);
 
     return Container(
-      height: 40,
-      margin: const EdgeInsets.only(top: 12, bottom: 16),
-      child: ListView.builder(
+      margin: const EdgeInsets.only(top: 14, bottom: 18),
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        itemCount: _topics.length + 1,
-        itemBuilder: (context, index) {
-          final bool isAll = index == 0;
-          final PeerLineTopic? topic = isAll ? null : _topics[index - 1];
-          final bool isSelected = isAll ? _selectedTopicId == null : _selectedTopicId == topic?.id;
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(
-                isAll ? '✨ All Topics' : '${topic!.emoji} ${topic.name}',
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Colors.white : AppColors.textDark,
+        child: Row(
+          children: [
+            // "All Topics" Chip
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () {
+                  AppSoundService.instance.playPop();
+                  setState(() {
+                    _selectedTopicId = null;
+                    _refreshData();
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _selectedTopicId == null
+                        ? purpleTheme
+                        : Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _selectedTopicId == null
+                          ? purpleTheme
+                          : const Color(0xFFE2E8F0),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _selectedTopicId == null
+                            ? purpleTheme.withValues(alpha: 0.28)
+                            : Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('✨', style: TextStyle(fontSize: 13.5)),
+                      const SizedBox(width: 6),
+                      Text(
+                        'All Topics',
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          fontWeight: _selectedTopicId == null
+                              ? FontWeight.w900
+                              : FontWeight.w700,
+                          color: _selectedTopicId == null
+                              ? Colors.white
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              selected: isSelected,
-              onSelected: (bool selected) {
-                setState(() {
-                  _selectedTopicId = isAll ? null : topic?.id;
-                  _refreshData();
-                });
-              },
-              selectedColor: AppColors.purple,
-              checkmarkColor: Colors.white,
-              backgroundColor: Colors.grey.shade50,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isSelected ? AppColors.purple : Colors.grey.shade200,
-                  width: 1,
-                ),
-              ),
-              showCheckmark: false,
             ),
-          );
-        },
+            // Dynamic Topic Chips
+            ...displayTopics.asMap().entries.map((entry) {
+              final topic = entry.value;
+              final isSelected = _selectedTopicId == topic.id || _selectedTopicId == topic.name;
+              final isLast = entry.key == displayTopics.length - 1;
+
+              return Padding(
+                padding: EdgeInsets.only(right: isLast ? 0 : 8),
+                child: GestureDetector(
+                  onTap: () {
+                    AppSoundService.instance.playPop();
+                    setState(() {
+                      _selectedTopicId = topic.id;
+                      _refreshData();
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? purpleTheme
+                          : Colors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected
+                            ? purpleTheme
+                            : const Color(0xFFE2E8F0),
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isSelected
+                              ? purpleTheme.withValues(alpha: 0.28)
+                              : Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(topic.emoji, style: const TextStyle(fontSize: 13.5)),
+                        const SizedBox(width: 6),
+                        Text(
+                          topic.name,
+                          style: GoogleFonts.nunito(
+                            fontSize: 13,
+                            fontWeight: isSelected
+                                ? FontWeight.w900
+                                : FontWeight.w700,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF334155),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -330,49 +430,57 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Recommended Peer Mentors',
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.verified_user_rounded, size: 14, color: Color(0xFF10B981)),
-                    const SizedBox(width: 4),
-                    Text(
-                      'All mentors are certified & verified',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        color: const Color(0xFF10B981),
-                        fontWeight: FontWeight.w600,
-                      ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recommended Peer Mentors',
+                    style: GoogleFonts.nunito(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF1E1B4B),
+                      letterSpacing: -0.3,
                     ),
-                  ],
-                ),
-              ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF059669)),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'All mentors are certified & verified',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12.5,
+                            color: const Color(0xFF059669),
+                            fontWeight: FontWeight.w700,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             TextButton(
               onPressed: () => context.push('/peerline/request').then((_) => _refreshData()),
               child: Text(
                 'View All',
                 style: GoogleFonts.nunito(
-                  color: AppColors.purple,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                  color: const Color(0xFF644D95),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13.5,
                 ),
               ),
             ),
           ],
         ),
         
-        // Dynamic Topic Filter Chips
+        // Topic Filter Chips
         _buildTopicFilters(),
         
         SizedBox(
@@ -388,12 +496,44 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
                 );
               }
               
-              final mentors = snapshot.data ?? [];
-              if (mentors.isEmpty) {
+              final allMentors = snapshot.data ?? [];
+              final displayTopics = _topics.isNotEmpty ? _topics : _defaultTopics;
+              
+              final filteredMentors = _selectedTopicId == null
+                  ? allMentors
+                  : allMentors.where((m) {
+                      final List certifiedTopics = m['certifiedTopics'] ?? m['topics'] ?? [];
+                      final List<String> topicNames = certifiedTopics
+                          .map<String>((t) => (t is Map ? (t['name']?.toString() ?? '') : t.toString()).toLowerCase())
+                          .toList();
+                      final selectedTopic = displayTopics.firstWhere(
+                        (t) => t.id == _selectedTopicId || t.name == _selectedTopicId,
+                        orElse: () => PeerLineTopic(
+                          id: '',
+                          name: _selectedTopicId ?? '',
+                          emoji: '',
+                          accentColor: '',
+                          isActive: true,
+                          sortOrder: 0,
+                        ),
+                      );
+                      final selName = selectedTopic.name.toLowerCase();
+                      final selId = selectedTopic.id.toLowerCase();
+                      return topicNames.any((name) =>
+                          name.contains(selName) ||
+                          selName.contains(name) ||
+                          name.contains(selId) ||
+                          selId.contains(name));
+                    }).toList();
+
+              if (filteredMentors.isEmpty) {
                 return Center(
                   child: Text(
                     'No mentors available for this topic',
-                    style: GoogleFonts.nunito(color: AppColors.textMedium),
+                    style: GoogleFonts.nunito(
+                      color: AppColors.textMedium,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 );
               }
@@ -401,9 +541,9 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                itemCount: mentors.length,
+                itemCount: filteredMentors.length,
                 itemBuilder: (context, index) {
-                  final mentor = mentors[index];
+                  final mentor = filteredMentors[index];
                   return _TopMentorCard(
                     mentor: mentor,
                     onRequested: (newSession) => _addNewSession(newSession),
@@ -964,7 +1104,7 @@ class _PendingRequestCard extends StatelessWidget {
                 onCancelled();
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(content: Text('Failed to cancel request: $e')),
                   );
                 }
@@ -1095,132 +1235,611 @@ class _TopMentorCardState extends State<_TopMentorCard> {
       ),
       child: Material(
         color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Stack(
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: accentColor.withValues(alpha: 0.1), width: 1),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M',
-                              style: GoogleFonts.nunito(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                color: accentColor,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () => _showMentorDetailSheet(
+            context: context,
+            name: name,
+            bio: bio,
+            isOnline: isOnline,
+            topics: topics,
+            activeSession: activeSession,
+            pendingSession: pendingSession,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Stack(
+                          children: [
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: accentColor.withValues(alpha: 0.1), width: 1),
                               ),
-                            ),
-                          ),
-                          if (isOnline)
-                            Positioned(
-                              right: 2,
-                              top: 2,
-                              child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                              alignment: Alignment.center,
+                              child: Text(
+                                name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: accentColor,
                                 ),
                               ),
                             ),
-                        ],
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              style: GoogleFonts.nunito(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 17,
-                                color: const Color(0xFF1A1A2E),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                const Icon(Icons.star_rounded, color: Color(0xFFFFB800), size: 15),
-                                const SizedBox(width: 3),
-                                Text(
-                                  widget.mentor['rating']?.toString() ?? '4.9',
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFFFFB800),
+                            if (isOnline)
+                              Positioned(
+                                right: 2,
+                                top: 2,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: topics.take(2).map((topic) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        topic,
-                        style: GoogleFonts.nunito(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: accentColor.withValues(alpha: 0.9),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 17,
+                                  color: const Color(0xFF1A1A2E),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star_rounded, color: Color(0xFFFFB800), size: 15),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    widget.mentor['rating']?.toString() ?? '4.9',
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFFFFB800),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    )).toList(),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    bio,
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      color: accentColor.withValues(alpha: 0.75),
-                      height: 1.4,
+                      ],
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: _buildActionButton(activeSession, pendingSession),
-              ),
-            ],
+                    const SizedBox(height: 14),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: topics.take(2).map((topic) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          topic,
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: accentColor.withValues(alpha: 0.9),
+                          ),
+                        ),
+                      )).toList(),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      bio,
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        color: accentColor.withValues(alpha: 0.75),
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: _buildActionButton(activeSession, pendingSession),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  void _showMentorDetailSheet({
+    required BuildContext context,
+    required String name,
+    required String bio,
+    required bool isOnline,
+    required List<String> topics,
+    required PeerLineSession? activeSession,
+    required PeerLineSession? pendingSession,
+  }) {
+    final String initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M';
+    final String headline = widget.mentor['headline'] ?? 'Certified Peer Listener & Emotional Health Coach';
+    final String rating = widget.mentor['rating']?.toString() ?? '4.9';
+    final String reviewsCount = widget.mentor['reviewsCount'] ?? '48 reviews';
+    final String menteesCount = widget.mentor['sessionsCount'] ?? '140+ Mentees';
+    final String responseTime = widget.mentor['responseTime'] ?? '< 15 mins';
+    final String languages = widget.mentor['languages'] ?? 'English, Hindi';
+    final List<String> badges = topics.isNotEmpty
+        ? topics
+        : ['Mental & Emotional Health', 'Identity & Personal Growth'];
+    const Color purpleTheme = Color(0xFF644D95);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF9F5F8),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(36)),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x3D000000),
+                blurRadius: 30,
+                offset: Offset(0, -6),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.only(
+            top: 14,
+            left: 22,
+            right: 22,
+            bottom: MediaQuery.of(sheetCtx).padding.bottom + 22,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD1D5DB),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(sheetCtx),
+                    child: Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEDE8F2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 18,
+                        color: Color(0xFF4B5563),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: purpleTheme.withValues(alpha: 0.25),
+                              width: 2.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: purpleTheme.withValues(alpha: 0.15),
+                                blurRadius: 14,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              initial,
+                              style: GoogleFonts.nunito(
+                                fontSize: 36,
+                                fontWeight: FontWeight.w900,
+                                color: purpleTheme,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (isOnline)
+                          Positioned(
+                            top: 3,
+                            right: 3,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  name,
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF1E1B4B),
+                                    letterSpacing: -0.3,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.verified_rounded,
+                                size: 18,
+                                color: Color(0xFF059669),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            headline,
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF64748B),
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 3.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.star_rounded,
+                                      size: 14,
+                                      color: Color(0xFFF59E0B),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '$rating ($reviewsCount)',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: const Color(0xFFB45309),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 3.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  menteesCount,
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF047857),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                const Divider(color: Color(0xFFE2D4DE), thickness: 1.5),
+                const SizedBox(height: 14),
+                Text(
+                  'SPECIALTIES & TOPICS',
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF7A61AC),
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: badges.map((badgeText) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: purpleTheme.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: purpleTheme,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'ABOUT MENTOR',
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF7A61AC),
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  bio,
+                  style: GoogleFonts.nunito(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF334155),
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.bolt_rounded,
+                          size: 16,
+                          color: Color(0xFFD97706),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Responds in $responseTime',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF475569),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.translate_rounded,
+                          size: 15,
+                          color: Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          languages,
+                          style: GoogleFonts.nunito(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF475569),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                if (activeSession != null) ...[
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(sheetCtx);
+                      context.push('/peerline/chat/${activeSession.id}');
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.chat_bubble_rounded,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Start Chat',
+                            style: GoogleFonts.nunito(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] else if (pendingSession != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.hourglass_empty_rounded,
+                          size: 18,
+                          color: Colors.grey.shade500,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Request Sent',
+                          style: GoogleFonts.nunito(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.grey.shade500,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(sheetCtx);
+                      _handleRequest();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7A61AC), purpleTheme],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: purpleTheme.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.mark_email_unread_rounded,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Send Peer Chat Request',
+                            style: GoogleFonts.nunito(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

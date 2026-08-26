@@ -12,9 +12,11 @@ import 'package:infano_care_mobile/widgets/notification_center_sheet.dart';
 import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 import 'package:infano_care_mobile/models/circle.dart';
+import 'package:infano_care_mobile/models/peerline_session.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/widgets/circle_details_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/article_detail_screen.dart';
+import 'package:infano_care_mobile/features/home/widgets/parent_daughter_summary_home_card.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -427,7 +429,11 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
 
                       _buildQuickActionsCarousel(context),
 
-                      const SizedBox(height: 22),
+                      // Daughter Health & Activity Summary Card (for Parent users)
+                      if (storage.role?.toUpperCase() != 'TEEN') ...[
+                        const ParentDaughterSummaryHomeCard(),
+                        const SizedBox(height: 22),
+                      ],
 
                       // Animated Menstrual Tracker Snapshot Card
                       const MenstrualTrackerSnapshotCard(),
@@ -820,6 +826,148 @@ class _RecommendedPeerMentorsSectionState
     },
   ];
 
+  List<PeerLineSession> _sessions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions() async {
+    try {
+      final api = CommunityApi(ApiService.instance.dio);
+      final sessions = await api.getPeerLineSessions(role: 'mentee');
+      if (mounted) {
+        setState(() {
+          _sessions = sessions;
+        });
+      }
+    } catch (e) {
+      debugPrint('[RecommendedPeerMentors] Error loading peer sessions: $e');
+    }
+  }
+
+  PeerLineSession? _findActiveConversationForMentor(Map<String, dynamic> mentor) {
+    final mentorName = (mentor['name'] as String).trim().toLowerCase();
+    final mentorFullName = (mentor['fullName'] as String? ?? '').trim().toLowerCase();
+
+    for (final s in _sessions) {
+      final sMentorName = (s.mentorName ?? '').trim().toLowerCase();
+      final bool matchesMentor = sMentorName.isNotEmpty &&
+          (sMentorName == mentorName ||
+              sMentorName == mentorFullName ||
+              sMentorName.contains(mentorName) ||
+              (mentorFullName.isNotEmpty && sMentorName.contains(mentorFullName)));
+
+      // Only consider it an ongoing conversation if there are actual messages or status is active
+      final bool hasConversation = s.messages.isNotEmpty ||
+          s.status.toLowerCase() == 'active' ||
+          (s.startedAt != null && s.status.toLowerCase() != 'cancelled');
+
+      if (matchesMentor && hasConversation) {
+        return s;
+      }
+    }
+    return null;
+  }
+
+  bool _isChatInitiated(Map<String, dynamic> mentor) {
+    return _findActiveConversationForMentor(mentor) != null;
+  }
+
+  Future<void> _handleMentorAction(
+    Map<String, dynamic> mentor, {
+    BuildContext? dialogCtx,
+  }) async {
+    AppSoundService.instance.playPop();
+    if (dialogCtx != null && Navigator.canPop(dialogCtx)) {
+      Navigator.pop(dialogCtx);
+    }
+
+    final mentorName = mentor['name'] as String;
+    final existingSession = _findActiveConversationForMentor(mentor);
+
+    if (existingSession != null) {
+      // Existing active conversation found -> open chat screen immediately!
+      if (mounted) {
+        context.push('/peerline/chat/${existingSession.id}');
+      }
+      return;
+    }
+
+    try {
+      final api = CommunityApi(ApiService.instance.dio);
+      final topics = await api.getPeerLineTopics();
+      final topicIds = topics.map((t) => t.id).take(2).toList();
+
+      final session = await api.requestPeerLineSession(
+        topicIds: topicIds,
+        requestedMentorId: mentor['id'],
+      );
+
+      if (mounted) {
+        setState(() {
+          _sessions = [session, ..._sessions];
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Text('🌸', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Connected with $mentorName! Opening chat...',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: _purpleTheme,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        context.push('/peerline/chat/${session.id}');
+      }
+    } catch (e) {
+      debugPrint('[RecommendedPeerMentors] Error requesting session: $e');
+      if (mounted) {
+        if (_sessions.isNotEmpty) {
+          context.push('/peerline/chat/${_sessions.first.id}');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Chat request sent to $mentorName! Opening PeerLine...',
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13.5,
+                ),
+              ),
+              backgroundColor: _purpleTheme,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          context.read<DashboardCubit>().setTab(3);
+        }
+      }
+    }
+  }
+
   void _showMentorDetailSheet(
     BuildContext context,
     Map<String, dynamic> mentor,
@@ -979,7 +1127,10 @@ class _RecommendedPeerMentorsSectionState
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Row(
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -993,6 +1144,7 @@ class _RecommendedPeerMentorsSectionState
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Row(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
                                           const Icon(
                                             Icons.star_rounded,
@@ -1011,7 +1163,6 @@ class _RecommendedPeerMentorsSectionState
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 9,
@@ -1102,113 +1253,104 @@ class _RecommendedPeerMentorsSectionState
                         ),
                       ),
                       const SizedBox(height: 14),
-                      Row(
+                      Wrap(
+                        spacing: 14,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          const Icon(
-                            Icons.bolt_rounded,
-                            size: 16,
-                            color: Color(0xFFD97706),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Responds in ${mentor['responseTime']}',
-                            style: GoogleFonts.nunito(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF475569),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          const Icon(
-                            Icons.translate_rounded,
-                            size: 15,
-                            color: Color(0xFF64748B),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            mentor['languages'] as String,
-                            style: GoogleFonts.nunito(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF475569),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 22),
-                      GestureDetector(
-                        onTap: () {
-                          AppSoundService.instance.playPop();
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  const Text(
-                                    '🌸',
-                                    style: TextStyle(fontSize: 18),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      'Chat request sent to ${mentor['name']}! Connecting...',
-                                      style: GoogleFonts.nunito(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 13.5,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              backgroundColor: _purpleTheme,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              duration: const Duration(seconds: 3),
-                            ),
-                          );
-                          context.read<DashboardCubit>().setTab(4);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF7A61AC), _purpleTheme],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _purpleTheme.withValues(alpha: 0.35),
-                                blurRadius: 14,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(
-                                Icons.mark_email_unread_rounded,
-                                size: 18,
-                                color: Colors.white,
+                                Icons.bolt_rounded,
+                                size: 16,
+                                color: Color(0xFFD97706),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 4),
                               Text(
-                                'Send Peer Chat Request',
+                                'Responds in ${mentor['responseTime']}',
                                 style: GoogleFonts.nunito(
-                                  fontSize: 15.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                  letterSpacing: 0.2,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF475569),
                                 ),
                               ),
                             ],
                           ),
-                        ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.translate_rounded,
+                                size: 15,
+                                color: Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                mentor['languages'] as String,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF475569),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 22),
+                      Builder(
+                        builder: (buttonContext) {
+                          final bool hasChat = _isChatInitiated(mentor);
+                          final String ctaText = hasChat ? 'Start Chat' : 'Send Peer Chat Request';
+                          final IconData ctaIcon = hasChat ? Icons.chat_bubble_rounded : Icons.mark_email_unread_rounded;
+
+                          return GestureDetector(
+                            onTap: () => _handleMentorAction(mentor, dialogCtx: ctx),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: hasChat
+                                      ? const [Color(0xFF8B5CF6), Color(0xFF6D28D9)]
+                                      : const [Color(0xFF7A61AC), _purpleTheme],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (hasChat ? const Color(0xFF7C3AED) : _purpleTheme)
+                                        .withValues(alpha: 0.35),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    ctaIcon,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    ctaText,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 15.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -1571,83 +1713,63 @@ class _RecommendedPeerMentorsSectionState
                                 overflow: TextOverflow.ellipsis,
                               ),
 
-                              // Send Request Full-width CTA Button (Direct Action)
-                              GestureDetector(
-                                onTap: () {
-                                  AppSoundService.instance.playPop();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Row(
-                                        children: [
-                                          const Text(
-                                            '🌸',
-                                            style: TextStyle(fontSize: 18),
+                              // Dynamic Chat Request / Start Chat Button
+                              Builder(
+                                builder: (btnCtx) {
+                                  final bool hasChat = _isChatInitiated(mentor);
+                                  final String cardCtaText = hasChat ? 'Start Chat' : 'Chat Request';
+                                  final IconData cardCtaIcon = hasChat ? Icons.chat_bubble_rounded : Icons.send_rounded;
+
+                                  return GestureDetector(
+                                    onTap: () => _handleMentorAction(mentor),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 11.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: hasChat
+                                              ? const [Color(0xFF8B5CF6), Color(0xFF6D28D9)]
+                                              : const [Color(0xFF7A61AC), _purpleTheme],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: (hasChat ? const Color(0xFF7C3AED) : _purpleTheme)
+                                                .withValues(
+                                              alpha: 0.3,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
                                           ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Text(
-                                              'Chat request sent to ${mentor['name']}! Connecting...',
-                                              style: GoogleFonts.nunito(
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 13.5,
-                                              ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            cardCtaIcon,
+                                            size: 14,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            cardCtaText,
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white,
+                                              letterSpacing: 0.2,
                                             ),
                                           ),
                                         ],
                                       ),
-                                      backgroundColor: _purpleTheme,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      duration: const Duration(seconds: 3),
                                     ),
                                   );
-                                  context.read<DashboardCubit>().setTab(4);
                                 },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 11.5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [Color(0xFF7A61AC), _purpleTheme],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: _purpleTheme.withValues(
-                                          alpha: 0.3,
-                                        ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.send_rounded,
-                                        size: 14,
-                                        color: Colors.white,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Send Request',
-                                        style: GoogleFonts.nunito(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 0.2,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               ),
                             ],
                           ),
@@ -1914,52 +2036,59 @@ class _CommunityPulseChallengeSectionState
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 11,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: const Color(0xFFE8A2B5),
-                                width: 1,
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFF4A1525,
-                                  ).withValues(alpha: 0.05),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: const Color(0xFFE8A2B5),
+                                  width: 1,
                                 ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF10B981),
-                                    shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF4A1525,
+                                    ).withValues(alpha: 0.05),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
                                   ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'ACTIVE WEEKLY CHALLENGE',
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w900,
-                                    color: const Color(0xFF881337),
-                                    letterSpacing: 0.7,
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF10B981),
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'ACTIVE CHALLENGE',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: const Color(0xFF881337),
+                                        letterSpacing: 0.5,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 8),
 
                           // Coin Reward Pill
                           Container(

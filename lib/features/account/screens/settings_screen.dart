@@ -115,6 +115,22 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   _buildNavRow(
                     context,
+                    icon: Icons.location_on_outlined,
+                    label: 'Location & GPS Settings',
+                    route: '/safety/location',
+                    iconColor: const Color(0xFF10B981),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildNavRow(
+                    context,
+                    icon: Icons.emergency_outlined,
+                    label: 'Safety & SOS Hub',
+                    route: '/safety/sos',
+                    iconColor: const Color(0xFFEF4444),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _buildNavRow(
+                    context,
                     icon: Icons.notifications_none_rounded,
                     label: 'Data & Notifications',
                     route: '/account/notifications',

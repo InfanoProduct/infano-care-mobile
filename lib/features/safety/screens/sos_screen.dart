@@ -109,7 +109,14 @@ class _SosHubScreenState extends State<SosHubScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.location_on_outlined, color: AppColors.textDark),
+            tooltip: 'Location & GPS Settings',
+            onPressed: () =>
+                context.push('/safety/location').then((_) => _loadData()),
+          ),
+          IconButton(
             icon: const Icon(Icons.tune_rounded, color: AppColors.textDark),
+            tooltip: 'Alert Style',
             onPressed: () =>
                 context.push('/safety/setup-type').then((_) => _loadData()),
           ),
@@ -157,13 +164,17 @@ class _SosHubScreenState extends State<SosHubScreen> {
                     const SizedBox(height: 24),
 
                     // Secondary Cards
-                    _buildContactsCard()
+                    _buildLocationCard()
                         .animate()
                         .fade(delay: 200.ms, duration: 400.ms),
                     const SizedBox(height: 14),
-                    _buildCrisisCard()
+                    _buildContactsCard()
                         .animate()
                         .fade(delay: 250.ms, duration: 400.ms),
+                    const SizedBox(height: 14),
+                    _buildCrisisCard()
+                        .animate()
+                        .fade(delay: 300.ms, duration: 400.ms),
                   ],
                 ),
               ),
@@ -435,6 +446,81 @@ class _SosHubScreenState extends State<SosHubScreen> {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationCard() {
+    final bool locationEnabled = _prefs?.locationEnabled ?? false;
+    return GestureDetector(
+      onTap: () => context.push('/safety/location').then((_) => _loadData()),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.purple.withValues(alpha: 0.06)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.01),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            const Text('🛰️', style: TextStyle(fontSize: 24)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Text(
+                        'Location & GPS Sharing',
+                        style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: (locationEnabled ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          locationEnabled ? 'ENABLED' : 'DISABLED',
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: locationEnabled ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    locationEnabled
+                        ? 'Live GPS Google Maps link attached to SOS alerts'
+                        : 'Tap to configure GPS tracking & permissions',
+                    style: GoogleFonts.nunito(
+                        fontSize: 13, color: AppColors.textMedium),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                size: 14, color: AppColors.textLight),
           ],
         ),
       ),

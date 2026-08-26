@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/features/account/screens/daughter_report_screen.dart';
 
 class FamilySettingsScreen extends StatefulWidget {
   const FamilySettingsScreen({super.key, required this.storage});
@@ -170,7 +171,7 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
       appBar: AppBar(
         title: Text(
           'Family Settings',
-          style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.purple, fontSize: 22),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.purple, fontSize: 20),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -186,19 +187,19 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
               )
             : SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 100.0),
+                padding: const EdgeInsets.fromLTRB(14.0, 12.0, 14.0, 80.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeaderCard(),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
                     if (_error != null) _buildAlertCard(_error!, isError: true),
                     if (_success != null) _buildAlertCard(_success!, isError: false),
-                    if (_error != null || _success != null) const SizedBox(height: 20),
+                    if (_error != null || _success != null) const SizedBox(height: 12),
                     _buildLinkedAccounts(linkedAccounts),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
                     _buildPendingRequests(pendingInvites),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
                     _buildSendInviteSection(),
                   ],
                 ),
@@ -210,15 +211,15 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
   Widget _buildHeaderCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(14.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -226,37 +227,37 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: AppColors.purple.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.link, color: AppColors.purple, size: 14),
+                const Icon(Icons.link, color: AppColors.purple, size: 13),
                 const SizedBox(width: 4),
                 Text(
                   'Family Settings',
                   style: GoogleFonts.nunito(
                     fontWeight: FontWeight.w800,
                     color: AppColors.purple,
-                    fontSize: 11,
+                    fontSize: 10.5,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             _isTeen ? 'Connect with Parent' : 'Connect with Daughter',
             style: GoogleFonts.nunito(
               fontWeight: FontWeight.w800,
               color: AppColors.textDark,
-              fontSize: 18,
+              fontSize: 16,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             _isTeen
                 ? 'Link your parent\'s account to share progress, sessions, and enrolled program details with them.'
@@ -264,8 +265,8 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
             style: GoogleFonts.nunito(
               fontWeight: FontWeight.w500,
               color: AppColors.textMedium,
-              fontSize: 13,
-              height: 1.4,
+              fontSize: 12,
+              height: 1.35,
             ),
           ),
         ],
@@ -312,15 +313,15 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -329,59 +330,68 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 18),
-              const SizedBox(width: 8),
+              const Icon(Icons.check_circle_rounded, color: Colors.green, size: 16),
+              const SizedBox(width: 6),
               Text(
                 'Linked $_roleLabel Account${linkedAccounts.length > 1 ? 's' : ''}',
                 style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w800,
                   color: AppColors.textDark,
-                  fontSize: 14,
+                  fontSize: 13.5,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: linkedAccounts.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final link = linkedAccounts[index];
               final otherUser = _isTeen ? link['parent'] : link['teen'];
               final displayNameRaw = otherUser?['profile']?['displayName']?.toString() ?? '';
               final displayName = displayNameRaw.trim().isEmpty ? 'Linked Account' : displayNameRaw;
               final displayPhone = otherUser?['phone'] ?? link['receiverPhone'] ?? '';
+              final avatarUrl = otherUser?['profile']?['avatarUrl']?.toString();
+              final teenId = link['teenId']?.toString();
 
               return Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.green[50]?.withValues(alpha: 0.3),
+                  color: Colors.green[50]?.withValues(alpha: 0.25),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.green[100] ?? Colors.transparent, width: 1),
                 ),
                 child: Row(
                   children: [
+                    // Profile photo or initial circle
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: 42,
+                      height: 42,
                       decoration: BoxDecoration(
+                        shape: BoxShape.circle,
                         color: Colors.green[100],
-                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.green[300] ?? Colors.green, width: 1.5),
+                        image: avatarUrl != null && avatarUrl.isNotEmpty
+                            ? DecorationImage(image: NetworkImage(avatarUrl), fit: BoxFit.cover)
+                            : null,
                       ),
-                      child: Center(
-                        child: Text(
-                          displayName.toString().substring(0, 1).toUpperCase(),
-                          style: GoogleFonts.nunito(
-                            fontWeight: FontWeight.w800,
-                            color: Colors.green[800],
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
+                      child: avatarUrl == null || avatarUrl.isEmpty
+                          ? Center(
+                              child: Text(
+                                displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : 'U',
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.green[800],
+                                  fontSize: 16,
+                                ),
+                              ),
+                            )
+                          : null,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,40 +401,40 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                             style: GoogleFonts.nunito(
                               fontWeight: FontWeight.w800,
                               color: AppColors.textDark,
-                              fontSize: 14,
+                              fontSize: 13.5,
                             ),
                           ),
                           if (displayPhone.toString().isNotEmpty) ...[
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 1),
                             Text(
                               displayPhone,
                               style: GoogleFonts.nunito(
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textLight,
-                                fontSize: 12,
+                                fontSize: 11,
                               ),
                             ),
                           ],
                           if (link['wellnessScore'] != null) ...[
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: AppColors.purple.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(5),
                                   ),
                                   child: Text(
                                     'Wellness: ${link['wellnessScore']}%',
                                     style: GoogleFonts.nunito(
                                       fontWeight: FontWeight.w800,
                                       color: AppColors.purple,
-                                      fontSize: 10,
+                                      fontSize: 9.5,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Expanded(
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(3),
@@ -432,7 +442,7 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                                       value: (link['wellnessScore'] as num) / 100.0,
                                       backgroundColor: Colors.grey[200],
                                       color: AppColors.purple,
-                                      minHeight: 5,
+                                      minHeight: 4,
                                     ),
                                   ),
                                 ),
@@ -442,21 +452,66 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                         ],
                       ),
                     ),
-                    OutlinedButton.icon(
-                      onPressed: () => _confirmUnlink(link['id'], displayName),
-                      icon: const Icon(Icons.link_off, size: 14, color: Colors.red),
-                      label: Text(
-                        'Unlink',
-                        style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 11,
-                          color: Colors.red,
+                    const SizedBox(width: 6),
+                    // For Parent user: Eye Icon to open Daughter Activity & Wellness Report Sheet
+                    if (!_isTeen && teenId != null) ...[
+                      Material(
+                        color: Colors.transparent,
+                        child: Tooltip(
+                          message: 'View Activity & Wellness Report',
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DaughterReportScreen(
+                                    teenId: teenId,
+                                    daughterName: displayName,
+                                    avatarUrl: avatarUrl,
+                                  ),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.purple.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.remove_red_eye_rounded,
+                                size: 18,
+                                color: AppColors.purple,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.red[100] ?? Colors.red),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      const SizedBox(width: 6),
+                    ],
+                    // Icon-only Unlink Button
+                    Material(
+                      color: Colors.transparent,
+                      child: Tooltip(
+                        message: 'Unlink Account',
+                        child: InkWell(
+                          onTap: () => _confirmUnlink(link['id'], displayName),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                            ),
+                            child: const Icon(
+                              Icons.link_off_rounded,
+                              size: 18,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -476,15 +531,15 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -697,15 +752,15 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
   Widget _buildSendInviteSection() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),

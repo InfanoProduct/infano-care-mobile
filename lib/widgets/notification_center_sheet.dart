@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:intl/intl.dart';
@@ -57,8 +58,66 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
     }
   }
 
-  Future<void> _dismissNotification(String id, String? deepLink) async {
-    // Optimistic UI update
+  String? _extractMapUrl(dynamic notification) {
+    if (notification is! Map) return null;
+    final payload = notification['payload'];
+    if (payload is Map) {
+      if (payload['mapsUrl'] != null && payload['mapsUrl'].toString().isNotEmpty) {
+        return payload['mapsUrl'].toString();
+      }
+      final lat = payload['lat'];
+      final lng = payload['lng'];
+      if (lat != null && lng != null) {
+        final dLat = double.tryParse(lat.toString());
+        final dLng = double.tryParse(lng.toString());
+        if (dLat != null && dLng != null && !(dLat == 0.0 && dLng == 0.0)) {
+          return 'https://maps.google.com/?q=$dLat,$dLng';
+        }
+      }
+    }
+
+    final body = notification['body']?.toString() ?? '';
+    final urlMatch = RegExp(r'https?://[^\s]+').firstMatch(body);
+    if (urlMatch != null) {
+      final matchedUrl = urlMatch.group(0)!;
+      if (matchedUrl.contains('maps.google.com') ||
+          matchedUrl.contains('google.com/maps') ||
+          matchedUrl.contains('goo.gl/maps')) {
+        return matchedUrl;
+      }
+    }
+
+    return null;
+  }
+
+  Future<void> _handleNotificationTap(dynamic notification) async {
+    // 1. Check for shared GPS location / Google Maps link
+    final mapUrl = _extractMapUrl(notification);
+    if (mapUrl != null) {
+      final uri = Uri.parse(mapUrl);
+      try {
+        if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
+        return;
+      } catch (e) {
+        debugPrint('[NotificationCenter] Could not launch maps URL ($mapUrl): $e');
+      }
+    }
+
+    // 2. Check for in-app deep link
+    final deepLink = notification['deepLink']?.toString();
+    if (deepLink != null && deepLink.startsWith('infano://')) {
+      final path = deepLink.replaceFirst('infano://', '/');
+      if (mounted) {
+        final router = GoRouter.of(context);
+        Navigator.pop(context);
+        router.push(path);
+      }
+    }
+  }
+
+  Future<void> _deleteNotification(String id) async {
     setState(() {
       _notifications.removeWhere((n) => n['id'] == id);
     });
@@ -66,16 +125,7 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
     try {
       await ApiService.instance.dio.delete('/parent/notifications/$id');
     } catch (e) {
-      debugPrint('Failed to dismiss notification: $e');
-    }
-
-    if (deepLink != null && deepLink.startsWith('infano://')) {
-      final path = deepLink.replaceFirst('infano://', '/');
-      if (mounted) {
-        final router = GoRouter.of(context);
-        Navigator.pop(context); // Close bottom sheet
-        router.push(path);
-      }
+      debugPrint('Failed to delete notification: $e');
     }
   }
 
@@ -105,6 +155,11 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
 
   IconData _getIconForType(String type) {
     switch (type) {
+      case 'SOS_ALERT':
+      case 'CRISIS_ALERT':
+        return Icons.emergency_rounded;
+      case 'SOS_RESOLVED':
+        return Icons.check_circle_outline_rounded;
       case 'linkRequest':
         return Icons.person_add_outlined;
       case 'linkAcceptance':
@@ -144,6 +199,11 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
 
   Color _getColorForType(String type) {
     switch (type) {
+      case 'SOS_ALERT':
+      case 'CRISIS_ALERT':
+        return const Color(0xFFDC2626);
+      case 'SOS_RESOLVED':
+        return const Color(0xFF10B981);
       case 'linkRequest':
       case 'linkAcceptance':
         return AppColors.purple;
@@ -259,81 +319,139 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
                               final type = notification['type'].toString();
                               final title = notification['title'].toString();
                               final body = notification['body'].toString();
-                              final deepLink = notification['deepLink']?.toString();
                               final sentAt = notification['sentAt']?.toString();
+                              final mapUrl = _extractMapUrl(notification);
 
                               final color = _getColorForType(type);
                               final icon = _getIconForType(type);
 
-                              return InkWell(
-                                onTap: () => _dismissNotification(id, deepLink),
-                                borderRadius: BorderRadius.circular(16),
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
+                              return Dismissible(
+                                key: Key('notif_$id'),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (_) => _deleteNotification(id),
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20),
                                   decoration: BoxDecoration(
-                                    color: color.withValues(alpha: 0.05),
+                                    color: Colors.red.shade400,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: color.withValues(alpha: 0.1),
-                                      width: 1,
-                                    ),
                                   ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Icon container
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: color.withValues(alpha: 0.1),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(icon, color: color, size: 20),
+                                  child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                                ),
+                                child: InkWell(
+                                  onTap: () => _handleNotificationTap(notification),
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: color.withValues(alpha: 0.05),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: color.withValues(alpha: 0.1),
+                                        width: 1,
                                       ),
-                                      const SizedBox(width: 12),
-                                      
-                                      // Text content
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    title,
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Icon container
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: color.withValues(alpha: 0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(icon, color: color, size: 20),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        
+                                        // Text content
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      title,
+                                                      style: GoogleFonts.nunito(
+                                                        fontWeight: FontWeight.w800,
+                                                        fontSize: 14,
+                                                        color: AppColors.textDark,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    _formatTime(sentAt),
                                                     style: GoogleFonts.nunito(
-                                                      fontWeight: FontWeight.w800,
-                                                      fontSize: 14,
-                                                      color: AppColors.textDark,
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: AppColors.textLight,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                body,
+                                                style: GoogleFonts.nunito(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: AppColors.textMedium,
+                                                  height: 1.3,
+                                                ),
+                                              ),
+                                              if (mapUrl != null) ...[
+                                                const SizedBox(height: 8),
+                                                GestureDetector(
+                                                  onTap: () => _handleNotificationTap(notification),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                                                      borderRadius: BorderRadius.circular(10),
+                                                      border: Border.all(
+                                                        color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                                                      ),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        const Icon(
+                                                          Icons.pin_drop_rounded,
+                                                          size: 14,
+                                                          color: Color(0xFFEF4444),
+                                                        ),
+                                                        const SizedBox(width: 5),
+                                                        Flexible(
+                                                          child: Text(
+                                                            'Open in Google Maps',
+                                                            style: GoogleFonts.nunito(
+                                                              fontSize: 11.5,
+                                                              fontWeight: FontWeight.w800,
+                                                              color: const Color(0xFFEF4444),
+                                                            ),
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        const Icon(
+                                                          Icons.launch_rounded,
+                                                          size: 12,
+                                                          color: Color(0xFFEF4444),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ),
-                                                Text(
-                                                  _formatTime(sentAt),
-                                                  style: GoogleFonts.nunito(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: AppColors.textLight,
-                                                  ),
-                                                ),
                                               ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              body,
-                                              style: GoogleFonts.nunito(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: AppColors.textMedium,
-                                                height: 1.3,
-                                              ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );

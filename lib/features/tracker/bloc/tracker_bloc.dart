@@ -94,7 +94,7 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
         if (currentState is _Loaded) {
           emit(currentState.copyWith(isRefreshing: false));
         } else {
-          emit(TrackerState.error(e.toString()));
+          emit(const TrackerState.notStarted());
         }
       }
     });

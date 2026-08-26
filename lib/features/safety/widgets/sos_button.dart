@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/safety/data/safety_repository.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/location_service.dart';
 
 class SosButton extends StatefulWidget {
   const SosButton({super.key});
@@ -325,10 +326,18 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
 
     try {
       final repo = SafetyRepository(ApiService.instance.dio);
-      // Trigger the backend alert using categoryId directly
+
+      // Acquire live GPS fix (with fallback to last known)
+      final position = await LocationHelperService.instance.getCurrentPosition(
+        timeout: const Duration(seconds: 4),
+      );
+      final double lat = position?.latitude ?? 0.0;
+      final double lng = position?.longitude ?? 0.0;
+
+      // Trigger the backend alert using categoryId and live coordinates
       final response = await repo.triggerSos(
-        28.6139,
-        77.2090,
+        lat,
+        lng,
         emergencyType: categoryId,
       );
 
@@ -336,7 +345,11 @@ class _SosButtonState extends State<SosButton> with SingleTickerProviderStateMix
 
       if (mounted) {
         Navigator.pop(context); // Dismiss loading dialog
-        context.pushReplacement('/safety/sos_active', extra: incidentId);
+        context.pushReplacement('/safety/sos/active', extra: {
+          'incidentId': incidentId,
+          'contacts': [],
+          'emergencyType': categoryId,
+        });
       }
     } catch (e) {
       if (mounted) {

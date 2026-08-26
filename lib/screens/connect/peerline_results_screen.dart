@@ -313,16 +313,28 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
   }
 
   void _showDetailsBottomSheet(BuildContext context) {
+    const Color purpleTheme = Color(0xFF644D95);
+    final String name = widget.mentor['name'] ?? 'Peer Mentor';
+    final String fullName = widget.mentor['fullName'] ?? (widget.mentor['name'] != null ? '${widget.mentor['name']} Sharma' : 'Peer Mentor');
+    final String initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M';
+    final String headline = widget.mentor['headline'] ?? 'Certified Peer Listener & Emotional Health Coach';
+    final String rating = widget.mentor['rating']?.toString() ?? '5.0';
+    final String reviewsCount = widget.mentor['reviewsCount'] ?? '48 reviews';
+    final String sessionsCount = widget.mentor['sessionsCount'] ?? '140+ Mentees';
+    final String responseTime = widget.mentor['responseTime'] ?? '< 15 mins';
+    final String languages = widget.mentor['languages'] ?? 'English, Hindi';
+    final String bio = widget.mentor['bio'] ?? widget.mentor['fullBio'] ?? 'Hi there! I am a certified peer mentor passionate about creating a safe, judgment-free space for young girls. Whether you are navigating school stress, emotional highs & lows, or just need a warm listening ear, I am here to help you feel supported and heard.';
+    final List<String> badges = widget.mentor['badges'] != null
+        ? List<String>.from(widget.mentor['badges'])
+        : (widget.mentor['topics'] != null
+            ? (widget.mentor['topics'] as List).map((e) => e.toString()).toList()
+            : ['Mental & Emotional Health', 'Identity & Personal Growth']);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        final bool isOnline = widget.mentor['isOnline'] == true;
-        final String name = widget.mentor['name'] ?? 'Peer Mentor';
-        final String bio = widget.mentor['bio'] ?? 'Helping girls navigate their journey with empathy and care.';
-        final List topics = widget.mentor['topics'] ?? [];
-
+      builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             Future<void> requestFromSheet() async {
@@ -363,207 +375,407 @@ class _MentorCardWidgetState extends State<_MentorCardWidget> {
             }
 
             return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Pull Handle
-                  Center(
-                    child: Container(
-                      width: 48,
-                      height: 5,
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
+              margin: const EdgeInsets.only(top: 80),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7EFF5),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
+                border: Border.all(
+                  color: const Color(0xFFB48BA6).withValues(alpha: 0.35),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFB48BA6).withValues(alpha: 0.25),
+                    blurRadius: 32,
+                    offset: const Offset(0, -8),
                   ),
-
-                  // Profile Header
-                  Row(
+                ],
+              ),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 14, 22, 34),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: AppColors.purple.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Center(
-                          child: Text(
-                            name.substring(0, 1).toUpperCase(),
-                            style: GoogleFonts.nunito(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.purple,
-                            ),
+                      // Top Handle Bar
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFB48BA6).withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              style: GoogleFonts.nunito(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              isOnline ? 'Available to chat' : 'Offline',
-                              style: GoogleFonts.nunito(
-                                fontSize: 13,
-                                color: isOnline ? const Color(0xFF10B981) : Colors.grey,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.star, size: 14, color: Colors.amber.shade600),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '4.9 Rating',
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textDark,
+                      const SizedBox(height: 20),
+
+                      // Avatar & Verified Mentor Header
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Stack(
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: purpleTheme.withValues(alpha: 0.25),
+                                    width: 2.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: purpleTheme.withValues(alpha: 0.12),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    initial,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w900,
+                                      color: purpleTheme,
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-                  
-                  // Certified Topics
-                  Text(
-                    'Topics of Expertise',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: topics.map((t) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.purple.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.purple.withValues(alpha: 0.1)),
-                      ),
-                      child: Text(
-                        t.toString(),
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          color: AppColors.purple,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    )).toList(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Bio / About
-                  Text(
-                    'About Mentor',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    bio,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.textMedium,
-                      height: 1.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Request Button inside Popup
-                  if (_isRequested) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.purple.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.purple.withValues(alpha: 0.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.hourglass_empty, size: 20, color: AppColors.purple),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Request has been sent to the mentor. Once they accept, you will be able to connect and chat.',
-                              style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                color: AppColors.textDark,
-                                height: 1.4,
                               ),
+                              Positioned(
+                                top: 2,
+                                right: 2,
+                                child: Container(
+                                  width: 16,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        fullName,
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w900,
+                                          color: const Color(0xFF1E1B4B),
+                                          letterSpacing: -0.3,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(
+                                      Icons.verified_rounded,
+                                      size: 18,
+                                      color: Color(0xFF059669),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  headline,
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF64748B),
+                                    height: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 9,
+                                        vertical: 3.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.star_rounded,
+                                            size: 14,
+                                            color: Color(0xFFF59E0B),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$rating ($reviewsCount)',
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w900,
+                                              color: const Color(0xFFB45309),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 9,
+                                        vertical: 3.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        sessionsCount,
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF047857),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 18),
+                      const Divider(color: Color(0xFFE2D4DE), thickness: 1.5),
+                      const SizedBox(height: 14),
 
-                  ElevatedButton(
-                    onPressed: (!_isRequested && !_isLoading) ? requestFromSheet : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.purple,
-                      disabledBackgroundColor: _isRequested ? Colors.green.shade50 : Colors.grey.shade100,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : Text(
-                          _isRequested ? 'Request Sent' : 'Request Chat',
-                          style: GoogleFonts.nunito(
-                            fontWeight: FontWeight.bold,
-                            color: _isRequested ? Colors.green.shade700 : Colors.white,
-                            fontSize: 16,
+                      // Specialties & Topics Section
+                      Text(
+                        'SPECIALTIES & TOPICS',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF7A61AC),
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: badges.map((badgeText) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: purpleTheme.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              badgeText,
+                              style: GoogleFonts.nunito(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: purpleTheme,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // About Mentor Section
+                      Text(
+                        'ABOUT MENTOR',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF7A61AC),
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        bio,
+                        style: GoogleFonts.nunito(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF334155),
+                          height: 1.45,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Metadata Tags (Response Time & Languages)
+                      Wrap(
+                        spacing: 14,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.bolt_rounded,
+                                size: 16,
+                                color: Color(0xFFD97706),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Responds in $responseTime',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF475569),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.translate_rounded,
+                                size: 15,
+                                color: Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                languages,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF475569),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 22),
+
+                      // Request Sent note if requested
+                      if (_isRequested) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: purpleTheme.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: purpleTheme.withValues(alpha: 0.2)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.hourglass_empty_rounded, size: 20, color: purpleTheme),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'Request has been sent to $name. You will be notified once connected.',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF334155),
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                      ],
+
+                      // CTA Button
+                      GestureDetector(
+                        onTap: (!_isRequested && !_isLoading) ? requestFromSheet : null,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: _isRequested
+                                  ? const [Color(0xFF059669), Color(0xFF047857)]
+                                  : const [Color(0xFF7A61AC), purpleTheme],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (_isRequested ? const Color(0xFF059669) : purpleTheme)
+                                    .withValues(alpha: 0.35),
+                                blurRadius: 14,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: _isLoading
+                              ? const Center(
+                                  child: SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      _isRequested ? Icons.check_circle_rounded : Icons.mark_email_unread_rounded,
+                                      size: 18,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      _isRequested ? 'Request Sent' : 'Send Peer Chat Request',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 15.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                ],
+                ),
               ),
             );
-          }
+          },
         );
       },
     );
