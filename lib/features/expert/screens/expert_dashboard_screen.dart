@@ -11,6 +11,7 @@ import 'package:infano_care_mobile/features/expert/screens/expert_consultations_
 import 'package:infano_care_mobile/features/expert/screens/expert_calendar_screen.dart';
 import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
+import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 

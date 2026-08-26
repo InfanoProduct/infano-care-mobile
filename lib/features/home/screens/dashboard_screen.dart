@@ -18,6 +18,7 @@ import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
 import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
+import 'package:infano_care_mobile/services/friends_socket_service.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:go_router/go_router.dart';
