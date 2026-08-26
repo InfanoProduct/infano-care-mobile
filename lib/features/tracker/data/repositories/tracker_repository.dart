@@ -30,10 +30,11 @@ class TrackerRepository {
       }
       return null;
     } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        return null; // Profile truly doesn't exist
-      }
-      rethrow; // Auth or network error
+      debugPrint('[TrackerRepository] getProfile DioException: ${e.response?.statusCode}');
+      return null;
+    } catch (e) {
+      debugPrint('[TrackerRepository] getProfile unexpected error: $e');
+      return null;
     }
   }
 

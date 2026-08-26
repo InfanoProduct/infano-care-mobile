@@ -551,6 +551,22 @@ class _AccountScreenState extends State<AccountScreen> {
             label: 'My Library',
             route: '/account/saved',
           ),
+          const Divider(height: 1, indent: 56),
+          _buildNavRow(
+            context,
+            icon: Icons.location_on_outlined,
+            label: 'Location & GPS Settings',
+            route: '/safety/location',
+            iconColor: const Color(0xFF10B981),
+          ),
+          const Divider(height: 1, indent: 56),
+          _buildNavRow(
+            context,
+            icon: Icons.settings_outlined,
+            label: 'Settings & Privacy',
+            route: '/settings',
+            iconColor: const Color(0xFF64748B),
+          ),
         ],
       ),
     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1);

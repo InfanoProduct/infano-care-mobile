@@ -222,7 +222,55 @@ class _SosConfigScreenState extends State<SosConfigScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                // Location & GPS Settings Banner
+                GestureDetector(
+                  onTap: () => context.push('/safety/location'),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFBBF7D0)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.location_on_rounded, color: Color(0xFF10B981), size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'GPS & Live Location Sharing',
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 14,
+                                  color: const Color(0xFF065F46),
+                                ),
+                              ),
+                              Text(
+                                'Configure live GPS coordinates attached to emergency alerts',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12,
+                                  color: const Color(0xFF047857),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF10B981)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 if (_contacts.isEmpty)
                   Container(
                     margin: const EdgeInsets.only(bottom: 24),

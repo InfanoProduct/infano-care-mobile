@@ -52,6 +52,7 @@ import 'package:infano_care_mobile/features/safety/screens/sos_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_config_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_type_setup_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_test_screen.dart';
+import 'package:infano_care_mobile/features/safety/screens/location_settings_screen.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
@@ -508,10 +509,36 @@ GoRouter createRouter(
           );
         },
       ),
+      GoRoute(
+        path: '/safety/location',
+        builder: (_, _) => const LocationSettingsScreen(),
+      ),
       // Legacy alias kept for backwards compat
       GoRoute(
         path: '/safety/sos_config',
         builder: (_, _) => const SosConfigScreen(),
+      ),
+
+      // ── Settings & Account Sub-routes ──────────────────────────────────────────
+      GoRoute(
+        path: '/settings',
+        builder: (_, _) => SettingsScreen(storage: storage),
+      ),
+      GoRoute(
+        path: '/settings/location',
+        builder: (_, _) => const LocationSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/account/notifications',
+        builder: (_, _) => const NotificationPreferencesScreen(),
+      ),
+      GoRoute(
+        path: '/account/data-rights',
+        builder: (_, _) => const DataRightsPrivacyScreen(),
+      ),
+      GoRoute(
+        path: '/account/saved',
+        builder: (_, _) => const SavedArticlesScreen(),
       ),
 
       // ── Journal Module ────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/location_service.dart';
 import 'package:infano_care_mobile/features/safety/data/safety_repository.dart';
 
 class SosActiveScreen extends StatefulWidget {
@@ -34,6 +35,9 @@ class _SosActiveScreenState extends State<SosActiveScreen>
   Timer? _locationTimer;
   int _elapsedSeconds = 0;
   bool _isResolving = false;
+  String? _currentAddress;
+  double? _currentLat;
+  double? _currentLng;
 
   @override
   void initState() {
@@ -53,9 +57,10 @@ class _SosActiveScreenState extends State<SosActiveScreen>
       if (mounted) setState(() => _elapsedSeconds++);
     });
 
+    _pingLocation();
     if (widget.incidentId != null) {
       _locationTimer =
-          Timer.periodic(const Duration(seconds: 30), (_) => _pingLocation());
+          Timer.periodic(const Duration(seconds: 25), (_) => _pingLocation());
     }
 
     HapticFeedback.heavyImpact();
@@ -71,17 +76,31 @@ class _SosActiveScreenState extends State<SosActiveScreen>
   }
 
   Future<void> _pingLocation() async {
-    if (widget.incidentId == null) return;
     try {
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 5),
-        ),
+      final pos = await LocationHelperService.instance.getCurrentPosition(
+        timeout: const Duration(seconds: 5),
       );
-      final repo = SafetyRepository(ApiService.instance.dio);
-      await repo.updateSosLocation(
-          widget.incidentId!, pos.latitude, pos.longitude);
+      if (pos != null) {
+        if (mounted) {
+          setState(() {
+            _currentLat = pos.latitude;
+            _currentLng = pos.longitude;
+          });
+        }
+        
+        if (widget.incidentId != null) {
+          final repo = SafetyRepository(ApiService.instance.dio);
+          await repo.updateSosLocation(
+              widget.incidentId!, pos.latitude, pos.longitude);
+        }
+
+        // Also fetch address silently
+        final addr = await LocationHelperService.instance
+            .getAddressFromCoordinates(pos.latitude, pos.longitude);
+        if (mounted && addr != null) {
+          setState(() => _currentAddress = addr);
+        }
+      }
     } catch (_) {}
   }
 
@@ -336,24 +355,33 @@ class _SosActiveScreenState extends State<SosActiveScreen>
                           const SizedBox(height: 12),
                           // Live sharing pill
                           Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 24),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
+                                horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.06),
+                              color: Colors.white.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white.withOpacity(0.12)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(Icons.location_on_rounded,
-                                    color: Colors.greenAccent, size: 14),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Live GPS sharing active',
-                                  style: GoogleFonts.nunito(
-                                    color: Colors.white.withOpacity(0.7),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
+                                    color: Colors.greenAccent, size: 16),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    _currentAddress ??
+                                        (_currentLat != null
+                                            ? 'Broadcasting (${_currentLat!.toStringAsFixed(4)}, ${_currentLng!.toStringAsFixed(4)})'
+                                            : 'Acquiring GPS tracking...'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.nunito(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ),
                               ],
