@@ -395,9 +395,7 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
           onTap: (i) {
             setState(() {
               _selectedIndex = i;
-              _isExpanded = true;
             });
-            _startCollapseTimer();
           },
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,

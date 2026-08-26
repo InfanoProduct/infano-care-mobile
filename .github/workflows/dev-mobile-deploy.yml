@@ -28,7 +28,7 @@ jobs:
         working-directory: ./
 
       - name: Build Debug APK
-        run: flutter build apk --debug --dart-define=API_URL=${{ secrets.DEV_API_URL }}
+        run: flutter build apk --debug --build-name=1.0.0 --build-number=${{ github.run_number }} --dart-define=API_URL=${{ secrets.DEV_API_URL }}
         working-directory: ./
 
       - name: Upload to Firebase App Distribution

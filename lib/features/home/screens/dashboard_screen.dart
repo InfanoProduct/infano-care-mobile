@@ -248,29 +248,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 backgroundColor: const Color(0xFFF5F4F7),
                 appBar: null,
                 drawer: _buildDrawer(context, storage),
-                body: NotificationListener<ScrollNotification>(
-                  onNotification: (scrollNotification) {
-                    if (scrollNotification is ScrollUpdateNotification) {
-                      if (scrollNotification.scrollDelta != null &&
-                          scrollNotification.scrollDelta! > 2.0) {
-                        if (_isExpanded) {
-                          setState(() {
-                            _isExpanded = false;
-                          });
-                        }
-                      } else if (scrollNotification.scrollDelta != null &&
-                          scrollNotification.scrollDelta! < -2.0) {
-                        if (!_isExpanded) {
-                          setState(() {
-                            _isExpanded = true;
-                          });
-                        }
-                      }
-                    }
-                    return false;
-                  },
-                  child: SafeArea(child: screens[state.selectedIndex]),
-                ),
+                body: SafeArea(child: screens[state.selectedIndex]),
                 bottomNavigationBar: Container(
                   decoration: BoxDecoration(
                     boxShadow: [
@@ -284,10 +262,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                   child: BottomNavigationBar(
                     currentIndex: state.selectedIndex,
                     onTap: (index) {
-                      setState(() {
-                        _isExpanded = true;
-                      });
-                      _startCollapseTimer();
                       context.read<DashboardCubit>().setTab(index);
                     },
                     type: BottomNavigationBarType.fixed,
