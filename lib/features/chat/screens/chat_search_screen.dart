@@ -8,6 +8,7 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/features/expert/services/expert_service.dart';
 import 'package:infano_care_mobile/models/peerline_topic.dart';
+import 'package:infano_care_mobile/widgets/peer_mentor_detail_sheet.dart';
 
 class ChatSearchScreen extends StatefulWidget {
   const ChatSearchScreen({super.key});
@@ -501,11 +502,17 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
-                        child: Text('Request', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.bold)),
+                        child: Text('Chat Request', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
             onTap: () {
               if (targetSessionId != null) {
                 context.push('/peerline/chat/$targetSessionId');
+              } else {
+                PeerMentorDetailSheet.show(
+                  context: context,
+                  mentor: mentor is Map<String, dynamic> ? mentor : Map<String, dynamic>.from(mentor as Map),
+                  onAction: (m) => _handleRequestChat(mentorId, name),
+                );
               }
             },
           ),

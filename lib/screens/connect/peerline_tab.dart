@@ -8,6 +8,7 @@ import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/models/peerline_session.dart';
 import 'package:infano_care_mobile/models/peerline_topic.dart';
 import 'package:infano_care_mobile/widgets/mentor_dashboard.dart';
+import 'package:infano_care_mobile/widgets/peer_mentor_detail_sheet.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
@@ -178,16 +179,22 @@ class _PeerLineTabState extends State<PeerLineTab> with TickerProviderStateMixin
         }
       });
       
-      _sessionsFuture = _api.getPeerLineSessions(
-        role: _isCertifiedMentor && !_viewAsMentee ? 'mentor' : 'mentee',
-        status: null,
-      ).then((sessions) {
+      _sessionsFuture = Future.wait([
+        _api.getPeerLineSessions(role: 'mentee', status: null),
+        _api.getPeerLineSessions(role: 'mentor', status: null),
+      ]).then((lists) {
+        final combined = [...lists[0], ...lists[1]];
+        final unique = <String, PeerLineSession>{};
+        for (final s in combined) {
+          unique[s.id] = s;
+        }
+        final result = unique.values.toList();
         if (mounted) {
           setState(() {
-            _allSessions = sessions;
+            _allSessions = result;
           });
         }
-        return sessions;
+        return result;
       });
 
       final List<String> filterTopics = _selectedTopicId != null ? [_selectedTopicId!] : [];
@@ -1183,18 +1190,9 @@ class _TopMentorCardState extends State<_TopMentorCard> {
     final bool isOnline = widget.mentor['isOnline'] == true || widget.mentor['profile']?['isAvailable'] == true;
     final List certifiedTopics = widget.mentor['certifiedTopics'] ?? widget.mentor['topics'] ?? [];
     
-    // Check if there is an active session or a pending request with this mentor
-    PeerLineSession? activeSession;
-    PeerLineSession? pendingSession;
-    for (final s in widget.sessions) {
-      if (s.mentorId == mentorId) {
-        if (s.status.toLowerCase() == 'active') {
-          activeSession = s;
-        } else if (s.status.toLowerCase() == 'matching' || s.status.toLowerCase() == 'queued') {
-          pendingSession = s;
-        }
-      }
-    }
+    // Check if there is an active session or a pending request with this mentor using PeerSessionHelper
+    final activeSession = PeerSessionHelper.findActiveSession(widget.mentor, widget.sessions);
+    final pendingSession = PeerSessionHelper.findPendingSession(widget.mentor, widget.sessions);
 
     List<String> topics = [];
     if (certifiedTopics.isNotEmpty) {
@@ -1385,461 +1383,13 @@ class _TopMentorCardState extends State<_TopMentorCard> {
     required PeerLineSession? activeSession,
     required PeerLineSession? pendingSession,
   }) {
-    final String initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M';
-    final String headline = widget.mentor['headline'] ?? 'Certified Peer Listener & Emotional Health Coach';
-    final String rating = widget.mentor['rating']?.toString() ?? '4.9';
-    final String reviewsCount = widget.mentor['reviewsCount'] ?? '48 reviews';
-    final String menteesCount = widget.mentor['sessionsCount'] ?? '140+ Mentees';
-    final String responseTime = widget.mentor['responseTime'] ?? '< 15 mins';
-    final String languages = widget.mentor['languages'] ?? 'English, Hindi';
-    final List<String> badges = topics.isNotEmpty
-        ? topics
-        : ['Mental & Emotional Health', 'Identity & Personal Growth'];
-    const Color purpleTheme = Color(0xFF644D95);
-
-    showModalBottomSheet(
+    PeerMentorDetailSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetCtx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF9F5F8),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(36)),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x3D000000),
-                blurRadius: 30,
-                offset: Offset(0, -6),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.only(
-            top: 14,
-            left: 22,
-            right: 22,
-            bottom: MediaQuery.of(sheetCtx).padding.bottom + 22,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 44,
-                    height: 4.5,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD1D5DB),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(sheetCtx),
-                    child: Container(
-                      padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEDE8F2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                        color: Color(0xFF4B5563),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Stack(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: purpleTheme.withValues(alpha: 0.25),
-                              width: 2.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: purpleTheme.withValues(alpha: 0.15),
-                                blurRadius: 14,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              initial,
-                              style: GoogleFonts.nunito(
-                                fontSize: 36,
-                                fontWeight: FontWeight.w900,
-                                color: purpleTheme,
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (isOnline)
-                          Positioned(
-                            top: 3,
-                            right: 3,
-                            child: Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  name,
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                    color: const Color(0xFF1E1B4B),
-                                    letterSpacing: -0.3,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              const Icon(
-                                Icons.verified_rounded,
-                                size: 18,
-                                color: Color(0xFF059669),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            headline,
-                            style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF64748B),
-                              height: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 9,
-                                  vertical: 3.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.star_rounded,
-                                      size: 14,
-                                      color: Color(0xFFF59E0B),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '$rating ($reviewsCount)',
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w900,
-                                        color: const Color(0xFFB45309),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 9,
-                                  vertical: 3.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  menteesCount,
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF047857),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                const Divider(color: Color(0xFFE2D4DE), thickness: 1.5),
-                const SizedBox(height: 14),
-                Text(
-                  'SPECIALTIES & TOPICS',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF7A61AC),
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: badges.map((badgeText) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: purpleTheme.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        badgeText,
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: purpleTheme,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'ABOUT MENTOR',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF7A61AC),
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  bio,
-                  style: GoogleFonts.nunito(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF334155),
-                    height: 1.45,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 14,
-                  runSpacing: 6,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.bolt_rounded,
-                          size: 16,
-                          color: Color(0xFFD97706),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Responds in $responseTime',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.translate_rounded,
-                          size: 15,
-                          color: Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          languages,
-                          style: GoogleFonts.nunito(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
-                if (activeSession != null) ...[
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(sheetCtx);
-                      context.push('/peerline/chat/${activeSession.id}');
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
-                            blurRadius: 14,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.chat_bubble_rounded,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Start Chat',
-                            style: GoogleFonts.nunito(
-                              fontSize: 15.5,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ] else if (pendingSession != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.hourglass_empty_rounded,
-                          size: 18,
-                          color: Colors.grey.shade500,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Request Sent',
-                          style: GoogleFonts.nunito(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.grey.shade500,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ] else ...[
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(sheetCtx);
-                      _handleRequest();
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7A61AC), purpleTheme],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: purpleTheme.withValues(alpha: 0.35),
-                            blurRadius: 14,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.mark_email_unread_rounded,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Send Peer Chat Request',
-                            style: GoogleFonts.nunito(
-                              fontSize: 15.5,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        );
-      },
+      mentor: widget.mentor,
+      sessions: widget.sessions,
+      activeSession: activeSession,
+      pendingSession: pendingSession,
+      onAction: (m) async => _handleRequest(),
     );
   }
 
@@ -1885,7 +1435,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
         ),
       );
     } else {
-      // Normal Request Chat button
+      // Normal Request Chat button -> Chat Request
       return ElevatedButton(
         onPressed: _handleRequest,
         style: ElevatedButton.styleFrom(
@@ -1901,7 +1451,7 @@ class _TopMentorCardState extends State<_TopMentorCard> {
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
             )
           : Text(
-              'Request Chat',
+              'Chat Request',
               style: GoogleFonts.nunito(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,

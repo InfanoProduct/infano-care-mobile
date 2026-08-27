@@ -13,8 +13,10 @@ import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
 import 'package:infano_care_mobile/models/circle.dart';
 import 'package:infano_care_mobile/models/peerline_session.dart';
+import 'package:infano_care_mobile/models/peerline_topic.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/widgets/circle_details_sheet.dart';
+import 'package:infano_care_mobile/widgets/peer_mentor_detail_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/article_detail_screen.dart';
 import 'package:infano_care_mobile/features/home/widgets/parent_daughter_summary_home_card.dart';
 import 'package:provider/provider.dart';
@@ -84,6 +86,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
     _dailyQuote = _genZQuotes[dayOfYear % _genZQuotes.length];
     _fetchDailyQuote();
+    NotificationCenterSheet.fetchUnreadCount();
   }
 
   Future<void> _fetchDailyQuote() async {
@@ -233,7 +236,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              // Notification Icon with Badge Dot
+                              // Notification Icon with Dynamic Badge Dot
                               GestureDetector(
                                 onTap:
                                     () => NotificationCenterSheet.show(context),
@@ -243,27 +246,34 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                                     color: Colors.white.withValues(alpha: 0.7),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      const Icon(
-                                        Icons.notifications_none_rounded,
-                                        size: 22,
-                                        color: Color(0xFF2D1557),
-                                      ),
-                                      Positioned(
-                                        right: -1,
-                                        top: -1,
-                                        child: Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: const BoxDecoration(
-                                            color: Color(0xFFE11D48),
-                                            shape: BoxShape.circle,
+                                  child: ValueListenableBuilder<int>(
+                                    valueListenable:
+                                        NotificationCenterSheet.unreadCountNotifier,
+                                    builder: (context, unreadCount, _) {
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          const Icon(
+                                            Icons.notifications_none_rounded,
+                                            size: 22,
+                                            color: Color(0xFF2D1557),
                                           ),
-                                        ),
-                                      ),
-                                    ],
+                                          if (unreadCount > 0)
+                                            Positioned(
+                                              right: -1,
+                                              top: -1,
+                                              child: Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFFE11D48),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
@@ -768,138 +778,63 @@ class RecommendedPeerMentorsSection extends StatefulWidget {
 class _RecommendedPeerMentorsSectionState
     extends State<RecommendedPeerMentorsSection> {
   int _selectedTopicIndex = 0;
+  bool _isLoading = true;
 
   static const Color _purpleTheme = Color(0xFF644D95);
 
-  final List<(String emoji, String title)> _topics = const [
-    ('✨', 'All Topics'),
-    ('🧠', 'Mental & Emotional Health'),
-    ('📚', 'Academic & School Support'),
-    ('💖', 'Body Confidence & Growth'),
-  ];
-
-  final List<Map<String, dynamic>> _mentors = const [
-    {
-      'initial': 'K',
-      'name': 'Khushi',
-      'fullName': 'Khushi Sharma',
-      'headline': 'Certified Peer Listener & Emotional Health Coach',
-      'rating': '5.0',
-      'reviewsCount': '48 reviews',
-      'sessionsCount': '140+ Mentees',
-      'responseTime': '< 15 mins',
-      'languages': 'English, Hindi',
-      'cardBg': Color(0xFFF7EFF5),
-      'borderColor': Color(0xFFD8C3D2),
-      'badges': ['Mental & Emotional Health', 'Identity & Personal Growth'],
-      'quote':
-          'Helping girls navigate their journey with empathy, warmth, and care.',
-      'fullBio':
-          'Hi there! I am Khushi, a certified peer mentor passionate about creating a safe, judgment-free space for young girls. Whether you are navigating school stress, emotional highs & lows, or just need a warm listening ear, I am here to help you feel supported and heard.',
-      'categoryIndex': 1,
-    },
-    {
-      'initial': 'A',
-      'name': 'Ananya',
-      'fullName': 'Ananya Roy',
-      'headline': 'Academic Stress & Self-Confidence Mentor',
-      'rating': '5.0',
-      'reviewsCount': '36 reviews',
-      'sessionsCount': '115+ Mentees',
-      'responseTime': '< 10 mins',
-      'languages': 'English, Bengali',
-      'cardBg': Color(0xFFF4EAF1),
-      'borderColor': Color(0xFFD2B9CB),
-      'badges': ['Academic & School Support', 'Self Confidence'],
-      'quote':
-          'Here to listen without judgment and share practical coping tips.',
-      'fullBio':
-          'Hello! I am Ananya. School, exams, and peer pressure can feel overwhelming at times. I offer actionable coping strategies, study-life balance tips, and genuine peer encouragement so you never feel alone in your journey.',
-      'categoryIndex': 2,
-    },
-    {
-      'initial': 'R',
-      'name': 'Rhea',
-      'fullName': 'Rhea Kapoor',
-      'headline': 'Body Confidence & Mindfulness Peer Guide',
-      'rating': '4.9',
-      'reviewsCount': '52 reviews',
-      'sessionsCount': '160+ Mentees',
-      'responseTime': '< 20 mins',
-      'languages': 'English, Hindi',
-      'cardBg': Color(0xFFFAF2F7),
-      'borderColor': Color(0xFFDFCBD9),
-      'badges': ['Body Confidence & Growth', 'Wellness & Mindfulness'],
-      'quote': 'Empowering you to feel confident, calm, and deeply understood.',
-      'fullBio':
-          'Welcome! I am Rhea. Loving yourself and feeling comfortable in your own skin is a process. I am here to share mindful self-care rituals, body-positivity practices, and a gentle space where you can share your thoughts freely.',
-      'categoryIndex': 3,
-    },
-    {
-      'initial': 'P',
-      'name': 'Priya',
-      'fullName': 'Priya Verma',
-      'headline': 'Relationships & Peer Harmony Advocate',
-      'rating': '5.0',
-      'reviewsCount': '42 reviews',
-      'sessionsCount': '130+ Mentees',
-      'responseTime': '< 12 mins',
-      'languages': 'English, Punjabi',
-      'cardBg': Color(0xFFF5ECF3),
-      'borderColor': Color(0xFFD5BECF),
-      'badges': ['Friendship & Relationships', 'Emotional Health'],
-      'quote':
-          'Safe space for honest conversations and real peer encouragement.',
-      'fullBio':
-          'Hi! I am Priya. Navigating friendships, family expectations, and personal growth can get confusing. I specialize in helping girls communicate effectively, set healthy boundaries, and build meaningful relationships.',
-      'categoryIndex': 1,
-    },
-  ];
-
+  List<PeerLineTopic> _topics = [];
+  List<Map<String, dynamic>> _mentors = [];
   List<PeerLineSession> _sessions = [];
 
   @override
   void initState() {
     super.initState();
-    _loadSessions();
+    _loadData();
   }
 
-  Future<void> _loadSessions() async {
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
     try {
       final api = CommunityApi(ApiService.instance.dio);
-      final sessions = await api.getPeerLineSessions(role: 'mentee');
+      final results = await Future.wait([
+        api.getPeerLineTopics(),
+        api.searchMentors([]),
+        api.getPeerLineSessions(role: 'mentee'),
+      ]);
+
       if (mounted) {
         setState(() {
-          _sessions = sessions;
+          _topics = results[0] as List<PeerLineTopic>;
+          _mentors = results[1] as List<Map<String, dynamic>>;
+          _sessions = results[2] as List<PeerLineSession>;
+          _isLoading = false;
         });
       }
     } catch (e) {
-      debugPrint('[RecommendedPeerMentors] Error loading peer sessions: $e');
+      debugPrint('[RecommendedPeerMentors] Error loading peer data: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loadMentorsForTopic(String? topicId) async {
+    try {
+      final api = CommunityApi(ApiService.instance.dio);
+      final filter = (topicId != null && topicId.isNotEmpty) ? [topicId] : <String>[];
+      final mentors = await api.searchMentors(filter);
+      if (mounted) {
+        setState(() {
+          _mentors = mentors;
+        });
+      }
+    } catch (e) {
+      debugPrint('[RecommendedPeerMentors] Error filtering mentors: $e');
     }
   }
 
   PeerLineSession? _findActiveConversationForMentor(Map<String, dynamic> mentor) {
-    final mentorName = (mentor['name'] as String).trim().toLowerCase();
-    final mentorFullName = (mentor['fullName'] as String? ?? '').trim().toLowerCase();
-
-    for (final s in _sessions) {
-      final sMentorName = (s.mentorName ?? '').trim().toLowerCase();
-      final bool matchesMentor = sMentorName.isNotEmpty &&
-          (sMentorName == mentorName ||
-              sMentorName == mentorFullName ||
-              sMentorName.contains(mentorName) ||
-              (mentorFullName.isNotEmpty && sMentorName.contains(mentorFullName)));
-
-      // Only consider it an ongoing conversation if there are actual messages or status is active
-      final bool hasConversation = s.messages.isNotEmpty ||
-          s.status.toLowerCase() == 'active' ||
-          (s.startedAt != null && s.status.toLowerCase() != 'cancelled');
-
-      if (matchesMentor && hasConversation) {
-        return s;
-      }
-    }
-    return null;
+    return PeerSessionHelper.findActiveSession(mentor, _sessions);
   }
 
   bool _isChatInitiated(Map<String, dynamic> mentor) {
@@ -915,7 +850,7 @@ class _RecommendedPeerMentorsSectionState
       Navigator.pop(dialogCtx);
     }
 
-    final mentorName = mentor['name'] as String;
+    final mentorName = mentor['name'] as String? ?? 'Peer Mentor';
     final existingSession = _findActiveConversationForMentor(mentor);
 
     if (existingSession != null) {
@@ -928,12 +863,12 @@ class _RecommendedPeerMentorsSectionState
 
     try {
       final api = CommunityApi(ApiService.instance.dio);
-      final topics = await api.getPeerLineTopics();
-      final topicIds = topics.map((t) => t.id).take(2).toList();
+      final rawTopics = mentor['certifiedTopicIds'] ?? mentor['topics'] ?? [];
+      final List<String> topicIds = rawTopics is List ? rawTopics.map((e) => e.toString()).toList() : [];
 
-      final session = await api.requestPeerLineSession(
+      final session = await api.requestConnection(
+        mentorId: mentor['id'] ?? '',
         topicIds: topicIds,
-        requestedMentorId: mentor['id'],
       );
 
       if (mounted) {
@@ -992,7 +927,7 @@ class _RecommendedPeerMentorsSectionState
               duration: const Duration(seconds: 2),
             ),
           );
-          context.read<DashboardCubit>().setTab(3);
+          context.read<DashboardCubit>().setTab(4);
         }
       }
     }
@@ -1002,405 +937,27 @@ class _RecommendedPeerMentorsSectionState
     BuildContext context,
     Map<String, dynamic> mentor,
   ) {
-    AppSoundService.instance.playPop();
-
-    final cardBg = (mentor['cardBg'] as Color);
-
-    showGeneralDialog(
+    PeerMentorDetailSheet.show(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: 'MentorDetail',
-      barrierColor: Colors.black.withValues(alpha: 0.45),
-      transitionDuration: const Duration(milliseconds: 550),
-      pageBuilder: (ctx, anim1, anim2) => const SizedBox.shrink(),
-      transitionBuilder: (ctx, anim1, anim2, child) {
-        final curve = CurvedAnimation(
-          parent: anim1,
-          curve: Curves.easeOutCubic,
-        );
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(curve),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(32),
-                  ),
-                  border: Border.all(
-                    color: const Color(0xFFB48BA6).withValues(alpha: 0.35),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFB48BA6).withValues(alpha: 0.25),
-                      blurRadius: 32,
-                      offset: const Offset(0, -8),
-                    ),
-                  ],
-                ),
-                padding: EdgeInsets.only(
-                  left: 22,
-                  right: 22,
-                  top: 14,
-                  bottom: MediaQuery.of(ctx).padding.bottom + 20,
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 44,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFFB48BA6,
-                            ).withValues(alpha: 0.4),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: _purpleTheme.withValues(alpha: 0.25),
-                                    width: 2.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: _purpleTheme.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      blurRadius: 14,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    mentor['initial'] as String,
-                                    style: GoogleFonts.nunito(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w900,
-                                      color: _purpleTheme,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                top: 3,
-                                right: 3,
-                                child: Container(
-                                  width: 16,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 2.5,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      mentor['fullName'] as String,
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w900,
-                                        color: const Color(0xFF1E1B4B),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    const Icon(
-                                      Icons.verified_rounded,
-                                      size: 18,
-                                      color: Color(0xFF059669),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  mentor['headline'] as String,
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF64748B),
-                                    height: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 6,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 9,
-                                        vertical: 3.5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.9,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.star_rounded,
-                                            size: 14,
-                                            color: Color(0xFFF59E0B),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${mentor['rating']} (${mentor['reviewsCount']})',
-                                            style: GoogleFonts.nunito(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w900,
-                                              color: const Color(0xFFB45309),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 9,
-                                        vertical: 3.5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.9,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        mentor['sessionsCount'] as String,
-                                        style: GoogleFonts.nunito(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w800,
-                                          color: const Color(0xFF047857),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      const Divider(color: Color(0xFFE2D4DE), thickness: 1.5),
-                      const SizedBox(height: 14),
-                      Text(
-                        'SPECIALTIES & TOPICS',
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF7A61AC),
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            (mentor['badges'] as List<String>).map((badgeText) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: _purpleTheme.withValues(alpha: 0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  badgeText,
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: _purpleTheme,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'ABOUT MENTOR',
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF7A61AC),
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        mentor['fullBio'] as String,
-                        style: GoogleFonts.nunito(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF334155),
-                          height: 1.45,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Wrap(
-                        spacing: 14,
-                        runSpacing: 6,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.bolt_rounded,
-                                size: 16,
-                                color: Color(0xFFD97706),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Responds in ${mentor['responseTime']}',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF475569),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.translate_rounded,
-                                size: 15,
-                                color: Color(0xFF64748B),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                mentor['languages'] as String,
-                                style: GoogleFonts.nunito(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF475569),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 22),
-                      Builder(
-                        builder: (buttonContext) {
-                          final bool hasChat = _isChatInitiated(mentor);
-                          final String ctaText = hasChat ? 'Start Chat' : 'Send Peer Chat Request';
-                          final IconData ctaIcon = hasChat ? Icons.chat_bubble_rounded : Icons.mark_email_unread_rounded;
-
-                          return GestureDetector(
-                            onTap: () => _handleMentorAction(mentor, dialogCtx: ctx),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: hasChat
-                                      ? const [Color(0xFF8B5CF6), Color(0xFF6D28D9)]
-                                      : const [Color(0xFF7A61AC), _purpleTheme],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (hasChat ? const Color(0xFF7C3AED) : _purpleTheme)
-                                        .withValues(alpha: 0.35),
-                                    blurRadius: 14,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    ctaIcon,
-                                    size: 18,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    ctaText,
-                                    style: GoogleFonts.nunito(
-                                      fontSize: 15.5,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+      mentor: mentor,
+      sessions: _sessions,
+      onAction: (m) => _handleMentorAction(m),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredMentors =
-        _selectedTopicIndex == 0
-            ? _mentors
-            : _mentors
-                .where((m) => m['categoryIndex'] == _selectedTopicIndex)
-                .toList();
+    final List<Color> pastelColors = const [
+      Color(0xFFF7EFF5),
+      Color(0xFFF4EAF1),
+      Color(0xFFFAF2F7),
+      Color(0xFFF5ECF3),
+    ];
+
+    final displayTopics = [
+      (emoji: '✨', title: 'All Topics', id: null as String?),
+      ..._topics.map((t) => (emoji: t.emoji.isNotEmpty ? t.emoji : '🌸', title: t.name, id: t.id as String?))
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1459,11 +1016,11 @@ class _RecommendedPeerMentorsSectionState
           physics: const BouncingScrollPhysics(),
           child: Row(
             children:
-                _topics.asMap().entries.map((entry) {
+                displayTopics.asMap().entries.map((entry) {
                   final idx = entry.key;
-                  final (emoji, title) = entry.value;
+                  final topic = entry.value;
                   final isSelected = _selectedTopicIndex == idx;
-                  final isLast = idx == _topics.length - 1;
+                  final isLast = idx == displayTopics.length - 1;
 
                   return Padding(
                     padding: EdgeInsets.only(right: isLast ? 0 : 8),
@@ -1473,6 +1030,7 @@ class _RecommendedPeerMentorsSectionState
                         setState(() {
                           _selectedTopicIndex = idx;
                         });
+                        _loadMentorsForTopic(topic.id);
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
@@ -1507,10 +1065,10 @@ class _RecommendedPeerMentorsSectionState
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(emoji, style: const TextStyle(fontSize: 13.5)),
+                            Text(topic.emoji, style: const TextStyle(fontSize: 13.5)),
                             const SizedBox(width: 6),
                             Text(
-                              title,
+                              topic.title,
                               style: GoogleFonts.nunito(
                                 fontSize: 12.5,
                                 fontWeight:
@@ -1534,15 +1092,54 @@ class _RecommendedPeerMentorsSectionState
         const SizedBox(height: 18),
         SizedBox(
           height: 305,
-          child: ListView.builder(
+          child: _isLoading
+              ? ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 2,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      width: 285,
+                      margin: const EdgeInsets.only(right: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                    );
+                  },
+                )
+              : _mentors.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No peer mentors available for this topic yet.',
+                        style: GoogleFonts.nunito(
+                          color: const Color(0xFF64748B),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13.5,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             clipBehavior: Clip.none,
             padding: const EdgeInsets.only(top: 4, bottom: 18),
-            itemCount: filteredMentors.length,
+            itemCount: _mentors.length,
             itemBuilder: (context, index) {
-              final mentor = filteredMentors[index];
-              final isLast = index == filteredMentors.length - 1;
+              final mentor = _mentors[index];
+              final isLast = index == _mentors.length - 1;
+              final mentorId = (mentor['id'] as String?) ?? '$index';
+              final cardBg = pastelColors[mentorId.hashCode.abs() % pastelColors.length];
+
+              final name = mentor['name'] ?? mentor['fullName'] ?? 'Peer Mentor';
+              final initial = (mentor['initial'] as String?) ?? (name.toString().isNotEmpty ? name.toString().substring(0, 1).toUpperCase() : 'P');
+              final rating = (mentor['rating']?.toString()) ?? '5.0';
+              final quote = mentor['quote'] ?? mentor['bio'] ?? 'Helping girls navigate their journey with empathy, warmth, and care.';
+
+              final rawBadges = mentor['topics'] ?? mentor['certifiedTopicIds'] ?? [];
+              final List<String> badges = (rawBadges is List)
+                  ? rawBadges.map<String>((b) => b is Map ? (b['name']?.toString() ?? '') : b.toString()).where((s) => s.isNotEmpty).toList()
+                  : ['Mental & Emotional Health'];
 
               return GestureDetector(
                 onTap: () => _showMentorDetailSheet(context, mentor),
@@ -1550,7 +1147,7 @@ class _RecommendedPeerMentorsSectionState
                   width: 285,
                   margin: EdgeInsets.only(right: isLast ? 0 : 14),
                   decoration: BoxDecoration(
-                    color: mentor['cardBg'] as Color,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(26),
                     boxShadow: [
                       BoxShadow(
@@ -1635,7 +1232,7 @@ class _RecommendedPeerMentorsSectionState
                                         ),
                                         child: Center(
                                           child: Text(
-                                            mentor['initial'] as String,
+                                            initial,
                                             style: GoogleFonts.nunito(
                                               fontSize: 28,
                                               fontWeight: FontWeight.w900,
@@ -1669,12 +1266,14 @@ class _RecommendedPeerMentorsSectionState
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          mentor['name'] as String,
+                                          name,
                                           style: GoogleFonts.nunito(
                                             fontSize: 19,
                                             fontWeight: FontWeight.w900,
                                             color: const Color(0xFF1E1B4B),
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 3),
                                         Row(
@@ -1686,7 +1285,7 @@ class _RecommendedPeerMentorsSectionState
                                             ),
                                             const SizedBox(width: 3),
                                             Text(
-                                              mentor['rating'] as String,
+                                              rating,
                                               style: GoogleFonts.nunito(
                                                 fontSize: 13.5,
                                                 fontWeight: FontWeight.w900,
@@ -1704,7 +1303,7 @@ class _RecommendedPeerMentorsSectionState
                                 spacing: 6,
                                 runSpacing: 6,
                                 children:
-                                    (mentor['badges'] as List<String>).map((
+                                    badges.take(2).map((
                                       badgeText,
                                     ) {
                                       return Container(
@@ -1727,12 +1326,14 @@ class _RecommendedPeerMentorsSectionState
                                             fontWeight: FontWeight.w800,
                                             color: const Color(0xFF475569),
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       );
                                     }).toList(),
                               ),
                               Text(
-                                mentor['quote'] as String,
+                                quote,
                                 style: GoogleFonts.nunito(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w600,
@@ -1778,21 +1379,22 @@ class _RecommendedPeerMentorsSectionState
                                         ],
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             cardCtaIcon,
-                                            size: 14,
+                                            size: 16,
                                             color: Colors.white,
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: 6),
                                           Text(
                                             cardCtaText,
                                             style: GoogleFonts.nunito(
-                                              fontSize: 14,
+                                              fontSize: 13.5,
                                               fontWeight: FontWeight.w900,
                                               color: Colors.white,
-                                              letterSpacing: 0.2,
+                                              letterSpacing: 0.3,
                                             ),
                                           ),
                                         ],

@@ -117,8 +117,17 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
       if (!mounted) return;
 
       // Route based on what the backend told us: role + onboardingCompleted
-      if (result.isOnboardingCompleted) {
-        context.go('/home');
+      final isCompleted = result.isOnboardingCompleted ||
+          (result.profile?['displayName'] != null && result.profile!['displayName'].toString().trim().isNotEmpty) ||
+          result.role == 'EXPERT' ||
+          result.role == 'ADMIN';
+
+      if (isCompleted) {
+        if (result.role == 'EXPERT') {
+          context.go('/expert/dashboard');
+        } else {
+          context.go('/home');
+        }
         return;
       }
 

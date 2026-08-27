@@ -572,102 +572,160 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
               final isProcessing = _processingLinkId == link['id'];
 
               if (isSender) {
-                // Sent invitation
-                final displayPhone = link['receiverPhone'] ?? '';
+                // Sent invitation (User is sender)
+                final receiverUser = link['receiver'] ?? (link['teenId'] == userId ? link['parent'] : link['teen']);
+                final displayNameRaw = receiverUser?['profile']?['displayName']?.toString() ??
+                    receiverUser?['profile']?['fullName']?.toString() ??
+                    receiverUser?['username']?.toString() ??
+                    '';
+                final displayPhone = link['receiverPhone'] ?? receiverUser?['phone'] ?? '';
+                final displayName = displayNameRaw.trim().isNotEmpty
+                    ? displayNameRaw
+                    : (displayPhone.isNotEmpty ? displayPhone : (_isTeen ? 'Parent Invitation' : 'Daughter Invitation'));
+                final avatarUrl = receiverUser?['profile']?['avatarUrl']?.toString();
+                final initial = displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : 'F';
 
                 return Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.orange[50]?.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange[100] ?? Colors.transparent, width: 1),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: Colors.orange[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.person_outline, color: Colors.orange, size: 18),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              displayPhone,
-                              style: GoogleFonts.nunito(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textDark,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Waiting for them to accept…',
-                              style: GoogleFonts.nunito(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.orange[750],
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      OutlinedButton(
-                        onPressed: isProcessing ? null : () => _cancelOrDeclineInvite(link['id'], isDecline: false),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey[300] ?? Colors.grey),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        ),
-                        child: isProcessing
-                            ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textLight))
-                            : Text(
-                                'Cancel',
-                                style: GoogleFonts.nunito(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 11,
-                                  color: AppColors.textMedium,
-                                ),
-                              ),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFFFDF5), Color(0xFFFEF3C7)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.withValues(alpha: 0.08),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
                       ),
                     ],
-                  ),
-                );
-              } else {
-                // Received invitation (User is accepter)
-                final senderUser = link['sender'];
-                final displayNameRaw = senderUser?['profile']?['displayName']?.toString() ?? '';
-                final displayName = displayNameRaw.trim().isEmpty ? 'Family Link Request' : displayNameRaw;
-                final displayPhone = senderUser?['phone'] ?? link['receiverPhone'] ?? '';
-
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.purple.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.purple.withValues(alpha: 0.1), width: 1),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header Badge
                       Row(
                         children: [
                           Container(
-                            width: 36,
-                            height: 36,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.purple.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Icon(Icons.family_restroom, color: AppColors.purple, size: 18),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.outgoing_mail, size: 13, color: Color(0xFFB45309)),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Sent Invitation',
+                                  style: GoogleFonts.nunito(
+                                    color: const Color(0xFFB45309),
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 12),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF59E0B),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Pending',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF92400E),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Avatar
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.amber.withValues(alpha: 0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: avatarUrl != null && avatarUrl.trim().isNotEmpty
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(26),
+                                    child: Image.network(
+                                      avatarUrl,
+                                      width: 52,
+                                      height: 52,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        width: 52,
+                                        height: 52,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFFDE68A),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          initial,
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w900,
+                                            color: const Color(0xFF92400E),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    width: 52,
+                                    height: 52,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFFDE68A),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      initial,
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w900,
+                                        color: const Color(0xFF92400E),
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -675,22 +733,48 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                                 Text(
                                   displayName,
                                   style: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textDark,
-                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF1E1B4B),
+                                    fontSize: 16,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                if (displayPhone.toString().isNotEmpty) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    displayPhone,
-                                    style: GoogleFonts.nunito(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textLight,
-                                      fontSize: 11,
+                                if (displayPhone.isNotEmpty && displayPhone != displayName) ...[
+                                  const SizedBox(height: 3),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFFFDE68A), width: 0.8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.phone_iphone_rounded, size: 12, color: Color(0xFF92400E)),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          displayPhone,
+                                          style: GoogleFonts.nunito(
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFF78350F),
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Waiting for them to accept your invitation…',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFFB45309),
+                                    fontSize: 11,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -700,41 +784,313 @@ class _FamilySettingsScreenState extends State<FamilySettingsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          OutlinedButton(
-                            onPressed: isProcessing ? null : () => _cancelOrDeclineInvite(link['id'], isDecline: true),
+                          OutlinedButton.icon(
+                            onPressed: isProcessing ? null : () => _cancelOrDeclineInvite(link['id'], isDecline: false),
+                            icon: const Icon(Icons.close_rounded, size: 14, color: AppColors.textMedium),
+                            label: isProcessing
+                                ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textLight))
+                                : Text(
+                                    'Cancel Invitation',
+                                    style: GoogleFonts.nunito(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12,
+                                      color: AppColors.textMedium,
+                                    ),
+                                  ),
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.red[200] ?? Colors.red),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              backgroundColor: Colors.white,
+                              side: BorderSide(color: Colors.grey.shade300),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             ),
-                            child: Text(
-                              'Decline',
-                              style: GoogleFonts.nunito(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 11,
-                                color: Colors.red[700],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                // Received invitation (User is receiver e.g. Daughter receiving Parent invite)
+                final senderUser = link['sender'] ?? (link['parentId'] == userId ? link['teen'] : link['parent']);
+                final displayNameRaw = senderUser?['profile']?['displayName']?.toString() ??
+                    senderUser?['profile']?['fullName']?.toString() ??
+                    senderUser?['username']?.toString() ??
+                    '';
+                final displayPhone = senderUser?['phone'] ?? link['receiverPhone'] ?? '';
+                final displayName = displayNameRaw.trim().isNotEmpty
+                    ? displayNameRaw
+                    : (displayPhone.isNotEmpty ? displayPhone : (_isTeen ? 'Parent Link Request' : 'Daughter Link Request'));
+                final avatarUrl = senderUser?['profile']?['avatarUrl']?.toString();
+                final initial = displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : 'P';
+                final roleBadgeText = _isTeen ? 'Parent Request' : 'Daughter Request';
+
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFCF9FF), Color(0xFFF3E8FF)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFD8B4FE), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.purple.withValues(alpha: 0.1),
+                        blurRadius: 16,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Badge
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.purple.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.family_restroom_rounded, size: 14, color: AppColors.purple),
+                                const SizedBox(width: 5),
+                                Text(
+                                  roleBadgeText,
+                                  style: GoogleFonts.nunito(
+                                    color: AppColors.purple,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 11.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Action Required',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF047857),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Profile Photo
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.purple.withValues(alpha: 0.25),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: avatarUrl != null && avatarUrl.trim().isNotEmpty
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(27),
+                                    child: Image.network(
+                                      avatarUrl,
+                                      width: 54,
+                                      height: 54,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        width: 54,
+                                        height: 54,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFE9D5FF),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          initial,
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.purple,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    width: 54,
+                                    height: 54,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFE9D5FF),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      initial,
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.purple,
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  displayName,
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF1E1B4B),
+                                    fontSize: 16.5,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (displayPhone.isNotEmpty && displayPhone != displayName) ...[
+                                  const SizedBox(height: 3),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.95),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFFDDD6FE), width: 0.8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.phone_iphone_rounded, size: 12, color: AppColors.purple),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          displayPhone,
+                                          style: GoogleFonts.nunito(
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFF5B21B6),
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Wants to link accounts with you on Infano Care',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF6B7280),
+                                    fontSize: 11.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE9D5FF), width: 0.8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.purple),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Linking lets you stay connected and share wellness progress with care.',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF4B5563),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: isProcessing ? null : () => _cancelOrDeclineInvite(link['id'], isDecline: true),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                side: BorderSide(color: Colors.red.shade200),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 11),
+                              ),
+                              child: Text(
+                                'Decline',
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  color: Colors.red.shade700,
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          FilledButton(
-                            onPressed: isProcessing ? null : () => _acceptInvite(link['id']),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.purple,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            ),
-                            child: isProcessing
-                                ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                : Text(
-                                    'Accept Link',
-                                    style: GoogleFonts.nunito(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 11,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: FilledButton.icon(
+                              onPressed: isProcessing ? null : () => _acceptInvite(link['id']),
+                              icon: isProcessing
+                                  ? const SizedBox.shrink()
+                                  : const Icon(Icons.check_circle_rounded, size: 16, color: Colors.white),
+                              label: isProcessing
+                                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : Text(
+                                      'Accept Link Request',
+                                      style: GoogleFonts.nunito(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 13,
+                                      ),
                                     ),
-                                  ),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.purple,
+                                foregroundColor: Colors.white,
+                                elevation: 1,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 11),
+                              ),
+                            ),
                           ),
                         ],
                       ),

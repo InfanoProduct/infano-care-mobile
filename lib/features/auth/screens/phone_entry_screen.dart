@@ -77,8 +77,17 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
       final result = await _repo.sendOtp(phone, appHash: signature);
       if (mounted) {
         if (result != null) {
-          if (result.isOnboardingCompleted) {
-            context.go('/home');
+          final isCompleted = result.isOnboardingCompleted ||
+              (result.profile?['displayName'] != null && result.profile!['displayName'].toString().trim().isNotEmpty) ||
+              result.role == 'EXPERT' ||
+              result.role == 'ADMIN';
+
+          if (isCompleted) {
+            if (result.role == 'EXPERT') {
+              context.go('/expert/dashboard');
+            } else {
+              context.go('/home');
+            }
           } else {
             final role = result.role ?? widget.storage.role;
             if (role != null) {

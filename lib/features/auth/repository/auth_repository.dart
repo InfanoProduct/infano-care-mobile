@@ -84,29 +84,25 @@ class AuthRepository {
           profile:               loginData['profile']               as Map<String, dynamic>?,
         );
 
-        // Persist tokens if available
-        if (result.accessToken != null) await _storage.setAuthToken(result.accessToken!);
-        if (result.refreshToken != null) await _storage.setRefreshToken(result.refreshToken!);
-        if (result.role != null) await _storage.setRole(result.role!);
-        if (result.userId != null) await _storage.setUserId(result.userId!);
-        
-        // Sync profile details if present
-        if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
-        if (result.profile != null) {
-          final p = result.profile!;
-          if (p['displayName'] != null && p['displayName'].toString().trim().isNotEmpty) {
-            await _storage.setDisplayName(p['displayName']);
-          }
-          if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
-          if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
-          if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
-          await _storage.setAvatarUrl(p['avatarUrl']?.toString());
-        }
+        final isCompleted = result.isOnboardingCompleted ||
+            (result.profile?['displayName'] != null && result.profile!['displayName'].toString().trim().isNotEmpty);
 
-        await _storage.setTempToken(result.tempToken);
-        await _storage.setPhone(phone);
-        await _storage.setStepComplete(result.onboardingStep.toString());
-        await _storage.setIsOnboarded(result.isOnboardingCompleted);
+        await _storage.saveAuthSession(
+          authToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          role: result.role,
+          userId: result.userId,
+          phone: phone,
+          isOnboarded: isCompleted,
+          stepComplete: result.onboardingStep.toString(),
+          displayName: result.profile?['displayName']?.toString(),
+          pronouns: result.profile?['pronouns']?.toString(),
+          birthMonth: result.profile?['birthMonth'] as int?,
+          birthYear: result.profile?['birthYear'] as int?,
+          totalPoints: result.profile?['totalPoints'] as int?,
+          avatarUrl: result.profile?['avatarUrl']?.toString(),
+          contentTier: result.contentTier,
+        );
 
         return result;
       }
@@ -138,31 +134,25 @@ class AuthRepository {
         profile:               data['profile']               as Map<String, dynamic>?,
       );
       
-      // Persist tokens if available (returning user)
-      if (result.accessToken != null) await _storage.setAuthToken(result.accessToken!);
-      if (result.refreshToken != null) await _storage.setRefreshToken(result.refreshToken!);
-      if (result.role != null) await _storage.setRole(result.role!);
-      if (result.userId != null) await _storage.setUserId(result.userId!);
-      
-      // Sync profile details if present
-      if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
-      if (result.profile != null) {
-        final p = result.profile!;
-        if (p['displayName'] != null && p['displayName'].toString().trim().isNotEmpty) {
-          await _storage.setDisplayName(p['displayName']);
-        }
-        if (p['pronouns'] != null) await _storage.setPronouns(p['pronouns']);
-        if (p['birthYear'] != null) await _storage.setBirthDate(p['birthMonth'] ?? 1, p['birthYear']);
-        if (p['totalPoints'] != null) await _storage.setPoints(p['totalPoints']);
-        await _storage.setAvatarUrl(p['avatarUrl']?.toString());
-      }
-      await _storage.setTempToken(result.tempToken);
-      await _storage.setPhone(phone);
-      await _storage.setStepComplete(result.onboardingStep.toString());
-      await _storage.setIsOnboarded(result.isOnboardingCompleted);
-      
-      // Clear legacy tempToken if present
-      await _storage.clearTempToken();
+      final isCompleted = result.isOnboardingCompleted ||
+          (result.profile?['displayName'] != null && result.profile!['displayName'].toString().trim().isNotEmpty);
+
+      await _storage.saveAuthSession(
+        authToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        role: result.role,
+        userId: result.userId,
+        phone: phone,
+        isOnboarded: isCompleted,
+        stepComplete: result.onboardingStep.toString(),
+        displayName: result.profile?['displayName']?.toString(),
+        pronouns: result.profile?['pronouns']?.toString(),
+        birthMonth: result.profile?['birthMonth'] as int?,
+        birthYear: result.profile?['birthYear'] as int?,
+        totalPoints: result.profile?['totalPoints'] as int?,
+        avatarUrl: result.profile?['avatarUrl']?.toString(),
+        contentTier: result.contentTier,
+      );
 
       return result;
     } on DioException catch (e) {

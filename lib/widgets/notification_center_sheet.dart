@@ -9,13 +9,38 @@ import 'package:intl/intl.dart';
 class NotificationCenterSheet extends StatefulWidget {
   const NotificationCenterSheet({super.key});
 
-  static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
+  /// Global notifier for unread notification count so bell badges across the app update reactively.
+  static final ValueNotifier<int> unreadCountNotifier = ValueNotifier<int>(0);
+
+  /// Fetches the latest count of active/unread notifications from the server.
+  static Future<int> fetchUnreadCount() async {
+    try {
+      final res = await ApiService.instance.dio.get('/parent/notifications');
+      if (res.data is List) {
+        final count = (res.data as List).length;
+        unreadCountNotifier.value = count;
+        return count;
+      }
+    } catch (e) {
+      debugPrint('[NotificationCenterSheet] Error fetching unread count: $e');
+    }
+    return unreadCountNotifier.value;
+  }
+
+  /// Explicitly mark all notifications as read / cleared locally.
+  static void markAllCleared() {
+    unreadCountNotifier.value = 0;
+  }
+
+  static Future<void> show(BuildContext context) async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const NotificationCenterSheet(),
     );
+    // Refresh unread count upon sheet dismissal to ensure badge stays in perfect sync
+    await fetchUnreadCount();
   }
 
   @override
@@ -43,10 +68,12 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
     try {
       final res = await ApiService.instance.dio.get('/parent/notifications');
       if (mounted) {
+        final list = res.data as List<dynamic>;
         setState(() {
-          _notifications = res.data as List<dynamic>;
+          _notifications = list;
           _isLoading = false;
         });
+        NotificationCenterSheet.unreadCountNotifier.value = list.length;
       }
     } catch (e) {
       if (mounted) {
@@ -91,6 +118,12 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
   }
 
   Future<void> _handleNotificationTap(dynamic notification) async {
+    // 0. Auto-dismiss notification upon tapping/reading
+    final id = notification['id']?.toString();
+    if (id != null) {
+      _deleteNotification(id);
+    }
+
     // 1. Check for shared GPS location / Google Maps link
     final mapUrl = _extractMapUrl(notification);
     if (mapUrl != null) {
@@ -121,6 +154,7 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
     setState(() {
       _notifications.removeWhere((n) => n['id'] == id);
     });
+    NotificationCenterSheet.unreadCountNotifier.value = _notifications.length;
 
     try {
       await ApiService.instance.dio.delete('/parent/notifications/$id');
@@ -133,6 +167,7 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
     setState(() {
       _notifications.clear();
     });
+    NotificationCenterSheet.unreadCountNotifier.value = 0;
 
     try {
       await ApiService.instance.dio.delete('/parent/notifications');
@@ -281,14 +316,21 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
                   ),
                 ),
                 if (_notifications.isNotEmpty)
-                  TextButton(
+                  TextButton.icon(
                     onPressed: _clearAll,
-                    child: Text(
+                    icon: const Icon(Icons.delete_sweep_rounded, size: 18, color: Color(0xFFDC2626)),
+                    label: Text(
                       'Clear All',
                       style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red[700],
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: const Color(0xFFDC2626),
                       ),
+                    ),
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFFFEE2E2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     ),
                   ),
               ],
@@ -371,7 +413,6 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
                                                   Expanded(
                                                     child: Text(
@@ -383,12 +424,30 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
                                                       ),
                                                     ),
                                                   ),
+                                                  const SizedBox(width: 6),
                                                   Text(
                                                     _formatTime(sentAt),
                                                     style: GoogleFonts.nunito(
                                                       fontSize: 11,
                                                       fontWeight: FontWeight.w600,
                                                       color: AppColors.textLight,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  GestureDetector(
+                                                    onTap: () => _deleteNotification(id),
+                                                    behavior: HitTestBehavior.opaque,
+                                                    child: Container(
+                                                      padding: const EdgeInsets.all(4),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.black.withValues(alpha: 0.04),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.close_rounded,
+                                                        size: 14,
+                                                        color: AppColors.textMedium,
+                                                      ),
                                                     ),
                                                   ),
                                                 ],
