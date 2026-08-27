@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/quest_bloc.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:infano_care_mobile/features/onboarding/bloc/onboarding_bloc.dart';
 
 class CycleDetailsScreen extends StatefulWidget {
@@ -44,31 +46,6 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
-              ),
-            ),
-          ),
-
-          // 3. Back Button (Top Left)
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 16,
-            child: GestureDetector(
-              onTap: () => context.go('/onboarding/tracker/date'),
-              child: Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Color(0xFF5B21B6)),
               ),
             ),
           ),
@@ -267,19 +244,20 @@ class _CycleDetailsScreenState extends State<CycleDetailsScreen> {
                                             bloc.add(SetTrackerDetails(_periodLength, _cycleLength, bloc.state.lastPeriod));
                                             bloc.add(const SubmitTrackerSetup('active'));
 
-                                            await for (final s in bloc.stream) {
-                                              if (!s.isLoading) {
-                                                if (s.errorMessage == null) {
-                                                  if (mounted) context.go('/onboarding/tracker/done');
-                                                } else {
-                                                  if (mounted) {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      SnackBar(content: Text(s.errorMessage!)),
-                                                    );
-                                                  }
-                                                }
-                                                break;
-                                              }
+                                            final nextState = await bloc.stream.firstWhere((s) => !s.isLoading);
+
+                                            if (!mounted) return;
+
+                                            if (nextState.errorMessage == null) {
+                                              try {
+                                                context.read<QuestBloc>().add(const QuestEvent.refresh());
+                                                context.read<TrackerBloc>().add(const TrackerEvent.load());
+                                              } catch (_) {}
+                                              context.push('/onboarding/tracker/done');
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text(nextState.errorMessage!)),
+                                              );
                                             }
                                           },
                                     child: Container(

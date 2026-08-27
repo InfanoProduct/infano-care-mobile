@@ -41,10 +41,10 @@ class CalendarPhaseComputer {
 
       if (record.id.isNotEmpty) {
         final recPeriodStart = DateUtils.dateOnly(record.periodStartDate);
-        // Effective period end: either the actual date, or a fallback based on avg duration
+        final todayDate = DateUtils.dateOnly(DateTime.now());
         final effectivePeriodEnd = record.periodEndDate != null
             ? DateUtils.dateOnly(record.periodEndDate!)
-            : recPeriodStart.add(Duration(days: (profile.avgPeriodDuration > 0 ? profile.avgPeriodDuration : 5) - 1));
+            : (!todayDate.isBefore(recPeriodStart) ? todayDate : recPeriodStart.add(Duration(days: (profile.avgPeriodDuration > 0 ? profile.avgPeriodDuration : 5) - 1)));
 
         // If within the period part of that record
         if (!cursorDate.isBefore(recPeriodStart) && !cursorDate.isAfter(effectivePeriodEnd)) {

@@ -20,16 +20,37 @@ import 'package:infano_care_mobile/features/home/widgets/parent_daughter_summary
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final GlobalKey? headerKey;
+  final GlobalKey? trackerKey;
+  final GlobalKey? journeyKey;
+
+  const HomeScreen({
+    super.key,
+    this.headerKey,
+    this.trackerKey,
+    this.journeyKey,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const _HomeScreenView();
+    return _HomeScreenView(
+      headerKey: headerKey,
+      trackerKey: trackerKey,
+      journeyKey: journeyKey,
+    );
   }
 }
 
 class _HomeScreenView extends StatefulWidget {
-  const _HomeScreenView();
+  final GlobalKey? headerKey;
+  final GlobalKey? trackerKey;
+  final GlobalKey? journeyKey;
+
+  const _HomeScreenView({
+    this.headerKey,
+    this.trackerKey,
+    this.journeyKey,
+  });
 
   @override
   State<_HomeScreenView> createState() => _HomeScreenViewState();
@@ -84,12 +105,14 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
 
   @override
   Widget build(BuildContext context) {
-    final storage = context.read<LocalStorageService>();
+    final storage = context.watch<LocalStorageService>();
     final rawName = storage.displayName;
     final userName =
         (rawName != null && rawName.trim().isNotEmpty)
             ? rawName.trim()
             : 'Karunakar';
+    final isFirstTime = !storage.hasCompletedUserGuide;
+    final greetingText = isFirstTime ? 'Welcome,' : 'Welcome back,';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5FF), // Matching soft background tint
@@ -100,6 +123,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
           children: [
             // 1. Top Bar & Welcome Header (Seamless background with 3D character)
             Container(
+              key: widget.headerKey,
               width: double.infinity,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -264,7 +288,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Welcome back,',
+                                      greetingText,
                                       style: GoogleFonts.nunito(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
@@ -436,26 +460,32 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                       ],
 
                       // Animated Menstrual Tracker Snapshot Card
-                      const MenstrualTrackerSnapshotCard(),
+                      Container(
+                        key: widget.trackerKey,
+                        child: const MenstrualTrackerSnapshotCard(),
+                      ),
 
                       const SizedBox(height: 24),
 
                       // Creative Journey Active Card
-                      BlocBuilder<JourneyMapCubit, JourneyMapState>(
-                        builder: (context, state) {
-                          if (state is JourneyMapLoaded) {
-                            return CreativeJourneyHomeCard(
-                              journeys: state.journeys,
-                              allProgress: state.allProgress,
-                              isLoading: false,
-                            );
-                          } else if (state is JourneyMapLoading) {
-                            return const CreativeJourneyHomeCard(
-                              isLoading: true,
-                            );
-                          }
-                          return const CreativeJourneyHomeCard();
-                        },
+                      Container(
+                        key: widget.journeyKey,
+                        child: BlocBuilder<JourneyMapCubit, JourneyMapState>(
+                          builder: (context, state) {
+                            if (state is JourneyMapLoaded) {
+                              return CreativeJourneyHomeCard(
+                                journeys: state.journeys,
+                                allProgress: state.allProgress,
+                                isLoading: false,
+                              );
+                            } else if (state is JourneyMapLoading) {
+                              return const CreativeJourneyHomeCard(
+                                isLoading: true,
+                              );
+                            }
+                            return const CreativeJourneyHomeCard();
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 44),
@@ -548,7 +578,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         badgeText: const Color(0xFF3730A3),
         onTap: () {
           AppSoundService.instance.playPop();
-          context.read<DashboardCubit>().setTab(3);
+          context.push('/quests');
         },
       ),
       (
@@ -1880,7 +1910,7 @@ class _CommunityPulseChallengeSectionState
         );
       }
     } else {
-      context.read<DashboardCubit>().setTab(3);
+      context.push('/quests');
     }
   }
 
@@ -1909,7 +1939,7 @@ class _CommunityPulseChallengeSectionState
             GestureDetector(
               onTap: () {
                 AppSoundService.instance.playPop();
-                context.read<DashboardCubit>().setTab(3);
+                context.push('/quests');
               },
               child: Text(
                 'View Quests',

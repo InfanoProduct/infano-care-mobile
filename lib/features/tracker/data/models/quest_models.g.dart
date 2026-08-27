@@ -147,7 +147,10 @@ Map<String, dynamic> _$BadgeToJson(Badge instance) => <String, dynamic>{
 UserQuestProgress _$UserQuestProgressFromJson(Map<String, dynamic> json) =>
     UserQuestProgress(
       pointsTotal: (json['pointsTotal'] as num?)?.toInt() ?? 0,
+      coinsBalance: (json['coinsBalance'] as num?)?.toInt() ?? 0,
+      coinsTotal: (json['coinsTotal'] as num?)?.toInt() ?? 0,
       currentLevel: (json['currentLevel'] as num?)?.toInt() ?? 1,
+      nextLevelXP: (json['nextLevelXP'] as num?)?.toInt() ?? 3000,
       lastLevelUpAt: json['lastLevelUpAt'] == null
           ? null
           : DateTime.parse(json['lastLevelUpAt'] as String),
@@ -158,7 +161,10 @@ UserQuestProgress _$UserQuestProgressFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$UserQuestProgressToJson(UserQuestProgress instance) =>
     <String, dynamic>{
       'pointsTotal': instance.pointsTotal,
+      'coinsBalance': instance.coinsBalance,
+      'coinsTotal': instance.coinsTotal,
       'currentLevel': instance.currentLevel,
+      'nextLevelXP': instance.nextLevelXP,
       'lastLevelUpAt': instance.lastLevelUpAt?.toIso8601String(),
       'logStreak': instance.logStreak,
       'badgesEarned': instance.badgesEarned,

@@ -213,11 +213,13 @@ class TrackerRepository {
 
   // ── Write operations ───────────────────────────────────────────────────────
 
+  Future<void> invalidateAllCaches() => _cache.clearAll();
+
   Future<Map<String, dynamic>> logDaily(Map<String, dynamic> data) async {
     try {
       final response = await _dio.post('/tracker/log', data: data);
-      // Invalidate logs cache on successful write
-      await invalidateLogsCache();
+      // Invalidate all caches on successful write so prediction, logs & cycles refresh immediately
+      await invalidateAllCaches();
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       throw Exception(
@@ -252,7 +254,7 @@ class TrackerRepository {
     // ── Network POST ───────────────────────────────────────────────────────
     try {
       final response = await _dio.post('/tracker/logs', data: apiPayload);
-      await invalidateLogsCache(); // full invalidation after confirmed write
+      await invalidateAllCaches(); // full invalidation after confirmed write
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       debugPrint('[Repo] ⚠️ logDailyCached failed: $e');
@@ -289,7 +291,7 @@ class TrackerRepository {
 
     if (synced > 0) {
       await _cache.clearOfflineQueue();
-      await invalidateLogsCache();
+      await invalidateAllCaches();
     }
     return synced;
   }
@@ -297,6 +299,7 @@ class TrackerRepository {
   Future<CycleProfileModel> setupTracker(Map<String, dynamic> data) async {
     try {
       final response = await _dio.post('/tracker/setup', data: data);
+      await invalidateAllCaches();
       return CycleProfileModel.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
@@ -314,10 +317,8 @@ class TrackerRepository {
         'endDate': endStr,
       });
 
-      // Invalidate ALL relevant caches to ensure calendar updates correctly
-      await invalidateLogsCache();
-      await invalidateCyclesCache();
-      await invalidatePredictionCache();
+      // Invalidate ALL relevant caches to ensure calendar & cycle ring update correctly
+      await invalidateAllCaches();
     } on DioException catch (e) {
       final msg = e.response?.data['error'] ?? 
                  e.response?.data['message'] ?? 

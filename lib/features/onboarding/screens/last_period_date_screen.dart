@@ -48,35 +48,6 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
             ),
           ),
 
-          // 3. Back Button (Top Left)
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 16,
-            child: GestureDetector(
-              onTap: () => context.go('/onboarding/terms'),
-              child: Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18,
-                  color: Color(0xFF5B21B6),
-                ),
-              ),
-            ),
-          ),
-
           // 4. Interactive Glassmorphic Setup Card
           SafeArea(
             child: LayoutBuilder(
@@ -283,7 +254,7 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
                                               _selected,
                                             ),
                                           );
-                                          context.go(
+                                          context.push(
                                             '/onboarding/tracker/details',
                                           );
                                         }
@@ -354,7 +325,7 @@ class _LastPeriodDateScreenState extends State<LastPeriodDateScreen> {
                                     (state) => !state.isLoading,
                                   );
                                   if (!context.mounted) return;
-                                  context.go('/home');
+                                  context.go('/onboarding/terms');
                                 },
                                 child: Text(
                                   "I'll do this later",

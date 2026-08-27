@@ -79,6 +79,7 @@ class _MenstrualTrackerSnapshotCardState extends State<MenstrualTrackerSnapshotC
         context.push('/onboarding/tracker/date');
       },
       child: Stack(
+        clipBehavior: Clip.antiAlias,
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 350),
@@ -112,46 +113,9 @@ class _MenstrualTrackerSnapshotCardState extends State<MenstrualTrackerSnapshotC
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Setup Badge Pill (Right-aligned)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('🌸', style: TextStyle(fontSize: 13.5)),
-                        const SizedBox(width: 5),
-                        Text(
-                          'SETUP TRACKER',
-                          style: GoogleFonts.nunito(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFFDB337D),
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // Main Content Row: Animated Circle Icon + Benefits Details
+                // Main Content Row: Animated Circle Icon + Details
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Animated Pulsing Circle Icon Container
                     AnimatedBuilder(
@@ -199,7 +163,7 @@ class _MenstrualTrackerSnapshotCardState extends State<MenstrualTrackerSnapshotC
 
                     const SizedBox(width: 16),
 
-                    // Right Column: Headline & Benefits List
+                    // Right Column: Headline & Subtitle
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,22 +177,16 @@ class _MenstrualTrackerSnapshotCardState extends State<MenstrualTrackerSnapshotC
                               letterSpacing: -0.2,
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           Text(
                             'Set up in 30s to unlock smart predictions & body insights!',
                             style: GoogleFonts.nunito(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: Colors.white.withValues(alpha: 0.92),
-                              height: 1.25,
+                              height: 1.3,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          _buildBenefitRow('🩸', 'Accurate period & cycle predictions'),
-                          const SizedBox(height: 3),
-                          _buildBenefitRow('💖', 'Track symptoms, energy & moods'),
-                          const SizedBox(height: 3),
-                          _buildBenefitRow('✨', 'Personalized daily self-care tips'),
                         ],
                       ),
                     ),
@@ -277,6 +235,101 @@ class _MenstrualTrackerSnapshotCardState extends State<MenstrualTrackerSnapshotC
             ),
           ),
 
+          // 3D Background Decorative Elements
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: Stack(
+                  children: [
+                    // Decorative Circle Top Right
+                    Positioned(
+                      top: -24,
+                      right: -24,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                      ),
+                    ),
+                    // Decorative Circle Bottom Left
+                    Positioned(
+                      bottom: -35,
+                      left: -25,
+                      child: Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.06),
+                        ),
+                      ),
+                    ),
+                    // Center-Right subtle bubble
+                    Positioned(
+                      top: 45,
+                      right: 70,
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.04),
+                        ),
+                      ),
+                    ),
+                    // Floating sparkles & stars
+                    Positioned(
+                      top: 14,
+                      left: 14,
+                      child: Text(
+                        '✨',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 14,
+                      right: 16,
+                      child: Icon(
+                        Icons.star_rounded,
+                        color: Colors.white.withValues(alpha: 0.35),
+                        size: 18,
+                      ),
+                    ),
+                    Positioned(
+                      top: 65,
+                      left: 10,
+                      child: Text(
+                        '💖',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.35),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 55,
+                      right: 12,
+                      child: Text(
+                        '🌸',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
           // Glassmorphic Specular Overlay
           Positioned.fill(
             child: IgnorePointer(
@@ -300,27 +353,6 @@ class _MenstrualTrackerSnapshotCardState extends State<MenstrualTrackerSnapshotC
         ],
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05);
-  }
-
-  Widget _buildBenefitRow(String emoji, String text) {
-    return Row(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 11)),
-        const SizedBox(width: 5),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.nunito(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w800,
-              color: Colors.white.withValues(alpha: 0.95),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildActiveSnapshotCard(

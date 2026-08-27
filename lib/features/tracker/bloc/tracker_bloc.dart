@@ -54,17 +54,12 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
           return;
         }
 
-        // If we found a profile, the user IS onboarded for the tracker
-        if (!_storage.isOnboarded) {
-          await _storage.setIsOnboarded(true);
-          await _storage.setStepComplete('11');
-        }
 
         // Parallel API execution for maximum performance speedup (~150ms total)
         final results = await Future.wait([
-          _repository.getPrediction(),
+          _repository.getPredictionCached(forceRefresh: event.isRefresh),
           _repository.getLogs(),
-          _repository.getHistory(),
+          _repository.getCyclesCached(forceRefresh: event.isRefresh),
           _repository.getDailyInsights(),
         ]);
 
@@ -105,15 +100,14 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
 
       try {
         final result = await _repository.logDaily(event.data);
-        await _repository.invalidatePredictionCache();
-        await _repository.invalidateCyclesCache();
+        await _repository.invalidateAllCaches();
         
-        // Parallel API re-fetch on daily log
+        // Parallel API re-fetch on daily log with forced network refresh
         final results = await Future.wait([
           _repository.getProfile(),
-          _repository.getPrediction(),
+          _repository.getPredictionCached(forceRefresh: true),
           _repository.getLogs(),
-          _repository.getHistory(),
+          _repository.getCyclesCached(forceRefresh: true),
         ]);
 
         final profile = results[0] as CycleProfileModel?;
@@ -144,7 +138,7 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
       emit(const TrackerState.loading());
       try {
         await _repository.setupTracker(event.data);
-        add(const TrackerEvent.load());
+        add(const TrackerEvent.load(isRefresh: true));
       } catch (e) {
         emit(TrackerState.error(e.toString()));
       }
@@ -158,7 +152,7 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
 
       try {
         await _repository.updatePeriodRange(event.start, event.end);
-        add(const TrackerEvent.load());
+        add(const TrackerEvent.load(isRefresh: true));
       } catch (e) {
         emit(currentState.copyWith(milestone: null));
       }
