@@ -948,16 +948,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 _buildDrawerItem(
                   icon: Icons.workspace_premium_outlined,
                   iconColor: const Color(0xFFEC4899),
-<<<<<<< HEAD
-                  title: 'My Programs',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/learning/programs');
-                  },
-=======
                   title: 'Enrolled Programs',
                   onTap: () => _safeDrawerPush('/learning/programs'),
->>>>>>> feature/quest
                 ),
                 _buildDrawerItem(
                   icon: Icons.menu_book_outlined,
