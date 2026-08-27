@@ -57,7 +57,8 @@ class NotificationService {
       settings: initializationSettings,
       onDidReceiveNotificationResponse: (details) {
         final payload = details.payload;
-        if (payload != null) {
+        if (payload != null && payload.isNotEmpty) {
+          debugPrint('[Notifications] onDidReceiveNotificationResponse: $payload');
           _handleDeepLink(payload);
         }
       },
@@ -67,8 +68,23 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_channel);
 
+    // Check if app was launched via local notification when killed
+    try {
+      final launchDetails = await _localNotifications.getNotificationAppLaunchDetails();
+      if (launchDetails?.didNotificationLaunchApp ?? false) {
+        final payload = launchDetails?.notificationResponse?.payload;
+        if (payload != null && payload.isNotEmpty) {
+          debugPrint('[Notifications] App launched via local notification with payload: $payload');
+          _handleDeepLink(payload);
+        }
+      }
+    } catch (e) {
+      debugPrint('[Notifications] Error reading notification launch details: $e');
+    }
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
+      final extractedLink = _extractDeepLink(message);
 
       if (notification != null) {
         // Show System Heads-Up Notification Channel
@@ -90,33 +106,44 @@ class NotificationService {
               presentSound: true,
             ),
           ),
-          payload: message.data['deepLink'],
+          payload: extractedLink,
         );
 
         // Show our premium in-app custom notification banner
         _showInAppNotification(
           notification.title ?? 'New Alert',
           notification.body ?? '',
-          message.data['deepLink'],
+          extractedLink,
         );
       }
     });
 
-    // 5. Handle Background/Terminated Click
+    // 5. Handle Background Click (when app in background)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      _handleDeepLink(message.data['deepLink']);
-    });
-
-    // Check if the app was launched by clicking a notification when it was terminated
-    _fcm.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null) {
-        _handleDeepLink(message.data['deepLink']);
+      debugPrint('[Notifications] onMessageOpenedApp: ${message.data}');
+      final link = _extractDeepLink(message);
+      if (link != null) {
+        _handleDeepLink(link);
       }
     });
 
+    // 6. Handle Terminated Click (when app was killed)
+    try {
+      final initialMessage = await _fcm.getInitialMessage();
+      if (initialMessage != null) {
+        debugPrint('[Notifications] getInitialMessage (killed state): ${initialMessage.data}');
+        final link = _extractDeepLink(initialMessage);
+        if (link != null) {
+          _handleDeepLink(link);
+        }
+      }
+    } catch (e) {
+      debugPrint('[Notifications] Error getting initial message: $e');
+    }
+
     _isInitialized = true;
 
-    // 6. Reactive Sync: Listen for token changes
+    // 7. Reactive Sync: Listen for token changes
     _storage?.addListener(_onStorageChanged);
     
     // Initial sync attempt
@@ -124,6 +151,38 @@ class NotificationService {
     } catch (e) {
       debugPrint('[Notifications] Setup failed ❌: $e');
     }
+  }
+
+  String? _extractDeepLink(RemoteMessage message) {
+    final data = message.data;
+    if (data.containsKey('deepLink') && data['deepLink'] != null && data['deepLink'].toString().isNotEmpty) {
+      return data['deepLink'].toString();
+    }
+    if (data.containsKey('link') && data['link'] != null && data['link'].toString().isNotEmpty) {
+      return data['link'].toString();
+    }
+    if (data.containsKey('route') && data['route'] != null && data['route'].toString().isNotEmpty) {
+      return data['route'].toString();
+    }
+    if (data.containsKey('url') && data['url'] != null && data['url'].toString().isNotEmpty) {
+      return data['url'].toString();
+    }
+    if (data.containsKey('path') && data['path'] != null && data['path'].toString().isNotEmpty) {
+      return data['path'].toString();
+    }
+    
+    final notificationType = data['notificationType'] ?? data['type'];
+    if (notificationType == 'linkRequest' || notificationType == 'linkAcceptance' || notificationType == 'parent_link') {
+      return '/account/family';
+    }
+    if (notificationType == 'safetyAlert' || notificationType == 'sos') {
+      return '/safety/sos';
+    }
+    if (notificationType == 'peerlineChat') {
+      final sessionId = data['sessionId'];
+      if (sessionId != null) return '/peerline/chat/$sessionId';
+    }
+    return null;
   }
 
   void _onStorageChanged() {
@@ -164,14 +223,60 @@ class NotificationService {
     }
   }
 
+  String? _pendingDeepLink;
+
   void _handleDeepLink(String? link) {
-    if (link != null && link.startsWith('infano://')) {
-      final path = link.replaceFirst('infano://', '/');
-      final context = _navigatorKey.currentState?.context;
-      if (context != null) {
-        GoRouter.of(context).push(path);
-      }
+    if (link == null || link.trim().isEmpty) return;
+    
+    String path = link.trim();
+    if (path.startsWith('infano://')) {
+      path = path.replaceFirst('infano://', '/');
+    } else if (path.startsWith('app://infano.care')) {
+      path = path.replaceFirst('app://infano.care', '');
     }
+    
+    if (!path.startsWith('/')) {
+      path = '/$path';
+    }
+
+    debugPrint('[Notifications] Deep link target: $path');
+
+    final context = _navigatorKey.currentState?.context;
+    if (context != null && context.mounted) {
+      try {
+        GoRouter.of(context).push(path);
+        _pendingDeepLink = null;
+      } catch (e) {
+        debugPrint('[Notifications] Failed immediate push: $e, queuing retry');
+        _pendingDeepLink = path;
+        _retryPendingDeepLink();
+      }
+    } else {
+      debugPrint('[Notifications] Navigator not mounted yet, storing pending link: $path');
+      _pendingDeepLink = path;
+      _retryPendingDeepLink();
+    }
+  }
+
+  void _retryPendingDeepLink([int attempts = 0]) {
+    if (_pendingDeepLink == null || attempts > 25) return;
+    
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_pendingDeepLink == null) return;
+      final context = _navigatorKey.currentState?.context;
+      if (context != null && context.mounted) {
+        final path = _pendingDeepLink!;
+        _pendingDeepLink = null;
+        debugPrint('[Notifications] Executing pending deep link navigation: $path');
+        try {
+          GoRouter.of(context).push(path);
+        } catch (e) {
+          debugPrint('[Notifications] Error navigating to $path: $e');
+        }
+      } else {
+        _retryPendingDeepLink(attempts + 1);
+      }
+    });
   }
 
   void _showInAppNotification(String title, String body, String? deepLink) {

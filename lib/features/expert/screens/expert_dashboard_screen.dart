@@ -12,6 +12,7 @@ import 'package:infano_care_mobile/features/expert/screens/expert_calendar_scree
 import 'package:infano_care_mobile/features/learning/screens/learn_hub_screen.dart';
 import 'package:infano_care_mobile/features/home/screens/track_screen.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
+import 'package:infano_care_mobile/widgets/notification_center_sheet.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -384,8 +385,31 @@ class _ExpertDashboardScreenState extends State<ExpertDashboardScreen> {
             style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold, fontSize: 22)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textDark),
-            onPressed: () {},
+            icon: ValueListenableBuilder<int>(
+              valueListenable: NotificationCenterSheet.unreadCountNotifier,
+              builder: (context, unreadCount, _) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.notifications_none_outlined, color: AppColors.textDark),
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE11D48),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            onPressed: () => NotificationCenterSheet.show(context),
           ),
         ],
       ),

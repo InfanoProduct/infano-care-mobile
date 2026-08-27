@@ -143,13 +143,19 @@ GoRouter createRouter(
         return '/splash';
       }
 
-      // 2. Fully onboarded
-      if (storage.isOnboarded) {
+      // 2. Fully onboarded or existing user with profile/role
+      final hasCompletedProfile = storage.isOnboarded ||
+          (storage.displayName != null && storage.displayName!.trim().isNotEmpty) ||
+          role == 'ADMIN' ||
+          role == 'EXPERT';
+
+      if (hasCompletedProfile) {
         // Experts go to their dashboard
         if (role == 'EXPERT') {
           if (path == '/home' ||
               path == '/splash' ||
-              path.startsWith('/onboarding')) {
+              path.startsWith('/onboarding') ||
+              path.startsWith('/auth')) {
             return '/expert/dashboard';
           }
           return null;
@@ -163,14 +169,15 @@ GoRouter createRouter(
       }
 
       // 3. Not fully onboarded — enforce onboarding flow
-      // If they land on splash/auth after login, send to their step
-      if (path == '/splash' || path == '/auth/otp' || path == '/auth/phone') {
+      // If they land on splash, send to their onboarding entry step
+      if (path == '/splash') {
         if (role != null) return '/onboarding/name';
         return '/onboarding/path';
       }
 
-      // Allow onboarding screens and tracker screens freely
-      if (path.startsWith('/onboarding') ||
+      // Allow auth screens, onboarding screens and tracker screens freely during active flow
+      if (path.startsWith('/auth') ||
+          path.startsWith('/onboarding') ||
           path.contains('tracker') ||
           path == '/settings' ||
           path == '/account' ||

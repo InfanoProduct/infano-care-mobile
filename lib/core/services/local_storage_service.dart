@@ -102,6 +102,55 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Atomically saves the full authentication and user session data in a single batch
+  /// so that GoRouter listeners receive a single notification with isOnboarded already true.
+  Future<void> saveAuthSession({
+    required String? authToken,
+    required String? refreshToken,
+    required String? role,
+    required String? userId,
+    required String? phone,
+    required bool isOnboarded,
+    required String? stepComplete,
+    String? displayName,
+    String? pronouns,
+    int? birthMonth,
+    int? birthYear,
+    int? totalPoints,
+    String? avatarUrl,
+    String? contentTier,
+  }) async {
+    await _prefs.setBool(_isOnboarded, isOnboarded);
+    if (stepComplete != null) await _prefs.setString(_stepComplete, stepComplete);
+    if (phone != null) await _prefs.setString(_phone, phone);
+    if (role != null) await _prefs.setString(_role, role);
+    if (userId != null) await _prefs.setString(_userId, userId);
+    if (contentTier != null) await _prefs.setString(_contentTier, contentTier);
+    if (displayName != null && displayName.trim().isNotEmpty) {
+      await _prefs.setString(_displayName, displayName);
+    }
+    if (pronouns != null) await _prefs.setString(_pronouns, pronouns);
+    if (birthMonth != null) await _prefs.setInt(_birthMonth, birthMonth);
+    if (birthYear != null) await _prefs.setInt(_birthYear, birthYear);
+    if (totalPoints != null) await _prefs.setInt(_points, totalPoints);
+    if (avatarUrl != null) await _prefs.setString(_avatarUrl, avatarUrl);
+
+    if (refreshToken != null) {
+      _cachedRefreshToken = refreshToken;
+      await _secureStorage.write(key: _refreshToken, value: refreshToken);
+    }
+    if (authToken != null) {
+      _cachedAuthToken = authToken;
+      await _secureStorage.write(key: _authToken, value: authToken);
+    }
+
+    _cachedTempToken = null;
+    await _secureStorage.delete(key: _tempToken);
+    await _prefs.remove(_tempToken);
+
+    notifyListeners();
+  }
+
   bool get isFriendOnboarded => _prefs.getBool(_isFriendOnboarded) ?? false;
   Future<void> setIsFriendOnboarded(bool value) async {
     await _prefs.setBool(_isFriendOnboarded, value);

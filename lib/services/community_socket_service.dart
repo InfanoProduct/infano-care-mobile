@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/models/peerline_session.dart';
+import 'package:infano_care_mobile/widgets/notification_center_sheet.dart';
 import 'package:socket_io_client_new/socket_io_client_new.dart' as io;
 
 class CommunitySocketService {
@@ -158,6 +159,7 @@ class CommunitySocketService {
     // Server emits this whenever a NotificationHistory record is created for the user.
     _eventsSocket?.on('notification:new', (_) {
       notificationNewCount.value++;
+      NotificationCenterSheet.fetchUnreadCount();
     });
 
     _socket?.on('message', (data) {
