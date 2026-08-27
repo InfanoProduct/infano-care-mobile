@@ -52,7 +52,6 @@ import 'package:infano_care_mobile/features/safety/screens/sos_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_config_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_type_setup_screen.dart';
 import 'package:infano_care_mobile/features/safety/screens/sos_test_screen.dart';
-import 'package:infano_care_mobile/features/safety/screens/location_settings_screen.dart';
 
 // Gigi & Expert Imports
 import 'package:infano_care_mobile/features/chat/screens/chat_screen.dart';
@@ -524,12 +523,15 @@ GoRouter createRouter(
         },
       ),
       GoRoute(
-        path: '/safety/location',
-        builder: (_, _) => const LocationSettingsScreen(),
+        path: '/safety/config',
+        builder: (_, _) => const SosConfigScreen(),
       ),
-      // Legacy alias kept for backwards compat
       GoRoute(
         path: '/safety/sos_config',
+        builder: (_, _) => const SosConfigScreen(),
+      ),
+      GoRoute(
+        path: '/safety/location',
         builder: (_, _) => const SosConfigScreen(),
       ),
 
@@ -540,7 +542,7 @@ GoRouter createRouter(
       ),
       GoRoute(
         path: '/settings/location',
-        builder: (_, _) => const LocationSettingsScreen(),
+        builder: (_, _) => const SosConfigScreen(),
       ),
       GoRoute(
         path: '/account/notifications',

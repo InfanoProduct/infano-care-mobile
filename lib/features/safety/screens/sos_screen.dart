@@ -103,22 +103,16 @@ class _SosHubScreenState extends State<SosHubScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: Colors.purple.withOpacity(0.1),
+            color: Colors.purple.withValues(alpha: 0.1),
             height: 1,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.location_on_outlined, color: AppColors.textDark),
-            tooltip: 'Location & GPS Settings',
+            icon: const Icon(Icons.settings_suggest_rounded, color: AppColors.textDark),
+            tooltip: 'Safety & SOS Settings',
             onPressed: () =>
-                context.push('/safety/location').then((_) => _loadData()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.tune_rounded, color: AppColors.textDark),
-            tooltip: 'Alert Style',
-            onPressed: () =>
-                context.push('/safety/setup-type').then((_) => _loadData()),
+                context.push('/safety/sos_config').then((_) => _loadData()),
           ),
         ],
       ),
@@ -303,7 +297,7 @@ class _SosHubScreenState extends State<SosHubScreen> {
             const SizedBox(height: 16),
             GestureDetector(
               onTap: () => context
-                  .push('/safety/setup-type')
+                  .push('/safety/sos_config')
                   .then((_) => _loadData()),
               child: Row(
                 children: [
@@ -455,7 +449,7 @@ class _SosHubScreenState extends State<SosHubScreen> {
   Widget _buildLocationCard() {
     final bool locationEnabled = _prefs?.locationEnabled ?? false;
     return GestureDetector(
-      onTap: () => context.push('/safety/location').then((_) => _loadData()),
+      onTap: () => context.push('/safety/sos_config').then((_) => _loadData()),
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
