@@ -34,6 +34,7 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   @override
   void initState() {
     super.initState();
+    widget.storage.clearAll();
     _repo = AuthRepository(widget.storage);
     _controller.addListener(_formatPhoneNumber);
   }
@@ -115,6 +116,11 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   Widget _buildBody(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isCompact = size.height < 700;
+    final isTablet = size.width >= 600 || size.height >= 1000;
+    final horizontalPadding = isTablet ? 32.0 : (size.width < 360 ? 14.0 : 20.0);
+    final topSpace = isTablet
+        ? (size.height * 0.22).clamp(100.0, 260.0)
+        : (isCompact ? 80.0 : (size.height * 0.16).clamp(100.0, 180.0));
 
     return Stack(
       children: [
@@ -149,7 +155,7 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
         // 3. Back Button (Top Left)
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
-          left: 16,
+          left: isTablet ? 32 : 16,
           child: GestureDetector(
             onTap: () {
               if (widget.fromOnboarding) {
@@ -181,52 +187,58 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
           ),
         ),
 
-        // 4. Interactive Glassmorphic Phone Card (Structured for best fit)
+        // 4. Interactive Glassmorphic Phone Card (Responsive for all mobile & tablet dimensions)
         SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
               return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
                   vertical: 16,
                 ),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight: constraints.maxHeight - 32,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      SizedBox(
-                        height: isCompact ? 100 : 160,
-                      ), // Leave top space so character girl is fully visible
-                      // 3D Glassmorphic Phone Card
-                      Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 22,
-                              vertical: isCompact ? 20 : 26,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(
-                                alpha: 0.93,
-                              ), // Premium glassmorphic white card
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFF4C1D95,
-                                  ).withValues(alpha: 0.22),
-                                  blurRadius: 28,
-                                  offset: const Offset(0, 10),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: 480, // Max card width for tablets to prevent excessive stretching
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          SizedBox(
+                            height: topSpace,
+                          ), // Leave top space so character girl is fully visible
+                          // 3D Glassmorphic Phone Card
+                          Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isTablet ? 28 : (size.width < 360 ? 16 : 22),
+                                  vertical: isCompact ? 20 : 26,
                                 ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(
+                                    alpha: 0.93,
+                                  ), // Premium glassmorphic white card
+                                  borderRadius: BorderRadius.circular(32),
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF4C1D95,
+                                      ).withValues(alpha: 0.22),
+                                      blurRadius: 28,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
                                 // 3D Heart Icon Badge
                                 Container(
                                   width: 54,
@@ -313,17 +325,17 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
                                           horizontal: 12,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFF3F4F6),
+                                          color: const Color(0xFFFDF2F8), // Soft Light Pink background
                                           borderRadius: BorderRadius.circular(
                                             16,
                                           ),
                                           border: Border.all(
-                                            color: const Color(0xFFE5E7EB),
+                                            color: const Color(0xFFFBCFE8), // Gentle pink border
                                             width: 1.2,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withValues(
+                                              color: const Color(0xFFDB2777).withValues(
                                                 alpha: 0.04,
                                               ),
                                               blurRadius: 6,
@@ -345,7 +357,7 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
                                             Container(
                                               padding: const EdgeInsets.all(2),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFFF59E0B),
+                                                color: const Color(0xFF6D28D9),
                                                 borderRadius:
                                                     BorderRadius.circular(4),
                                               ),
@@ -370,51 +382,52 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
                                           horizontal: 14,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFF9FAFB),
+                                          color: const Color(0xFFFDF2F8), // Soft Light Pink background covering full field
                                           borderRadius: BorderRadius.circular(
                                             16,
                                           ),
                                           border: Border.all(
-                                            color: const Color(0xFFD1D5DB),
+                                            color: const Color(0xFFFBCFE8), // Gentle pink border
                                             width: 1.2,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.03,
+                                              color: const Color(0xFFDB2777).withValues(
+                                                alpha: 0.04,
                                               ),
                                               blurRadius: 6,
                                               offset: const Offset(0, 2),
                                             ),
                                           ],
                                         ),
-                                        child: TextField(
-                                          controller: _controller,
-                                          keyboardType: TextInputType.phone,
-                                          maxLength: 12,
-                                          style: GoogleFonts.nunito(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w800,
-                                            color: const Color(0xFF111827),
-                                            letterSpacing: 0.5,
-                                          ),
-                                          onChanged: (_) => setState(() {}),
-                                          decoration: InputDecoration(
-                                            counterText: '',
-                                            hintText: '98765 43210',
-                                            hintStyle: GoogleFonts.nunito(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: const Color(0xFF9CA3AF),
+                                        child: Center(
+                                          child: TextField(
+                                            controller: _controller,
+                                            keyboardType: TextInputType.phone,
+                                            maxLength: 12,
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w800,
+                                              color: const Color(0xFF111827),
+                                              letterSpacing: 0.5,
                                             ),
-                                            border: InputBorder.none,
-                                            focusedBorder: InputBorder.none,
-                                            enabledBorder: InputBorder.none,
-                                            isDense: true,
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  vertical: 14,
-                                                ),
+                                            onChanged: (_) => setState(() {}),
+                                            decoration: InputDecoration(
+                                              counterText: '',
+                                              hintText: '98765 43210',
+                                              hintStyle: GoogleFonts.nunito(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: const Color(0xFF9CA3AF),
+                                              ),
+                                              filled: true,
+                                              fillColor: Colors.transparent,
+                                              border: InputBorder.none,
+                                              focusedBorder: InputBorder.none,
+                                              enabledBorder: InputBorder.none,
+                                              isDense: true,
+                                              contentPadding: EdgeInsets.zero,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -508,28 +521,22 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
 
                                 const SizedBox(height: 16),
 
-                                // Don't have an account? Sign Up Link
+                                // Privacy statement
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      "Don't have an account? ",
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF4B5563),
-                                      ),
+                                    const Icon(
+                                      Icons.shield_outlined,
+                                      size: 14,
+                                      color: Color(0xFF6B7280),
                                     ),
-                                    GestureDetector(
-                                      onTap:
-                                          () => context.go('/onboarding/path'),
-                                      child: Text(
-                                        'Sign Up',
-                                        style: GoogleFonts.nunito(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w900,
-                                          color: const Color(0xFF5B21B6),
-                                        ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'We protect and never sell data to 3rd-party',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF6B7280),
                                       ),
                                     ),
                                   ],
@@ -544,7 +551,9 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
                             duration: 500.ms,
                             curve: Curves.easeOutBack,
                           ),
-                    ],
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               );

@@ -140,14 +140,20 @@ class Badge {
 @JsonSerializable()
 class UserQuestProgress {
   final int pointsTotal;
+  final int coinsBalance;
+  final int coinsTotal;
   final int currentLevel;
+  final int nextLevelXP;
   final DateTime? lastLevelUpAt;
   final int logStreak;
   final int badgesEarned;
 
   UserQuestProgress({
     this.pointsTotal = 0,
+    this.coinsBalance = 0,
+    this.coinsTotal = 0,
     this.currentLevel = 1,
+    this.nextLevelXP = 3000,
     this.lastLevelUpAt,
     this.logStreak = 0,
     this.badgesEarned = 0,

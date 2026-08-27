@@ -52,7 +52,7 @@ class OnboardingState extends Equatable {
     this.privacyAccepted    = false,
     this.marketingOptIn     = false,
     this.goals              = const [],
-    this.periodComfortScore = 3,
+    this.periodComfortScore = 0,
     this.periodStatus       = 'waiting',
     this.interestTopics     = const [],
     this.avatarData         = const {},
@@ -152,6 +152,7 @@ class SyncFromStorage       extends OnboardingEvent { const SyncFromStorage(); }
 class BootstrapApp         extends OnboardingEvent { const BootstrapApp(); }
 class SendConsentEmail     extends OnboardingEvent { final String email; const SendConsentEmail(this.email); @override List<Object?> get props => [email]; }
 class CheckConsentStatus   extends OnboardingEvent { const CheckConsentStatus(); }
+class CompleteOnboardingFlow extends OnboardingEvent { const CompleteOnboardingFlow(); }
 
 // ─── BLoC ─────────────────────────────────────────────────────────────────────
 
@@ -184,6 +185,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<BootstrapApp>(_onBootstrapApp);
     on<SendConsentEmail>(_onSendConsentEmail);
     on<CheckConsentStatus>(_onCheckConsentStatus);
+    on<CompleteOnboardingFlow>(_onCompleteOnboardingFlow);
   }
 
   void _onSetUserType(SetUserType e, Emitter<OnboardingState> emit) {
@@ -321,9 +323,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         periodStatus: state.periodStatus,
         interestTopics: state.interestTopics,
       );
-      await _storage.setPoints(res['pointsTotal']);
-      // removed: await _storage.setStepComplete('3');
-      emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
+      emit(state.copyWith(isLoading: false));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
     }
@@ -346,9 +346,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(isLoading: true));
     try {
       final res = await _repo.saveJourneyName(state.journeyName);
-      await _storage.setPoints(res['pointsTotal']);
-      // removed: await _storage.setStepComplete('4.1');
-      emit(state.copyWith(isLoading: false, totalPoints: res['pointsTotal']));
+      emit(state.copyWith(isLoading: false));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
     }
@@ -374,9 +372,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         cycleLengthDays:  state.cycleLength,
         trackerMode:      trackerMode,
       );
-      await _repo.completeOnboarding();
-      await _storage.setIsOnboarded(true);
-      _repo.updateStep(11);
+      if (_storage.isOnboarded) {
+        await _repo.completeOnboarding();
+        _repo.updateStep(11);
+      }
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
@@ -386,8 +385,28 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   Future<void> _onSkipTracker(SkipTracker e, Emitter<OnboardingState> emit) async {
     emit(state.copyWith(isLoading: true));
     try {
-      await _repo.completeOnboarding();
+      if (_storage.isOnboarded) {
+        await _repo.completeOnboarding();
+        _repo.updateStep(11);
+      }
+      emit(state.copyWith(isLoading: false, errorMessage: null));
+    } catch (err) {
+      emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
+    }
+  }
+
+  Future<void> _onCompleteOnboardingFlow(CompleteOnboardingFlow e, Emitter<OnboardingState> emit) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final res = await _repo.completeOnboarding();
       await _storage.setIsOnboarded(true);
+      if (res != null && res['pointsTotal'] != null) {
+        final points = (res['pointsTotal'] is int)
+            ? res['pointsTotal'] as int
+            : int.tryParse(res['pointsTotal'].toString()) ?? 50;
+        await _storage.setPoints(points);
+        emit(state.copyWith(totalPoints: points));
+      }
       _repo.updateStep(11);
       emit(state.copyWith(isLoading: false, errorMessage: null));
     } catch (err) {

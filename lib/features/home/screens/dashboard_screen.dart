@@ -20,6 +20,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
+import 'package:infano_care_mobile/features/home/widgets/first_time_user_guide_overlay.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -42,9 +43,15 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen>
     with WidgetsBindingObserver {
   bool _isExpanded = true;
+  bool _showUserGuide = false;
   StreamSubscription? _peerlineSocketSub;
   StreamSubscription? _fcmMessageSub;
   Timer? _collapseTimer;
+
+  final GlobalKey _headerKey = GlobalKey();
+  final GlobalKey _trackerKey = GlobalKey();
+  final GlobalKey _journeyKey = GlobalKey();
+  final GlobalKey _bottomNavKey = GlobalKey();
 
   final List<int> _tabHistory = [];
   int _currentTab = 0;
@@ -62,6 +69,16 @@ class _DashboardScreenState extends State<DashboardScreen>
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!widget.storage.hasCompletedUserGuide) {
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted) {
+            setState(() {
+              _showUserGuide = true;
+            });
+          }
+        });
+      }
+
       final socket = Provider.of<CommunitySocketService>(
         context,
         listen: false,
@@ -82,6 +99,21 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {}
+  }
+
+  @override
+  void didUpdateWidget(DashboardScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab != oldWidget.initialTab) {
+      _currentTab = widget.initialTab;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          try {
+            context.read<DashboardCubit>().setTab(widget.initialTab);
+          } catch (_) {}
+        }
+      });
+    }
   }
 
   void _showSessionReadyDialog(String sessionId) {
@@ -218,7 +250,11 @@ class _DashboardScreenState extends State<DashboardScreen>
         child: BlocBuilder<DashboardCubit, DashboardState>(
           builder: (context, state) {
             final screens = [
-              const HomeScreen(),
+              HomeScreen(
+                headerKey: _headerKey,
+                trackerKey: _trackerKey,
+                journeyKey: _journeyKey,
+              ),
               LearnHubScreen(storage: storage),
               const TrackScreen(),
               const ConnectScreen(),
@@ -244,7 +280,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   }
                 }
               },
-              child: Scaffold(
+              child: Stack(
+                children: [
+                  Scaffold(
                 backgroundColor: const Color(0xFFF5F4F7),
                 appBar: null,
                 drawer: _buildDrawer(context, storage),
@@ -272,6 +310,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   child: SafeArea(child: screens[state.selectedIndex]),
                 ),
                 bottomNavigationBar: Container(
+                  key: _bottomNavKey,
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
@@ -509,12 +548,30 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   (controller) =>
                                       controller.repeat(reverse: true),
                             )
-                            .slideY(
-                              begin: 0.0,
-                              end: -0.12,
-                              duration: 1500.ms,
-                              curve: Curves.easeInOut,
-                            ),
+                             .slideY(
+                               begin: 0.0,
+                               end: -0.12,
+                               duration: 1500.ms,
+                               curve: Curves.easeInOut,
+                             ),
+                  ),
+                  if (_showUserGuide)
+                    FirstTimeUserGuideOverlay(
+                      headerKey: _headerKey,
+                      trackerKey: _trackerKey,
+                      journeyKey: _journeyKey,
+                      bottomNavKey: _bottomNavKey,
+                      userName: widget.storage.displayName ?? 'Bestie',
+                      onComplete: () async {
+                        await widget.storage.setHasCompletedUserGuide(true);
+                        if (mounted) {
+                          setState(() {
+                            _showUserGuide = false;
+                          });
+                        }
+                      },
+                    ),
+                ],
               ),
             );
           },
@@ -587,6 +644,12 @@ class _DashboardScreenState extends State<DashboardScreen>
         .scaleXY(begin: 1.15, end: 1.0, duration: 1000.ms);
   }
 
+  void _safeDrawerPush(String routePath) {
+    final router = GoRouter.of(context);
+    Navigator.of(context).pop();
+    router.push(routePath);
+  }
+
   Widget _buildDrawer(BuildContext context, LocalStorageService storage) {
     final displayName = storage.displayName ?? 'Infano User';
     final userRole = storage.role ?? 'MEMBER';
@@ -602,128 +665,142 @@ class _DashboardScreenState extends State<DashboardScreen>
             : (storage.pronouns?.isNotEmpty == true
                 ? storage.pronouns!
                 : 'Infano Community');
-    final points = storage.points;
-    final displayCoins = points > 0 ? points : 150;
-    final badgeCount = points > 0 ? (points ~/ 30).clamp(4, 18) : 8;
+    final questState = context.watch<QuestBloc>().state;
+    int displayCoins = 0;
+    int badgeCount = 0;
+
+    questState.maybeWhen(
+      loaded: (dailyQuests, weeklyChallenges, progress, badges, isRefreshing, lastCompletedQuest, lastLevel) {
+        displayCoins = progress.coinsBalance;
+        badgeCount = progress.badgesEarned;
+      },
+      orElse: () {
+        displayCoins = 0;
+        badgeCount = 0;
+      },
+    );
 
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
         children: [
           // ── Light Profile Header ──────────────────────────────────────────
-          Container(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              MediaQuery.of(context).padding.top + 16,
-              20,
-              18,
-            ),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFFAF5FF), Color(0xFFF3E8FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          InkWell(
+            onTap: () => _safeDrawerPush('/account'),
+            child: Container(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                MediaQuery.of(context).padding.top + 16,
+                20,
+                18,
               ),
-              border: Border(
-                bottom: BorderSide(color: Color(0xFFEDE9FE), width: 1.2),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFFAF5FF), Color(0xFFF3E8FF)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFEDE9FE), width: 1.2),
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    // Profile Avatar with border and soft glow
-                    Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.purple.withValues(alpha: 0.15),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      // Profile Avatar with border and soft glow
+                      Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.purple.withValues(alpha: 0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child:
+                              storage.avatarUrl != null
+                                  ? Image.network(
+                                    storage.avatarUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (_, __, ___) =>
+                                            _buildAvatarFallback(displayName),
+                                  )
+                                  : _buildAvatarFallback(displayName),
+                        ),
                       ),
-                      child: ClipOval(
-                        child:
-                            storage.avatarUrl != null
-                                ? Image.network(
-                                  storage.avatarUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (_, __, ___) =>
-                                          _buildAvatarFallback(displayName),
-                                )
-                                : _buildAvatarFallback(displayName),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            displayName,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textDark,
-                              letterSpacing: -0.2,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              displayName,
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textDark,
+                                letterSpacing: -0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            phoneOrEmail,
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              color: AppColors.textMedium,
-                              fontWeight: FontWeight.w500,
+                            const SizedBox(height: 3),
+                            Text(
+                              phoneOrEmail,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                color: AppColors.textMedium,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.purple.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.stars_rounded,
-                                  size: 13,
-                                  color: AppColors.purple,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  roleLabel,
-                                  style: const TextStyle(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w700,
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.purple.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.stars_rounded,
+                                    size: 13,
                                     color: AppColors.purple,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    roleLabel,
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.purple,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -748,10 +825,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 // Coins column
                 Expanded(
                   child: InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push('/quests');
-                    },
+                    onTap: () => _safeDrawerPush('/quests'),
                     borderRadius: BorderRadius.circular(10),
                     child: Row(
                       children: [
@@ -805,10 +879,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 // Achievements column
                 Expanded(
                   child: InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push('/account');
-                    },
+                    onTap: () => _safeDrawerPush('/account'),
                     borderRadius: BorderRadius.circular(10),
                     child: Row(
                       children: [
@@ -867,19 +938,19 @@ class _DashboardScreenState extends State<DashboardScreen>
                   icon: Icons.person_outline_rounded,
                   iconColor: const Color(0xFF7C3AED),
                   title: 'Account Details',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/account');
-                  },
+                  onTap: () => _safeDrawerPush('/account'),
                 ),
                 _buildDrawerItem(
                   icon: Icons.auto_stories_outlined,
                   iconColor: const Color(0xFF8B5CF6),
                   title: 'My Journal',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/journal');
-                  },
+                  onTap: () => _safeDrawerPush('/journal'),
+                ),
+                _buildDrawerItem(
+                  icon: Icons.stars_rounded,
+                  iconColor: const Color(0xFFF59E0B),
+                  title: 'Quests & Rewards',
+                  onTap: () => _safeDrawerPush('/quests'),
                 ),
                 _buildDrawerItem(
                   icon: Icons.people_alt_outlined,
@@ -891,37 +962,25 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   storage.role == 'GUARDIAN'
                               ? 'Link Daughter'
                               : 'Link Family'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/account/family');
-                  },
+                  onTap: () => _safeDrawerPush('/account/family'),
                 ),
                 _buildDrawerItem(
                   icon: Icons.workspace_premium_outlined,
                   iconColor: const Color(0xFFEC4899),
                   title: 'Enrolled Programs',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/learning/programs');
-                  },
+                  onTap: () => _safeDrawerPush('/learning/programs'),
                 ),
                 _buildDrawerItem(
                   icon: Icons.menu_book_outlined,
                   iconColor: const Color(0xFF10B981),
                   title: 'Good To Know',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/good-to-know');
-                  },
+                  onTap: () => _safeDrawerPush('/good-to-know'),
                 ),
                 _buildDrawerItem(
                   icon: Icons.shopping_bag_outlined,
                   iconColor: const Color(0xFFF59E0B),
                   title: 'My Orders',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/orders');
-                  },
+                  onTap: () => _safeDrawerPush('/orders'),
                 ),
 
                 const SizedBox(height: 8),
@@ -930,10 +989,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   icon: Icons.settings_outlined,
                   iconColor: const Color(0xFF64748B),
                   title: 'Settings',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/settings');
-                  },
+                  onTap: () => _safeDrawerPush('/settings'),
                 ),
                 _buildDrawerItem(
                   icon: Icons.help_outline_rounded,

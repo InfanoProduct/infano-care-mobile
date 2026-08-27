@@ -212,6 +212,15 @@ class CalendarSqfliteCache {
     debugPrint('[Cache] 🗑 Cycles cache invalidated');
   }
 
+  /// Force-evict ALL tracker cache tables (logs, prediction, cycles).
+  Future<void> clearAll() async {
+    final db = await _database;
+    await db.delete(_tableLogs);
+    await db.delete(_tablePrediction);
+    await db.delete(_tableCycles);
+    debugPrint('[Cache] 🗑 ALL tracker caches invalidated');
+  }
+
   // ── Cycles ─────────────────────────────────────────────────────────────────
 
   Future<List<CycleRecordModel>?> getCycles() async {

@@ -26,7 +26,6 @@ import 'package:infano_care_mobile/features/onboarding/screens/assent_terms_scre
 import 'package:infano_care_mobile/features/onboarding/screens/goals_selection_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/period_comfort_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/period_experience_screen.dart';
-import 'package:infano_care_mobile/features/onboarding/screens/interest_topics_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/welcome_world_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/last_period_date_screen.dart';
 import 'package:infano_care_mobile/features/onboarding/screens/cycle_details_screen.dart';
@@ -101,10 +100,9 @@ String getRouteForStep(String step, {String? periodStatus, String? role}) {
     '4': '/onboarding/goals',
     '5': '/onboarding/period-comfort',
     '6': '/onboarding/period-status',
-    '7': '/onboarding/interests',
-    '8': '/onboarding/terms',
-    '9': '/onboarding/tracker/date',
-    '10': '/onboarding/tracker/details',
+    '7': '/onboarding/terms',
+    '8': '/onboarding/tracker/date',
+    '9': '/onboarding/tracker/details',
   };
 
   // Skip tracker setup if period status is not active
@@ -329,12 +327,6 @@ GoRouter createRouter(
         path: '/onboarding/period-status',
         builder: (_, _) => const PeriodExperienceScreen(),
       ),
-      GoRoute(
-        path: '/onboarding/interests',
-        builder: (_, _) => const InterestTopicsScreen(),
-      ),
-      // GoRoute(path: '/onboarding/avatar',          builder: (_, _) => const AvatarBuilderScreen()),
-      // GoRoute(path: '/onboarding/journey-name',    builder: (_, _) => const JourneyNameScreen()),
       GoRoute(
         path: '/onboarding/welcome',
         builder: (_, _) => const WelcomeWorldScreen(),

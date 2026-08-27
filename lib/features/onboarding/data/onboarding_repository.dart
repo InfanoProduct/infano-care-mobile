@@ -76,8 +76,9 @@ class OnboardingRepository {
     return Map<String, dynamic>.from(res.data);
   }
 
-  Future<void> completeOnboarding() async {
-    await _api.dio.post('/onboarding/complete');
+  Future<Map<String, dynamic>> completeOnboarding() async {
+    final res = await _api.dio.post('/onboarding/complete');
+    return Map<String, dynamic>.from(res.data ?? {});
   }
 
   // ── Tracker ───────────────────────────────────────────────────────────────────

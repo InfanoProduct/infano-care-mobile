@@ -37,12 +37,14 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   bool _isSaving = false;
   CycleLogModel? _originalLog;
   bool _isPeriodEndToggled = false;
+  bool _isPeriodStartToggled = false;
 
   final ScrollController _dateScrollController = ScrollController();
 
   void _loadLogForDate(DateTime date, List<CycleLogModel> logs) {
     // Reset to defaults first
     _flow = null;
+    _isPeriodStartToggled = false;
     _vaginalDischarge = null;
     _symptoms.clear();
     _crampIntensity = 1;
@@ -74,6 +76,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     } else {
       debugPrint('[DailyLog] Log found! Flow: ${log.flow}, Symptoms: ${log.symptoms.length}');
       _flow = log.flow;
+      _isPeriodStartToggled = (_flow != null && _flow != 'none' && _flow != 'ended');
       _vaginalDischarge = log.vaginalDischarge;
       _symptoms.addAll(log.symptoms);
       _crampIntensity = log.crampIntensity ?? 1;
@@ -359,8 +362,9 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             orElse: () {},
           );
 
-          final bool showFlow = currentPhase == 'menstrual' || currentPhase == 'delayed' || currentPhase == 'waiting';
-          final bool showDischarge = currentPhase != 'menstrual' && currentPhase != 'delayed';
+          final bool isFlowActive = _isPeriodStartToggled || (_flow != null && _flow != 'none' && _flow != 'ended');
+          final bool showFlow = currentPhase == 'menstrual' || isFlowActive;
+          final bool showDischarge = !showFlow;
 
           return Stack(
             children: [
@@ -368,6 +372,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                 slivers: [
                   _buildDateSelector(),
                   _buildHeading(),
+                  if (currentPhase != 'menstrual') _buildPeriodStartToggleSection(),
                   if (showFlow) _buildFlowSection(currentPhase == 'menstrual', lastPeriodStart),
                   // Symptoms always visible
                   _buildSymptomsSection(),
@@ -444,8 +449,104 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     );
   }
 
+  Widget _buildPeriodStartToggleSection() {
+    final now = DateTime.now();
+    final isToday = _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+    final dateLabel = isToday
+        ? 'today'
+        : 'on ${DateFormat('EEE, MMM d').format(_selectedDate)}';
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      sliver: SliverToBoxAdapter(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF1F2), // Soft Rose Pink background
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFFECDD3), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFDA4AF).withValues(alpha: 0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.pink.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Text('🩸', style: TextStyle(fontSize: 22)),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Period Started',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        color: const Color(0xFF9F1239),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Mark period started $dateLabel',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: const Color(0xFFBE123C),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Transform.scale(
+                scale: 0.9,
+                child: Switch.adaptive(
+                  value: _isPeriodStartToggled || (_flow != null && _flow != 'none' && _flow != 'ended'),
+                  activeThumbColor: AppColors.pink,
+                  activeTrackColor: AppColors.pink.withValues(alpha: 0.4),
+                  onChanged: (val) {
+                    setState(() {
+                      _isPeriodStartToggled = val;
+                      if (val) {
+                        if (_flow == null || _flow == 'none' || _flow == 'ended') {
+                          _flow = 'light';
+                        }
+                      } else {
+                        _flow = null;
+                      }
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFlowSection(bool isMenstrual, DateTime? periodStart) {
     final flowOptions = ['None', 'Spotting', 'Light', 'Medium', 'Heavy', 'Ended', 'Clotting'];
+    final selDateNormalized = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final startNormalized = periodStart != null
+        ? DateTime(periodStart.year, periodStart.month, periodStart.day)
+        : null;
+    final bool canShowPeriodEnd = isMenstrual &&
+        startNormalized != null &&
+        !selDateNormalized.isBefore(startNormalized);
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       sliver: SliverToBoxAdapter(
@@ -501,7 +602,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   );
                 }).toList(),
               ),
-              if (isMenstrual && periodStart != null) ...[
+              if (canShowPeriodEnd) ...[
                 const SizedBox(height: 20),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -529,7 +630,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Mark today as period end?',
+                                    _selectedDate.year == DateTime.now().year &&
+                                            _selectedDate.month == DateTime.now().month &&
+                                            _selectedDate.day == DateTime.now().day
+                                        ? 'Mark today as period end?'
+                                        : 'Mark period end on ${DateFormat('EEE, MMM d').format(_selectedDate)}?',
                                     style: GoogleFonts.nunito(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 14,
@@ -557,7 +662,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                           setState(() {
                             _isPeriodEndToggled = val;
                           });
-                          if (val) {
+                          if (val && periodStart != null) {
                             _showPeriodEndConfirmation(context, periodStart);
                           }
                         },

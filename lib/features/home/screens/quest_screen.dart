@@ -1,15 +1,22 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/widgets/quest/celebration_overlay.dart';
 import 'package:infano_care_mobile/features/home/bloc/dashboard_cubit.dart';
-import 'package:infano_care_mobile/features/tracker/presentation/screens/all_insights_screen.dart';
-import 'package:infano_care_mobile/features/tracker/data/models/insight_models.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/features/tracker/presentation/widgets/daily_log_sheet.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import '../../tracker/bloc/quest_bloc.dart';
 import '../../tracker/data/models/quest_models.dart';
+
+import 'package:infano_care_mobile/screens/connect/circle_screen.dart';
+import 'package:infano_care_mobile/features/creative_journey/screens/episode_path_screen.dart';
+import 'package:infano_care_mobile/features/creative_journey/repositories/creative_journey_repository.dart';
+import 'package:infano_care_mobile/features/creative_journey/models/creative_journey_models.dart';
 
 class QuestScreen extends StatefulWidget {
   const QuestScreen({super.key});
@@ -41,7 +48,51 @@ class _QuestScreenState extends State<QuestScreen>
 
   void _navigateToQuest(BuildContext context, String? category, String title) async {
     debugPrint('[QUEST] _navigateToQuest called with title: "$title", category: "$category"');
-    if (title == 'Review Daily Insights') {
+    if (title == 'Track Your Period' || title.contains('Track Your Period')) {
+      context.push('/onboarding/tracker/date');
+      return;
+    }
+    if (title == 'Log Period Start' || title == 'Confirm Period End' || title == 'Log Symptoms & Mood' || title.contains('Symptoms') || title.contains('Log Symptoms') || title.contains('Period Start') || title.contains('Period End')) {
+      final questBloc = context.read<QuestBloc>();
+      final trackerBloc = context.read<TrackerBloc>();
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => BlocProvider.value(
+            value: trackerBloc,
+            child: DailyLogScreen(date: DateTime.now()),
+          ),
+        ),
+      ).then((_) {
+        questBloc.add(const QuestEvent.refresh());
+      });
+      return;
+    }
+    if (title == 'Gratitude Note' || title.contains('Gratitude') || title.contains('Note') || title.contains('Journal') || category == 'wellbeing') {
+      final questBloc = context.read<QuestBloc>();
+      context.push('/journal/new').then((_) {
+        questBloc.add(const QuestEvent.refresh());
+      });
+      return;
+    }
+    if (title == 'PeerLine Connection' || category == 'connect') {
+      try {
+        context.read<DashboardCubit>().setTab(3);
+      } catch (_) {}
+      context.go('/home?tab=3');
+      return;
+    }
+    if (title == 'Connect & Share' || title == 'Support a Friend' || category == 'circle' || category == 'community') {
+      final questBloc = context.read<QuestBloc>();
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const CircleScreen(),
+        ),
+      ).then((_) {
+        questBloc.add(const QuestEvent.refresh());
+      });
+      return;
+    }
+    if (title == 'Explore Episode' || title == 'Complete Node' || title.contains('Explore') || title.contains('Episode') || title.contains('Node') || category == 'learning') {
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -50,67 +101,103 @@ class _QuestScreenState extends State<QuestScreen>
         ),
       );
 
+      String targetEpisodeId = 'ce_body_timeline';
       try {
-        final response = await ApiService.instance.dio.get('/tracker/daily-insights');
-        final insightsData = response.data as Map<String, dynamic>;
-        final list = (insightsData['insights'] as List? ?? [])
-            .map((json) => DailyInsight.fromJson(json as Map<String, dynamic>))
-            .toList();
+        final repo = CreativeJourneyRepository(ApiService.instance.dio);
+        final journeys = await repo.listJourneys();
+        final allProgress = await repo.getMyProgress();
 
-        if (context.mounted) {
-          Navigator.of(context).pop(); // dismiss loading
-        }
+        if (journeys.isNotEmpty) {
+          CreativeEpisode? targetEp;
+          for (final j in journeys) {
+            for (final ep in j.episodes) {
+              final epTotalNodes = ep.nodes.isNotEmpty ? ep.nodes.length : 10;
+              final epCompletedCount = allProgress
+                  .where((p) =>
+                      (p.episodeId == ep.id || p.nodeId.startsWith(_getEpisodePrefix(ep.id))) &&
+                      p.isCompleted)
+                  .length;
 
-        if (context.mounted) {
-          final questBloc = context.read<QuestBloc>();
-          List<String> readInsightIds = [];
-          questBloc.state.maybeWhen(
-            loaded: (dailyQuests, _, _, _, _, _, _) {
-              for (var q in dailyQuests) {
-                if (q.questTemplate.title == 'Review Daily Insights' && q.progressJson != null) {
-                  final readList = q.progressJson!['readIds'] as List?;
-                  if (readList != null) {
-                    readInsightIds = readList.map((e) => e.toString()).toList();
-                  }
-                  break;
-                }
+              if (epCompletedCount < epTotalNodes) {
+                targetEp = ep;
+                break;
               }
-            },
-            orElse: () {},
-          );
+            }
+            if (targetEp != null) break;
+          }
 
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => AllInsightsScreen(insights: list, initialReadIds: readInsightIds),
-            ),
-          ).then((_) {
-            questBloc.add(const QuestEvent.refresh());
-          });
+          if (targetEp != null) {
+            targetEpisodeId = targetEp.id;
+          } else if (journeys.first.episodes.isNotEmpty) {
+            targetEpisodeId = journeys.first.episodes.last.id;
+          }
         }
       } catch (e) {
-        debugPrint('[QUEST] Failed to fetch daily insights directly: $e');
-        if (context.mounted) {
-          Navigator.of(context).pop(); // dismiss loading
-        }
-        if (context.mounted) {
-          context.read<DashboardCubit>().setTab(2);
-        }
+        debugPrint('[QUEST] Failed to determine next episode dynamically: $e');
+      }
+
+      if (context.mounted) {
+        Navigator.of(context).pop(); // dismiss loading
+      }
+
+      if (context.mounted) {
+        final questBloc = context.read<QuestBloc>();
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => EpisodePathScreen(episodeId: targetEpisodeId),
+          ),
+        ).then((_) {
+          questBloc.add(const QuestEvent.refresh());
+        });
       }
       return;
     }
 
     switch (category) {
       case 'tracker':
-        context.read<DashboardCubit>().setTab(2);
+        try { context.read<DashboardCubit>().setTab(2); } catch (_) {}
+        context.go('/home?tab=2');
         break;
       case 'learning':
-        context.read<DashboardCubit>().setTab(1);
+        try { context.read<DashboardCubit>().setTab(1); } catch (_) {}
+        context.go('/home?tab=1');
         break;
+      case 'circle':
       case 'community':
-        context.read<DashboardCubit>().setTab(4);
+        try { context.read<DashboardCubit>().setTab(4); } catch (_) {}
+        context.go('/home?tab=4');
+        break;
+      case 'connect':
+        try { context.read<DashboardCubit>().setTab(3); } catch (_) {}
+        context.go('/home?tab=3');
         break;
       default:
-        context.read<DashboardCubit>().setTab(0);
+        try { context.read<DashboardCubit>().setTab(0); } catch (_) {}
+    }
+  }
+
+  static String _getEpisodePrefix(String episodeId) {
+    switch (episodeId) {
+      case 'ce_body_timeline':
+        return 'bt_';
+      case 'ce_growing_pains':
+        return 'gp_';
+      case 'ce_skin_stories':
+        return 'ss_';
+      case 'ce_period_preview':
+        return 'pp_';
+      case 'ce_bra_basics':
+        return 'bb_';
+      case 'ce_body_image':
+        return 'bi_';
+      case 'ce_cycle_basics':
+        return 'cb_';
+      case 'ce_food_mood':
+        return 'fm_';
+      case 'ce_body_quiet':
+        return 'bq_';
+      default:
+        return episodeId.replaceAll('ce_', '');
     }
   }
 
@@ -173,9 +260,7 @@ class _QuestScreenState extends State<QuestScreen>
             ),
             loaded: (dailyQuests, weeklyChallenges, progress, badges, isRefreshing,
                 lastCompletedQuest, lastLevel) {
-              return Stack(
-                children: [
-                  Scaffold(
+              return Scaffold(
                 backgroundColor: Colors.white,
                 body: RefreshIndicator(
                   onRefresh: () async {
@@ -235,21 +320,8 @@ class _QuestScreenState extends State<QuestScreen>
                     ),
                   ),
                 ),
-              ),
-              if (isRefreshing)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.purple,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          );
-        },
+              );
+            },
           );
         },
       ),
@@ -263,10 +335,12 @@ class _HeaderBackground extends StatelessWidget {
   final UserQuestProgress progress;
   const _HeaderBackground({required this.progress});
 
+  static const thresholds = [3000, 8000, 18000, 35000, 60000, 100000, 150000, 220000, 300000];
+
   IconData _levelIcon(int level) {
-    if (level <= 2) return Icons.eco_outlined;
-    if (level <= 5) return Icons.local_florist_outlined;
-    return Icons.brightness_7_outlined;
+    if (level <= 2) return Icons.eco_rounded;
+    if (level <= 5) return Icons.local_florist_rounded;
+    return Icons.brightness_7_rounded;
   }
 
   String _levelName(int level) {
@@ -279,88 +353,125 @@ class _HeaderBackground extends StatelessWidget {
   }
 
   int _nextLevelPoints(int level) {
-    const thresholds = [500, 1500, 3500, 7000, 12000, 20000, 32000, 50000, 75000, 100000];
     if (level <= thresholds.length) return thresholds[level - 1];
-    return 999999;
+    return 300000;
   }
 
   @override
   Widget build(BuildContext context) {
     final level = progress.currentLevel;
     final points = progress.pointsTotal;
+    final coins = progress.coinsBalance;
     final nextLevel = _nextLevelPoints(level);
     final pct = (nextLevel > 0 ? points / nextLevel : 0.0).clamp(0.0, 1.0);
 
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.purple, AppColors.purpleLight],
+          colors: [Color(0xFF7C3AED), Color(0xFFC084FC)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(_levelIcon(level),
-                        color: Colors.white, size: 28),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(
-                        'Level $level: ${_levelName(level)}',
-                        style: GoogleFonts.nunito(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          shape: BoxShape.circle,
                         ),
+                        child: Icon(_levelIcon(level),
+                            color: Colors.white, size: 26),
                       ),
-                      Text(
-                        '$points Total Points',
-                        style: GoogleFonts.nunito(
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Level $level: ${_levelName(level)}',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 17,
+                            ),
+                          ),
+                          Text(
+                            '$points Lifetime XP',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+
+                  // ── SPENDABLE COINS VAULT COUNTER ───────────────────────────
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.amber.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('🪙', style: TextStyle(fontSize: 16)),
+                        const SizedBox(width: 5),
+                        Text(
+                          '$coins',
+                          style: GoogleFonts.nunito(
+                            color: const Color(0xFF92400E),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
                   value: pct,
                   backgroundColor: Colors.white.withValues(alpha: 0.3),
                   valueColor:
-                      const AlwaysStoppedAnimation<Color>(AppColors.bloom),
-                  minHeight: 10,
+                      const AlwaysStoppedAnimation<Color>(Color(0xFFFDE047)),
+                  minHeight: 8,
                 ),
               ),
               const SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('$points XP',
+                  Text('$points / $nextLevel XP to Level ${level + 1}',
                       style: const TextStyle(
-                          color: Colors.white70, fontSize: 11)),
-                  Text('$nextLevel XP',
+                          color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  Text('${(pct * 100).toInt()}%',
                       style: const TextStyle(
-                          color: Colors.white70, fontSize: 11)),
+                          color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
                 ],
               ),
               _BloomGardenWidget(points: points, level: level),
@@ -380,61 +491,59 @@ class _BloomGardenWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine plant progress based on XP progress towards next level
-    const thresholds = [500, 1500, 3500, 7000, 12000, 20000, 32000, 50000, 75000, 100000];
-    final nextLevel = level <= thresholds.length ? thresholds[level - 1] : 999999;
+    const thresholds = [3000, 8000, 18000, 35000, 60000, 100000, 150000, 220000, 300000];
+    final nextLevel = level <= thresholds.length ? thresholds[level - 1] : 300000;
     final pct = (nextLevel > 0 ? points / nextLevel : 0.0).clamp(0.0, 1.0);
 
-    String stageName = 'Sprout';
-    IconData plantIcon = Icons.eco_outlined;
-    Color plantColor = Colors.green;
-    String description = 'Keep completing daily quests to water your seedling.';
+    String stageName = 'Seedling Sprout';
+    IconData plantIcon = Icons.eco_rounded;
+    Color plantColor = const Color(0xFF34D399);
+    String description = 'Keep completing daily quests to nurture your sprout.';
 
     if (pct >= 0.75) {
-      stageName = 'Full Bloom';
+      stageName = 'Radiant Bloom';
       plantIcon = Icons.brightness_7_rounded;
-      plantColor = Colors.amber;
-      description = 'Stunning! Your self-care flower has bloomed beautifully!';
+      plantColor = const Color(0xFFFBBF24);
+      description = 'Stunning! Your self-care garden is in full vibrant bloom!';
     } else if (pct >= 0.5) {
-      stageName = 'Budding';
+      stageName = 'Flowering Blossom';
       plantIcon = Icons.local_florist_rounded;
-      plantColor = Colors.pinkAccent;
-      description = 'A bud is forming! You are nurturing consistency.';
+      plantColor = const Color(0xFFF472B6);
+      description = 'Beautiful flowers are opening! Your consistency is shining.';
     } else if (pct >= 0.25) {
-      stageName = 'Growing';
+      stageName = 'Growing Bud';
       plantIcon = Icons.spa_rounded;
-      plantColor = Colors.teal;
-      description = 'Leaves are branching out. Great job watering your plant!';
+      plantColor = const Color(0xFF38BDF8);
+      description = 'Leaves are branching out nicely. Great self-care habits!';
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
+                  blurRadius: 6,
                 )
               ]
             ),
-            child: Icon(plantIcon, color: plantColor, size: 36)
+            child: Icon(plantIcon, color: plantColor, size: 30)
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              .scale(duration: 1.seconds, begin: const Offset(0.9, 0.9), end: const Offset(1.1, 1.1))
-              .shimmer(delay: 2.seconds, duration: 1.seconds),
+              .scale(duration: 1.seconds, begin: const Offset(0.9, 0.9), end: const Offset(1.1, 1.1)),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,10 +553,9 @@ class _BloomGardenWidget extends StatelessWidget {
                   style: GoogleFonts.nunito(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: 16,
+                    fontSize: 15,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   description,
                   style: GoogleFonts.nunito(
@@ -477,231 +585,646 @@ class _DailyTab extends StatelessWidget {
     required this.onGo,
   });
 
+  void _showVibeCheckModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _VibeCheckSheet(),
+    );
+  }
+
+  void _showQuickSparkModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _QuickSparkModal(),
+    );
+  }
+
+  void _openMysteryChest(BuildContext context) async {
+    try {
+      final res = await ApiService.instance.dio.post('/quest/open-chest');
+      if (context.mounted) {
+        context.read<QuestBloc>().add(const QuestEvent.refresh());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('🎉 ${res.data['data']['description']} (+150 XP, +100 Coins)'),
+            backgroundColor: AppColors.purple,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        final err = (e as dynamic);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(err.response?.data?['message']?.toString() ?? 'Complete 3 daily quests to unlock the chest!'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (quests.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    final completedCount = quests.where((q) => q.status == 'completed').length;
+    final isChestAvailable = completedCount >= 3;
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      children: [
+        // ── CREATIVE MICRO-ACTIVITIES SECTION ─────────────────────────────
+        Row(
           children: [
-            Icon(Icons.auto_awesome,
-                size: 64, color: AppColors.purple.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text(
-              'No quests available yet.\nPull down to refresh.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                  color: AppColors.textLight, fontSize: 16),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _showVibeCheckModal(context),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFCE7F3),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFF472B6).withValues(alpha: 0.4), width: 1.5),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text('💖', style: TextStyle(fontSize: 20)),
+                          const SizedBox(width: 6),
+                          Text('Vibe Check', style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: const Color(0xFF9D174D), fontSize: 14)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text('30s Energy Check-in', style: GoogleFonts.nunito(fontSize: 11, color: const Color(0xFFBE185D))),
+                      const SizedBox(height: 6),
+                      Text('+30 XP • +20 🪙', style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.w900, color: const Color(0xFF831843))),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _showQuickSparkModal(context),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1FAE5),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFF34D399).withValues(alpha: 0.4), width: 1.5),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text('⚡', style: TextStyle(fontSize: 20)),
+                          const SizedBox(width: 6),
+                          Text('Quick Spark', style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: const Color(0xFF065F46), fontSize: 14)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text('3-Question Trivia', style: GoogleFonts.nunito(fontSize: 11, color: const Color(0xFF047857))),
+                      const SizedBox(height: 6),
+                      Text('+50 XP • +35 🪙', style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.w900, color: const Color(0xFF064E3B))),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
-      );
-    }
 
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      itemCount: quests.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final quest = quests[index];
-        return _QuestCard(
-          quest: quest,
-          onAccept: () => onAccept(quest.id),
-          onGo: () => onGo(quest.questTemplate.category, quest.questTemplate.title),
-        );
-      },
+        const SizedBox(height: 14),
+
+        // ── MYSTERY DISCOVERY CHEST BANNER ───────────────────────────────────
+        GestureDetector(
+          onTap: () => _openMysteryChest(context),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isChestAvailable 
+                    ? [const Color(0xFFFEF3C7), const Color(0xFFFDE047)]
+                    : [Colors.grey.shade100, Colors.grey.shade200],
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isChestAvailable ? const Color(0xFFF59E0B) : Colors.grey.shade300,
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(isChestAvailable ? '🎁' : '🔒', style: const TextStyle(fontSize: 28)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isChestAvailable ? 'Mystery Discovery Chest Ready!' : 'Mystery Chest Locked',
+                        style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          color: isChestAvailable ? const Color(0xFF92400E) : AppColors.textDark,
+                        ),
+                      ),
+                      Text(
+                        isChestAvailable
+                            ? 'Tap to claim +150 XP, +100 Coins & 1x Streak Freeze!'
+                            : 'Complete $completedCount/3 daily quests to unlock',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          color: isChestAvailable ? const Color(0xFFB45309) : AppColors.textMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: isChestAvailable ? const Color(0xFF92400E) : AppColors.textLight,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        Divider(
+          color: Colors.black.withValues(alpha: 0.08),
+          height: 1,
+          thickness: 1,
+        ),
+
+        const SizedBox(height: 20),
+
+        Text(
+          'Daily Personalized Quests',
+          style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.textDark),
+        ),
+        const SizedBox(height: 6),
+
+        if (quests.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Text('No quests available.\nPull down to refresh.', textAlign: TextAlign.center),
+            ),
+          )
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              int crossAxisCount = 2;
+              double mainAxisExtent = 192;
+
+              if (width >= 900) {
+                crossAxisCount = 4;
+                mainAxisExtent = 195;
+              } else if (width >= 600) {
+                crossAxisCount = 3;
+                mainAxisExtent = 195;
+              } else if (width < 360) {
+                crossAxisCount = 1;
+                mainAxisExtent = 160;
+              } else {
+                crossAxisCount = 2;
+                mainAxisExtent = 192;
+              }
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 22,
+                  mainAxisExtent: mainAxisExtent,
+                ),
+                itemCount: quests.length,
+                itemBuilder: (context, index) {
+                  final quest = quests[index];
+                  return _QuestCard(
+                    quest: quest,
+                    index: index,
+                    onAccept: () => onAccept(quest.id),
+                    onGo: () => onGo(quest.questTemplate.category, quest.questTemplate.title),
+                  );
+                },
+              );
+            },
+          ),
+      ],
     );
   }
 }
 
-// ── Quest Card ─────────────────────────────────────────────────────────────
+// ── Pastel Theme Data ────────────────────────────────────────────────────────
 
-class _QuestCard extends StatelessWidget {
+class _PastelTheme {
+  final Color bgStart;
+  final Color bgEnd;
+  final Color accentColor;
+  final Color borderColor;
+  final String bgSymbol;
+  final IconData icon;
+
+  const _PastelTheme({
+    required this.bgStart,
+    required this.bgEnd,
+    required this.accentColor,
+    required this.borderColor,
+    required this.bgSymbol,
+    required this.icon,
+  });
+}
+
+_PastelTheme _getPastelTheme(String? category, int index, bool isCompleted) {
+  if (isCompleted) {
+    return const _PastelTheme(
+      bgStart: Color(0xFFF0FDF4),
+      bgEnd: Color(0xFFDCFCE7),
+      accentColor: Color(0xFF15803D),
+      borderColor: Color(0xFF86EFAC),
+      bgSymbol: '🎉',
+      icon: Icons.check_circle_rounded,
+    );
+  }
+
+  // Good To Know inspired pastel color themes
+  final themes = const [
+    _PastelTheme(
+      bgStart: Color(0xFFFFF1F2),
+      bgEnd: Color(0xFFFCE7F3),
+      accentColor: Color(0xFFE11D48),
+      borderColor: Color(0xFFFBCFE8),
+      bgSymbol: '🩸',
+      icon: Icons.calendar_today_rounded,
+    ),
+    _PastelTheme(
+      bgStart: Color(0xFFF3E8FF),
+      bgEnd: Color(0xFFE9D5FF),
+      accentColor: Color(0xFF9333EA),
+      borderColor: Color(0xFFD8B4FE),
+      bgSymbol: '✨',
+      icon: Icons.menu_book_rounded,
+    ),
+    _PastelTheme(
+      bgStart: Color(0xFFE0F2FE),
+      bgEnd: Color(0xFFBAE6FD),
+      accentColor: Color(0xFF0284C7),
+      borderColor: Color(0xFF7DD3FC),
+      bgSymbol: '💎',
+      icon: Icons.forum_rounded,
+    ),
+    _PastelTheme(
+      bgStart: Color(0xFFECFDF5),
+      bgEnd: Color(0xFFD1FADF),
+      accentColor: Color(0xFF059669),
+      borderColor: Color(0xFFA7F3D0),
+      bgSymbol: '🌿',
+      icon: Icons.self_improvement_rounded,
+    ),
+    _PastelTheme(
+      bgStart: Color(0xFFFEF3C7),
+      bgEnd: Color(0xFFFDE68A),
+      accentColor: Color(0xFFD97706),
+      borderColor: Color(0xFFFCD34D),
+      bgSymbol: '💖',
+      icon: Icons.auto_awesome_rounded,
+    ),
+  ];
+
+  if (category == 'tracker') return themes[0];
+  if (category == 'learning') return themes[1];
+  if (category == 'circle' || category == 'community') return themes[2];
+  if (category == 'wellbeing') return themes[3];
+  if (category == 'connect') return themes[0];
+
+  return themes[index % themes.length];
+}
+
+// ── 3D Glassmorphic Pastel Quest Card ───────────────────────────────────────
+
+class _QuestCard extends StatefulWidget {
   final UserQuest quest;
+  final int index;
   final VoidCallback onAccept;
   final VoidCallback onGo;
 
   const _QuestCard({
     required this.quest,
+    required this.index,
     required this.onAccept,
     required this.onGo,
   });
 
-  IconData _categoryIcon(String? cat) {
-    switch (cat) {
-      case 'tracker':
-        return Icons.calendar_today_outlined;
-      case 'learning':
-        return Icons.menu_book_outlined;
-      case 'community':
-        return Icons.forum_outlined;
-      case 'wellbeing':
-        return Icons.self_improvement_outlined;
-      default:
-        return Icons.extension_outlined;
-    }
-  }
+  @override
+  State<_QuestCard> createState() => _QuestCardState();
+}
 
-  Color _categoryColor(String? cat) {
-    switch (cat) {
-      case 'tracker':
-        return AppColors.purple;
-      case 'learning':
-        return AppColors.pink;
-      case 'community':
-        return AppColors.teal;
-      case 'wellbeing':
-        return AppColors.bloom;
-      default:
-        return AppColors.bloom;
+class _QuestCardState extends State<_QuestCard> {
+  bool _isPressed = false;
+
+  void _handleTap() async {
+    setState(() => _isPressed = true);
+    await Future.delayed(const Duration(milliseconds: 80));
+    if (mounted) {
+      setState(() => _isPressed = false);
+      if (widget.quest.status != 'completed' && widget.quest.status != 'accepted') {
+        widget.onAccept();
+      }
+      widget.onGo();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final template = quest.questTemplate;
-    final isCompleted = quest.status == 'completed';
-    final isAccepted = quest.status == 'accepted';
-    final color = _categoryColor(template.category);
-    final totalCount = quest.progressJson?['totalCount'] ?? template.completionCondition?['count'] ?? 1;
-    final currentCount = quest.progressJson?['currentCount'] ?? 0;
-    final showProgress = totalCount > 1;
+    final template = widget.quest.questTemplate;
+    final isCompleted = widget.quest.status == 'completed';
+    final theme = _getPastelTheme(template.category, widget.index, isCompleted);
 
-    return Card(
-      elevation: isCompleted ? 0 : 2,
-      color: isCompleted ? AppColors.success.withValues(alpha: 0.05) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isCompleted
-              ? AppColors.success.withValues(alpha: 0.3)
-              : Colors.transparent,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(_categoryIcon(template.category),
-                  color: color, size: 22),
+    final totalCount = widget.quest.progressJson?['totalCount'] ?? template.completionCondition?['count'] ?? 1;
+    final currentCount = widget.quest.progressJson?['currentCount'] ?? 0;
+    final showProgress = totalCount > 1;
+    final int coinsEarned;
+    final String qTitle = template.title;
+    if (qTitle.contains('Track Your Period') || qTitle == 'PeerLine Connection') {
+      coinsEarned = 10;
+    } else if (qTitle == 'Log Period Start' || qTitle == 'Confirm Period End' || qTitle == 'Connect & Share' || qTitle.contains('Connect') || qTitle == 'Explore Episode') {
+      coinsEarned = 5;
+    } else if (qTitle == 'Log Symptoms & Mood' || qTitle == 'Gratitude Note' || qTitle.contains('Gratitude') || qTitle == 'Support a Friend') {
+      coinsEarned = 3;
+    } else if (qTitle == 'Complete Node') {
+      coinsEarned = 2;
+    } else {
+      coinsEarned = math.max(5, (template.pointsBase / 6).round());
+    }
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: _handleTap,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [theme.bgStart, theme.bgEnd],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            const SizedBox(width: 12),
-            Expanded(
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: theme.accentColor.withValues(alpha: 0.2),
+                blurRadius: 16,
+              spreadRadius: 0,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          clipBehavior: Clip.antiAlias,
+          children: [
+            // 3D Background Decorative Elements
+            Positioned(
+              top: -18,
+              right: -18,
+              child: Container(
+                width: 75,
+                height: 75,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.35),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -22,
+              left: -22,
+              child: Container(
+                width: 85,
+                height: 85,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.22),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Text(
+                theme.bgSymbol,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: theme.accentColor.withValues(alpha: 0.35),
+                ),
+              ),
+            ),
+
+            // Glassmorphic Specular Highlight Overlay
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.45),
+                        Colors.white.withValues(alpha: 0.1),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Card Main Content Column
+            Padding(
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    template.title,
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: isCompleted
-                          ? AppColors.success
-                          : AppColors.textDark,
-                    ),
-                  ),
-                  Text(
-                    template.description,
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      color: AppColors.textMedium,
-                    ),
-                  ),
-                  if (showProgress) ...[
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        value: (currentCount / totalCount).clamp(0.0, 1.0),
-                        backgroundColor: color.withValues(alpha: 0.15),
-                        valueColor: AlwaysStoppedAnimation<Color>(color),
-                        minHeight: 6,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Progress: $currentCount/$totalCount completed',
-                      style: GoogleFonts.nunito(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: color,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 6),
+                  // Top Row: Enlarged Category Glass Icon + Completed Checkmark
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('🪙', style: TextStyle(fontSize: 12)),
-                      const SizedBox(width: 3),
-                      Text(
-                        '${template.pointsBase} Coins',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFB45309),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.accentColor.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          theme.icon,
+                          color: theme.accentColor,
+                          size: 22,
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Icon(Icons.timer_outlined,
-                          size: 14, color: AppColors.textLight),
-                      const SizedBox(width: 3),
-                      Text(
-                        '${template.estimatedMinutes}m',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          color: AppColors.textLight,
+                      if (isCompleted)
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF166534),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
                     ],
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Middle Column: Title & Description (Expanded to push rewards to bottom)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          template.title,
+                          style: GoogleFonts.nunito(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: isCompleted ? const Color(0xFF166534) : AppColors.textDark,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          template.description,
+                          style: GoogleFonts.nunito(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: isCompleted ? const Color(0xFF15803D) : AppColors.textMedium,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (showProgress) ...[
+                          const SizedBox(height: 5),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: (currentCount / totalCount).clamp(0.0, 1.0),
+                              backgroundColor: theme.accentColor.withValues(alpha: 0.15),
+                              valueColor: AlwaysStoppedAnimation<Color>(theme.accentColor),
+                              minHeight: 4,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            '$currentCount/$totalCount done',
+                            style: GoogleFonts.nunito(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: theme.accentColor,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Bottom Aligned XP & Coins Glass Pill Display
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: theme.accentColor.withValues(alpha: 0.22),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.accentColor.withValues(alpha: 0.08),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Text(
+                          '⭐ ${template.pointsBase} XP',
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: theme.accentColor,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '•',
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: theme.accentColor.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '🪙 $coinsEarned',
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFFB45309),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            _buildAction(context, isCompleted, isAccepted),
           ],
         ),
       ),
-    ).animate().fadeIn(delay: const Duration(milliseconds: 50));
-  }
-
-  Widget _buildAction(
-      BuildContext context, bool isCompleted, bool isAccepted) {
-    if (isCompleted) {
-      return const Icon(Icons.check_circle_rounded,
-          color: AppColors.success, size: 32);
-    }
-    return OutlinedButton(
-      onPressed: () {
-        if (!isAccepted) {
-          onAccept();
-        }
-        onGo();
-      },
-      style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: AppColors.purple),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: const Text(
-        'Start',
-        style: TextStyle(
-            color: AppColors.purple,
-            fontWeight: FontWeight.bold,
-            fontSize: 13),
-      ),
-    );
+    ),
+    ).animate().fadeIn(duration: 350.ms).scale(begin: const Offset(0.96, 0.96));
   }
 }
 
@@ -771,6 +1294,7 @@ class _BadgesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1833,6 +2357,270 @@ class _MilestonesTab extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+// ── Vibe Check Interactive Sheet ──────────────────────────────────────────
+
+class _VibeCheckSheet extends StatefulWidget {
+  const _VibeCheckSheet();
+
+  @override
+  State<_VibeCheckSheet> createState() => _VibeCheckSheetState();
+}
+
+class _VibeCheckSheetState extends State<_VibeCheckSheet> {
+  double _moodScore = 4.0;
+  double _energyScore = 3.0;
+  String _primaryEmotion = 'Balanced';
+  bool _isSubmitting = false;
+
+  final List<String> _emotions = ['Balanced', 'Energized', 'Calm', 'Tired', 'Focused', 'Grateful'];
+
+  void _submit() async {
+    setState(() => _isSubmitting = true);
+    try {
+      final res = await ApiService.instance.dio.post('/quest/vibe-check', data: {
+        'moodScore': _moodScore.toInt(),
+        'energyScore': _energyScore.toInt(),
+        'primaryEmotion': _primaryEmotion,
+      });
+
+      if (mounted) {
+        Navigator.pop(context);
+        context.read<QuestBloc>().add(const QuestEvent.refresh());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✨ Vibe Check Completed! +30 XP • +20 Coins 🪙\n"${res.data['data']['affirmation']}"'),
+            backgroundColor: const Color(0xFF9D174D),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Text('💖', style: TextStyle(fontSize: 26)),
+              const SizedBox(width: 10),
+              Text(
+                "Gigi's Daily Vibe Check",
+                style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textDark),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('Take 30 seconds to check in with your mind & energy today.', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textMedium)),
+          const SizedBox(height: 20),
+
+          Text('Primary Mood & Emotion', style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: _emotions.map((e) {
+              final isSelected = _primaryEmotion == e;
+              return ChoiceChip(
+                label: Text(e),
+                selected: isSelected,
+                selectedColor: const Color(0xFFFCE7F3),
+                labelStyle: GoogleFonts.nunito(
+                  color: isSelected ? const Color(0xFF9D174D) : AppColors.textDark,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                ),
+                onSelected: (val) => setState(() => _primaryEmotion = e),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+
+          Text('Energy Level: ${_energyScore.toInt()}/5', style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w800)),
+          Slider(
+            value: _energyScore,
+            min: 1.0,
+            max: 5.0,
+            divisions: 4,
+            activeColor: const Color(0xFFF472B6),
+            onChanged: (val) => setState(() => _energyScore = val),
+          ),
+
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _isSubmitting ? null : _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF9D174D),
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            child: _isSubmitting
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Text('Complete Vibe Check (+30 XP • +20 🪙)', style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Quick Spark Trivia Blitz Modal ───────────────────────────────────────
+
+class _QuickSparkModal extends StatefulWidget {
+  const _QuickSparkModal();
+
+  @override
+  State<_QuickSparkModal> createState() => _QuickSparkModalState();
+}
+
+class _QuickSparkModalState extends State<_QuickSparkModal> {
+  int _currentQuestion = 0;
+  int _score = 0;
+
+  final List<Map<String, dynamic>> _questions = [
+    {
+      'question': 'Which phase of the cycle usually brings peak creative energy?',
+      'options': ['Menstrual', 'Follicular', 'Ovulation', 'Luteal'],
+      'answer': 2,
+    },
+    {
+      'question': 'What is the recommended average daily water intake for teens?',
+      'options': ['1 Litre', '2-2.5 Litres', '5 Litres', '500 ml'],
+      'answer': 1,
+    },
+    {
+      'question': 'Which hormone helps regulate your sleep-wake rhythm?',
+      'options': ['Estrogen', 'Melatonin', 'Progesterone', 'Cortisol'],
+      'answer': 1,
+    },
+  ];
+
+  void _answer(int selected) {
+    if (selected == _questions[_currentQuestion]['answer']) {
+      _score++;
+    }
+
+    if (_currentQuestion < _questions.length - 1) {
+      setState(() => _currentQuestion++);
+    } else {
+      _submit();
+    }
+  }
+
+  void _submit() async {
+    try {
+      await ApiService.instance.dio.post('/quest/quick-spark', data: {
+        'score': _score,
+        'totalQuestions': _questions.length,
+      });
+
+      if (mounted) {
+        Navigator.pop(context);
+        context.read<QuestBloc>().add(const QuestEvent.refresh());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚡ Quick Spark Complete! Score: $_score/3 (+50 XP • +35 Coins 🪙)'),
+            backgroundColor: const Color(0xFF065F46),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _questions[_currentQuestion];
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Text('⚡', style: TextStyle(fontSize: 26)),
+              const SizedBox(width: 10),
+              Text(
+                'Quick Spark Trivia Blitz',
+                style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900, color: const Color(0xFF065F46)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('Question ${_currentQuestion + 1} of ${_questions.length}', style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textMedium)),
+          const SizedBox(height: 16),
+
+          Text(
+            q['question'] as String,
+            style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.textDark),
+          ),
+          const SizedBox(height: 16),
+
+          ...List.generate((q['options'] as List).length, (idx) {
+            final opt = q['options'][idx] as String;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => _answer(idx),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  side: const BorderSide(color: Color(0xFF34D399)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: Text(
+                  opt,
+                  style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF065F46)),
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 }

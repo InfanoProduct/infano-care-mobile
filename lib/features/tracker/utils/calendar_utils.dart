@@ -22,7 +22,16 @@ class CalendarUtils {
     final diff = d.difference(lastStart).inDays;
     final cycleDay = (diff % (profile.avgCycleLength > 0 ? profile.avgCycleLength : 28)) + 1;
 
-    if (profile.lastPeriodEnd != null) {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final hasPeriodEnded = profile.lastPeriodEnd != null &&
+        profile.lastPeriodStart != null &&
+        !profile.lastPeriodEnd!.isBefore(profile.lastPeriodStart!);
+
+    if (!hasPeriodEnded && !d.isBefore(lastStart) && !d.isAfter(today)) {
+      return CyclePhase.menstrual;
+    }
+
+    if (hasPeriodEnded) {
       final lastEnd = DateUtils.dateOnly(profile.lastPeriodEnd!);
       if (d.isAfter(lastEnd)) {
         if (cycleDay < (profile.avgCycleLength > 0 ? profile.avgCycleLength : 28) / 2) {
@@ -33,7 +42,7 @@ class CalendarUtils {
       }
     }
 
-    if (cycleDay <= profile.avgPeriodDuration) {
+    if (cycleDay <= (profile.avgPeriodDuration > 0 ? profile.avgPeriodDuration : 5)) {
       return CyclePhase.menstrual;
     } else if (cycleDay < (profile.avgCycleLength > 0 ? profile.avgCycleLength : 28) / 2) {
       return CyclePhase.follicular;

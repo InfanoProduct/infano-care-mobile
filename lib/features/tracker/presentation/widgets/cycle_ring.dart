@@ -763,9 +763,20 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
 
 
   String _calculatePhase(int day, int avgLength) {
+    final hasPeriodStarted = widget.profile.lastPeriodStart != null;
+    final hasPeriodEnded = widget.profile.lastPeriodEnd != null &&
+        widget.profile.lastPeriodStart != null &&
+        !widget.profile.lastPeriodEnd!.isBefore(widget.profile.lastPeriodStart!);
+
+    if (hasPeriodStarted && !hasPeriodEnded) {
+      return 'menstrual';
+    }
+
     int periodDuration = 5;
-    if (widget.profile.lastPeriodEnd != null && widget.profile.lastPeriodStart != null) {
+    if (hasPeriodEnded) {
       periodDuration = widget.profile.lastPeriodEnd!.difference(widget.profile.lastPeriodStart!).inDays + 1;
+    } else if (widget.profile.avgPeriodDuration > 0) {
+      periodDuration = widget.profile.avgPeriodDuration;
     }
 
     if (day <= periodDuration) return 'menstrual';
@@ -776,9 +787,20 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
   }
 
   Map<String, dynamic> _calculateNextPhase(int day, int avgLength) {
+    final hasPeriodStarted = widget.profile.lastPeriodStart != null;
+    final hasPeriodEnded = widget.profile.lastPeriodEnd != null &&
+        widget.profile.lastPeriodStart != null &&
+        !widget.profile.lastPeriodEnd!.isBefore(widget.profile.lastPeriodStart!);
+
+    if (hasPeriodStarted && !hasPeriodEnded) {
+      return {'name': 'follicular', 'daysLeft': 1};
+    }
+
     int periodDuration = 5;
-    if (widget.profile.lastPeriodEnd != null && widget.profile.lastPeriodStart != null) {
+    if (hasPeriodEnded) {
       periodDuration = widget.profile.lastPeriodEnd!.difference(widget.profile.lastPeriodStart!).inDays + 1;
+    } else if (widget.profile.avgPeriodDuration > 0) {
+      periodDuration = widget.profile.avgPeriodDuration;
     }
 
     final follicularStart = periodDuration + 1;
@@ -795,9 +817,23 @@ class _CycleRingState extends State<CycleRing> with TickerProviderStateMixin {
 
   List<CyclePhaseData> _getPhasesForCurrentMode() {
     final avgLength = widget.profile.avgCycleLength;
+    final hasPeriodStarted = widget.profile.lastPeriodStart != null;
+    final hasPeriodEnded = widget.profile.lastPeriodEnd != null &&
+        widget.profile.lastPeriodStart != null &&
+        !widget.profile.lastPeriodEnd!.isBefore(widget.profile.lastPeriodStart!);
+
+    final now = DateTime.now();
+    final lastStart = widget.profile.lastPeriodStart ?? now;
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final startDate = DateTime(lastStart.year, lastStart.month, lastStart.day);
+    int localCurrentDay = todayDate.difference(startDate).inDays + 1;
+    if (localCurrentDay < 1) localCurrentDay = 1;
+
     int periodDuration = 5;
-    if (widget.profile.lastPeriodEnd != null && widget.profile.lastPeriodStart != null) {
+    if (hasPeriodEnded) {
       periodDuration = widget.profile.lastPeriodEnd!.difference(widget.profile.lastPeriodStart!).inDays + 1;
+    } else if (hasPeriodStarted) {
+      periodDuration = max(widget.profile.avgPeriodDuration > 0 ? widget.profile.avgPeriodDuration : 5, localCurrentDay);
     }
 
     // New requested color scheme

@@ -28,6 +28,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _predictionBannerDismissedAt = 'ob_prediction_banner_dismissed_at';
   static const _isFriendOnboarded = 'ob_is_friend_onboarded';
   static const _avatarUrl         = 'user_avatar_url';
+  static const _hasCompletedUserGuide = 'ob_has_completed_user_guide';
 
   final SharedPreferences _prefs;
   LocalStorageService(this._prefs);
@@ -56,6 +57,12 @@ class LocalStorageService extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool get hasCompletedUserGuide => _prefs.getBool(_hasCompletedUserGuide) ?? false;
+  Future<void> setHasCompletedUserGuide(bool value) async {
+    await _prefs.setBool(_hasCompletedUserGuide, value);
+    notifyListeners();
+  }
+
   // ── Identity ──────────────────────────────────────────────────────────────
   String? get userType          => _prefs.getString(_userType);
   String? get displayName       => _prefs.getString(_displayName);
@@ -65,8 +72,12 @@ class LocalStorageService extends ChangeNotifier {
   String? get contentTier       => _prefs.getString(_contentTier);
   String? get avatarUrl         => UrlUtils.sanitizeUrl(_prefs.getString(_avatarUrl));
 
-  Future<void> setUserType(String t) async {
-    await _prefs.setString(_userType, t);
+  Future<void> setUserType(String? t) async {
+    if (t != null) {
+      await _prefs.setString(_userType, t);
+    } else {
+      await _prefs.remove(_userType);
+    }
     notifyListeners();
   }
   Future<void> setDisplayName(String n) async {
@@ -93,8 +104,12 @@ class LocalStorageService extends ChangeNotifier {
     await _prefs.setString(_phone, p);
     notifyListeners();
   }
-  Future<void> setRole(String r) async {
-    await _prefs.setString(_role, r);
+  Future<void> setRole(String? r) async {
+    if (r != null) {
+      await _prefs.setString(_role, r);
+    } else {
+      await _prefs.remove(_role);
+    }
     notifyListeners();
   }
   Future<void> setContentTier(String tier) async {

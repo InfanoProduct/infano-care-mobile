@@ -15,6 +15,7 @@ import 'package:infano_care_mobile/features/tracker/utils/calendar_types.dart';
 import 'package:infano_care_mobile/features/tracker/utils/calendar_utils.dart';
 import 'package:infano_care_mobile/features/tracker/utils/prediction_windows_provider.dart';
 import 'package:infano_care_mobile/features/tracker/utils/prediction_windows_computer.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -23,7 +24,16 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CalendarCubit, CalendarState>(
+    return BlocListener<TrackerBloc, TrackerState>(
+      listener: (context, trackerState) {
+        trackerState.maybeWhen(
+          loaded: (profile, prediction, logs, history, dailyInsights, recommendedArticles, milestone, pointsEarned, isRefreshing) {
+            context.read<CalendarCubit>().loadCalendarData(forceRefresh: true);
+          },
+          orElse: () {},
+        );
+      },
+      child: BlocBuilder<CalendarCubit, CalendarState>(
       builder: (context, state) {
         return state.when(
           initial: () => const _LoadingView(),
@@ -70,8 +80,9 @@ class CalendarScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
+    ),
+  );
+}
 }
 
 class _LoadingView extends StatelessWidget {
