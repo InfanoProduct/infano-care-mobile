@@ -33,16 +33,17 @@ class ApiService {
       receiveTimeout: const Duration(seconds: 30),
     ));
 
-    // ── Request/Response logger (shows in flutter run console) ───────────────
-    // ── Request/Response logger (shows even in release/APK) ────────────────
-    _dio.interceptors.add(LogInterceptor(
-      requestHeader: false,
-      requestBody: true,
-      responseBody: true,
-      responseHeader: false,
-      error: true,
-      logPrint: (o) => debugPrint('[API] $o'),
-    ));
+    // ── Request/Response logger (only active during development) ───────────────
+    if (kDebugMode) {
+      _dio.interceptors.add(LogInterceptor(
+        requestHeader: false,
+        requestBody: false,
+        responseBody: false,
+        responseHeader: false,
+        error: true,
+        logPrint: (o) => debugPrint('[API] $o'),
+      ));
+    }
 
     // ── JWT interceptor ───────────────────────────────────────────────────────
     _dio.interceptors.add(InterceptorsWrapper(

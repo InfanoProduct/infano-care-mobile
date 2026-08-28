@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/router/app_router.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
@@ -23,32 +25,32 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
 
 void main() async {
-  debugPrint('[App] Starting optimized initialization...');
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
+  // 1. Force local bundled font loading only (0ms font resolution, no HTTP blocking)
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   try {
-    // 1. Initialize Local Storage and Firebase in parallel
-    final results = await Future.wait([
-      LocalStorageService.create(),
+    // 2. Fast non-blocking storage initialization
+    final storage = await LocalStorageService.create();
+    ApiService.init(storage);
+
+    // 3. Launch UI immediately without waiting for remote networks
+    runApp(InfanoCareApp(storage: storage));
+
+    // 4. Initialize Firebase in the background without holding the splash screen
+    unawaited(
       Firebase.initializeApp()
           .then((app) {
             FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-            return app;
           })
           .catchError((e) {
-            debugPrint('[App] Firebase initialization warning ⚠️: $e');
-            return null;
+            debugPrint('[App] Firebase background initialization warning: $e');
           }),
-    ]);
-
-    final storage = results[0] as LocalStorageService;
-    ApiService.init(storage);
-    debugPrint('[App] Core services initialized ✅');
-
-    runApp(InfanoCareApp(storage: storage));
+    );
   } catch (e) {
-    debugPrint('[App] Critical initialization fallback ❌: $e');
+    debugPrint('[App] Critical initialization fallback: $e');
     final storage = await LocalStorageService.create();
     ApiService.init(storage);
     runApp(InfanoCareApp(storage: storage));
@@ -74,12 +76,12 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
     _repo = OnboardingRepository(ApiService.instance);
     _router = createRouter(widget.storage, _navigatorKey);
 
-    // Initialize notifications asynchronously without blocking the UI thread
-    NotificationService().initialize(_navigatorKey, storage: widget.storage);
-
-    // Remove native splash as soon as the first frame is successfully rendered
+    // Remove native splash as quickly as possible
+    FlutterNativeSplash.remove();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
+      // Initialize background notification handling after first frame
+      NotificationService().initialize(_navigatorKey, storage: widget.storage);
     });
   }
 
@@ -116,13 +118,12 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
               ..add(const SyncFromStorage()),
           ),
           BlocProvider(
-            create: (_) =>
-                TrackerBloc(trackerRepo, widget.storage)..add(const TrackerEvent.load()),
+            create: (_) => TrackerBloc(trackerRepo, widget.storage),
           ),
           BlocProvider(
             create: (_) => JourneyMapCubit(
               CreativeJourneyRepository(ApiService.instance.dio),
-            )..load(),
+            ),
           ),
         ],
         child: MaterialApp.router(

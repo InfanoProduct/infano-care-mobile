@@ -22,6 +22,8 @@ import 'package:infano_care_mobile/services/friends_socket_service.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
 import 'package:infano_care_mobile/features/home/widgets/first_time_user_guide_overlay.dart';
+import 'package:infano_care_mobile/features/tracker/bloc/tracker_bloc.dart';
+import 'package:infano_care_mobile/features/creative_journey/application/journey_map_cubit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -90,6 +92,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       );
       socket.connect();
       friendsSocket.connect();
+
+      // Lazy load tracker & journey in background after initial frame settles
+      try {
+        context.read<TrackerBloc>().add(const TrackerEvent.load());
+        context.read<JourneyMapCubit>().load();
+      } catch (_) {}
 
       _peerlineSocketSub = socket.chatEvents.listen((event) {
         if (event['type'] == 'session_ready' && mounted) {

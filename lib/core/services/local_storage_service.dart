@@ -51,34 +51,45 @@ class LocalStorageService extends ChangeNotifier {
   static Future<LocalStorageService> create() async {
     final prefs = await SharedPreferences.getInstance();
     const secureStorage = FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      aOptions: AndroidOptions(
+        encryptedSharedPreferences: true,
+        resetOnError: true,
+      ),
       iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
     );
 
-    // 1. Read tokens from secure storage
-    String? authToken = await secureStorage.read(key: _authToken);
-    String? refreshToken = await secureStorage.read(key: _refreshToken);
-    String? tempToken = await secureStorage.read(key: _tempToken);
+    String? authToken;
+    String? refreshToken;
+    String? tempToken;
 
-    // 2. Migration: If tokens exist in SharedPreferences, migrate them
+    try {
+      // 1. Read tokens in parallel with timeout to avoid any Keystore blocking
+      final tokens = await Future.wait([
+        secureStorage.read(key: _authToken),
+        secureStorage.read(key: _refreshToken),
+        secureStorage.read(key: _tempToken),
+      ]).timeout(const Duration(milliseconds: 1200));
+
+      authToken = tokens[0];
+      refreshToken = tokens[1];
+      tempToken = tokens[2];
+    } catch (e) {
+      debugPrint('[LocalStorageService] SecureStorage non-blocking warning: $e');
+    }
+
+    // 2. Migration fallback: If tokens exist in SharedPreferences, use them
     final legacyAuth = prefs.getString(_authToken);
     final legacyRefresh = prefs.getString(_refreshToken);
     final legacyTemp = prefs.getString(_tempToken);
 
     if (authToken == null && legacyAuth != null) {
       authToken = legacyAuth;
-      await secureStorage.write(key: _authToken, value: legacyAuth);
-      await prefs.remove(_authToken);
     }
     if (refreshToken == null && legacyRefresh != null) {
       refreshToken = legacyRefresh;
-      await secureStorage.write(key: _refreshToken, value: legacyRefresh);
-      await prefs.remove(_refreshToken);
     }
     if (tempToken == null && legacyTemp != null) {
       tempToken = legacyTemp;
-      await secureStorage.write(key: _tempToken, value: legacyTemp);
-      await prefs.remove(_tempToken);
     }
 
     return LocalStorageService(
