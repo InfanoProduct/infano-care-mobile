@@ -125,23 +125,6 @@ class ApiService {
         return handler.next(error);
       },
     ));
-
-    // ── Startup connectivity ping ──────────────────────────────────────────────
-    final healthUrl = '${Uri.parse(_baseUrl).origin}/health';
-
-    _dio.get(healthUrl).then((r) {
-      debugPrint('[API] ✅ Backend reachable at $healthUrl: ${r.data}');
-    }).catchError((e) {
-      String errorMessage = e.toString();
-      if (e is DioException) {
-        if (e.type == DioExceptionType.connectionError) {
-          errorMessage = 'Connection Error (check your internet connection or if the API server is reachable)';
-        } else if (e.type == DioExceptionType.connectionTimeout) {
-          errorMessage = 'Connection Timeout (backend not responding)';
-        }
-      }
-      debugPrint('[API] ❌ Backend NOT reachable at $healthUrl — $errorMessage');
-    });
   }
 
   Dio get dio => _dio;

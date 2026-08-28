@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -58,38 +59,35 @@ class LocalStorageService extends ChangeNotifier {
       iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
     );
 
-    String? authToken;
-    String? refreshToken;
-    String? tempToken;
+    // 1. Fast in-memory SharedPreferences read
+    var authToken = prefs.getString(_authToken);
+    var refreshToken = prefs.getString(_refreshToken);
+    var tempToken = prefs.getString(_tempToken);
 
-    try {
-      // 1. Read tokens in parallel with timeout to avoid any Keystore blocking
-      final tokens = await Future.wait([
-        secureStorage.read(key: _authToken),
-        secureStorage.read(key: _refreshToken),
-        secureStorage.read(key: _tempToken),
-      ]).timeout(const Duration(milliseconds: 1200));
+    // 2. Fallback: If not in SharedPreferences, check SecureStorage and migrate
+    if (authToken == null || refreshToken == null) {
+      try {
+        final tokens = await Future.wait([
+          secureStorage.read(key: _authToken),
+          secureStorage.read(key: _refreshToken),
+          secureStorage.read(key: _tempToken),
+        ]).timeout(const Duration(milliseconds: 1000));
 
-      authToken = tokens[0];
-      refreshToken = tokens[1];
-      tempToken = tokens[2];
-    } catch (e) {
-      debugPrint('[LocalStorageService] SecureStorage non-blocking warning: $e');
-    }
-
-    // 2. Migration fallback: If tokens exist in SharedPreferences, use them
-    final legacyAuth = prefs.getString(_authToken);
-    final legacyRefresh = prefs.getString(_refreshToken);
-    final legacyTemp = prefs.getString(_tempToken);
-
-    if (authToken == null && legacyAuth != null) {
-      authToken = legacyAuth;
-    }
-    if (refreshToken == null && legacyRefresh != null) {
-      refreshToken = legacyRefresh;
-    }
-    if (tempToken == null && legacyTemp != null) {
-      tempToken = legacyTemp;
+        if (authToken == null && tokens[0] != null) {
+          authToken = tokens[0];
+          await prefs.setString(_authToken, authToken!);
+        }
+        if (refreshToken == null && tokens[1] != null) {
+          refreshToken = tokens[1];
+          await prefs.setString(_refreshToken, refreshToken!);
+        }
+        if (tempToken == null && tokens[2] != null) {
+          tempToken = tokens[2];
+          await prefs.setString(_tempToken, tempToken!);
+        }
+      } catch (e) {
+        debugPrint('[LocalStorageService] Fallback token read warning: $e');
+      }
     }
 
     return LocalStorageService(
@@ -149,16 +147,18 @@ class LocalStorageService extends ChangeNotifier {
 
     if (refreshToken != null) {
       _cachedRefreshToken = refreshToken;
-      await _secureStorage.write(key: _refreshToken, value: refreshToken);
+      await _prefs.setString(_refreshToken, refreshToken);
+      unawaited(_secureStorage.write(key: _refreshToken, value: refreshToken).catchError((_) {}));
     }
     if (authToken != null) {
       _cachedAuthToken = authToken;
-      await _secureStorage.write(key: _authToken, value: authToken);
+      await _prefs.setString(_authToken, authToken);
+      unawaited(_secureStorage.write(key: _authToken, value: authToken).catchError((_) {}));
     }
 
     _cachedTempToken = null;
-    await _secureStorage.delete(key: _tempToken);
     await _prefs.remove(_tempToken);
+    unawaited(_secureStorage.delete(key: _tempToken).catchError((_) {}));
 
     notifyListeners();
   }
@@ -252,13 +252,15 @@ class LocalStorageService extends ChangeNotifier {
 
   Future<void> setAuthToken(String t) async {
     _cachedAuthToken = t;
-    await _secureStorage.write(key: _authToken, value: t);
+    await _prefs.setString(_authToken, t);
+    unawaited(_secureStorage.write(key: _authToken, value: t).catchError((_) {}));
     notifyListeners();
   }
   
   Future<void> setRefreshToken(String t) async {
     _cachedRefreshToken = t;
-    await _secureStorage.write(key: _refreshToken, value: t);
+    await _prefs.setString(_refreshToken, t);
+    unawaited(_secureStorage.write(key: _refreshToken, value: t).catchError((_) {}));
     notifyListeners();
   }
 
@@ -270,12 +272,14 @@ class LocalStorageService extends ChangeNotifier {
   String? get tempToken                  => _cachedTempToken;
   Future<void> setTempToken(String t) async {
     _cachedTempToken = t;
-    await _secureStorage.write(key: _tempToken, value: t);
+    await _prefs.setString(_tempToken, t);
+    unawaited(_secureStorage.write(key: _tempToken, value: t).catchError((_) {}));
     notifyListeners();
   }
   Future<void> clearTempToken() async {
     _cachedTempToken = null;
-    await _secureStorage.delete(key: _tempToken);
+    await _prefs.remove(_tempToken);
+    unawaited(_secureStorage.delete(key: _tempToken).catchError((_) {}));
     notifyListeners();
   }
 
