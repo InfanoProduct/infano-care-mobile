@@ -118,7 +118,6 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> with CodeAutoFill {
 
       // Route based on what the backend told us: role + onboardingCompleted
       final isCompleted = result.isOnboardingCompleted ||
-          (result.profile?['displayName'] != null && result.profile!['displayName'].toString().trim().isNotEmpty) ||
           result.role == 'EXPERT' ||
           result.role == 'ADMIN';
 

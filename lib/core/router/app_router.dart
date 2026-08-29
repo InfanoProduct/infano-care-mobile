@@ -142,7 +142,6 @@ GoRouter createRouter(
 
       // 2. Fully onboarded or existing user with profile/role
       final hasCompletedProfile = storage.isOnboarded ||
-          (storage.displayName != null && storage.displayName!.trim().isNotEmpty) ||
           role == 'ADMIN' ||
           role == 'EXPERT';
 

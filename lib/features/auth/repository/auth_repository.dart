@@ -84,8 +84,7 @@ class AuthRepository {
           profile:               loginData['profile']               as Map<String, dynamic>?,
         );
 
-        final isCompleted = result.isOnboardingCompleted ||
-            (result.profile?['displayName'] != null && result.profile!['displayName'].toString().trim().isNotEmpty);
+        final isCompleted = result.isOnboardingCompleted;
 
         await _storage.saveAuthSession(
           authToken: result.accessToken,
@@ -134,8 +133,7 @@ class AuthRepository {
         profile:               data['profile']               as Map<String, dynamic>?,
       );
       
-      final isCompleted = result.isOnboardingCompleted ||
-          (result.profile?['displayName'] != null && result.profile!['displayName'].toString().trim().isNotEmpty);
+      final isCompleted = result.isOnboardingCompleted;
 
       await _storage.saveAuthSession(
         authToken: result.accessToken,
