@@ -113,7 +113,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
     final userName =
         (rawName != null && rawName.trim().isNotEmpty)
             ? rawName.trim()
-            : 'Karunakar';
+            : 'Friend';
     final isFirstTime = !storage.hasCompletedUserGuide;
     final greetingText = isFirstTime ? 'Welcome,' : 'Welcome back,';
 
