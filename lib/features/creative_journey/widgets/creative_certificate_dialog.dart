@@ -68,11 +68,20 @@ class CreativeCertificateService {
   }
 
   static Future<List<CreativeCertificate>> getCertificates() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = prefs.getStringList(_key) ?? [];
-    return jsonList
-        .map((s) => CreativeCertificate.fromJson(jsonDecode(s) as Map<String, dynamic>))
-        .toList();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = prefs.getStringList(_key) ?? [];
+      final List<CreativeCertificate> results = [];
+      for (final s in jsonList) {
+        try {
+          final map = jsonDecode(s) as Map<String, dynamic>;
+          results.add(CreativeCertificate.fromJson(map));
+        } catch (_) {}
+      }
+      return results;
+    } catch (_) {
+      return [];
+    }
   }
 }
 

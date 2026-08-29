@@ -5,7 +5,7 @@ class UrlUtils {
   /// Sanitizes backend URLs that point to 'localhost' or '127.0.0.1'.
   /// Replaces them with the actual API base host configured at compile-time.
   static String? sanitizeUrl(String? url) {
-    if (url == null) return null;
+    if (url == null || url.trim().isEmpty || url.trim() == 'null') return null;
     
     if (url.contains('localhost') || url.contains('127.0.0.1')) {
       const defaultApiUrl = 'https://api-dev.infano.care/api/';

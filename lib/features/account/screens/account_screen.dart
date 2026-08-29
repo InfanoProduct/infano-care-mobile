@@ -156,30 +156,35 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<LocalStorageService>();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Account Details'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: AppColors.textDark,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            _buildProfileHeader(),
-            const SizedBox(height: 24),
-            _buildCertificatesSection(context),
-            const SizedBox(height: 24),
-            _buildInfoSection(context),
-            const SizedBox(height: 24),
-            _buildNavigationSection(context),
-            const SizedBox(height: 48),
-            _buildLogoutButton(context),
-          ],
-        ),
-      ),
+    return ListenableBuilder(
+      listenable: widget.storage,
+      builder: (context, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            title: const Text('Account Details'),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            foregroundColor: AppColors.textDark,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                _buildProfileHeader(),
+                const SizedBox(height: 24),
+                _buildCertificatesSection(context),
+                const SizedBox(height: 24),
+                _buildInfoSection(context),
+                const SizedBox(height: 24),
+                _buildNavigationSection(context),
+                const SizedBox(height: 48),
+                _buildLogoutButton(context),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -412,7 +417,13 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Widget _buildProfileHeader() {
     final avatarUrl = widget.storage.avatarUrl;
-    final displayName = widget.storage.displayName ?? 'Infano User';
+    final hasValidAvatar = avatarUrl != null &&
+        avatarUrl.trim().isNotEmpty &&
+        avatarUrl.trim() != 'null' &&
+        (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'));
+    final displayName = (widget.storage.displayName?.trim().isNotEmpty == true)
+        ? widget.storage.displayName!
+        : 'Infano Member';
 
     return Column(
       children: [
@@ -425,7 +436,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: avatarUrl != null ? Colors.white : AppColors.purple,
+                  color: hasValidAvatar ? Colors.white : AppColors.purple,
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.purple.withValues(alpha: 0.2), width: 4),
                   boxShadow: [
@@ -437,7 +448,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   ],
                 ),
                 child: ClipOval(
-                  child: avatarUrl != null
+                  child: hasValidAvatar
                       ? Image.network(
                           avatarUrl,
                           fit: BoxFit.cover,
