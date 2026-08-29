@@ -87,41 +87,64 @@ class _ConsentWaitingScreenState extends State<ConsentWaitingScreen> {
         ? (size.height * 0.20).clamp(80.0, 220.0)
         : (isCompact ? 60.0 : (size.height * 0.14).clamp(80.0, 150.0));
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // 1. 3D Background Illustration (Character visible)
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/phone_entry_bg.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
+    return BlocListener<OnboardingBloc, OnboardingState>(
+      listenWhen: (prev, curr) => prev.consentStatus != curr.consentStatus,
+      listener: (context, state) {
+        if (state.consentStatus == 'approved') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Parent permission approved! 🎉',
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
-          ),
+          );
+          context.go('/onboarding/goals');
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // 1. 3D Background Illustration (Character visible)
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/phone_entry_bg.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+              ),
+            ),
 
-          // 2. Soft Gradient Overlay for depth & clarity
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    const Color(0xFF5B21B6).withValues(alpha: 0.1),
-                    const Color(0xFF2D1557).withValues(alpha: 0.35),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+            // 2. Soft Gradient Overlay for depth & clarity
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      const Color(0xFF5B21B6).withValues(alpha: 0.1),
+                      const Color(0xFF2D1557).withValues(alpha: 0.35),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // 3. Glassmorphic Consent Waiting Card (Positioned at bottom so character girl Gigi's face is fully visible!)
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+            // 3. Glassmorphic Consent Waiting Card (Positioned at bottom so character girl Gigi's face is fully visible!)
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
                   padding: EdgeInsets.symmetric(
                     horizontal: horizontalPadding,
                     vertical: 16,
@@ -439,6 +462,7 @@ class _ConsentWaitingScreenState extends State<ConsentWaitingScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 }

@@ -36,6 +36,7 @@ class OnboardingState extends Equatable {
   final bool isBootstrapping;
   final bool isIrregular;
   final String? parentEmail;
+  final String consentStatus;     // 'none' | 'pending' | 'approved' | 'expired'
 
   const OnboardingState({
     this.isBootstrapping    = false,
@@ -66,6 +67,7 @@ class OnboardingState extends Equatable {
     this.sessionExpired     = false,
     this.isIrregular        = false,
     this.parentEmail,
+    this.consentStatus      = 'none',
   });
 
   OnboardingState copyWith({
@@ -78,6 +80,7 @@ class OnboardingState extends Equatable {
     int? totalPoints, DateTime? lastPeriod, int? periodLength, int? cycleLength,
     bool? isLoading, String? errorMessage, bool? sessionExpired,
     bool? isIrregular, bool? isBootstrapping, String? parentEmail,
+    String? consentStatus,
   }) {
     return OnboardingState(
       isBootstrapping:    isBootstrapping   ?? this.isBootstrapping,
@@ -108,6 +111,7 @@ class OnboardingState extends Equatable {
       sessionExpired:     sessionExpired    ?? this.sessionExpired,
       isIrregular:        isIrregular       ?? this.isIrregular,
       parentEmail:        parentEmail       ?? this.parentEmail,
+      consentStatus:      consentStatus     ?? this.consentStatus,
     );
   }
 
@@ -118,6 +122,7 @@ class OnboardingState extends Equatable {
     goals, periodComfortScore, periodStatus, interestTopics, avatarData,
     journeyName, totalPoints, lastPeriod, periodLength, cycleLength,
     isLoading, errorMessage, sessionExpired, isBootstrapping, parentEmail,
+    consentStatus,
   ];
 }
 
@@ -472,7 +477,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       await _repo.sendConsentEmail(e.email);
-      emit(state.copyWith(isLoading: false, parentEmail: e.email));
+      emit(state.copyWith(isLoading: false, parentEmail: e.email, consentStatus: 'pending'));
     } catch (err) {
       emit(state.copyWith(isLoading: false, errorMessage: err.toString()));
     }
@@ -481,10 +486,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   Future<void> _onCheckConsentStatus(CheckConsentStatus e, Emitter<OnboardingState> emit) async {
     try {
       final status = await _repo.getConsentStatus();
-      if (status == 'approved') {
-        // If approved, we can proceed to terms (step 10)
-        _storage.setStepComplete('10');
-        _repo.updateStep(10);
+      if (status == 'approved' || status == 'granted') {
+        await _storage.setStepComplete('4');
+        await _repo.updateStep(4);
+        emit(state.copyWith(consentStatus: 'approved'));
+      } else if (status == 'expired') {
+        emit(state.copyWith(consentStatus: 'expired'));
       }
     } catch (_) {
       // Polling errors are ignored to avoid flickering
