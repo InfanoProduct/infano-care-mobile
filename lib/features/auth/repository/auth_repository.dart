@@ -92,6 +92,7 @@ class AuthRepository {
           role: result.role,
           userId: result.userId,
           phone: phone,
+          email: loginData['email']?.toString(),
           isOnboarded: isCompleted,
           stepComplete: result.onboardingStep.toString(),
           displayName: result.profile?['displayName']?.toString(),
@@ -141,6 +142,7 @@ class AuthRepository {
         role: result.role,
         userId: result.userId,
         phone: phone,
+        email: data['email']?.toString(),
         isOnboarded: isCompleted,
         stepComplete: result.onboardingStep.toString(),
         displayName: result.profile?['displayName']?.toString(),
@@ -179,6 +181,8 @@ class AuthRepository {
       if (result.role != null) await _storage.setRole(result.role!);
       
       // Sync profile details if present
+      if (data['email'] != null) await _storage.setEmail(data['email'].toString());
+      if (data['phone'] != null) await _storage.setPhone(data['phone'].toString());
       if (result.contentTier != null) await _storage.setContentTier(result.contentTier!);
       if (result.profile != null) {
         final p = result.profile!;
@@ -204,12 +208,21 @@ class AuthRepository {
       final data = resp.data as Map<String, dynamic>;
       debugPrint('[syncProfile] Raw API Response from /user/me: $data');
       
+      final email = data['email']?.toString() ?? data['user']?['email']?.toString();
+      final phone = data['phone']?.toString() ?? data['user']?['phone']?.toString();
       final contentTier = data['contentTier'] as String?;
-      final profile = data['profile'] as Map<String, dynamic>?;
+      final profile = (data['profile'] ?? data['user']?['profile']) as Map<String, dynamic>?;
       final role = data['role'] as String?;
+      final birthMonth = data['birthMonth'] as int? ?? profile?['birthMonth'] as int?;
+      final birthYear = data['birthYear'] as int? ?? profile?['birthYear'] as int?;
 
+      if (email != null) await _storage.setEmail(email);
+      if (phone != null) await _storage.setPhone(phone);
       if (role != null) await _storage.setRole(role);
       if (contentTier != null) await _storage.setContentTier(contentTier);
+      if (birthYear != null) {
+        await _storage.setBirthDate(birthMonth ?? 1, birthYear);
+      }
       
       if (profile != null) {
         if (profile['displayName'] != null && profile['displayName'].toString().trim().isNotEmpty) {
@@ -223,7 +236,45 @@ class AuthRepository {
         await _storage.setAvatarUrl(profile['avatarUrl']?.toString());
       }
     } on DioException catch (e) {
-      throw _extractError(e, 'Failed to sync profile.');
+      debugPrint('[syncProfile] Warning: $e');
+    }
+  }
+
+  // ── Update Profile (PUT /user/profile) ─────────────────────────────────────
+  Future<void> updateProfile({
+    String? displayName,
+    String? email,
+    String? pronouns,
+    int? birthMonth,
+    int? birthYear,
+  }) async {
+    try {
+      final cleanEmail = email?.trim();
+      final cleanDisplayName = displayName?.trim();
+      final cleanPronouns = pronouns?.trim();
+
+      await _dio.put('/user/profile', data: {
+        if (cleanDisplayName != null) 'displayName': cleanDisplayName,
+        if (email != null) 'email': cleanEmail!.isEmpty ? null : cleanEmail,
+        if (cleanPronouns != null) 'pronouns': cleanPronouns,
+        if (birthMonth != null) 'birthMonth': birthMonth,
+        if (birthYear != null) 'birthYear': birthYear,
+      });
+
+      if (cleanDisplayName != null && cleanDisplayName.isNotEmpty) {
+        await _storage.setDisplayName(cleanDisplayName);
+      }
+      if (email != null) {
+        await _storage.setEmail(cleanEmail!.isEmpty ? null : cleanEmail);
+      }
+      if (cleanPronouns != null) {
+        await _storage.setPronouns(cleanPronouns);
+      }
+      if (birthMonth != null && birthYear != null) {
+        await _storage.setBirthDate(birthMonth, birthYear);
+      }
+    } on DioException catch (e) {
+      throw _extractError(e, 'Failed to update profile.');
     }
   }
 
@@ -247,6 +298,7 @@ class AuthRepository {
         if (error.contains('Invalid OTP')) return 'Invalid code. Please check and try again.';
         if (error.contains('expired')) return 'The code has expired. Please request a new one.';
         if (error.contains('Too many')) return 'Too many attempts. Please try again later.';
+        if (error.contains('already in use')) return 'This email is already in use by another account.';
         return error;
       }
     }

@@ -435,11 +435,15 @@ class _AccountScreenState extends State<AccountScreen> {
     final displayName = (widget.storage.displayName?.trim().isNotEmpty == true)
         ? widget.storage.displayName!
         : 'Infano Member';
+    final email = (widget.storage.email?.trim().isNotEmpty == true)
+        ? widget.storage.email!
+        : null;
     final phone = (widget.storage.phone?.trim().isNotEmpty == true)
         ? widget.storage.phone!
-        : (widget.storage.pronouns?.trim().isNotEmpty == true
-            ? widget.storage.pronouns!
-            : 'Welcome to Infano.Care');
+        : null;
+    final pronouns = (widget.storage.pronouns?.trim().isNotEmpty == true)
+        ? widget.storage.pronouns!
+        : null;
 
     return Container(
       width: double.infinity,
@@ -542,15 +546,108 @@ class _AccountScreenState extends State<AccountScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
-          Text(
-            phone,
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textLight,
+          if (email != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.mail_outline_rounded,
+                  size: 14,
+                  color: Color(0xFF7C3AED),
+                ),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    email,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF6D28D9),
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
+          ],
+          if (phone != null || pronouns != null) ...[
+            const SizedBox(height: 6),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                if (phone != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      phone,
+                      style: GoogleFonts.nunito(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                if (pronouns != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3E8FF),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      pronouns,
+                      style: GoogleFonts.nunito(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF6D28D9),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 14),
+          // Edit Profile Action Button
+          InkWell(
+            onTap: () => _showEditProfileSheet(context),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFAF5FF),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFDDD6FE)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.edit_outlined,
+                    size: 15,
+                    color: Color(0xFF7C3AED),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Edit Basic Details',
+                    style: GoogleFonts.nunito(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF6D28D9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           if (_uploadError != null) ...[
             const SizedBox(height: 8),
@@ -581,6 +678,11 @@ class _AccountScreenState extends State<AccountScreen> {
             ? 'Parent Care'
             : (role == 'EXPERT' ? 'Expert Partner' : 'Bloom Member'));
 
+    final email = widget.storage.email;
+    final displayEmail = (email != null && email.trim().isNotEmpty) ? email.trim() : 'Not set';
+    final pronouns = (widget.storage.pronouns != null && widget.storage.pronouns!.trim().isNotEmpty)
+        ? widget.storage.pronouns!.trim()
+        : 'Not set';
     final birthday = (widget.storage.birthMonth != null && widget.storage.birthYear != null)
         ? '${widget.storage.birthMonth}/${widget.storage.birthYear}'
         : 'Not set';
@@ -599,15 +701,463 @@ class _AccountScreenState extends State<AccountScreen> {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(Icons.stars_rounded, 'Points Earned', '${widget.storage.points} ✨'),
-          const Divider(height: 24, color: Color(0xFFF1F5F9)),
-          _buildInfoRow(Icons.verified_user_outlined, 'User ID', displayUid),
-          const Divider(height: 24, color: Color(0xFFF1F5F9)),
-          _buildInfoRow(Icons.badge_outlined, 'Account Type', roleLabel),
-          const Divider(height: 24, color: Color(0xFFF1F5F9)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Personal & Basic Details',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _showEditProfileSheet(context),
+                child: Text(
+                  'Edit',
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.purple,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow(Icons.mail_outline_rounded, 'Email', displayEmail),
+          const Divider(height: 20, color: Color(0xFFF1F5F9)),
+          _buildInfoRow(Icons.person_outline_rounded, 'Display Name', widget.storage.displayName ?? 'Not set'),
+          const Divider(height: 20, color: Color(0xFFF1F5F9)),
+          _buildInfoRow(Icons.favorite_border_rounded, 'Pronouns', pronouns),
+          const Divider(height: 20, color: Color(0xFFF1F5F9)),
           _buildInfoRow(Icons.cake_outlined, 'Birthday', birthday),
+          const Divider(height: 20, color: Color(0xFFF1F5F9)),
+          _buildInfoRow(Icons.badge_outlined, 'Account Type', roleLabel),
+          const Divider(height: 20, color: Color(0xFFF1F5F9)),
+          _buildInfoRow(Icons.stars_rounded, 'Points Earned', '${widget.storage.points} ✨'),
+          const Divider(height: 20, color: Color(0xFFF1F5F9)),
+          _buildInfoRow(Icons.verified_user_outlined, 'User ID', displayUid),
         ],
+      ),
+    );
+  }
+
+  void _showEditProfileSheet(BuildContext context) {
+    final displayNameCtrl = TextEditingController(text: widget.storage.displayName ?? '');
+    final emailCtrl = TextEditingController(text: widget.storage.email ?? '');
+    final pronounsCtrl = TextEditingController(text: widget.storage.pronouns ?? '');
+    
+    int selectedMonth = widget.storage.birthMonth ?? DateTime.now().month;
+    int selectedYear = widget.storage.birthYear ?? (DateTime.now().year - 15);
+    bool isSaving = false;
+    String? sheetError;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              top: 20,
+              left: 20,
+              right: 20,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Header
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3E8FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.edit_note_rounded,
+                          color: AppColors.purple,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Edit Basic Details',
+                              style: GoogleFonts.nunito(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            Text(
+                              'Update your name, email, pronouns, and birth date',
+                              style: GoogleFonts.nunito(
+                                fontSize: 12,
+                                color: AppColors.textMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  if (sheetError != null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFECDD3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: AppColors.error, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              sheetError!,
+                              style: GoogleFonts.nunito(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF991B1B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Display Name
+                  Text(
+                    'Display Name',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: displayNameCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'e.g. Maya or Bestie',
+                      prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.purple, width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Email
+                  Text(
+                    'Email Address',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      hintText: 'e.g. name@example.com',
+                      prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.purple, width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Pronouns
+                  Text(
+                    'Pronouns',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: pronounsCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'e.g. she/her, they/them',
+                      prefixIcon: const Icon(Icons.favorite_border_rounded, size: 20),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.purple, width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Pronoun quick chips
+                  Wrap(
+                    spacing: 6,
+                    children: ['she/her', 'they/them', 'she/they', 'he/him'].map((chip) {
+                      return ActionChip(
+                        label: Text(
+                          chip,
+                          style: GoogleFonts.nunito(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: pronounsCtrl.text == chip ? Colors.white : const Color(0xFF6D28D9),
+                          ),
+                        ),
+                        backgroundColor: pronounsCtrl.text == chip ? AppColors.purple : const Color(0xFFF3E8FF),
+                        padding: EdgeInsets.zero,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onPressed: () {
+                          setSheetState(() {
+                            pronounsCtrl.text = chip;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Birthday
+                  Text(
+                    'Birthday (Month & Year)',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      // Month dropdown
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int>(
+                              value: selectedMonth,
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textLight),
+                              items: List.generate(12, (index) {
+                                final m = index + 1;
+                                const monthNames = [
+                                  'January', 'February', 'March', 'April', 'May', 'June',
+                                  'July', 'August', 'September', 'October', 'November', 'December'
+                                ];
+                                return DropdownMenuItem(
+                                  value: m,
+                                  child: Text(
+                                    monthNames[index],
+                                    style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600),
+                                  ),
+                                );
+                              }),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setSheetState(() => selectedMonth = val);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Year dropdown
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int>(
+                              value: selectedYear,
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textLight),
+                              items: List.generate(70, (index) {
+                                final y = DateTime.now().year - index;
+                                return DropdownMenuItem(
+                                  value: y,
+                                  child: Text(
+                                    '$y',
+                                    style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600),
+                                  ),
+                                );
+                              }),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setSheetState(() => selectedYear = val);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              final emailText = emailCtrl.text.trim();
+                              if (emailText.isNotEmpty) {
+                                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                if (!emailRegex.hasMatch(emailText)) {
+                                  setSheetState(() {
+                                    sheetError = 'Please enter a valid email address.';
+                                  });
+                                  return;
+                                }
+                              }
+
+                              setSheetState(() {
+                                isSaving = true;
+                                sheetError = null;
+                              });
+
+                              try {
+                                final repo = AuthRepository(widget.storage);
+                                await repo.updateProfile(
+                                  displayName: displayNameCtrl.text,
+                                  email: emailText,
+                                  pronouns: pronounsCtrl.text,
+                                  birthMonth: selectedMonth,
+                                  birthYear: selectedYear,
+                                );
+
+                                if (context.mounted) {
+                                  Navigator.pop(bottomSheetContext);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Profile updated successfully! ✨'),
+                                      backgroundColor: Color(0xFF10B981),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                setSheetState(() {
+                                  isSaving = false;
+                                  sheetError = e.toString();
+                                });
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.purple,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: isSaving
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              'Save Changes',
+                              style: GoogleFonts.nunito(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

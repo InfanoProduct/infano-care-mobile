@@ -16,6 +16,7 @@ class LocalStorageService extends ChangeNotifier {
   static const _refreshToken   = 'refresh_token';
   static const _userId         = 'user_id';
   static const _phone          = 'user_phone';
+  static const _email          = 'user_email';
   static const _tempToken      = 'auth_temp_token';
   static const _birthMonth     = 'ob_birth_month';
   static const _birthYear      = 'ob_birth_year';
@@ -122,6 +123,7 @@ class LocalStorageService extends ChangeNotifier {
     required String? phone,
     required bool isOnboarded,
     required String? stepComplete,
+    String? email,
     String? displayName,
     String? pronouns,
     int? birthMonth,
@@ -133,6 +135,9 @@ class LocalStorageService extends ChangeNotifier {
     await _prefs.setBool(_isOnboarded, isOnboarded);
     if (stepComplete != null) await _prefs.setString(_stepComplete, stepComplete);
     if (phone != null) await _prefs.setString(_phone, phone);
+    if (email != null && email.trim().isNotEmpty) {
+      await _prefs.setString(_email, email.trim());
+    }
     if (role != null) await _prefs.setString(_role, role);
     if (userId != null) await _prefs.setString(_userId, userId);
     if (contentTier != null) await _prefs.setString(_contentTier, contentTier);
@@ -178,6 +183,7 @@ class LocalStorageService extends ChangeNotifier {
   // ── Identity ──────────────────────────────────────────────────────────────
   String? get userType          => _prefs.getString(_userType);
   String? get displayName       => _prefs.getString(_displayName);
+  String? get email             => _prefs.getString(_email);
   String? get pronouns          => _prefs.getString(_pronouns);
   String? get phone             => _prefs.getString(_phone);
   String? get role              => _prefs.getString(_role);
@@ -194,6 +200,14 @@ class LocalStorageService extends ChangeNotifier {
   }
   Future<void> setDisplayName(String n) async {
     await _prefs.setString(_displayName, n);
+    notifyListeners();
+  }
+  Future<void> setEmail(String? e) async {
+    if (e != null && e.trim().isNotEmpty) {
+      await _prefs.setString(_email, e.trim());
+    } else {
+      await _prefs.remove(_email);
+    }
     notifyListeners();
   }
   Future<void> setAvatarUrl(String? url) async {
