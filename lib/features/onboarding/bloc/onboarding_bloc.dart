@@ -453,6 +453,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       
       await _storage.setStepComplete(serverStep.toString());
       await _storage.setIsOnboarded(isOnboarded);
+      if (isOnboarded) {
+        await _storage.setHasCompletedUserGuide(true);
+      }
       if (serverName != null && serverName.toString().trim().isNotEmpty) {
         await _storage.setDisplayName(serverName);
       }

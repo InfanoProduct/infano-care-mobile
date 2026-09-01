@@ -85,6 +85,7 @@ class AuthRepository {
         );
 
         final isCompleted = result.isOnboardingCompleted;
+        final isReturningUser = !result.isNewUser || isCompleted;
 
         await _storage.saveAuthSession(
           authToken: result.accessToken,
@@ -102,6 +103,7 @@ class AuthRepository {
           totalPoints: result.profile?['totalPoints'] as int?,
           avatarUrl: result.profile?['avatarUrl']?.toString(),
           contentTier: result.contentTier,
+          hasCompletedUserGuide: isReturningUser,
         );
 
         return result;
@@ -135,6 +137,7 @@ class AuthRepository {
       );
       
       final isCompleted = result.isOnboardingCompleted;
+      final isReturningUser = !result.isNewUser || isCompleted;
 
       await _storage.saveAuthSession(
         authToken: result.accessToken,
@@ -152,6 +155,7 @@ class AuthRepository {
         totalPoints: result.profile?['totalPoints'] as int?,
         avatarUrl: result.profile?['avatarUrl']?.toString(),
         contentTier: result.contentTier,
+        hasCompletedUserGuide: isReturningUser,
       );
 
       return result;
@@ -178,6 +182,7 @@ class AuthRepository {
       await _storage.setRefreshToken(result.refreshToken);
       await _storage.setUserId(result.userId);
       await _storage.setStepComplete(result.onboardingStep.toString());
+      await _storage.setHasCompletedUserGuide(true);
       if (result.role != null) await _storage.setRole(result.role!);
       
       // Sync profile details if present
@@ -215,6 +220,13 @@ class AuthRepository {
       final role = data['role'] as String?;
       final birthMonth = data['birthMonth'] as int? ?? profile?['birthMonth'] as int?;
       final birthYear = data['birthYear'] as int? ?? profile?['birthYear'] as int?;
+      final isOnboardingCompleted = data['isOnboardingCompleted'] == true ||
+          data['onboardingCompletedAt'] != null ||
+          data['accountStatus'] == 'ACTIVE';
+
+      if (isOnboardingCompleted) {
+        await _storage.setHasCompletedUserGuide(true);
+      }
 
       if (email != null) await _storage.setEmail(email);
       if (phone != null) await _storage.setPhone(phone);

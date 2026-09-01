@@ -131,8 +131,14 @@ class LocalStorageService extends ChangeNotifier {
     int? totalPoints,
     String? avatarUrl,
     String? contentTier,
+    bool? hasCompletedUserGuide,
   }) async {
     await _prefs.setBool(_isOnboarded, isOnboarded);
+    if (hasCompletedUserGuide != null) {
+      await _prefs.setBool(_hasCompletedUserGuide, hasCompletedUserGuide);
+    } else if (isOnboarded) {
+      await _prefs.setBool(_hasCompletedUserGuide, true);
+    }
     if (stepComplete != null) await _prefs.setString(_stepComplete, stepComplete);
     if (phone != null) await _prefs.setString(_phone, phone);
     if (email != null && email.trim().isNotEmpty) {
