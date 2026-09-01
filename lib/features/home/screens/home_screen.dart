@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
@@ -117,321 +118,166 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
     final isFirstTime = !storage.hasCompletedUserGuide;
     final greetingText = isFirstTime ? 'Welcome,' : 'Welcome back,';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F5FF), // Matching soft background tint
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFAF5FF), // Harmonious soft lavender background
+        body: Column(
           children: [
-            // 1. Top Bar & Welcome Header (Seamless background with 3D character)
+            // 1. Pinned Top Action Bar (Fixed at top, does NOT pull down on scroll)
             Container(
-              key: widget.headerKey,
               width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFFFAF5FF), // Soft periwinkle top
-                    Color(0xFFF3E8FF), // Soft lavender middle
-                    Color(0xFFFCE7F3), // Soft pink blush bottom
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(32),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x1A5B21B6),
-                    blurRadius: 20,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
+              color: const Color(0xFFFAF5FF),
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Top Action Bar Icons: 3-line Hamburger Menu (Left), Chat & Notifications (Right)
+                      // Left: Hamburger Menu Icon (3 lines)
+                      GestureDetector(
+                        onTap: () {
+                          try {
+                            Scaffold.of(context).openDrawer();
+                          } catch (_) {
+                            context.push('/account');
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF5B21B6).withValues(alpha: 0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.menu_rounded,
+                            size: 24,
+                            color: Color(0xFF2D1557),
+                          ),
+                        ),
+                      ),
+
+                      // Right: SOS Icon + Chat Icon + Notification Icon
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Left: Hamburger Menu Icon (3 lines)
+                          // Emergency SOS Icon
                           GestureDetector(
                             onTap: () {
-                              try {
-                                Scaffold.of(context).openDrawer();
-                              } catch (_) {
-                                context.push('/account');
-                              }
+                              AppSoundService.instance.playPop();
+                              context.push('/safety/sos');
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.7),
+                                color: const Color(0xFFFFF1F2),
                                 shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFFFECDD3),
+                                  width: 1.2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFFE11D48,
+                                    ).withValues(alpha: 0.18),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: const Icon(
-                                Icons.menu_rounded,
-                                size: 24,
+                                Icons.sos_rounded,
+                                size: 18,
+                                color: Color(0xFFE11D48),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          // Chat Icon
+                          GestureDetector(
+                            onTap: () => context.push('/chat'),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF5B21B6).withValues(alpha: 0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: 20,
                                 color: Color(0xFF2D1557),
                               ),
                             ),
                           ),
-
-                          // Right: SOS Icon + Chat Icon + Notification Icon
-                          Row(
-                            children: [
-                              // Emergency SOS Icon
-                              GestureDetector(
-                                onTap: () {
-                                  AppSoundService.instance.playPop();
-                                  context.push('/safety/sos');
+                          const SizedBox(width: 10),
+                          // Notification Icon with Dynamic Badge Dot
+                          GestureDetector(
+                            onTap:
+                                () => NotificationCenterSheet.show(context),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF5B21B6).withValues(alpha: 0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: ValueListenableBuilder<int>(
+                                valueListenable:
+                                    NotificationCenterSheet.unreadCountNotifier,
+                                builder: (context, unreadCount, _) {
+                                  return Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      const Icon(
+                                        Icons.notifications_none_rounded,
+                                        size: 22,
+                                        color: Color(0xFF2D1557),
+                                      ),
+                                      if (unreadCount > 0)
+                                        Positioned(
+                                          right: -1,
+                                          top: -1,
+                                          child: Container(
+                                            width: 8,
+                                            height: 8,
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFFE11D48),
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
                                 },
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFF1F2),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: const Color(0xFFFECDD3),
-                                      width: 1.2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFFE11D48,
-                                        ).withValues(alpha: 0.18),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.sos_rounded,
-                                    size: 18,
-                                    color: Color(0xFFE11D48),
-                                  ),
-                                ),
                               ),
-                              const SizedBox(width: 10),
-                              // Chat Icon
-                              GestureDetector(
-                                onTap: () => context.push('/chat'),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.7),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.chat_bubble_outline_rounded,
-                                    size: 20,
-                                    color: Color(0xFF2D1557),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              // Notification Icon with Dynamic Badge Dot
-                              GestureDetector(
-                                onTap:
-                                    () => NotificationCenterSheet.show(context),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.7),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: ValueListenableBuilder<int>(
-                                    valueListenable:
-                                        NotificationCenterSheet.unreadCountNotifier,
-                                    builder: (context, unreadCount, _) {
-                                      return Stack(
-                                        clipBehavior: Clip.none,
-                                        children: [
-                                          const Icon(
-                                            Icons.notifications_none_rounded,
-                                            size: 22,
-                                            color: Color(0xFF2D1557),
-                                          ),
-                                          if (unreadCount > 0)
-                                            Positioned(
-                                              right: -1,
-                                              top: -1,
-                                              child: Container(
-                                                width: 8,
-                                                height: 8,
-                                                decoration: const BoxDecoration(
-                                                  color: Color(0xFFE11D48),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Welcome Back Greeting & 3D Character Pedestal Illustration Stack
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Welcome Greeting Text (Left aligned)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 110),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      greetingText,
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF6B7280),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      userName,
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 27,
-                                        fontWeight: FontWeight.w900,
-                                        color: const Color(0xFF1E1B4B),
-                                        letterSpacing: -0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(height: 14),
-
-                              // Dynamic Gen-Z Daily Motivational Quote Card (Left aligned)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 105),
-                                child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 14,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.95,
-                                        ),
-                                        borderRadius: BorderRadius.circular(22),
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 2,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(
-                                              0xFF5B21B6,
-                                            ).withValues(alpha: 0.12),
-                                            blurRadius: 16,
-                                            offset: const Offset(0, 6),
-                                          ),
-                                          BoxShadow(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.8,
-                                            ),
-                                            blurRadius: 4,
-                                            offset: const Offset(-2, -2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: AnimatedSwitcher(
-                                        duration: const Duration(
-                                          milliseconds: 350,
-                                        ),
-                                        child: Text(
-                                          '"$_dailyQuote"',
-                                          key: ValueKey(_dailyQuote),
-                                          style: GoogleFonts.nunito(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.w800,
-                                            fontStyle: FontStyle.italic,
-                                            color: const Color(0xFF4C1D95),
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .animate()
-                                    .fadeIn(duration: 400.ms)
-                                    .slideY(begin: 0.1),
-                              ),
-                            ],
-                          ),
-
-                          // Transparent 3D Character Illustration on Pedestal (Right side, ends strictly before next card)
-                          Positioned(
-                            right: 0,
-                            bottom: -6,
-                            child: Stack(
-                              alignment: Alignment.bottomCenter,
-                              children: [
-                                // 3D Floor Shadow under feet/pedestal for depth
-                                Container(
-                                  height: 14,
-                                  width: 75,
-                                  margin: const EdgeInsets.only(bottom: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF5B21B6,
-                                    ).withValues(alpha: 0.22),
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.elliptical(75, 14),
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFF5B21B6,
-                                        ).withValues(alpha: 0.25),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // 3D Standing Gigi Pedestal Character with floating animation
-                                Image.asset(
-                                      'assets/images/gigi_standing_pedestal_transparent.png',
-                                      height: 155,
-                                      fit: BoxFit.contain,
-                                      errorBuilder:
-                                          (ctx, err, stack) => Image.asset(
-                                            'assets/images/gigi_avatar.png',
-                                            height: 140,
-                                            fit: BoxFit.contain,
-                                          ),
-                                    )
-                                    .animate(
-                                      onPlay: (c) => c.repeat(reverse: true),
-                                    )
-                                    .moveY(
-                                      begin: 0,
-                                      end: -5,
-                                      duration: 2500.ms,
-                                      curve: Curves.easeInOut,
-                                    ),
-                              ],
                             ),
                           ),
                         ],
@@ -441,6 +287,194 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                 ),
               ),
             ),
+
+            // 2. Scrollable Body Content
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Welcome Header Card (Greeting, Quote, and 3D Character)
+                    Container(
+                      key: widget.headerKey,
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFFFAF5FF), // Soft periwinkle top
+                            Color(0xFFF3E8FF), // Soft lavender middle
+                            Color(0xFFFCE7F3), // Soft pink blush bottom
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(32),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x1A5B21B6),
+                            blurRadius: 20,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Welcome Greeting Text (Left aligned)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 110),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        greetingText,
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF6B7280),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        userName,
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 27,
+                                          fontWeight: FontWeight.w900,
+                                          color: const Color(0xFF1E1B4B),
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 14),
+
+                                // Dynamic Gen-Z Daily Motivational Quote Card (Left aligned)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 105),
+                                  child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 14,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.95,
+                                          ),
+                                          borderRadius: BorderRadius.circular(22),
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 2,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(
+                                                0xFF5B21B6,
+                                              ).withValues(alpha: 0.12),
+                                              blurRadius: 16,
+                                              offset: const Offset(0, 6),
+                                            ),
+                                            BoxShadow(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.8,
+                                              ),
+                                              blurRadius: 4,
+                                              offset: const Offset(-2, -2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: AnimatedSwitcher(
+                                          duration: const Duration(
+                                            milliseconds: 350,
+                                          ),
+                                          child: Text(
+                                            '"$_dailyQuote"',
+                                            key: ValueKey(_dailyQuote),
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 12.5,
+                                              fontWeight: FontWeight.w800,
+                                              fontStyle: FontStyle.italic,
+                                              color: const Color(0xFF4C1D95),
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                      .animate()
+                                      .fadeIn(duration: 400.ms)
+                                      .slideY(begin: 0.1),
+                                ),
+                              ],
+                            ),
+
+                            // Transparent 3D Character Illustration on Pedestal (Right side)
+                            Positioned(
+                              right: 0,
+                              bottom: -6,
+                              child: Stack(
+                                alignment: Alignment.bottomCenter,
+                                children: [
+                                  // 3D Floor Shadow under feet/pedestal for depth
+                                  Container(
+                                    height: 14,
+                                    width: 75,
+                                    margin: const EdgeInsets.only(bottom: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFF5B21B6,
+                                      ).withValues(alpha: 0.22),
+                                      borderRadius: const BorderRadius.all(
+                                        Radius.elliptical(75, 14),
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFF5B21B6,
+                                          ).withValues(alpha: 0.25),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // 3D Standing Gigi Pedestal Character with floating animation
+                                  Image.asset(
+                                        'assets/images/gigi_standing_pedestal_transparent.png',
+                                        height: 155,
+                                        fit: BoxFit.contain,
+                                        errorBuilder:
+                                            (ctx, err, stack) => Image.asset(
+                                              'assets/images/gigi_avatar.png',
+                                              height: 140,
+                                              fit: BoxFit.contain,
+                                            ),
+                                      )
+                                      .animate(
+                                        onPlay: (c) => c.repeat(reverse: true),
+                                      )
+                                      .moveY(
+                                        begin: 0,
+                                        end: -5,
+                                        duration: 2500.ms,
+                                        curve: Curves.easeInOut,
+                                      ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
             const SizedBox(height: 20),
 
@@ -532,7 +566,11 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
           ],
         ),
       ),
-    );
+    ),
+  ],
+),
+),
+);
   }
 
   Widget _buildQuickActionsHeader(BuildContext context) {

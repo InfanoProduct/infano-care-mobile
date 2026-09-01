@@ -109,7 +109,6 @@ class _CircleScreenState extends State<CircleScreen> with SingleTickerProviderSt
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(90),
         child: Container(
-          padding: const EdgeInsets.only(top: 5),
           decoration: BoxDecoration(
             color: AppColors.surface,
             boxShadow: [
@@ -120,24 +119,28 @@ class _CircleScreenState extends State<CircleScreen> with SingleTickerProviderSt
               ),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Row(
-                  children: [
-                    _buildTabItem(0, 'My Feed', Icons.newspaper_rounded),
-                    const SizedBox(width: 12),
-                    _buildTabItem(1, 'Circles', Icons.groups_rounded),
-                    const SizedBox(width: 12),
-                    _buildTabItem(2, 'Events', Icons.event_available_rounded),
-                  ],
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const SizedBox(height: 5),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Row(
+                    children: [
+                      _buildTabItem(0, 'My Feed', Icons.newspaper_rounded),
+                      const SizedBox(width: 12),
+                      _buildTabItem(1, 'Circles', Icons.groups_rounded),
+                      const SizedBox(width: 12),
+                      _buildTabItem(2, 'Events', Icons.event_available_rounded),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-            ],
+                const SizedBox(height: 4),
+              ],
+            ),
           ),
         ),
       ),

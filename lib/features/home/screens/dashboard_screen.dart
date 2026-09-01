@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -297,12 +298,21 @@ class _DashboardScreenState extends State<DashboardScreen>
               },
               child: Stack(
                 children: [
-                  Scaffold(
-                backgroundColor: const Color(0xFFF5F4F7),
-                appBar: null,
-                drawer: _buildDrawer(context, storage),
-                body: SafeArea(child: screens[state.selectedIndex]),
-                bottomNavigationBar: Container(
+                  AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: const SystemUiOverlayStyle(
+                      statusBarColor: Colors.transparent,
+                      statusBarIconBrightness: Brightness.dark,
+                      statusBarBrightness: Brightness.light,
+                      systemNavigationBarColor: Colors.white,
+                      systemNavigationBarIconBrightness: Brightness.dark,
+                      systemNavigationBarDividerColor: Colors.transparent,
+                    ),
+                    child: Scaffold(
+                      backgroundColor: const Color(0xFFF5F4F7),
+                      appBar: null,
+                      drawer: _buildDrawer(context, storage),
+                      body: screens[state.selectedIndex],
+                      bottomNavigationBar: Container(
                   key: _bottomNavKey,
                   decoration: BoxDecoration(
                     boxShadow: [
@@ -543,6 +553,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                duration: 1500.ms,
                                curve: Curves.easeInOut,
                              ),
+                    ),
                   ),
                   if (_showUserGuide)
                     FirstTimeUserGuideOverlay(
