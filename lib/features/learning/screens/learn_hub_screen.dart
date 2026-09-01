@@ -817,6 +817,23 @@ class _DemoBookingFormState extends State<_DemoBookingForm> {
       );
       return;
     }
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final maxDate = today.add(const Duration(days: 7, hours: 23, minutes: 59, seconds: 59));
+    final selectedDay = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
+
+    if (selectedDay.isBefore(today)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot select a past date for demo booking.')),
+      );
+      return;
+    }
+    if (selectedDay.isAfter(maxDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Demo sessions can only be booked up to 7 days in advance.')),
+      );
+      return;
+    }
     if (_selectedTimeSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a time slot.')),
