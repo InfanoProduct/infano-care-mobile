@@ -220,7 +220,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                           GestureDetector(
                             onTap: () {
                               AppSoundService.instance.playPop();
-                              context.push('/my-chats');
+                              context.push('/inbox');
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8),
