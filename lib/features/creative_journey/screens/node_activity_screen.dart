@@ -62,6 +62,7 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5FF),
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: const Color(0xFFEDE9FE),
         elevation: 0,
@@ -106,9 +107,12 @@ class _NodeActivityScreenState extends State<NodeActivityScreen> {
           ),
         ],
       ),
-      body: _showRedoMode
-          ? _buildActivity(context)
-          : _buildCompletedSummary(context),
+      body: SafeArea(
+        top: false,
+        child: _showRedoMode
+            ? _buildActivity(context)
+            : _buildCompletedSummary(context),
+      ),
     );
   }
 

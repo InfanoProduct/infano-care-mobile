@@ -108,6 +108,18 @@ class _PostCardState extends State<PostCard> {
 
     return Hero(
       tag: 'post_${widget.post.id}',
+      flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
+        final Widget targetWidget = flightDirection == HeroFlightDirection.push
+            ? toHeroContext.widget
+            : fromHeroContext.widget;
+        return Material(
+          color: Colors.transparent,
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: targetWidget,
+          ),
+        );
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
@@ -137,6 +149,7 @@ class _PostCardState extends State<PostCard> {
                       ? _buildRemovedCollapsedView()
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             // Pinned Badge
                 if (widget.post.isPinned)

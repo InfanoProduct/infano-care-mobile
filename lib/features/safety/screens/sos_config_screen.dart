@@ -1149,12 +1149,14 @@ class _SosConfigScreenState extends State<SosConfigScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            type['label'] as String,
-                            style: GoogleFonts.nunito(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 15,
-                              color: AppColors.textDark,
+                          Flexible(
+                            child: Text(
+                              type['label'] as String,
+                              style: GoogleFonts.nunito(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 14.5,
+                                color: AppColors.textDark,
+                              ),
                             ),
                           ),
                           if (isSelected) ...[
@@ -1229,20 +1231,26 @@ class _SosConfigScreenState extends State<SosConfigScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Text('👥', style: TextStyle(fontSize: 22)),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Trusted Circle (${_contacts.length}/5)',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 15,
-                      color: AppColors.textDark,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Text('👥', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Trusted Circle (${_contacts.length}/5)',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14.5,
+                          color: AppColors.textDark,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               TextButton.icon(
                 onPressed: () => context.push('/safety/contacts').then((_) => _loadAllData()),
                 icon: const Icon(Icons.edit_rounded, size: 14),
@@ -1252,7 +1260,9 @@ class _SosConfigScreenState extends State<SosConfigScreen> {
                 ),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.purple,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
             ],

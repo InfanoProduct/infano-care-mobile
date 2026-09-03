@@ -300,7 +300,12 @@ class _CreativeJourneyHubView extends StatelessWidget {
 
         // 4. Coming Soon Teaser Card
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            8,
+            20,
+            40 + MediaQuery.of(context).padding.bottom,
+          ),
           sliver: SliverToBoxAdapter(child: _buildComingSoonTeaser()),
         ),
       ],
@@ -717,7 +722,10 @@ class _JourneyCard extends StatelessWidget {
                         // 3. Primary 3D Pill Button
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           decoration: BoxDecoration(
                             gradient:
                                 isUnlocked
@@ -748,24 +756,37 @@ class _JourneyCard extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                isUnlocked
-                                    ? 'Explore Journey (${journey.episodes.length} Ep)'
-                                    : '🔒 Locked (Complete ${prevJourneyTitle ?? "Previous Journey"})',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w900,
+                              if (!isUnlocked) ...[
+                                const Icon(
+                                  Icons.lock_rounded,
                                   color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              Flexible(
+                                child: Text(
+                                  isUnlocked
+                                      ? 'Explore Journey (${journey.episodes.length} Ep)'
+                                      : 'Locked (Complete ${prevJourneyTitle ?? "Previous Journey"})',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Icon(
-                                isUnlocked
-                                    ? Icons.arrow_forward_rounded
-                                    : Icons.lock_outline_rounded,
-                                color: Colors.white,
-                                size: 18,
-                              ),
+                              if (isUnlocked) ...[
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ],
                             ],
                           ),
                         ),

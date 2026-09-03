@@ -76,7 +76,7 @@ class _SosTestScreenState extends State<SosTestScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: Colors.purple.withOpacity(0.1),
+            color: Colors.purple.withValues(alpha: 0.1),
             height: 1,
           ),
         ),
@@ -126,7 +126,7 @@ class _SosTestScreenState extends State<SosTestScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.orange.shade50.withOpacity(0.6),
+            color: Colors.orange.shade50.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.orange.shade200),
           ),
@@ -212,61 +212,75 @@ class _SosTestScreenState extends State<SosTestScreen> {
   }
 
   Widget _buildSuccessState() {
-    return Column(
-      children: [
-        const Spacer(),
-        // Party pop animation
-        const Text('🎉', style: TextStyle(fontSize: 72))
-            .animate()
-            .scale(duration: 500.ms, curve: Curves.elasticOut),
-        const SizedBox(height: 24),
-        Text(
-          'Verification Sent!',
-          style: GoogleFonts.nunito(
-            fontWeight: FontWeight.w900,
-            fontSize: 28,
-            color: AppColors.textDark,
-          ),
-        ).animate().fade(duration: 300.ms),
-        const SizedBox(height: 12),
-        Text(
-          'Your contacts have received the test alert.\n\nYour Safety Hub is fully active! 🛡️',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
-            fontSize: 15,
-            color: AppColors.textMedium,
-            height: 1.5,
-          ),
-        ).animate().fade(delay: 150.ms),
-        const Spacer(),
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: ElevatedButton(
-            onPressed: () => context.go('/safety/sos'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.purple,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18)),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 40),
+          // Party pop animation
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: AppColors.purple.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Go to My Safety Hub',
-                  style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w900, fontSize: 16),
-                ),
-                const SizedBox(width: 8),
-                const Icon(Icons.shield_outlined, size: 20),
-              ],
+            child: const Center(
+              child: Text('🎉', style: TextStyle(fontSize: 54)),
             ),
-          ),
-        ).animate().fade(delay: 350.ms),
-        const SizedBox(height: 32),
-      ],
+          )
+              .animate()
+              .scale(duration: 500.ms, curve: Curves.elasticOut),
+          const SizedBox(height: 28),
+          Text(
+            'Verification Sent!',
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.w900,
+              fontSize: 28,
+              color: AppColors.textDark,
+            ),
+          ).animate().fade(duration: 300.ms),
+          const SizedBox(height: 12),
+          Text(
+            'Your contacts have received the test alert.\n\nYour Safety Hub is fully active! 🛡️',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+              fontSize: 15,
+              color: AppColors.textMedium,
+              height: 1.5,
+            ),
+          ).animate().fade(delay: 150.ms),
+          const SizedBox(height: 48),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () => context.go('/safety/sos'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.purple,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Go to My Safety Hub',
+                    style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w900, fontSize: 16),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.shield_outlined, size: 20),
+                ],
+              ),
+            ),
+          ).animate().fade(delay: 350.ms),
+          const SizedBox(height: 32),
+        ],
+      ),
     );
   }
 
@@ -276,10 +290,10 @@ class _SosTestScreenState extends State<SosTestScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.purple.withOpacity(0.08)),
+        border: Border.all(color: Colors.purple.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.015),
+            color: Colors.black.withValues(alpha: 0.015),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -290,7 +304,7 @@ class _SosTestScreenState extends State<SosTestScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.purple.withOpacity(0.05),
+              color: AppColors.purple.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Text(icon, style: const TextStyle(fontSize: 22)),

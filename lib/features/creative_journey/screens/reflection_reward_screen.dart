@@ -117,7 +117,7 @@ class _ReflectionRewardScreenState extends State<ReflectionRewardScreen> {
       alignment: Alignment.topCenter,
       children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
           child: Column(
             children: [
               // Trophy header

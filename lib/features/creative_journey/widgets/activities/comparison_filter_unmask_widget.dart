@@ -791,7 +791,7 @@ class _ComparisonFilterUnmaskWidgetState extends State<ComparisonFilterUnmaskWid
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFFEDE9FE), Color(0xFFFCE7F3)],
@@ -805,10 +805,20 @@ class _ComparisonFilterUnmaskWidgetState extends State<ComparisonFilterUnmaskWid
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('🪙', style: TextStyle(fontSize: 22)),
-                      const SizedBox(width: 10),
-                      Text('Collect 🪙 Coins & Continue!',
-                          style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w900, color: const Color(0xFF4C1D95))),
+                      const Text('🪙', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'Collect 🪙 Coins & Continue!',
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.nunito(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF4C1D95),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

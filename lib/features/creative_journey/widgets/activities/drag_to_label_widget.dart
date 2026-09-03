@@ -644,7 +644,7 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
       onTap: _onReveal,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         decoration: BoxDecoration(
           color: _kDarkPurpleCTA, // Solid Dark Purple Main CTA Color
           borderRadius: BorderRadius.circular(22),
@@ -661,12 +661,16 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
           children: [
             const Text('🌸', style: TextStyle(fontSize: 18)),
             const SizedBox(width: 8),
-            Text(
-              'Reveal My Cycle!',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
+            Flexible(
+              child: Text(
+                'Reveal My Cycle!',
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
@@ -912,7 +916,7 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
             },
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         decoration: BoxDecoration(
           color: _kDarkPurpleCTA, // Solid Dark Purple Main CTA Color
           borderRadius: BorderRadius.circular(22),
@@ -938,13 +942,16 @@ class _DragToLabelWidgetState extends State<DragToLabelWidget>
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Continue Journey • Collect 🪙 Coins',
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                  Flexible(
+                    child: Text(
+                      'Continue Journey • Collect 🪙 Coins',
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],

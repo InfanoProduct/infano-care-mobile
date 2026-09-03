@@ -58,26 +58,27 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
       children: [
         // Header
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Column(children: [
-            const Text('🚫', style: TextStyle(fontSize: 38)),
-            const SizedBox(height: 6),
+            const Text('🚫', style: TextStyle(fontSize: 28)),
+            const SizedBox(height: 2),
             Text(
               widget.content['title'] as String? ?? 'True or Myth?',
-              style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textDark),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               widget.content['instruction'] as String? ?? 'Swipe RIGHT for TRUE ✅ | Swipe LEFT for MYTH 🚫',
               textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(fontSize: 13, color: AppColors.textMedium),
+              style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textMedium),
             ),
           ]),
         ),
 
         // Swipe direction hints
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -97,6 +98,7 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
             controller: _controller,
             cardsCount: cards.length,
             numberOfCardsDisplayed: cards.length.clamp(1, 2),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             onSwipe: (previousIndex, currentIndex, direction) {
               final swipedTrue = direction == CardSwiperDirection.right;
               if (previousIndex < cards.length) {
@@ -130,22 +132,22 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
 
         // Action buttons (alternative to swipe)
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           child: Row(children: [
             Expanded(
               child: GestureDetector(
                 onTap: () => _controller.swipe(CardSwiperDirection.left),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEE2E2),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
                   ),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    const Icon(Icons.close, color: AppColors.error, size: 20),
+                    const Icon(Icons.close, color: AppColors.error, size: 18),
                     const SizedBox(width: 6),
-                    Text('MYTH', style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.error)),
+                    Text('MYTH', style: GoogleFonts.nunito(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.error)),
                   ]),
                 ),
               ),
@@ -155,16 +157,16 @@ class _MythBustersWidgetState extends State<MythBustersWidget> {
               child: GestureDetector(
                 onTap: () => _controller.swipe(CardSwiperDirection.right),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFD1FAE5),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
                   ),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    const Icon(Icons.check, color: AppColors.success, size: 20),
+                    const Icon(Icons.check, color: AppColors.success, size: 18),
                     const SizedBox(width: 6),
-                    Text('TRUE', style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.success)),
+                    Text('TRUE', style: GoogleFonts.nunito(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.success)),
                   ]),
                 ),
               ),
@@ -543,8 +545,8 @@ class _MythCard extends StatelessWidget {
     final theme = _MythCardTheme.getTheme(index);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(28),
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: theme.bg,
         borderRadius: BorderRadius.circular(28),
@@ -557,56 +559,62 @@ class _MythCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Card Index Pill
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-            decoration: BoxDecoration(
-              color: theme.pillBg,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: theme.border),
-            ),
-            child: Text(
-              'Card ${index + 1}',
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: theme.accent,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text('🤔', style: TextStyle(fontSize: 52)),
-          const SizedBox(height: 20),
-          Text(
-            (card['statement'] as String?) ?? (card['text'] as String?) ?? (card['title'] as String?) ?? '',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textDark,
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
+      child: Center(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.swipe, color: AppColors.textMedium.withValues(alpha: 0.7), size: 20),
-              const SizedBox(width: 6),
-              Text(
-                'Swipe to decide! 👈 👉',
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textMedium,
+              // Card Index Pill
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                decoration: BoxDecoration(
+                  color: theme.pillBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: theme.border),
                 ),
+                child: Text(
+                  'Card ${index + 1}',
+                  style: GoogleFonts.nunito(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: theme.accent,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text('🤔', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 8),
+              Text(
+                (card['statement'] as String?) ?? (card['text'] as String?) ?? (card['title'] as String?) ?? '',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDark,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.swipe, color: AppColors.textMedium.withValues(alpha: 0.7), size: 15),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Swipe to decide! 👈 👉',
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMedium,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

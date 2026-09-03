@@ -664,26 +664,42 @@ class _DragToSortWidgetState extends State<DragToSortWidget>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           color: col.withValues(alpha: 0.1),
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                         ),
                         child: Row(
                           children: [
-                            Text(bin.emoji, style: const TextStyle(fontSize: 22)),
-                            const SizedBox(width: 10),
-                            Text(bin.label,
-                                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: col)),
-                            const Spacer(),
+                            Text(bin.emoji, style: const TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                bin.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
+                                  color: col,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: col.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Text('${items.length} items',
-                                  style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: col)),
+                              child: Text(
+                                '${items.length} items',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: col,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -749,7 +765,7 @@ class _DragToSortWidgetState extends State<DragToSortWidget>
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   decoration: BoxDecoration(
                     color: AppColors.purple,
                     borderRadius: BorderRadius.circular(20),
@@ -764,10 +780,20 @@ class _DragToSortWidgetState extends State<DragToSortWidget>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('🪙', style: TextStyle(fontSize: 22)),
-                      const SizedBox(width: 10),
-                      Text('Collect 🪙 Coins & Continue!',
-                          style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white)),
+                      const Text('🪙', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'Collect 🪙 Coins & Continue!',
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.nunito(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
