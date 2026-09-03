@@ -99,15 +99,6 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.white,
         elevation: 0.5,
         iconTheme: const IconThemeData(color: AppColors.purple),
-        actions: [
-          // Expert button — connects to real human experts
-          IconButton(
-            icon: const Icon(Icons.support_agent_rounded),
-            tooltip: 'Talk to an Expert',
-            onPressed: () => context.push('/expert/list'),
-            color: AppColors.purple,
-          ),
-        ],
       ),
       body: Column(
         children: [
