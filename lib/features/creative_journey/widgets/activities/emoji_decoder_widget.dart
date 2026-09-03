@@ -316,7 +316,10 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget>
               },
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 15,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors:
@@ -344,14 +347,18 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      allUnlocked
-                          ? 'All 4 Rules Unlocked! Collect 🪙 Coins'
-                          : 'Spin for Rule ${_getNextTargetIndex() + 1} 🎡',
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                    Flexible(
+                      child: Text(
+                        allUnlocked
+                            ? 'All 4 Rules Unlocked! Collect 🪙 Coins'
+                            : 'Spin for Rule ${_getNextTargetIndex() + 1} 🎡',
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -508,7 +515,7 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget>
                 onTap: _spinWheel,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
+                    horizontal: 20,
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
@@ -531,12 +538,15 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget>
                     children: [
                       const Text('🎡', style: TextStyle(fontSize: 18)),
                       const SizedBox(width: 8),
-                      Text(
-                        'Spin for Rule ${_currentIndex + 1}!',
-                        style: GoogleFonts.nunito(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                      Flexible(
+                        child: Text(
+                          'Spin for Rule ${_currentIndex + 1}!',
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.nunito(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -702,12 +712,14 @@ class _EmojiDecoderWidgetState extends State<EmojiDecoderWidget>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            opt,
-                            style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textDark,
+                          Flexible(
+                            child: Text(
+                              opt,
+                              style: GoogleFonts.nunito(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textDark,
+                              ),
                             ),
                           ),
                           if (_answered && isCorrect) ...[

@@ -291,6 +291,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                 child: Column(
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           padding: const EdgeInsets.all(10),
@@ -309,7 +310,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                               Text(
                                 widget.content['title'] as String? ?? 'Match Skin Terms & Solutions 🧩',
                                 style: GoogleFonts.nunito(
-                                  fontSize: 17,
+                                  fontSize: 16.5,
                                   fontWeight: FontWeight.w900,
                                   color: const Color(0xFF9D174D),
                                 ),
@@ -334,49 +335,48 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                     const SizedBox(height: 12),
 
                     // Layout Mode Switcher pill button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            AppSoundService.instance.playPop();
-                            setState(() => _isFlipMode = !_isFlipMode);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: _isFlipMode ? const Color(0xFF7C3AED) : const Color(0xFFDB2777),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (_isFlipMode ? const Color(0xFF7C3AED) : const Color(0xFFDB2777))
-                                      .withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _isFlipMode ? Icons.grid_view_rounded : Icons.swap_horiz_rounded,
-                                  size: 14,
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () {
+                          AppSoundService.instance.playPop();
+                          setState(() => _isFlipMode = !_isFlipMode);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _isFlipMode ? const Color(0xFF7C3AED) : const Color(0xFFDB2777),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (_isFlipMode ? const Color(0xFF7C3AED) : const Color(0xFFDB2777))
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isFlipMode ? Icons.grid_view_rounded : Icons.swap_horiz_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                _isFlipMode ? 'Switch to Connect' : 'Switch to Memory',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
                                   color: Colors.white,
                                 ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  _isFlipMode ? 'Switch to Connect' : 'Switch to Memory',
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -403,6 +403,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                       border: Border.all(color: const Color(0xFFA7F3D0)),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text('💖', style: TextStyle(fontSize: 12)),
                         const SizedBox(width: 4),
@@ -467,7 +468,7 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
         Container(
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: const Color(0xFFF5F3FF),
             borderRadius: BorderRadius.circular(12),
@@ -478,16 +479,19 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
             children: [
               const Text('👉', style: TextStyle(fontSize: 14)),
               const SizedBox(width: 6),
-              Text(
-                _selectedTermId != null && _selectedDefId == null
-                    ? 'Now tap a matching description on the right!'
-                    : (_selectedDefId != null && _selectedTermId == null
-                        ? 'Now tap a matching product on the left!'
-                        : 'Tap a Product card and its Description card to connect!'),
-                style: GoogleFonts.nunito(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF6D28D9),
+              Flexible(
+                child: Text(
+                  _selectedTermId != null && _selectedDefId == null
+                      ? 'Now tap a matching description on the right!'
+                      : (_selectedDefId != null && _selectedTermId == null
+                          ? 'Now tap a matching product on the left!'
+                          : 'Tap a Product card and its Description card to connect!'),
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF6D28D9),
+                  ),
                 ),
               ),
             ],

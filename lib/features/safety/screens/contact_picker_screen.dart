@@ -478,7 +478,7 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: Colors.purple.withOpacity(0.1),
+            color: Colors.purple.withValues(alpha: 0.1),
             height: 1,
           ),
         ),
@@ -497,93 +497,95 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
                   ),
                 )
               : SafeArea(
-                  top: false,
+                  top: true,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const SizedBox(height: 8),
                       // Premium Ambient Tip Card
                       Container(
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.purple.withOpacity(0.08),
-                            AppColors.pink.withOpacity(0.05)
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: AppColors.purple.withOpacity(0.15)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Text('💡', style: TextStyle(fontSize: 22)),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Text(
-                              'When you press SOS, these people get an instant alert with your live location. Add up to ${5 - _contacts.length} more.',
-                              style: GoogleFonts.nunito(
-                                fontSize: 13,
-                                color: AppColors.textMedium,
-                                height: 1.4,
-                              ),
-                            ),
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.purple.withValues(alpha: 0.08),
+                              AppColors.pink.withValues(alpha: 0.05)
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-
-                    // Modern Selection Cards
-                    if (_contacts.length < 5)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: AppColors.purple.withValues(alpha: 0.15)),
+                        ),
                         child: Row(
                           children: [
+                            const Text('💡', style: TextStyle(fontSize: 22)),
+                            const SizedBox(width: 14),
                             Expanded(
-                              child: _AddOptionCard(
-                                emoji: '📱',
-                                label: 'Import Phone',
-                                sublabel: 'Pick from book',
-                                color: AppColors.purple,
-                                onTap: _pickFromPhoneContacts,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _AddOptionCard(
-                                emoji: '✏️',
-                                label: 'Manual Add',
-                                sublabel: 'Type detail',
-                                color: const Color(0xFF0D9488),
-                                onTap: () => _showConfirmContactSheet(
-                                  name: '',
-                                  phone: '',
-                                  isManual: true,
+                              child: Text(
+                                'When you press SOS, these people get an instant alert with your live location. Add up to ${5 - _contacts.length} more.',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 13,
+                                  color: AppColors.textMedium,
+                                  height: 1.4,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ).animate().fade(duration: 350.ms).slideY(begin: 0.1),
+                      ),
 
-                    // Contacts List Panel
-                    Expanded(
-                      child: _contacts.isEmpty
-                          ? _buildEmptyState()
-                          : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                              itemCount: _contacts.length,
-                              itemBuilder: (context, index) {
-                                final c = _contacts[index];
-                                final name = c['name'] as String;
-                                final phone = c['phone'] as String;
-                                final relation =
-                                    c['relation'] as String? ?? 'Friend';
-                                final consentStatus =
-                                    c['consentStatus'] as String? ?? 'PENDING';
-                                final consentSentAt = c['consentSentAt'] != null
-                                    ? DateTime.parse(c['consentSentAt'])
-                                    : null;
+                      // Modern Selection Cards
+                      if (_contacts.length < 5)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _AddOptionCard(
+                                  emoji: '📱',
+                                  label: 'Import Phone',
+                                  sublabel: 'Pick from book',
+                                  color: AppColors.purple,
+                                  onTap: _pickFromPhoneContacts,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _AddOptionCard(
+                                  emoji: '✏️',
+                                  label: 'Manual Add',
+                                  sublabel: 'Type detail',
+                                  color: const Color(0xFF0D9488),
+                                  onTap: () => _showConfirmContactSheet(
+                                    name: '',
+                                    phone: '',
+                                    isManual: true,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fade(duration: 350.ms),
+
+                      // Contacts List Panel
+                      Expanded(
+                        child: _contacts.isEmpty
+                            ? _buildEmptyState()
+                            : ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                itemCount: _contacts.length,
+                                itemBuilder: (context, index) {
+                                  final c = _contacts[index];
+                                  final name = c['name'] as String;
+                                  final phone = c['phone'] as String;
+                                  final relation =
+                                      c['relation'] as String? ?? 'Friend';
+                                  final consentStatus =
+                                      c['consentStatus'] as String? ?? 'PENDING';
+                                  final consentSentAt = c['consentSentAt'] != null
+                                      ? DateTime.parse(c['consentSentAt'])
+                                      : null;
 
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 12),
@@ -735,67 +737,44 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
   }
 
   Widget _buildEmptyState() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 24),
-          const Text('👥', style: TextStyle(fontSize: 64)),
-          const SizedBox(height: 20),
-          Text(
-            'No Contacts Added Yet',
-            style: GoogleFonts.nunito(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textDark,
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.purple.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Text('👥', style: TextStyle(fontSize: 36)),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Add at least one person who should\nbe notified during an emergency.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-                fontSize: 14, color: AppColors.textMedium, height: 1.5),
-          ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                onPressed: _pickFromPhoneContacts,
-                icon: const Icon(Icons.contacts_rounded, size: 18),
-                label: const Text('From Phone'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.purple,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
+            const SizedBox(height: 16),
+            Text(
+              'No Contacts Added Yet',
+              style: GoogleFonts.nunito(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textDark,
               ),
-              const SizedBox(width: 12),
-              OutlinedButton.icon(
-                onPressed: () => _showConfirmContactSheet(
-                    name: '', phone: '', isManual: true),
-                icon: const Icon(Icons.edit_note_rounded,
-                    size: 20, color: AppColors.purple),
-                label: const Text('Manual Entry',
-                    style: TextStyle(color: AppColors.purple)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.purple, width: 1.5),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Tap "Import Phone" or "Manual Add" above to add people who should be alerted in an emergency.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                color: AppColors.textMedium,
+                height: 1.4,
               ),
-            ],
-          ),
-          const SizedBox(height: 24),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

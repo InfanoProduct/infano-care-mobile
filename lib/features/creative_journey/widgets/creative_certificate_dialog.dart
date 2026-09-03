@@ -227,7 +227,7 @@ class _CreativeCertificateDialogState extends State<CreativeCertificateDialog> {
                           const SizedBox(height: 8),
                           // Top Pastel Ribbon Badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [Color(0xFFEDE9FE), Color(0xFFFCE7F3)],
@@ -244,15 +244,18 @@ class _CreativeCertificateDialogState extends State<CreativeCertificateDialog> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text('🎓', style: TextStyle(fontSize: 16)),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'OFFICIAL GRADUATION CERTIFICATE',
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w900,
-                                    color: const Color(0xFF5B21B6),
-                                    letterSpacing: 1.0,
+                                const Text('🎓', style: TextStyle(fontSize: 14)),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    'OFFICIAL GRADUATION CERTIFICATE',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFF5B21B6),
+                                      letterSpacing: 0.6,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -347,30 +350,35 @@ class _CreativeCertificateDialogState extends State<CreativeCertificateDialog> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               // Left Signature Stamp (Gigi Guide)
-                              Column(
-                                children: [
-                                  Text(
-                                    '🐾 Gigi Mascot',
-                                    style: GoogleFonts.sacramento(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF5B21B6),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '🐾 Gigi Mascot',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.sacramento(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF5B21B6),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Container(height: 1, width: 80, color: const Color(0xFFA78BFA)),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Chief Empowerment Guide',
-                                    style: GoogleFonts.nunito(fontSize: 9, color: AppColors.textMedium, fontWeight: FontWeight.w700),
-                                  ),
-                                ],
+                                    const SizedBox(height: 2),
+                                    Container(height: 1, width: 70, color: const Color(0xFFA78BFA)),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Empowerment Guide',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.nunito(fontSize: 8.5, color: AppColors.textMedium, fontWeight: FontWeight.w700),
+                                    ),
+                                  ],
+                                ),
                               ),
 
                               // Center Pastel Medal Emblem Seal
                               Container(
-                                width: 54,
-                                height: 54,
+                                width: 46,
+                                height: 46,
+                                margin: const EdgeInsets.symmetric(horizontal: 4),
                                 decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: LinearGradient(
@@ -381,29 +389,33 @@ class _CreativeCertificateDialogState extends State<CreativeCertificateDialog> {
                                   ],
                                 ),
                                 child: const Center(
-                                  child: Text('🏆', style: TextStyle(fontSize: 26)),
+                                  child: Text('🏆', style: TextStyle(fontSize: 22)),
                                 ),
                               ),
 
                               // Right Signature Stamp (Infano Care Team)
-                              Column(
-                                children: [
-                                  Text(
-                                    'Infano Care',
-                                    style: GoogleFonts.sacramento(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF5B21B6),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'Infano Care',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.sacramento(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF5B21B6),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Container(height: 1, width: 80, color: const Color(0xFFA78BFA)),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Medical Expert Team',
-                                    style: GoogleFonts.nunito(fontSize: 9, color: AppColors.textMedium, fontWeight: FontWeight.w700),
-                                  ),
-                                ],
+                                    const SizedBox(height: 2),
+                                    Container(height: 1, width: 70, color: const Color(0xFFA78BFA)),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Medical Team',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.nunito(fontSize: 8.5, color: AppColors.textMedium, fontWeight: FontWeight.w700),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -413,8 +425,13 @@ class _CreativeCertificateDialogState extends State<CreativeCertificateDialog> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('ID: ${cert.id}', style: GoogleFonts.nunito(fontSize: 9.5, color: AppColors.textLight, fontWeight: FontWeight.w700)),
-                              Text('Date: ${cert.issueDate}', style: GoogleFonts.nunito(fontSize: 9.5, color: AppColors.textLight, fontWeight: FontWeight.w700)),
+                              Flexible(
+                                child: Text('ID: ${cert.id}', overflow: TextOverflow.ellipsis, style: GoogleFonts.nunito(fontSize: 9.5, color: AppColors.textLight, fontWeight: FontWeight.w700)),
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text('Date: ${cert.issueDate}', overflow: TextOverflow.ellipsis, textAlign: TextAlign.end, style: GoogleFonts.nunito(fontSize: 9.5, color: AppColors.textLight, fontWeight: FontWeight.w700)),
+                              ),
                             ],
                           ),
                         ],

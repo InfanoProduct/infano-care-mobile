@@ -39,6 +39,7 @@ class AskGigiWidget extends StatefulWidget {
 
 class _AskGigiWidgetState extends State<AskGigiWidget> {
   final TextEditingController _textController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   final List<_GigiChatMessage> _messages = [];
 
   /// Conversation history sent to the AI for multi-turn continuity.
@@ -122,6 +123,7 @@ class _AskGigiWidgetState extends State<AskGigiWidget> {
   @override
   void dispose() {
     _textController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -263,39 +265,50 @@ class _AskGigiWidgetState extends State<AskGigiWidget> {
               const SizedBox(height: 12),
             ],
 
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.purple.withValues(alpha: 0.2),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.purple.withValues(alpha: 0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                _focusNode.requestFocus();
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.purple.withValues(alpha: 0.2),
+                    width: 1.5,
                   ),
-                ],
-              ),
-              child: TextField(
-                controller: _textController,
-                maxLines: 4,
-                minLines: 2,
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  color: AppColors.textDark,
-                  fontWeight: FontWeight.w600,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.purple.withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                decoration: InputDecoration(
-                  hintText: widget.content['placeholder'] as String? ?? 'What\'s on your mind? 💭',
-                  hintStyle: GoogleFonts.nunito(
-                    color: AppColors.textLight,
+                child: TextField(
+                  controller: _textController,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  textCapitalization: TextCapitalization.sentences,
+                  enableInteractiveSelection: true,
+                  maxLines: 4,
+                  minLines: 2,
+                  style: GoogleFonts.nunito(
                     fontSize: 14,
+                    color: AppColors.textDark,
+                    fontWeight: FontWeight.w600,
                   ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(16),
+                  decoration: InputDecoration(
+                    hintText: widget.content['placeholder'] as String? ?? 'What\'s on your mind? 💭',
+                    hintStyle: GoogleFonts.nunito(
+                      color: AppColors.textLight,
+                      fontSize: 14,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                  ),
                 ),
               ),
             ),

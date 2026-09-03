@@ -126,7 +126,12 @@ class _EpisodePathView extends StatelessWidget {
 
           // Path nodes, scenery buildings & road connectors
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(12, 20, 12, 36),
+            padding: EdgeInsets.fromLTRB(
+              12,
+              20,
+              12,
+              40 + MediaQuery.of(context).padding.bottom,
+            ),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, itemIndex) {

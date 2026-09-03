@@ -686,7 +686,7 @@ class _QuizWidgetState extends State<QuizWidget> {
             },
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
               decoration: BoxDecoration(
                 color: AppColors.purple,
                 borderRadius: BorderRadius.circular(18),
@@ -701,14 +701,16 @@ class _QuizWidgetState extends State<QuizWidget> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Continue Journey • Collect 🪙 Coins',
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                  Flexible(
+                    child: Text(
+                      'Continue Journey • Collect 🪙 Coins',
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),

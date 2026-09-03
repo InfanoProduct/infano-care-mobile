@@ -237,6 +237,7 @@ class _MirrorReflectionFlipWidgetState extends State<MirrorReflectionFlipWidget>
       child: Row(
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: List.generate(_cards.length, (i) {
               final isSelected = i == _currentIndex;
               final isFlipped = _flippedIndices.contains(i);
@@ -273,13 +274,17 @@ class _MirrorReflectionFlipWidgetState extends State<MirrorReflectionFlipWidget>
               );
             }),
           ),
-          const Spacer(),
-          Text(
-            '${_flippedIndices.length} of ${_cards.length} Shifting Perspectives ✨',
-            style: GoogleFonts.nunito(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w900,
-              color: AppColors.purple,
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              '${_flippedIndices.length} of ${_cards.length} Shifting Perspectives ✨',
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: GoogleFonts.nunito(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w900,
+                color: AppColors.purple,
+              ),
             ),
           ),
         ],
@@ -485,14 +490,17 @@ class _MirrorReflectionFlipWidgetState extends State<MirrorReflectionFlipWidget>
                           color: isFront ? const Color(0xFFBE185D) : const Color(0xFF047857),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          isFront
-                              ? 'Tap or swipe mirror to shift perspective! 🔄'
-                              : 'Tap mirror to flip back 🔄',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: isFront ? const Color(0xFFBE185D) : const Color(0xFF047857),
+                        Flexible(
+                          child: Text(
+                            isFront
+                                ? 'Tap or swipe mirror to shift perspective! 🔄'
+                                : 'Tap mirror to flip back 🔄',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: isFront ? const Color(0xFFBE185D) : const Color(0xFF047857),
+                            ),
                           ),
                         ),
                       ],
@@ -519,42 +527,51 @@ class _MirrorReflectionFlipWidgetState extends State<MirrorReflectionFlipWidget>
           style: IconButton.styleFrom(
             backgroundColor: AppColors.purple.withValues(alpha: 0.1),
             foregroundColor: AppColors.purple,
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(12),
           ),
         ),
+        const SizedBox(width: 8),
 
         // Primary Flip Button (Dark Purple)
-        GestureDetector(
-          onTap: _flipMirror,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 15),
-            decoration: BoxDecoration(
-              color: AppColors.purple,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.purple.withValues(alpha: 0.35),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                const Text('🪞', style: TextStyle(fontSize: 18)),
-                const SizedBox(width: 8),
-                Text(
-                  _isFlipped ? 'Shifted! ✨' : 'Shift Perspective 🔄',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
+        Expanded(
+          child: GestureDetector(
+            onTap: _flipMirror,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.purple,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.purple.withValues(alpha: 0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🪞', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      _isFlipped ? 'Shifted! ✨' : 'Shift Perspective 🔄',
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
+        const SizedBox(width: 8),
 
         // Next Card Button
         IconButton.filledTonal(
@@ -563,7 +580,7 @@ class _MirrorReflectionFlipWidgetState extends State<MirrorReflectionFlipWidget>
           style: IconButton.styleFrom(
             backgroundColor: AppColors.purple.withValues(alpha: 0.1),
             foregroundColor: AppColors.purple,
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(12),
           ),
         ),
       ],
@@ -675,7 +692,7 @@ class _MirrorReflectionFlipWidgetState extends State<MirrorReflectionFlipWidget>
             },
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
                 color: AppColors.purple,
                 borderRadius: BorderRadius.circular(20),
@@ -690,14 +707,18 @@ class _MirrorReflectionFlipWidgetState extends State<MirrorReflectionFlipWidget>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('🪙', style: TextStyle(fontSize: 22)),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Collect 🪙 Coins & Continue!',
-                    style: GoogleFonts.nunito(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                  const Text('🪙', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Collect 🪙 Coins & Continue!',
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],

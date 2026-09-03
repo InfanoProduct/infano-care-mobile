@@ -278,7 +278,12 @@ class _CreativeJourneyDetailScreenState
 
             // Episode List
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 36),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                40 + MediaQuery.of(context).padding.bottom,
+              ),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final episode = journey.episodes[index];

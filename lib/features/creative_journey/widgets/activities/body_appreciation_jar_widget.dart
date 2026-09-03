@@ -698,12 +698,10 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
             },
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
@@ -717,14 +715,18 @@ class _BodyAppreciationJarWidgetState extends State<BodyAppreciationJarWidget>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('🪙', style: TextStyle(fontSize: 22)),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Collect 🪙 Coins & Continue!',
-                    style: GoogleFonts.nunito(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                  const Text('🪙', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Collect 🪙 Coins & Continue!',
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],

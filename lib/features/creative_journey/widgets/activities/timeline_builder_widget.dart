@@ -461,7 +461,7 @@ class _TimelineBuilderWidgetState extends State<TimelineBuilderWidget> {
               borderRadius: BorderRadius.circular(20),
               child: Ink(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                 decoration: BoxDecoration(
                   color: AppColors.purple,
                   borderRadius: BorderRadius.circular(20),
@@ -486,22 +486,29 @@ class _TimelineBuilderWidgetState extends State<TimelineBuilderWidget> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Text(
-                        'Unlocking Discovery Chest... 🗝️',
-                        style: GoogleFonts.nunito(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                      Flexible(
+                        child: Text(
+                          'Unlocking Discovery Chest... 🗝️',
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.nunito(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ] else ...[
-                      Text(
-                        'Collect 🪙 Coins & Complete',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                      Flexible(
+                        child: Text(
+                          'Collect 🪙 Coins & Complete',
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.nunito(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
