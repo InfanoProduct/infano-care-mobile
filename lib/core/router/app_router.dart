@@ -247,6 +247,7 @@ GoRouter createRouter(
         builder: (_, _) => ExpertListScreen(storage: storage),
       ),
       GoRoute(path: '/my-chats', builder: (_, _) => const MyChatsScreen()),
+      GoRoute(path: '/inbox', builder: (_, _) => const MyChatsScreen()),
       GoRoute(
         path: '/expert/chat/:sessionId',
         builder: (_, state) {

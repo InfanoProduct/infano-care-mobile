@@ -20,6 +20,7 @@ import 'package:infano_care_mobile/widgets/circle_details_sheet.dart';
 import 'package:infano_care_mobile/widgets/peer_mentor_detail_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/article_detail_screen.dart';
 import 'package:infano_care_mobile/features/home/widgets/parent_daughter_summary_home_card.dart';
+import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -88,6 +89,13 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
     _dailyQuote = _genZQuotes[dayOfYear % _genZQuotes.length];
     _fetchDailyQuote();
     NotificationCenterSheet.fetchUnreadCount();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        try {
+          Provider.of<CommunitySocketService>(context, listen: false).updateUnreadChatsCount();
+        } catch (_) {}
+      }
+    });
   }
 
   Future<void> _fetchDailyQuote() async {
@@ -208,9 +216,12 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                             ),
                           ),
                           const SizedBox(width: 10),
-                          // Chat Icon
+                          // Inbox / Chat Icon
                           GestureDetector(
-                            onTap: () => context.push('/chat'),
+                            onTap: () {
+                              AppSoundService.instance.playPop();
+                              context.push('/my-chats');
+                            },
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
@@ -224,10 +235,37 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                                   ),
                                 ],
                               ),
-                              child: const Icon(
-                                Icons.chat_bubble_outline_rounded,
-                                size: 20,
-                                color: Color(0xFF2D1557),
+                              child: Consumer<CommunitySocketService>(
+                                builder: (context, socketService, _) {
+                                  return ValueListenableBuilder<int>(
+                                    valueListenable: socketService.totalUnreadChatsCount,
+                                    builder: (context, unreadChats, _) {
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          const Icon(
+                                            Icons.chat_bubble_outline_rounded,
+                                            size: 20,
+                                            color: Color(0xFF2D1557),
+                                          ),
+                                          if (unreadChats > 0)
+                                            Positioned(
+                                              right: -2,
+                                              top: -2,
+                                              child: Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFF7C3AED),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
                               ),
                             ),
                           ),
