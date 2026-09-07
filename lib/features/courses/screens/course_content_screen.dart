@@ -7,8 +7,8 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/courses/data/models/course_models.dart';
 import 'package:infano_care_mobile/features/courses/data/repositories/courses_repository.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:video_player/video_player.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:infano_care_mobile/features/courses/widgets/lms_video_player.dart';
 
 class CourseContentScreen extends StatefulWidget {
   final String courseId;
@@ -38,8 +38,6 @@ class _CourseContentScreenState extends State<CourseContentScreen>
 
   // Video Controllers
   YoutubePlayerController? _ytController;
-  VideoPlayerController? _videoPlayerController;
-
 
   // Likes & Comments
   ChapterLikesInfo _likesInfo = const ChapterLikesInfo(liked: false, count: 0);
@@ -78,8 +76,6 @@ class _CourseContentScreenState extends State<CourseContentScreen>
   void _disposeVideoControllers() {
     _ytController?.dispose();
     _ytController = null;
-    _videoPlayerController?.dispose();
-    _videoPlayerController = null;
   }
 
   Future<void> _loadCourseAndChapter() async {
@@ -223,15 +219,6 @@ class _CourseContentScreenState extends State<CourseContentScreen>
         ),
       );
       setState(() {});
-    } else {
-      // Regular MP4 / Direct stream URL
-      _videoPlayerController =
-          VideoPlayerController.networkUrl(Uri.parse(videoUrl))
-            ..initialize().then((_) {
-              if (mounted) {
-                setState(() {});
-              }
-            });
     }
   }
 
@@ -617,43 +604,17 @@ class _CourseContentScreenState extends State<CourseContentScreen>
       );
     }
 
-    if (_videoPlayerController != null &&
-        _videoPlayerController!.value.isInitialized) {
-      return AspectRatio(
-        aspectRatio: _videoPlayerController!.value.aspectRatio,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            VideoPlayer(_videoPlayerController!),
-            VideoProgressIndicator(
-              _videoPlayerController!,
-              allowScrubbing: true,
-              colors: const VideoProgressColors(
-                playedColor: Color(0xFF7C3AED),
-                bufferedColor: Colors.white54,
-                backgroundColor: Colors.black26,
-              ),
-            ),
-            Center(
-              child: IconButton(
-                iconSize: 48,
-                icon: Icon(
-                  _videoPlayerController!.value.isPlaying
-                      ? Icons.pause_circle_filled_rounded
-                      : Icons.play_circle_filled_rounded,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _videoPlayerController!.value.isPlaying
-                        ? _videoPlayerController!.pause()
-                        : _videoPlayerController!.play();
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
+    final videoUrl = chapter.video?.videoUrl ?? '';
+    if (videoUrl.isNotEmpty) {
+      return LmsVideoPlayer(
+        key: ValueKey('${chapter.id}_$videoUrl'),
+        videoUrl: videoUrl,
+        title: chapter.title,
+        onVideoCompleted: () {
+          if (!_isChapterCompleted(chapter.id)) {
+            _markChapterComplete();
+          }
+        },
       );
     }
 
