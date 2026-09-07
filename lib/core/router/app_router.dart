@@ -88,6 +88,7 @@ import 'package:infano_care_mobile/features/creative_journey/screens/journey_det
 import 'package:infano_care_mobile/features/creative_journey/screens/episode_path_screen.dart';
 
 // Video Based LMS Courses Module
+import 'package:infano_care_mobile/features/courses/screens/explore_courses_screen.dart';
 import 'package:infano_care_mobile/features/courses/screens/my_courses_screen.dart';
 import 'package:infano_care_mobile/features/courses/screens/course_overview_screen.dart';
 import 'package:infano_care_mobile/features/courses/screens/course_content_screen.dart';
@@ -660,6 +661,14 @@ GoRouter createRouter(
       ),
 
       // ── Video Based LMS Courses Module ───────────────────────────────────
+      GoRoute(
+        path: '/courses/explore',
+        builder: (_, _) => const ExploreCoursesScreen(),
+      ),
+      GoRoute(
+        path: '/courses',
+        builder: (_, _) => const ExploreCoursesScreen(),
+      ),
       GoRoute(
         path: '/my-courses',
         builder: (_, _) => const MyCoursesScreen(),

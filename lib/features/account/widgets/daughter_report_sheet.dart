@@ -759,7 +759,7 @@ class _DaughterReportSheetState extends State<DaughterReportSheet> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Enrolled Programs & Sessions',
+                  'My Programs & Sessions',
                   style: GoogleFonts.nunito(
                     fontWeight: FontWeight.w800,
                     fontSize: 13.5,

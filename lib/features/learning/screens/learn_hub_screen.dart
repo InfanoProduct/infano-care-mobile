@@ -34,7 +34,7 @@ class LearningProgramsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Enrolled Programs',
+          'My Programs',
           style: TextStyle(
             color: AppColors.purple,
             fontWeight: FontWeight.bold,
@@ -221,7 +221,7 @@ class _ProgramsTabState extends State<ProgramsTab> {
                 // 1. My Enrolled / Purchased Programs
                 if (enrollments.isNotEmpty) ...[
                   const Text(
-                    'My Enrolled Programs',
+                    'My Programs',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
                   ),
                   const SizedBox(height: 10),

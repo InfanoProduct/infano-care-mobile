@@ -965,6 +965,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                   onTap: () => _safeDrawerPush('/account/family'),
                 ),
                 _buildDrawerItem(
+                  icon: Icons.explore_outlined,
+                  iconColor: const Color(0xFF7C3AED),
+                  title: 'Explore Courses',
+                  onTap: () => _safeDrawerPush('/courses/explore'),
+                ),
+                _buildDrawerItem(
                   icon: Icons.play_circle_outline_rounded,
                   iconColor: const Color(0xFF7C3AED),
                   title: 'My Courses',
@@ -973,7 +979,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 _buildDrawerItem(
                   icon: Icons.workspace_premium_outlined,
                   iconColor: const Color(0xFFEC4899),
-                  title: 'Enrolled Programs',
+                  title: 'My Programs',
                   onTap: () => _safeDrawerPush('/learning/programs'),
                 ),
                 _buildDrawerItem(

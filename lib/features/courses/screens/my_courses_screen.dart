@@ -79,6 +79,17 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.explore_outlined,
+              color: AppColors.purple,
+            ),
+            tooltip: 'Explore Courses',
+            onPressed: () => context.push('/courses/explore'),
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadCourses,
@@ -621,7 +632,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              "You haven't enrolled in any video courses yet. Explore our interactive programs and courses to start learning!",
+              "You haven't enrolled in any video courses yet. Explore our expert-led video courses to start learning!",
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 14,
@@ -633,10 +644,10 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
             const SizedBox(height: 28),
             ElevatedButton.icon(
               onPressed: () {
-                context.push('/learning/programs');
+                context.push('/courses/explore');
               },
               icon: const Icon(Icons.explore_rounded, size: 18),
-              label: const Text('Explore Programs'),
+              label: const Text('Explore Courses'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.purple,
                 foregroundColor: Colors.white,

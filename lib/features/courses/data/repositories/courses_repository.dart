@@ -24,6 +24,23 @@ class CoursesRepository {
     }
   }
 
+  /// Fetch all active explore courses
+  Future<List<LmsCourse>> getExploreCourses() async {
+    try {
+      final response = await _dio.get('lms/explore');
+      if (response.data is List) {
+        return (response.data as List)
+            .map((item) =>
+                LmsCourse.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[CoursesRepository] Error fetching explore courses: $e');
+      rethrow;
+    }
+  }
+
   /// Fetch course details (modules, chapters, instructor, etc.)
   Future<LmsCourse> getCourseDetails(String courseId) async {
     try {
