@@ -91,7 +91,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.purple,
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(64, 48),
           shape: const StadiumBorder(),
           textStyle: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w700),
           elevation: 0,

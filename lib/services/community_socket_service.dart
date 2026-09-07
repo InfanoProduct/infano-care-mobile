@@ -295,7 +295,17 @@ class CommunitySocketService {
     _socket = null;
   }
 
-  Future<void> updateUnreadChatsCount() async {
+  bool _isFetchingUnreadChats = false;
+  DateTime? _lastUnreadChatsFetch;
+
+  Future<void> updateUnreadChatsCount({bool force = false}) async {
+    if (_isFetchingUnreadChats) return;
+    if (!force && _lastUnreadChatsFetch != null) {
+      if (DateTime.now().difference(_lastUnreadChatsFetch!) < const Duration(seconds: 10)) {
+        return;
+      }
+    }
+    _isFetchingUnreadChats = true;
     try {
       final token = _storage.authToken;
       if (token == null) return;
@@ -307,9 +317,12 @@ class CommunitySocketService {
           count += (chat['unreadCount'] ?? 0) as int;
         }
         totalUnreadChatsCount.value = count;
+        _lastUnreadChatsFetch = DateTime.now();
       }
     } catch (e) {
       debugPrint('[CommunitySocketService] Error fetching unread chats count: $e');
+    } finally {
+      _isFetchingUnreadChats = false;
     }
   }
 }

@@ -60,44 +60,43 @@ class LocalStorageService extends ChangeNotifier {
       iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
     );
 
-    // 1. Fast in-memory SharedPreferences read
-    var authToken = prefs.getString(_authToken);
-    var refreshToken = prefs.getString(_refreshToken);
-    var tempToken = prefs.getString(_tempToken);
+    // 1. Instant SharedPreferences read (completes in ~2ms on all devices)
+    final authToken = prefs.getString(_authToken);
+    final refreshToken = prefs.getString(_refreshToken);
+    final tempToken = prefs.getString(_tempToken);
 
-    // 2. Fallback: If not in SharedPreferences, check SecureStorage and migrate
-    if (authToken == null || refreshToken == null) {
-      try {
-        final tokens = await Future.wait([
-          secureStorage.read(key: _authToken),
-          secureStorage.read(key: _refreshToken),
-          secureStorage.read(key: _tempToken),
-        ]).timeout(const Duration(milliseconds: 1000));
-
-        if (authToken == null && tokens[0] != null) {
-          authToken = tokens[0];
-          await prefs.setString(_authToken, authToken!);
-        }
-        if (refreshToken == null && tokens[1] != null) {
-          refreshToken = tokens[1];
-          await prefs.setString(_refreshToken, refreshToken!);
-        }
-        if (tempToken == null && tokens[2] != null) {
-          tempToken = tokens[2];
-          await prefs.setString(_tempToken, tempToken!);
-        }
-      } catch (e) {
-        debugPrint('[LocalStorageService] Fallback token read warning: $e');
-      }
-    }
-
-    return LocalStorageService(
+    final service = LocalStorageService(
       prefs,
       secureStorage,
       initialAuthToken: authToken,
       initialRefreshToken: refreshToken,
       initialTempToken: tempToken,
     );
+
+    // 2. Background non-blocking migration from SecureStorage if needed
+    if (authToken == null && !prefs.containsKey(_authToken)) {
+      unawaited(
+        Future.wait([
+          secureStorage.read(key: _authToken),
+          secureStorage.read(key: _refreshToken),
+          secureStorage.read(key: _tempToken),
+        ]).then((tokens) {
+          if (tokens[0] != null || tokens[1] != null) {
+            service._cachedAuthToken = tokens[0];
+            service._cachedRefreshToken = tokens[1];
+            service._cachedTempToken = tokens[2];
+            if (tokens[0] != null) prefs.setString(_authToken, tokens[0]!);
+            if (tokens[1] != null) prefs.setString(_refreshToken, tokens[1]!);
+            if (tokens[2] != null) prefs.setString(_tempToken, tokens[2]!);
+            service.notifyListeners();
+          }
+        }).catchError((e) {
+          debugPrint('[LocalStorageService] Background token migration note: $e');
+        }),
+      );
+    }
+
+    return service;
   }
 
   // ── Onboarding step checkpoints ──────────────────────────────────────────

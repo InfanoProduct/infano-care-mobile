@@ -59,22 +59,28 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   final List<int> _tabHistory = [];
   int _currentTab = 0;
+  late final Set<int> _loadedTabs;
 
   @override
   void initState() {
     super.initState();
     _currentTab = widget.initialTab;
+    _loadedTabs = {widget.initialTab};
     // Ensure native splash is removed if we land here directly
     FlutterNativeSplash.remove();
-    _syncProfile();
     _startCollapseTimer();
+
+    // Stagger non-critical profile sync to avoid blocking first frame rendering
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) _syncProfile();
+    });
 
     // Register lifecycle observer
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!widget.storage.hasCompletedUserGuide) {
-        Future.delayed(const Duration(milliseconds: 600), () {
+        Future.delayed(const Duration(milliseconds: 800), () {
           if (mounted) {
             setState(() {
               _showUserGuide = true;
@@ -83,30 +89,43 @@ class _DashboardScreenState extends State<DashboardScreen>
         });
       }
 
-      final socket = Provider.of<CommunitySocketService>(
-        context,
-        listen: false,
-      );
-      final friendsSocket = Provider.of<FriendsSocketService>(
-        context,
-        listen: false,
-      );
-      socket.connect();
-      friendsSocket.connect();
+      // Stagger background sockets and bloc loads
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (!mounted) return;
+        final socket = Provider.of<CommunitySocketService>(
+          context,
+          listen: false,
+        );
+        final friendsSocket = Provider.of<FriendsSocketService>(
+          context,
+          listen: false,
+        );
+        socket.connect();
+        friendsSocket.connect();
 
-      // Lazy load tracker & journey in background after initial frame settles
-      try {
-        context.read<TrackerBloc>().add(const TrackerEvent.load());
-        context.read<JourneyMapCubit>().load();
-      } catch (_) {}
-
-      _peerlineSocketSub = socket.chatEvents.listen((event) {
-        if (event['type'] == 'session_ready' && mounted) {
-          final sessionId = event['sessionId']?.toString();
-          if (sessionId != null) {
-            _showSessionReadyDialog(sessionId);
+        _peerlineSocketSub = socket.chatEvents.listen((event) {
+          if (event['type'] == 'session_ready' && mounted) {
+            final sessionId = event['sessionId']?.toString();
+            if (sessionId != null) {
+              _showSessionReadyDialog(sessionId);
+            }
           }
-        }
+        });
+      });
+
+      // Stagger tracker and journey state loading
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        try {
+          context.read<TrackerBloc>().add(const TrackerEvent.load());
+        } catch (_) {}
+      });
+
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!mounted) return;
+        try {
+          context.read<JourneyMapCubit>().load();
+        } catch (_) {}
       });
     });
   }
@@ -259,24 +278,17 @@ class _DashboardScreenState extends State<DashboardScreen>
       ],
       child: BlocListener<DashboardCubit, DashboardState>(
         listener: (context, state) {
+          if (!_loadedTabs.contains(state.selectedIndex)) {
+            setState(() {
+              _loadedTabs.add(state.selectedIndex);
+            });
+          }
           if (state.selectedIndex == 3) {
             context.read<QuestBloc>().add(const QuestEvent.refresh());
           }
         },
         child: BlocBuilder<DashboardCubit, DashboardState>(
           builder: (context, state) {
-            final screens = [
-              HomeScreen(
-                headerKey: _headerKey,
-                trackerKey: _trackerKey,
-                journeyKey: _journeyKey,
-              ),
-              LearnHubScreen(storage: storage),
-              const TrackScreen(),
-              const ConnectScreen(),
-              CircleScreen(initialTab: widget.initialSubTab),
-            ];
-
             final selectedIndex = state.selectedIndex;
             if (_currentTab != selectedIndex) {
               _tabHistory.remove(selectedIndex);
@@ -311,7 +323,28 @@ class _DashboardScreenState extends State<DashboardScreen>
                       backgroundColor: const Color(0xFFF5F4F7),
                       appBar: null,
                       drawer: _buildDrawer(context, storage),
-                      body: screens[state.selectedIndex],
+                      body: IndexedStack(
+                        index: state.selectedIndex,
+                        children: [
+                          HomeScreen(
+                            headerKey: _headerKey,
+                            trackerKey: _trackerKey,
+                            journeyKey: _journeyKey,
+                          ),
+                          _loadedTabs.contains(1)
+                              ? LearnHubScreen(storage: storage)
+                              : const SizedBox.shrink(),
+                          _loadedTabs.contains(2)
+                              ? const TrackScreen()
+                              : const SizedBox.shrink(),
+                          _loadedTabs.contains(3)
+                              ? const ConnectScreen()
+                              : const SizedBox.shrink(),
+                          _loadedTabs.contains(4)
+                              ? CircleScreen(initialTab: widget.initialSubTab)
+                              : const SizedBox.shrink(),
+                        ],
+                      ),
                       bottomNavigationBar: Container(
                   key: _bottomNavKey,
                   decoration: BoxDecoration(

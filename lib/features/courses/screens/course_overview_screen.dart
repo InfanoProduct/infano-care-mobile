@@ -482,185 +482,195 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
   }) {
     final accuracy = maxScore > 0 ? ((totalScore / maxScore) * 100).round() : 0;
 
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.15,
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
+    return Column(
       children: [
-        // CARD 1: OVERALL PROGRESS (Rose)
-        _buildStatCard(
-          bgColor: const Color(0xFFFFF4F6),
-          borderColor: const Color(0xFFFECDD3),
-          icon: Icons.pie_chart_rounded,
-          iconColor: const Color(0xFFF43F5E),
-          title: 'PROGRESS',
-          titleColor: const Color(0xFFE11D48),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    '$progressPct%',
-                    style: GoogleFonts.nunito(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const Spacer(),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(
-                      value: (progressPct / 100).clamp(0.0, 1.0),
-                      strokeWidth: 4,
-                      backgroundColor: const Color(0xFFFCE7F3),
-                      valueColor: const AlwaysStoppedAnimation(Color(0xFFF43F5E)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$completedChapters of $totalChapters done',
-                style: GoogleFonts.nunito(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFFE11D48),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // CARD 2: REMAINING (Blue)
-        _buildStatCard(
-          bgColor: const Color(0xFFF0F7FF),
-          borderColor: const Color(0xFFBFDBFE),
-          icon: Icons.track_changes_rounded,
-          iconColor: const Color(0xFF3B82F6),
-          title: 'REMAINING',
-          titleColor: const Color(0xFF2563EB),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '$remainingChapters',
-                style: GoogleFonts.nunito(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                remainingChapters == 0 ? 'All finished! 🎉' : 'chapters to go',
-                style: GoogleFonts.nunito(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF2563EB),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // CARD 3: QUIZ SCORE (Emerald)
-        _buildStatCard(
-          bgColor: const Color(0xFFF0FDF4),
-          borderColor: const Color(0xFFBBF7D0),
-          icon: Icons.stars_rounded,
-          iconColor: const Color(0xFF10B981),
-          title: 'QUIZ SCORE',
-          titleColor: const Color(0xFF059669),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (maxScore > 0) ...[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+        Row(
+          children: [
+            // CARD 1: OVERALL PROGRESS (Rose)
+            Expanded(
+              child: _buildStatCard(
+                bgColor: const Color(0xFFFFF4F6),
+                borderColor: const Color(0xFFFECDD3),
+                icon: Icons.pie_chart_rounded,
+                iconColor: const Color(0xFFF43F5E),
+                title: 'PROGRESS',
+                titleColor: const Color(0xFFE11D48),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      '$totalScore',
-                      style: GoogleFonts.nunito(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textDark,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '$progressPct%',
+                          style: GoogleFonts.nunito(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            value: (progressPct / 100).clamp(0.0, 1.0),
+                            strokeWidth: 3.5,
+                            backgroundColor: const Color(0xFFFCE7F3),
+                            valueColor: const AlwaysStoppedAnimation(Color(0xFFF43F5E)),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 6),
                     Text(
-                      '/$maxScore',
+                      '$completedChapters of $totalChapters done',
                       style: GoogleFonts.nunito(
-                        fontSize: 14,
+                        fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF9CA3AF),
+                        color: const Color(0xFFE11D48),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '$accuracy% accuracy',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF059669),
-                  ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // CARD 2: REMAINING (Blue)
+            Expanded(
+              child: _buildStatCard(
+                bgColor: const Color(0xFFF0F7FF),
+                borderColor: const Color(0xFFBFDBFE),
+                icon: Icons.track_changes_rounded,
+                iconColor: const Color(0xFF3B82F6),
+                title: 'REMAINING',
+                titleColor: const Color(0xFF2563EB),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$remainingChapters',
+                      style: GoogleFonts.nunito(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      remainingChapters == 0 ? 'All finished! 🎉' : 'chapters to go',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF2563EB),
+                      ),
+                    ),
+                  ],
                 ),
-              ] else ...[
-                Text(
-                  '—',
-                  style: GoogleFonts.nunito(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'No quizzes yet',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
-
-        // CARD 4: MILESTONES (Purple)
-        _buildStatCard(
-          bgColor: const Color(0xFFFAF5FF),
-          borderColor: const Color(0xFFE9D5FF),
-          icon: Icons.emoji_events_rounded,
-          iconColor: const Color(0xFFA855F7),
-          title: 'MILESTONES',
-          titleColor: const Color(0xFF9333EA),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildMilestonePill(
-                '🚀 First Step',
-                completedChapters >= 1,
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            // CARD 3: QUIZ SCORE (Emerald)
+            Expanded(
+              child: _buildStatCard(
+                bgColor: const Color(0xFFF0FDF4),
+                borderColor: const Color(0xFFBBF7D0),
+                icon: Icons.stars_rounded,
+                iconColor: const Color(0xFF10B981),
+                title: 'QUIZ SCORE',
+                titleColor: const Color(0xFF059669),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (maxScore > 0) ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            '$totalScore',
+                            style: GoogleFonts.nunito(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          Text(
+                            '/$maxScore',
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF9CA3AF),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '$accuracy% accuracy',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF059669),
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        '—',
+                        style: GoogleFonts.nunito(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'No quizzes yet',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 5),
-              _buildMilestonePill(
-                '🏆 Champion',
-                progressPct == 100,
+            ),
+            const SizedBox(width: 12),
+            // CARD 4: MILESTONES (Purple)
+            Expanded(
+              child: _buildStatCard(
+                bgColor: const Color(0xFFFAF5FF),
+                borderColor: const Color(0xFFE9D5FF),
+                icon: Icons.emoji_events_rounded,
+                iconColor: const Color(0xFFA855F7),
+                title: 'MILESTONES',
+                titleColor: const Color(0xFF9333EA),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildMilestonePill(
+                      '🚀 First Step',
+                      completedChapters >= 1,
+                    ),
+                    const SizedBox(height: 5),
+                    _buildMilestonePill(
+                      '🏆 Champion',
+                      progressPct == 100,
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
@@ -691,6 +701,7 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
@@ -715,9 +726,8 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
               ),
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 12),
           child,
-          const Spacer(),
         ],
       ),
     );
@@ -862,6 +872,8 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
                 icon: const Icon(Icons.play_arrow_rounded, size: 18),
                 label: const Text('Play'),
                 style: ElevatedButton.styleFrom(
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   backgroundColor: const Color(0xFFD97706),
                   foregroundColor: Colors.white,
                   shape: const StadiumBorder(),
@@ -1156,84 +1168,99 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
                                   : const Color(0xFFEDE9FE),
                             ),
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 2),
-                            leading: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: isDone
-                                    ? const Color(0xFFDCFCE7)
-                                    : const Color(0xFFF5F3FF),
-                                shape: BoxShape.circle,
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(16),
+                            clipBehavior: Clip.antiAlias,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 2),
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: isDone
+                                      ? const Color(0xFFDCFCE7)
+                                      : const Color(0xFFF5F3FF),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: isDone
+                                    ? const Icon(Icons.check_circle_rounded,
+                                        size: 16, color: Color(0xFF10B981))
+                                    : Icon(
+                                        chapter.type == 'VIDEO'
+                                            ? Icons.play_circle_outline_rounded
+                                            : Icons.quiz_outlined,
+                                        size: 16,
+                                        color: isUnlocked
+                                            ? const Color(0xFF7C3AED)
+                                            : const Color(0xFF9CA3AF),
+                                      ),
                               ),
-                              child: isDone
-                                  ? const Icon(Icons.check_circle_rounded,
-                                      size: 16, color: Color(0xFF10B981))
-                                  : Icon(
-                                      chapter.type == 'VIDEO'
-                                          ? Icons.play_circle_outline_rounded
-                                          : Icons.quiz_outlined,
-                                      size: 16,
-                                      color: isUnlocked
-                                          ? const Color(0xFF7C3AED)
+                              title: Text(
+                                '${chIndex + 1}. ${chapter.title}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDone
+                                      ? const Color(0xFF065F46)
+                                      : isUnlocked
+                                          ? AppColors.textDark
                                           : const Color(0xFF9CA3AF),
-                                    ),
-                            ),
-                            title: Text(
-                              '${chIndex + 1}. ${chapter.title}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.nunito(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: isDone
-                                    ? const Color(0xFF065F46)
-                                    : isUnlocked
-                                        ? AppColors.textDark
-                                        : const Color(0xFF9CA3AF),
+                                ),
                               ),
-                            ),
-                            subtitle: Row(
-                              children: [
-                                if (chapter.type == 'VIDEO' &&
-                                    chapter.video != null &&
-                                    chapter.video!.duration > 0)
-                                  Text(
-                                    '${(chapter.video!.duration / 60).round()}m video',
-                                    style: GoogleFonts.nunito(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF9CA3AF),
-                                    ),
-                                  )
-                                else if (chapter.type == 'ASSESSMENT')
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF3E8FF),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      'Quiz',
+                              subtitle: Row(
+                                children: [
+                                  if (chapter.type == 'VIDEO' &&
+                                      chapter.video != null &&
+                                      chapter.video!.duration > 0)
+                                    Text(
+                                      '${(chapter.video!.duration / 60).round()}m video',
                                       style: GoogleFonts.nunito(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: const Color(0xFF7C3AED),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF9CA3AF),
+                                      ),
+                                    )
+                                  else if (chapter.type == 'ASSESSMENT')
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF3E8FF),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'Quiz',
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF7C3AED),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
+                              trailing: isUnlocked
+                                  ? const Icon(Icons.arrow_forward_ios_rounded,
+                                      size: 13, color: Color(0xFF7C3AED))
+                                  : const Icon(Icons.lock_outline_rounded,
+                                      size: 14, color: Color(0xFF9CA3AF)),
+                              onTap: isUnlocked
+                                  ? () => _navigateToPlayer(chapter.id)
+                                  : () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              '🔒 Complete previous lessons to unlock this.'),
+                                          backgroundColor: Color(0xFF1E1B4B),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    },
                             ),
-                            trailing: isUnlocked
-                                ? const Icon(Icons.arrow_forward_ios_rounded,
-                                    size: 13, color: Color(0xFF7C3AED))
-                                : const Icon(Icons.lock_outline_rounded,
-                                    size: 14, color: Color(0xFF9CA3AF)),
-                            onTap: isUnlocked
-                                ? () => _navigateToPlayer(chapter.id)
-                                : null,
                           ),
                         );
                       }),

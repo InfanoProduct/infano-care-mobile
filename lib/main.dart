@@ -25,11 +25,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:infano_care_mobile/core/services/notification_service.dart';
 
 void main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Force local bundled font loading only (0ms font resolution, no HTTP blocking)
-  GoogleFonts.config.allowRuntimeFetching = false;
+  // 1. Allow font fetching for missing variants so UI doesn't crash on unbundled styles
+  GoogleFonts.config.allowRuntimeFetching = true;
+
+  // Configure bounded image cache to avoid out-of-memory thrashing on Android
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024; // 50 MB
 
   try {
     // 2. Fast non-blocking storage initialization

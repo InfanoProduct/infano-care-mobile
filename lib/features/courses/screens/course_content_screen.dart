@@ -100,10 +100,24 @@ class _CourseContentScreenState extends State<CourseContentScreen>
       LmsChapter? targetChapter;
       if (course.flatChapters.isNotEmpty) {
         if (widget.initialChapterId != null) {
-          targetChapter = course.flatChapters.firstWhere(
+          final requested = course.flatChapters.firstWhere(
             (c) => c.id == widget.initialChapterId,
             orElse: () => course.flatChapters.first,
           );
+          final idx = course.flatChapters.indexWhere((c) => c.id == requested.id);
+          bool unlocked = true;
+          if (idx > 0) {
+            final prevId = course.flatChapters[idx - 1].id;
+            unlocked = progress.any((p) => p.chapterId == prevId && p.isCompleted);
+          }
+          if (unlocked) {
+            targetChapter = requested;
+          } else {
+            targetChapter = course.flatChapters.firstWhere(
+              (c) => !progress.any((p) => p.chapterId == c.id && p.isCompleted),
+              orElse: () => course.flatChapters.first,
+            );
+          }
         } else {
           targetChapter = course.flatChapters.firstWhere(
             (c) => !progress.any((p) => p.chapterId == c.id && p.isCompleted),
@@ -132,7 +146,29 @@ class _CourseContentScreenState extends State<CourseContentScreen>
     }
   }
 
+  bool _isChapterUnlocked(String chapterId) {
+    if (_course == null) return false;
+    final flat = _course!.flatChapters;
+    final idx = flat.indexWhere((c) => c.id == chapterId);
+    if (idx <= 0) return true;
+    final prevId = flat[idx - 1].id;
+    return _isChapterCompleted(prevId);
+  }
+
   void _selectChapter(LmsChapter chapter) {
+    if (!_isChapterUnlocked(chapter.id)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🔒 Complete the previous lesson first to unlock this.'),
+            backgroundColor: Color(0xFFEF4444),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
     _disposeVideoControllers();
 
     setState(() {
@@ -506,15 +542,19 @@ class _CourseContentScreenState extends State<CourseContentScreen>
 
     final chapter = _activeChapter!;
 
+    // ── QUIZ CHAPTER: Full-screen focused Quiz experience without bottom tabs ──
+    if (chapter.type == 'ASSESSMENT') {
+      return _buildQuizArea(chapter);
+    }
+
+    // ── VIDEO CHAPTER: Video player, action bar, and tabs (Overview, Tips, FAQ, Comments) ──
     return Column(
       children: [
-        // ── Top Video / Quiz Area ──────────────────────────────────────────
+        // ── Top Video Area ────────────────────────────────────────────────
         Container(
           width: double.infinity,
           color: Colors.black,
-          child: chapter.type == 'VIDEO'
-              ? _buildVideoPlayerArea(chapter)
-              : _buildQuizArea(chapter),
+          child: _buildVideoPlayerArea(chapter),
         ),
 
         // ── Chapter Action Row ─────────────────────────────────────────────
@@ -641,20 +681,36 @@ class _CourseContentScreenState extends State<CourseContentScreen>
     );
   }
 
-  // ── Quiz Area ──────────────────────────────────────────────────────────────
+  // ── Dedicated Full-Screen Quiz Area ────────────────────────────────────────
   Widget _buildQuizArea(LmsChapter chapter) {
     final questions = chapter.assessment?.questions ?? [];
     if (questions.isEmpty) {
-      return Container(
-        height: 220,
-        color: const Color(0xFFFAF7FF),
-        child: Center(
-          child: Text(
-            'No quiz questions available for this chapter.',
-            style: GoogleFonts.nunito(
-              color: const Color(0xFF6B7280),
-              fontWeight: FontWeight.w700,
-            ),
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.quiz_outlined, size: 56, color: Color(0xFF7C3AED)),
+              const SizedBox(height: 16),
+              Text(
+                'No Quiz Questions Available',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'This quiz currently has no questions configured.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  color: const Color(0xFF6B7280),
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -668,287 +724,387 @@ class _CourseContentScreenState extends State<CourseContentScreen>
     final isDone = _isChapterCompleted(chapter.id);
 
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFDFDFF), Color(0xFFF6F4FF), Color(0xFFECE9FF)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Row: Question counter & dots
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'QUESTION',
-                      style: GoogleFonts.nunito(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFF9CA3AF),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    Text(
-                      '${_currentQuestionIndex + 1} / ${questions.length}',
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: List.generate(
-                    questions.length,
-                    (idx) => Container(
-                      margin: const EdgeInsets.only(left: 4),
-                      width: idx == _currentQuestionIndex ? 16 : 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: idx == _currentQuestionIndex
-                            ? const Color(0xFF7C3AED)
-                            : (idx < _currentQuestionIndex
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFFE5E7EB)),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                  ),
+      color: const Color(0xFFFAF7FF),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 30),
+        children: [
+          // ── Quiz Header Badge & Progress ──
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFEDE9FE), Color(0xFFF5F3FF), Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFDDD6FE)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7C3AED).withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Question Text
-            Text(
-              currentQuestion.question,
-              style: GoogleFonts.nunito(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textDark,
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Options List
-            ...List.generate(currentQuestion.options.length, (optIdx) {
-              final optText = currentQuestion.options[optIdx];
-              final isSelected = _selectedOptionIndex == optIdx;
-              final isCorrect =
-                  optIdx == currentQuestion.correctAnswerIndex;
-
-              Color optBg = Colors.white;
-              Color optBorder = const Color(0xFFE9D5FF);
-              Color textColor = AppColors.textDark;
-
-              if (_isAnswerSubmitted) {
-                if (isCorrect) {
-                  optBg = const Color(0xFFECFDF5);
-                  optBorder = const Color(0xFF10B981);
-                  textColor = const Color(0xFF065F46);
-                } else if (isSelected) {
-                  optBg = const Color(0xFFFFF1F2);
-                  optBorder = const Color(0xFFF43F5E);
-                  textColor = const Color(0xFF9F1239);
-                }
-              } else if (isSelected) {
-                optBg = const Color(0xFFF3E8FF);
-                optBorder = const Color(0xFF7C3AED);
-                textColor = const Color(0xFF7C3AED);
-              }
-
-              return GestureDetector(
-                onTap: _isAnswerSubmitted
-                    ? null
-                    : () {
-                        setState(() {
-                          _selectedOptionIndex = optIdx;
-                        });
-                      },
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: optBg,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: optBorder, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          color: _isAnswerSubmitted && isCorrect
-                              ? const Color(0xFF10B981)
-                              : (_isAnswerSubmitted && isSelected && !isCorrect
-                                  ? const Color(0xFFF43F5E)
-                                  : (isSelected
-                                      ? const Color(0xFF7C3AED)
-                                      : const Color(0xFFF3F4F6))),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(
-                            String.fromCharCode(65 + optIdx),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.quiz_rounded,
+                              size: 13, color: Colors.white),
+                          const SizedBox(width: 5),
+                          Text(
+                            'LESSON QUIZ',
                             style: GoogleFonts.nunito(
-                              fontSize: 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.w900,
-                              color: isSelected ||
-                                      (_isAnswerSubmitted && isCorrect)
-                                  ? Colors.white
-                                  : const Color(0xFF6B7280),
+                              color: Colors.white,
+                              letterSpacing: 0.5,
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          optText,
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: textColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-
-            // Explanation box if submitted
-            if (_isAnswerSubmitted &&
-                currentQuestion.explanation != null &&
-                currentQuestion.explanation!.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFFBEB),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFDE68A)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('💡', style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        currentQuestion.explanation!,
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF92400E),
-                          height: 1.3,
-                        ),
+                    ),
+                    Text(
+                      'Question ${_currentQuestionIndex + 1} of ${questions.length}',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF7C3AED),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-
-            const SizedBox(height: 14),
-
-            // Submit / Next Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (!_isAnswerSubmitted)
-                  ElevatedButton(
-                    onPressed: _selectedOptionIndex == -1
-                        ? null
-                        : () {
-                            final isCorrect = _selectedOptionIndex ==
-                                currentQuestion.correctAnswerIndex;
-                            setState(() {
-                              _isAnswerSubmitted = true;
-                              if (isCorrect) _quizScore++;
-                              _userAnswers.add(_selectedOptionIndex);
-                            });
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7C3AED),
-                      foregroundColor: Colors.white,
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                    ),
-                    child: Text(
-                      'Submit Answer',
-                      style: GoogleFonts.nunito(
-                          fontSize: 13, fontWeight: FontWeight.w800),
-                    ),
-                  )
-                else
-                  ElevatedButton(
-                    onPressed: () {
-                      final next = _currentQuestionIndex + 1;
-                      if (next < questions.length) {
-                        setState(() {
-                          _currentQuestionIndex = next;
-                          _selectedOptionIndex = _isReviewMode
-                              ? (_userAnswers.length > next
-                                  ? _userAnswers[next]
-                                  : -1)
-                              : -1;
-                          _isAnswerSubmitted = _isReviewMode;
-                        });
-                      } else {
-                        // Finished Quiz
-                        if (!_isReviewMode && !isDone) {
-                          _markChapterComplete(
-                            score: _quizScore,
-                            answers: _userAnswers,
-                          );
-                        }
-                        setState(() {
-                          _isQuizCompleted = true;
-                          _isReviewMode = false;
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E1B4B),
-                      foregroundColor: Colors.white,
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                    ),
-                    child: Text(
-                      _currentQuestionIndex + 1 < questions.length
-                          ? 'Next Question →'
-                          : (_isReviewMode ? 'Finish Review' : 'Finish Quiz 🎉'),
-                      style: GoogleFonts.nunito(
-                          fontSize: 13, fontWeight: FontWeight.w800),
-                    ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: ((_currentQuestionIndex + 1) / questions.length)
+                        .clamp(0.0, 1.0),
+                    minHeight: 6,
+                    backgroundColor: const Color(0xFFE9D5FF),
+                    valueColor:
+                        const AlwaysStoppedAnimation(Color(0xFF7C3AED)),
                   ),
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── Question Card ──
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFFF1EAFA), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7C3AED).withValues(alpha: 0.05),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Q${_currentQuestionIndex + 1}',
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF7C3AED),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  currentQuestion.question,
+                  style: GoogleFonts.nunito(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ── Options List ──
+                ...List.generate(currentQuestion.options.length, (optIdx) {
+                  final optText = currentQuestion.options[optIdx];
+                  final isSelected = _selectedOptionIndex == optIdx;
+                  final isCorrect =
+                      optIdx == currentQuestion.correctAnswerIndex;
+
+                  Color optBg = Colors.white;
+                  Color optBorder = const Color(0xFFE9D5FF);
+                  Color textColor = AppColors.textDark;
+
+                  if (_isAnswerSubmitted) {
+                    if (isCorrect) {
+                      optBg = const Color(0xFFECFDF5);
+                      optBorder = const Color(0xFF10B981);
+                      textColor = const Color(0xFF065F46);
+                    } else if (isSelected) {
+                      optBg = const Color(0xFFFFF1F2);
+                      optBorder = const Color(0xFFF43F5E);
+                      textColor = const Color(0xFF9F1239);
+                    }
+                  } else if (isSelected) {
+                    optBg = const Color(0xFFF3E8FF);
+                    optBorder = const Color(0xFF7C3AED);
+                    textColor = const Color(0xFF7C3AED);
+                  }
+
+                  return GestureDetector(
+                    onTap: _isAnswerSubmitted
+                        ? null
+                        : () {
+                            setState(() {
+                              _selectedOptionIndex = optIdx;
+                            });
+                          },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: optBg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: optBorder, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: _isAnswerSubmitted && isCorrect
+                                  ? const Color(0xFF10B981)
+                                  : (_isAnswerSubmitted &&
+                                          isSelected &&
+                                          !isCorrect
+                                      ? const Color(0xFFF43F5E)
+                                      : (isSelected
+                                          ? const Color(0xFF7C3AED)
+                                          : const Color(0xFFF3F4F6))),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Text(
+                                String.fromCharCode(65 + optIdx),
+                                style: GoogleFonts.nunito(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: isSelected ||
+                                          (_isAnswerSubmitted && isCorrect)
+                                      ? Colors.white
+                                      : const Color(0xFF6B7280),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              optText,
+                              style: GoogleFonts.nunito(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                          if (_isAnswerSubmitted && isCorrect)
+                            const Icon(Icons.check_circle_rounded,
+                                color: Color(0xFF10B981), size: 20)
+                          else if (_isAnswerSubmitted && isSelected && !isCorrect)
+                            const Icon(Icons.cancel_rounded,
+                                color: Color(0xFFF43F5E), size: 20),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+
+                // ── Explanation card if submitted ──
+                if (_isAnswerSubmitted &&
+                    currentQuestion.explanation != null &&
+                    currentQuestion.explanation!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('💡', style: TextStyle(fontSize: 16)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'EXPLANATION',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFFB45309),
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                currentQuestion.explanation!,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF92400E),
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // ── Action Buttons ──
+          Row(
+            children: [
+              if (_currentQuestionIndex > 0)
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _currentQuestionIndex--;
+                      _selectedOptionIndex = _isReviewMode
+                          ? (_userAnswers.length > _currentQuestionIndex
+                              ? _userAnswers[_currentQuestionIndex]
+                              : -1)
+                          : -1;
+                      _isAnswerSubmitted = _isReviewMode;
+                    });
+                  },
+                  icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                  label: const Text('Back'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    shape: const StadiumBorder(),
+                  ),
+                ),
+              const Spacer(),
+              if (!_isAnswerSubmitted)
+                ElevatedButton(
+                  onPressed: _selectedOptionIndex == -1
+                      ? null
+                      : () {
+                          final isCorrect = _selectedOptionIndex ==
+                              currentQuestion.correctAnswerIndex;
+                          setState(() {
+                            _isAnswerSubmitted = true;
+                            if (isCorrect) _quizScore++;
+                            _userAnswers.add(_selectedOptionIndex);
+                          });
+                        },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    backgroundColor: const Color(0xFF7C3AED),
+                    foregroundColor: Colors.white,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                  ),
+                  child: Text(
+                    'Submit Answer',
+                    style: GoogleFonts.nunito(
+                        fontSize: 14, fontWeight: FontWeight.w800),
+                  ),
+                )
+              else
+                ElevatedButton(
+                  onPressed: () {
+                    final next = _currentQuestionIndex + 1;
+                    if (next < questions.length) {
+                      setState(() {
+                        _currentQuestionIndex = next;
+                        _selectedOptionIndex = _isReviewMode
+                            ? (_userAnswers.length > next
+                                ? _userAnswers[next]
+                                : -1)
+                            : -1;
+                        _isAnswerSubmitted = _isReviewMode;
+                      });
+                    } else {
+                      // Finished Quiz
+                      if (!_isReviewMode && !isDone) {
+                        _markChapterComplete(
+                          score: _quizScore,
+                          answers: _userAnswers,
+                        );
+                      }
+                      setState(() {
+                        _isQuizCompleted = true;
+                        _isReviewMode = false;
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    backgroundColor: const Color(0xFF1E1B4B),
+                    foregroundColor: Colors.white,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                  ),
+                  child: Text(
+                    _currentQuestionIndex + 1 < questions.length
+                        ? 'Next Question →'
+                        : (_isReviewMode ? 'Finish Review' : 'Finish Quiz 🎉'),
+                    style: GoogleFonts.nunito(
+                        fontSize: 14, fontWeight: FontWeight.w800),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -956,151 +1112,202 @@ class _CourseContentScreenState extends State<CourseContentScreen>
   Widget _buildQuizCompletionView(List<AssessmentQuestion> questions) {
     final perfect = _quizScore == questions.length;
     final passed = _quizScore >= (questions.length / 2);
+    final accuracy = questions.isNotEmpty
+        ? ((_quizScore / questions.length) * 100).round()
+        : 0;
 
     return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFDFDFF), Color(0xFFF6F4FF), Color(0xFFECE9FF)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFFDE68A), width: 2),
-            ),
-            child: const Text('🏆', style: TextStyle(fontSize: 32)),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Quiz Completed! 🎉',
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Your Score',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '$_quizScore / ${questions.length}',
-            style: GoogleFonts.nunito(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFF7C3AED),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: perfect
-                  ? const Color(0xFFFEF3C7)
-                  : (passed ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2)),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              perfect
-                  ? '⭐ Perfect Score!'
-                  : (passed ? '✓ Well Done!' : '📚 Keep Practicing'),
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: perfect
-                    ? const Color(0xFFB45309)
-                    : (passed
-                        ? const Color(0xFF065F46)
-                        : const Color(0xFF991B1B)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
+      color: const Color(0xFFFAF7FF),
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  final next = _getNextChapter();
-                  if (next != null) {
-                    _selectChapter(next);
-                  }
-                },
-                icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-                label: const Text('Next Chapter'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C3AED),
-                  foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  textStyle: GoogleFonts.nunito(
-                      fontSize: 12, fontWeight: FontWeight.w800),
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFFDE68A), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: const Text('🏆', style: TextStyle(fontSize: 40)),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Quiz Completed! 🎉',
+                style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDark,
                 ),
               ),
-              OutlinedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _isQuizCompleted = false;
-                    _isReviewMode = true;
-                    _currentQuestionIndex = 0;
-                    _selectedOptionIndex =
-                        _userAnswers.isNotEmpty ? _userAnswers[0] : -1;
-                    _isAnswerSubmitted = true;
-                  });
-                },
-                icon: const Icon(Icons.rate_review_outlined, size: 16),
-                label: const Text('Review Answers'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textDark,
-                  side: const BorderSide(color: Color(0xFFD1D5DB)),
-                  shape: const StadiumBorder(),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  textStyle: GoogleFonts.nunito(
-                      fontSize: 12, fontWeight: FontWeight.w700),
+              const SizedBox(height: 4),
+              Text(
+                'Next chapter is now unlocked!',
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF10B981),
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _isQuizCompleted = false;
-                    _currentQuestionIndex = 0;
-                    _selectedOptionIndex = -1;
-                    _isAnswerSubmitted = false;
-                    _quizScore = 0;
-                    _userAnswers = [];
-                    _isReviewMode = false;
-                  });
-                },
+              const SizedBox(height: 16),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE9D5FF)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF7C3AED).withValues(alpha: 0.06),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '$_quizScore / ${questions.length}',
+                      style: GoogleFonts.nunito(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFF7C3AED),
+                      ),
+                    ),
+                    Text(
+                      '$accuracy% Accuracy',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: perfect
+                      ? const Color(0xFFFEF3C7)
+                      : (passed
+                          ? const Color(0xFFDCFCE7)
+                          : const Color(0xFFFEE2E2)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Text(
-                  'Retake Quiz ↺',
+                  perfect
+                      ? '⭐ Perfect Score! You nailed every concept.'
+                      : (passed
+                          ? '✓ Great job! Lesson mastered.'
+                          : '📚 Review concepts to strengthen understanding.'),
                   style: GoogleFonts.nunito(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF7C3AED),
+                    color: perfect
+                        ? const Color(0xFFB45309)
+                        : (passed
+                            ? const Color(0xFF065F46)
+                            : const Color(0xFF991B1B)),
                   ),
                 ),
               ),
+              const SizedBox(height: 24),
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      final next = _getNextChapter();
+                      if (next != null) {
+                        _selectChapter(next);
+                      } else {
+                        context.pushReplacement(
+                            '/courses/${widget.courseId}/overview');
+                      }
+                    },
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                    label: Text(_getNextChapter() != null
+                        ? 'Next Lesson →'
+                        : 'Course Overview'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      backgroundColor: const Color(0xFF7C3AED),
+                      foregroundColor: Colors.white,
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 22, vertical: 12),
+                      textStyle: GoogleFonts.nunito(
+                          fontSize: 13, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _isQuizCompleted = false;
+                        _isReviewMode = true;
+                        _currentQuestionIndex = 0;
+                        _selectedOptionIndex = _userAnswers.isNotEmpty
+                            ? _userAnswers[0]
+                            : -1;
+                        _isAnswerSubmitted = true;
+                      });
+                    },
+                    icon: const Icon(Icons.rate_review_outlined, size: 16),
+                    label: const Text('Review Answers'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      foregroundColor: AppColors.textDark,
+                      side: const BorderSide(color: Color(0xFFD1D5DB)),
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      textStyle: GoogleFonts.nunito(
+                          fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _isQuizCompleted = false;
+                        _currentQuestionIndex = 0;
+                        _selectedOptionIndex = -1;
+                        _isAnswerSubmitted = false;
+                        _quizScore = 0;
+                        _userAnswers = [];
+                        _isReviewMode = false;
+                      });
+                    },
+                    child: Text(
+                      'Retake Quiz ↺',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF7C3AED),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1214,6 +1421,8 @@ class _CourseContentScreenState extends State<CourseContentScreen>
               ),
               label: Text(isDone ? 'Completed' : 'Mark Complete'),
               style: ElevatedButton.styleFrom(
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 backgroundColor: isDone
                     ? const Color(0xFFDCFCE7)
                     : const Color(0xFF10B981),
@@ -1314,32 +1523,53 @@ class _CourseContentScreenState extends State<CourseContentScreen>
         const SizedBox(height: 24),
 
         // Chapter Navigation Buttons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            OutlinedButton.icon(
-              onPressed: _getPreviousChapter() != null
-                  ? () => _selectChapter(_getPreviousChapter()!)
-                  : null,
-              icon: const Icon(Icons.arrow_back_rounded, size: 16),
-              label: const Text('Previous'),
-              style: OutlinedButton.styleFrom(
-                shape: const StadiumBorder(),
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: _getNextChapter() != null
-                  ? () => _selectChapter(_getNextChapter()!)
-                  : null,
-              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-              label: const Text('Next'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                foregroundColor: Colors.white,
-                shape: const StadiumBorder(),
-              ),
-            ),
-          ],
+        Builder(
+          builder: (context) {
+            final prev = _getPreviousChapter();
+            final next = _getNextChapter();
+            final isNextUnlocked = next != null && _isChapterUnlocked(next.id);
+
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (prev != null)
+                  OutlinedButton.icon(
+                    onPressed: () => _selectChapter(prev),
+                    icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                    label: const Text('Previous'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: const StadiumBorder(),
+                    ),
+                  )
+                else
+                  const SizedBox.shrink(),
+                if (next != null)
+                  ElevatedButton.icon(
+                    onPressed: () => _selectChapter(next),
+                    icon: Icon(
+                      isNextUnlocked
+                          ? Icons.arrow_forward_rounded
+                          : Icons.lock_outline_rounded,
+                      size: 16,
+                    ),
+                    label: Text(isNextUnlocked ? 'Next Lesson' : 'Next (Locked)'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      backgroundColor: isNextUnlocked
+                          ? const Color(0xFF7C3AED)
+                          : const Color(0xFF9CA3AF),
+                      foregroundColor: Colors.white,
+                      shape: const StadiumBorder(),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -1706,6 +1936,7 @@ class _CourseContentScreenState extends State<CourseContentScreen>
                         ...module.chapters.map((ch) {
                           final isCurrent = ch.id == _activeChapter?.id;
                           final isDone = _isChapterCompleted(ch.id);
+                          final isUnlocked = _isChapterUnlocked(ch.id);
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 6),
@@ -1714,7 +1945,9 @@ class _CourseContentScreenState extends State<CourseContentScreen>
                                   ? const Color(0xFFF3E8FF)
                                   : (isDone
                                       ? const Color(0xFFF0FDF4)
-                                      : Colors.white),
+                                      : (isUnlocked
+                                          ? Colors.white
+                                          : const Color(0xFFF9FAFB))),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isCurrent
@@ -1724,18 +1957,26 @@ class _CourseContentScreenState extends State<CourseContentScreen>
                                         : const Color(0xFFF3F4F6)),
                               ),
                             ),
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            clipBehavior: Clip.antiAlias,
                             child: ListTile(
                               dense: true,
                               leading: Icon(
                                 isDone
                                     ? Icons.check_circle_rounded
-                                    : (ch.type == 'VIDEO'
-                                        ? Icons.play_circle_outline_rounded
-                                        : Icons.quiz_outlined),
+                                    : (isUnlocked
+                                        ? (ch.type == 'VIDEO'
+                                            ? Icons.play_circle_outline_rounded
+                                            : Icons.quiz_outlined)
+                                        : Icons.lock_outline_rounded),
                                 size: 18,
                                 color: isDone
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFF7C3AED),
+                                    : (isUnlocked
+                                        ? const Color(0xFF7C3AED)
+                                        : const Color(0xFF9CA3AF)),
                               ),
                               title: Text(
                                 ch.title,
@@ -1746,15 +1987,22 @@ class _CourseContentScreenState extends State<CourseContentScreen>
                                   fontWeight: FontWeight.w800,
                                   color: isCurrent
                                       ? const Color(0xFF7C3AED)
-                                      : AppColors.textDark,
+                                      : (isUnlocked
+                                          ? AppColors.textDark
+                                          : const Color(0xFF9CA3AF)),
                                 ),
                               ),
+                              trailing: isUnlocked
+                                  ? null
+                                  : const Icon(Icons.lock_rounded,
+                                      size: 14, color: Color(0xFF9CA3AF)),
                               onTap: () {
                                 Navigator.pop(context);
                                 _selectChapter(ch);
                               },
                             ),
-                          );
+                          ),
+                        );
                         }),
                         const SizedBox(height: 10),
                       ],

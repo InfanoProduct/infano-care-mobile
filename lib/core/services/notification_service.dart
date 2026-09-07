@@ -31,123 +31,144 @@ class NotificationService {
     _storage = storage;
 
     try {
-      // 1. Check if Firebase is available
+      // 1. Ensure Firebase is initialized
+      if (Firebase.apps.isEmpty) {
+        try {
+          await Firebase.initializeApp();
+          FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+        } catch (e) {
+          debugPrint('[Notifications] Firebase initialization error: $e');
+        }
+      }
+
       if (Firebase.apps.isEmpty) {
         debugPrint('[Notifications] Firebase not initialized. Skipping FCM setup.');
         return;
       }
 
-      // 2. Request Permissions
-      await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      provisional: false,
-      sound: true,
-    );
+      // 2. Request Permissions (Alert, Badge, Sound, Provisional)
+      final settings = await _fcm.requestPermission(
+        alert: true,
+        badge: true,
+        provisional: false,
+        sound: true,
+      );
+      debugPrint('[Notifications] Permission status: ${settings.authorizationStatus}');
 
-    // 3. Setup Local Notifications for Foreground
-    const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/launcher_icon');
-    const initializationSettingsIOS = DarwinInitializationSettings();
-    const initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
+      // 3. Setup Local Notifications for Foreground & Custom Heads-Up
+      const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/launcher_icon');
+      const initializationSettingsIOS = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+      const initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
+      );
 
-    await _localNotifications.initialize(
-      settings: initializationSettings,
-      onDidReceiveNotificationResponse: (details) {
-        final payload = details.payload;
-        if (payload != null && payload.isNotEmpty) {
-          debugPrint('[Notifications] onDidReceiveNotificationResponse: $payload');
-          _handleDeepLink(payload);
+      await _localNotifications.initialize(
+        settings: initializationSettings,
+        onDidReceiveNotificationResponse: (details) {
+          final payload = details.payload;
+          if (payload != null && payload.isNotEmpty) {
+            debugPrint('[Notifications] onDidReceiveNotificationResponse: $payload');
+            _handleDeepLink(payload);
+          }
+        },
+      );
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(_channel);
+
+      // Check if app was launched via local notification when killed
+      try {
+        final launchDetails = await _localNotifications.getNotificationAppLaunchDetails();
+        if (launchDetails?.didNotificationLaunchApp ?? false) {
+          final payload = launchDetails?.notificationResponse?.payload;
+          if (payload != null && payload.isNotEmpty) {
+            debugPrint('[Notifications] App launched via local notification with payload: $payload');
+            _handleDeepLink(payload);
+          }
         }
-      },
-    );
+      } catch (e) {
+        debugPrint('[Notifications] Error reading notification launch details: $e');
+      }
 
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_channel);
+      // 4. Foreground Message Listener
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        RemoteNotification? notification = message.notification;
+        final extractedLink = _extractDeepLink(message);
 
-    // Check if app was launched via local notification when killed
-    try {
-      final launchDetails = await _localNotifications.getNotificationAppLaunchDetails();
-      if (launchDetails?.didNotificationLaunchApp ?? false) {
-        final payload = launchDetails?.notificationResponse?.payload;
-        if (payload != null && payload.isNotEmpty) {
-          debugPrint('[Notifications] App launched via local notification with payload: $payload');
-          _handleDeepLink(payload);
+        if (notification != null) {
+          // Show System Heads-Up Notification Channel
+          _localNotifications.show(
+            id: notification.hashCode,
+            title: notification.title,
+            body: notification.body,
+            notificationDetails: NotificationDetails(
+              android: AndroidNotificationDetails(
+                _channel.id,
+                _channel.name,
+                channelDescription: _channel.description,
+                importance: Importance.max,
+                priority: Priority.high,
+              ),
+              iOS: const DarwinNotificationDetails(
+                presentAlert: true,
+                presentBadge: true,
+                presentSound: true,
+              ),
+            ),
+            payload: extractedLink,
+          );
+
+          // Show in-app custom notification banner
+          _showInAppNotification(
+            notification.title ?? 'New Alert',
+            notification.body ?? '',
+            extractedLink,
+          );
         }
-      }
-    } catch (e) {
-      debugPrint('[Notifications] Error reading notification launch details: $e');
-    }
+      });
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
-      final extractedLink = _extractDeepLink(message);
-
-      if (notification != null) {
-        // Show System Heads-Up Notification Channel
-        _localNotifications.show(
-          id: notification.hashCode,
-          title: notification.title,
-          body: notification.body,
-          notificationDetails: NotificationDetails(
-            android: AndroidNotificationDetails(
-              _channel.id,
-              _channel.name,
-              channelDescription: _channel.description,
-              importance: Importance.max,
-              priority: Priority.high,
-            ),
-            iOS: const DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-            ),
-          ),
-          payload: extractedLink,
-        );
-
-        // Show our premium in-app custom notification banner
-        _showInAppNotification(
-          notification.title ?? 'New Alert',
-          notification.body ?? '',
-          extractedLink,
-        );
-      }
-    });
-
-    // 5. Handle Background Click (when app in background)
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('[Notifications] onMessageOpenedApp: ${message.data}');
-      final link = _extractDeepLink(message);
-      if (link != null) {
-        _handleDeepLink(link);
-      }
-    });
-
-    // 6. Handle Terminated Click (when app was killed)
-    try {
-      final initialMessage = await _fcm.getInitialMessage();
-      if (initialMessage != null) {
-        debugPrint('[Notifications] getInitialMessage (killed state): ${initialMessage.data}');
-        final link = _extractDeepLink(initialMessage);
+      // 5. Handle Background Click (when app in background)
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        debugPrint('[Notifications] onMessageOpenedApp: ${message.data}');
+        final link = _extractDeepLink(message);
         if (link != null) {
           _handleDeepLink(link);
         }
+      });
+
+      // 6. Handle Terminated Click (when app was killed)
+      try {
+        final initialMessage = await _fcm.getInitialMessage();
+        if (initialMessage != null) {
+          debugPrint('[Notifications] getInitialMessage (killed state): ${initialMessage.data}');
+          final link = _extractDeepLink(initialMessage);
+          if (link != null) {
+            _handleDeepLink(link);
+          }
+        }
+      } catch (e) {
+        debugPrint('[Notifications] Error getting initial message: $e');
       }
-    } catch (e) {
-      debugPrint('[Notifications] Error getting initial message: $e');
-    }
 
-    _isInitialized = true;
+      // 7. Token refresh listener
+      _fcm.onTokenRefresh.listen((newToken) {
+        debugPrint('[Notifications] FCM token refreshed');
+        syncToken();
+      });
 
-    // 7. Reactive Sync: Listen for token changes
-    _storage?.addListener(_onStorageChanged);
-    
-    // Initial sync attempt
-    _onStorageChanged();
+      _isInitialized = true;
+
+      // 8. Reactive Sync: Listen for auth token changes
+      _storage?.addListener(_onStorageChanged);
+      
+      // Initial sync attempt
+      _onStorageChanged();
     } catch (e) {
       debugPrint('[Notifications] Setup failed ❌: $e');
     }

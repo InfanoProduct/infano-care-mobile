@@ -83,18 +83,21 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
   @override
   void initState() {
     super.initState();
-    // Default quote calculated by day of year for smooth rotation
+    // Default quote calculated by day of year for smooth rotation (instant render)
     final dayOfYear =
         DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
     _dailyQuote = _genZQuotes[dayOfYear % _genZQuotes.length];
-    _fetchDailyQuote();
-    NotificationCenterSheet.fetchUnreadCount();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
+      // Stagger non-blocking network requests until after initial UI frame is painted
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (!mounted) return;
+        _fetchDailyQuote();
+        NotificationCenterSheet.fetchUnreadCount();
         try {
           Provider.of<CommunitySocketService>(context, listen: false).updateUnreadChatsCount();
         } catch (_) {}
-      }
+      });
     });
   }
 
@@ -2169,22 +2172,26 @@ class _ExploreCirclesHomepageSectionState
     if (category == "All") return true;
     final name = circle.name.toLowerCase();
     final desc = (circle.description ?? '').toLowerCase();
-    if (category == "Wellness")
+    if (category == "Wellness") {
       return name.contains("self-care") ||
           name.contains("mindful") ||
           desc.contains("wellness");
-    if (category == "Puberty")
+    }
+    if (category == "Puberty") {
       return name.contains("period") ||
           name.contains("body") ||
           desc.contains("symptoms");
-    if (category == "Growth")
+    }
+    if (category == "Growth") {
       return name.contains("teen") ||
           name.contains("power") ||
           desc.contains("growth");
-    if (category == "Social")
+    }
+    if (category == "Social") {
       return name.contains("general") ||
           name.contains("chat") ||
           name.contains("lounge");
+    }
     return true;
   }
 
