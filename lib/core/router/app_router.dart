@@ -87,6 +87,12 @@ import 'package:infano_care_mobile/features/creative_journey/screens/creative_jo
 import 'package:infano_care_mobile/features/creative_journey/screens/journey_detail_screen.dart';
 import 'package:infano_care_mobile/features/creative_journey/screens/episode_path_screen.dart';
 
+// Video Based LMS Courses Module
+import 'package:infano_care_mobile/features/courses/screens/my_courses_screen.dart';
+import 'package:infano_care_mobile/features/courses/screens/course_overview_screen.dart';
+import 'package:infano_care_mobile/features/courses/screens/course_content_screen.dart';
+
+
 String getRouteForStep(String step, {String? periodStatus, String? role}) {
   if (role != null && step == '0') {
     return '/onboarding/name';
@@ -651,6 +657,52 @@ GoRouter createRouter(
           enrollmentId: state.pathParameters['id']!,
           storage: storage,
         ),
+      ),
+
+      // ── Video Based LMS Courses Module ───────────────────────────────────
+      GoRoute(
+        path: '/my-courses',
+        builder: (_, _) => const MyCoursesScreen(),
+      ),
+      GoRoute(
+        path: '/courses/my',
+        builder: (_, _) => const MyCoursesScreen(),
+      ),
+      GoRoute(
+        path: '/courses/:id',
+        builder: (_, state) => CourseOverviewScreen(
+          courseId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/courses/:id/overview',
+        builder: (_, state) => CourseOverviewScreen(
+          courseId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/courses/:id/player',
+        builder: (_, state) {
+          final extraMap = state.extra as Map<String, dynamic>?;
+          final initialChapterId = extraMap?['initialChapterId'] as String? ??
+              state.uri.queryParameters['chapterId'];
+          return CourseContentScreen(
+            courseId: state.pathParameters['id']!,
+            initialChapterId: initialChapterId,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/courses/:id/content',
+        builder: (_, state) {
+          final extraMap = state.extra as Map<String, dynamic>?;
+          final initialChapterId = extraMap?['initialChapterId'] as String? ??
+              state.uri.queryParameters['chapterId'];
+          return CourseContentScreen(
+            courseId: state.pathParameters['id']!,
+            initialChapterId: initialChapterId,
+          );
+        },
       ),
     ],
   );
