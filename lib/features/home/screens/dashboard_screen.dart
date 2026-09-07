@@ -345,247 +345,164 @@ class _DashboardScreenState extends State<DashboardScreen>
                               : const SizedBox.shrink(),
                         ],
                       ),
-                      bottomNavigationBar: Container(
-                  key: _bottomNavKey,
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
-                  ),
-                  child: BottomNavigationBar(
-                    currentIndex: state.selectedIndex,
-                    onTap: (index) {
-                      context.read<DashboardCubit>().setTab(index);
-                    },
-                    type: BottomNavigationBarType.fixed,
-                    backgroundColor: Colors.white,
-                    selectedItemColor: AppColors.purple,
-                    unselectedItemColor: AppColors.textLight,
-                    selectedFontSize: 12,
-                    unselectedFontSize: 12,
-                    elevation: 0,
-                    items: [
-                      const BottomNavigationBarItem(
-                        icon: Icon(Icons.home_outlined),
-                        activeIcon: Icon(Icons.home),
-                        label: 'Home',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: _buildBadgeIcon(
-                          icon: Icons.auto_stories_outlined,
-                          showRedDot: state.hasLearnNotification,
-                        ),
-                        activeIcon: _buildBadgeIcon(
-                          icon: Icons.auto_stories,
-                          showRedDot: state.hasLearnNotification,
-                        ),
-                        label: 'Learn',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: _buildTrackIcon(state.isPeriodImminent, false),
-                        activeIcon: _buildTrackIcon(
-                          state.isPeriodImminent,
-                          true,
-                        ),
-                        label: 'Track',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: _buildBadgeIcon(
-                          icon: Icons.favorite_outline,
-                          showRedDot: state.hasConnectNotification,
-                        ),
-                        activeIcon: _buildBadgeIcon(
-                          icon: Icons.favorite_rounded,
-                          showRedDot: state.hasConnectNotification,
-                        ),
-                        label: 'Connect',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: _buildBadgeIcon(
-                          icon: Icons.groups_outlined,
-                          showRedDot: false,
-                        ),
-                        activeIcon: _buildBadgeIcon(
-                          icon: Icons.groups_rounded,
-                          showRedDot: false,
-                        ),
-                        label: 'Circle',
-                      ),
-                    ],
-                  ),
-                ),
-                floatingActionButton:
-                    (state.selectedIndex != 0)
-                        ? null
-                        : Stack(
-                              alignment: Alignment.bottomRight,
-                              clipBehavior: Clip.none,
-                              children: [
-                                // Pulse ring behind the button (only shown when collapsed)
-                                if (!_isExpanded)
-                                  Positioned(
-                                    right: 0,
-                                    bottom: 0,
-                                    child: Container(
-                                          width: 56,
-                                          height: 56,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                Color(0xFFE9D5FF),
-                                                Color(0xFFFBCFE8),
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ),
-                                          ),
-                                        )
-                                        .animate(
-                                          onPlay:
-                                              (controller) =>
-                                                  controller.repeat(),
-                                        )
-                                        .scale(
-                                          begin: const Offset(1, 1),
-                                          end: const Offset(1.5, 1.5),
-                                          duration: 2.seconds,
-                                          curve: Curves.easeOut,
-                                        )
-                                        .fadeOut(duration: 2.seconds),
-                                  ),
-
-                                // Main Gigi floating button
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.fastOutSlowIn,
-                                  clipBehavior:
-                                      Clip.antiAlias, // Clip the sliding text!
-                                  height: 56,
-                                  width: _isExpanded ? 160 : 56,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(28),
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFFE9D5FF),
-                                        Color(0xFFFBCFE8),
-                                      ], // from-purple-200 to-pink-200
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFFD8B4FE,
-                                        ).withValues(alpha: 0.4),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                    border: Border.all(
-                                      color: const Color(
-                                        0xFFD8B4FE,
-                                      ).withValues(alpha: 0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () => context.push('/chat'),
-                                      borderRadius: BorderRadius.circular(28),
-                                      child: SizedBox.expand(
-                                        child: Stack(
-                                          alignment: Alignment.centerLeft,
-                                          children: [
-                                            // 1. Avatar Image
-                                            Positioned(
-                                              left:
-                                                  6, // 6px padding on left matches center position when collapsed: (56-44)/2 = 6
-                                              child: Container(
-                                                width: 44,
-                                                height: 44,
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Colors.white,
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black12,
-                                                      blurRadius: 2,
-                                                      offset: Offset(0, 1),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: ClipOval(
-                                                  child:
-                                                      _isExpanded
-                                                          ? Image.asset(
-                                                            'assets/images/gigi_avatar.png',
-                                                            fit: BoxFit.cover,
-                                                          )
-                                                          : Image.asset(
-                                                                'assets/images/gigi_avatar.png',
-                                                                fit:
-                                                                    BoxFit
-                                                                        .cover,
-                                                              )
-                                                              .animate(
-                                                                onPlay:
-                                                                    (
-                                                                      controller,
-                                                                    ) =>
-                                                                        controller
-                                                                            .repeat(),
-                                                              )
-                                                              .shake(
-                                                                delay:
-                                                                    3.seconds,
-                                                                duration:
-                                                                    800.ms,
-                                                                hz: 4,
-                                                              ),
-                                                ),
+                      bottomNavigationBar: _buildModernBottomNavBar(context, state),
+                      floatingActionButton:
+                          (state.selectedIndex != 0)
+                              ? null
+                              : Stack(
+                                alignment: Alignment.bottomRight,
+                                clipBehavior: Clip.none,
+                                children: [
+                                  // Pulse ring behind the button (only shown when collapsed)
+                                  if (!_isExpanded)
+                                    Positioned(
+                                      right: 0,
+                                      bottom: 0,
+                                      child: Container(
+                                            width: 56,
+                                            height: 56,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Color(0xFFE9D5FF),
+                                                  Color(0xFFFBCFE8),
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
                                               ),
                                             ),
+                                          )
+                                          .animate(
+                                            onPlay:
+                                                (controller) =>
+                                                    controller.repeat(),
+                                          )
+                                          .scale(
+                                            begin: const Offset(1, 1),
+                                            end: const Offset(1.5, 1.5),
+                                            duration: 2.seconds,
+                                            curve: Curves.easeOut,
+                                          )
+                                          .fadeOut(duration: 2.seconds),
+                                    ),
 
-                                            // 2. Text (only visible when expanded)
-                                            if (_isExpanded)
-                                              const Positioned(
-                                                left: 58,
-                                                child: Text(
-                                                  'Talk to Gigi',
-                                                  style: TextStyle(
-                                                    color: Color(
-                                                      0xFF4C1D95,
-                                                    ), // text-purple-950
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
+                                  // Main Gigi floating button
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.fastOutSlowIn,
+                                    clipBehavior: Clip.antiAlias,
+                                    height: 56,
+                                    width: _isExpanded ? 160 : 56,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(28),
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFFE9D5FF),
+                                          Color(0xFFFBCFE8),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFFD8B4FE,
+                                          ).withValues(alpha: 0.4),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                      border: Border.all(
+                                        color: const Color(
+                                          0xFFD8B4FE,
+                                        ).withValues(alpha: 0.3),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () => context.push('/chat'),
+                                        borderRadius: BorderRadius.circular(28),
+                                        child: SizedBox.expand(
+                                          child: Stack(
+                                            alignment: Alignment.centerLeft,
+                                            children: [
+                                              // 1. Avatar Image
+                                              Positioned(
+                                                left: 6,
+                                                child: Container(
+                                                  width: 44,
+                                                  height: 44,
+                                                  decoration: const BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Colors.white,
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black12,
+                                                        blurRadius: 2,
+                                                        offset: Offset(0, 1),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: ClipOval(
+                                                    child:
+                                                        _isExpanded
+                                                            ? Image.asset(
+                                                              'assets/images/gigi_avatar.png',
+                                                              fit: BoxFit.cover,
+                                                            )
+                                                            : Image.asset(
+                                                                  'assets/images/gigi_avatar.png',
+                                                                  fit: BoxFit.cover,
+                                                                )
+                                                                .animate(
+                                                                  onPlay:
+                                                                      (controller) =>
+                                                                          controller.repeat(),
+                                                                )
+                                                                .shake(
+                                                                  delay: 3.seconds,
+                                                                  duration: 800.ms,
+                                                                  hz: 4,
+                                                                ),
                                                   ),
                                                 ),
                                               ),
-                                          ],
+
+                                              // 2. Text (only visible when expanded)
+                                              if (_isExpanded)
+                                                const Positioned(
+                                                  left: 58,
+                                                  child: Text(
+                                                    'Talk to Gigi',
+                                                    style: TextStyle(
+                                                      color: Color(0xFF4C1D95),
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            )
-                            .animate(
-                              onPlay:
-                                  (controller) =>
-                                      controller.repeat(reverse: true),
-                            )
-                             .slideY(
-                               begin: 0.0,
-                               end: -0.12,
-                               duration: 1500.ms,
-                               curve: Curves.easeInOut,
-                             ),
+                                ],
+                              )
+                              .animate(
+                                onPlay:
+                                    (controller) =>
+                                        controller.repeat(reverse: true),
+                              )
+                              .slideY(
+                                begin: 0.0,
+                                end: -0.12,
+                                duration: 1500.ms,
+                                curve: Curves.easeInOut,
+                              ),
                     ),
                   ),
                   if (_showUserGuide)
@@ -613,68 +530,195 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildBadgeIcon({
-    required IconData icon,
-    bool showRedDot = false,
-    int badgeCount = 0,
-  }) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Icon(icon),
-        if (showRedDot)
-          Positioned(
-            right: -2,
-            top: -2,
-            child: Container(
-              width: 10,
-              height: 10,
-              decoration: const BoxDecoration(
-                color: AppColors.error,
-                shape: BoxShape.circle,
-              ),
-            ),
+  Widget _buildModernBottomNavBar(
+    BuildContext context,
+    DashboardState state,
+  ) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    return Container(
+      key: _bottomNavKey,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: const Border(
+          top: BorderSide(
+            color: Color(0xFFF1EEF8),
+            width: 1.2,
           ),
-        if (badgeCount > 0)
-          Positioned(
-            right: -6,
-            top: -6,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: AppColors.purple,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                badgeCount.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF5B21B6).withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
           ),
-      ],
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.only(
+        left: 8,
+        right: 8,
+        top: 8,
+        bottom: bottomInset > 0 ? bottomInset + 2 : 10,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavTabItem(
+            context: context,
+            index: 0,
+            selectedIndex: state.selectedIndex,
+            label: 'Home',
+            activeIcon: Icons.home_rounded,
+            inactiveIcon: Icons.home_outlined,
+          ),
+          _buildNavTabItem(
+            context: context,
+            index: 1,
+            selectedIndex: state.selectedIndex,
+            label: 'Learn',
+            activeIcon: Icons.auto_stories_rounded,
+            inactiveIcon: Icons.auto_stories_outlined,
+            hasBadge: state.hasLearnNotification,
+          ),
+          _buildNavTabItem(
+            context: context,
+            index: 2,
+            selectedIndex: state.selectedIndex,
+            label: 'Track',
+            activeIcon: Icons.calendar_month_rounded,
+            inactiveIcon: Icons.calendar_month_outlined,
+            isSpecialPulse: state.isPeriodImminent,
+          ),
+          _buildNavTabItem(
+            context: context,
+            index: 3,
+            selectedIndex: state.selectedIndex,
+            label: 'Connect',
+            activeIcon: Icons.favorite_rounded,
+            inactiveIcon: Icons.favorite_outline_rounded,
+            hasBadge: state.hasConnectNotification,
+          ),
+          _buildNavTabItem(
+            context: context,
+            index: 4,
+            selectedIndex: state.selectedIndex,
+            label: 'Circle',
+            activeIcon: Icons.groups_rounded,
+            inactiveIcon: Icons.groups_outlined,
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildTrackIcon(bool isImminent, bool isActive) {
-    final icon = Icon(
-      isActive ? Icons.calendar_today : Icons.calendar_today_outlined,
-    );
-    if (!isImminent) return icon;
+  Widget _buildNavTabItem({
+    required BuildContext context,
+    required int index,
+    required int selectedIndex,
+    required String label,
+    required IconData activeIcon,
+    required IconData inactiveIcon,
+    bool hasBadge = false,
+    bool isSpecialPulse = false,
+  }) {
+    final isSelected = selectedIndex == index;
+    const activeColor = Color(0xFF7C3AED); // AppColors.purple
+    const inactiveColor = Color(0xFF94A3B8); // Slate 400
 
-    return icon
-        .animate(onPlay: (c) => c.repeat())
-        .scaleXY(
-          begin: 1.0,
-          end: 1.15,
-          duration: 1000.ms,
-          curve: Curves.easeInOut,
-        )
-        .then()
-        .scaleXY(begin: 1.15, end: 1.0, duration: 1000.ms);
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            context.read<DashboardCubit>().setTab(index);
+          },
+          splashColor: activeColor.withValues(alpha: 0.1),
+          highlightColor: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutCubic,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSelected ? 16 : 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFFF3E8FF)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      if (isSpecialPulse && !isSelected)
+                        Icon(
+                          inactiveIcon,
+                          size: 22,
+                          color: const Color(0xFFEC4899),
+                        )
+                            .animate(onPlay: (c) => c.repeat())
+                            .scaleXY(
+                              begin: 1.0,
+                              end: 1.2,
+                              duration: 800.ms,
+                              curve: Curves.easeInOut,
+                            )
+                            .then()
+                            .scaleXY(begin: 1.2, end: 1.0, duration: 800.ms)
+                      else
+                        Icon(
+                          isSelected ? activeIcon : inactiveIcon,
+                          size: 22,
+                          color: isSelected ? activeColor : inactiveColor,
+                        ),
+                      if (hasBadge)
+                        Positioned(
+                          right: -3,
+                          top: -2,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEF4444),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 3),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? activeColor : inactiveColor,
+                    letterSpacing: -0.1,
+                  ),
+                  child: Text(label),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _safeDrawerPush(String routePath) {
