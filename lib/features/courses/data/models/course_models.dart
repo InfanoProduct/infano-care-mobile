@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class LmsInstructor {
   final String name;
   final String? designation;
@@ -15,17 +17,19 @@ class LmsInstructor {
     this.specializations = const [],
   });
 
-  factory LmsInstructor.fromJson(Map<String, dynamic> json) {
+  factory LmsInstructor.fromJson(dynamic json) {
+    if (json == null) return const LmsInstructor(name: 'Expert Instructor');
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
     return LmsInstructor(
-      name: json['name'] as String? ?? 'Expert Instructor',
-      designation: json['designation'] as String?,
-      experience: json['experience'] as String?,
-      avatarUrl: json['avatarUrl'] as String?,
-      bio: json['bio'] as String?,
-      specializations: (json['specializations'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const [],
+      name: map['name']?.toString() ?? 'Expert Instructor',
+      designation: map['designation']?.toString(),
+      experience: map['experience']?.toString(),
+      avatarUrl: map['avatarUrl']?.toString(),
+      bio: map['bio']?.toString(),
+      specializations: (map['specializations'] is List)
+          ? (map['specializations'] as List).map((e) => e.toString()).toList()
+          : const [],
     );
   }
 
@@ -52,17 +56,26 @@ class AssessmentQuestion {
     this.explanation,
   });
 
-  factory AssessmentQuestion.fromJson(Map<String, dynamic> json) {
+  factory AssessmentQuestion.fromJson(dynamic json) {
+    if (json == null) {
+      return const AssessmentQuestion(
+        question: '',
+        options: [],
+        correctAnswerIndex: 0,
+      );
+    }
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
+    final correctIdx = map['correctOptionIndex'] ?? map['correctAnswerIndex'];
     return AssessmentQuestion(
-      question: json['question'] as String? ?? '',
-      options: (json['options'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const [],
-      correctAnswerIndex: json['correctAnswerIndex'] is int
-          ? json['correctAnswerIndex'] as int
-          : int.tryParse(json['correctAnswerIndex']?.toString() ?? '0') ?? 0,
-      explanation: json['explanation'] as String?,
+      question: map['question']?.toString() ?? '',
+      options: (map['options'] is List)
+          ? (map['options'] as List).map((e) => e.toString()).toList()
+          : const [],
+      correctAnswerIndex: correctIdx is int
+          ? correctIdx
+          : int.tryParse(correctIdx?.toString() ?? '0') ?? 0,
+      explanation: map['explanation']?.toString(),
     );
   }
 
@@ -87,21 +100,31 @@ class LmsAssessment {
     this.passingScore = 80,
   });
 
-  factory LmsAssessment.fromJson(Map<String, dynamic> json) {
-    var rawQuestions = json['questions'];
+  factory LmsAssessment.fromJson(dynamic json) {
+    if (json == null) return const LmsAssessment(questions: []);
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
+    var rawQuestions = map['questions'];
+    if (rawQuestions is String) {
+      try {
+        rawQuestions = jsonDecode(rawQuestions);
+      } catch (_) {}
+    }
     List<AssessmentQuestion> qList = [];
     if (rawQuestions is List) {
-      qList = rawQuestions
-          .map((q) => AssessmentQuestion.fromJson(q as Map<String, dynamic>))
-          .toList();
+      for (var q in rawQuestions) {
+        if (q != null) {
+          qList.add(AssessmentQuestion.fromJson(q));
+        }
+      }
     }
     return LmsAssessment(
-      id: json['id'] as String?,
-      chapterId: json['chapterId'] as String?,
+      id: map['id']?.toString(),
+      chapterId: map['chapterId']?.toString(),
       questions: qList,
-      passingScore: json['passingScore'] is int
-          ? json['passingScore'] as int
-          : int.tryParse(json['passingScore']?.toString() ?? '80') ?? 80,
+      passingScore: map['passingScore'] is int
+          ? map['passingScore'] as int
+          : int.tryParse(map['passingScore']?.toString() ?? '80') ?? 80,
     );
   }
 
@@ -126,14 +149,17 @@ class LmsVideo {
     this.duration = 0,
   });
 
-  factory LmsVideo.fromJson(Map<String, dynamic> json) {
+  factory LmsVideo.fromJson(dynamic json) {
+    if (json == null) return const LmsVideo(videoUrl: '');
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
     return LmsVideo(
-      id: json['id'] as String?,
-      chapterId: json['chapterId'] as String?,
-      videoUrl: json['videoUrl'] as String? ?? '',
-      duration: json['duration'] is int
-          ? json['duration'] as int
-          : int.tryParse(json['duration']?.toString() ?? '0') ?? 0,
+      id: map['id']?.toString(),
+      chapterId: map['chapterId']?.toString(),
+      videoUrl: map['videoUrl']?.toString() ?? '',
+      duration: map['duration'] is int
+          ? map['duration'] as int
+          : int.tryParse(map['duration']?.toString() ?? '0') ?? 0,
     );
   }
 
@@ -151,10 +177,13 @@ class ChapterFaq {
 
   const ChapterFaq({required this.question, required this.answer});
 
-  factory ChapterFaq.fromJson(Map<String, dynamic> json) {
+  factory ChapterFaq.fromJson(dynamic json) {
+    if (json == null) return const ChapterFaq(question: '', answer: '');
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
     return ChapterFaq(
-      question: json['question'] as String? ?? '',
-      answer: json['answer'] as String? ?? '',
+      question: map['question']?.toString() ?? '',
+      answer: map['answer']?.toString() ?? '',
     );
   }
 
@@ -191,38 +220,59 @@ class LmsChapter {
     this.faqs = const [],
   });
 
-  factory LmsChapter.fromJson(Map<String, dynamic> json) {
+  factory LmsChapter.fromJson(dynamic json) {
+    if (json == null) {
+      return const LmsChapter(
+        id: '',
+        moduleId: '',
+        title: 'Untitled Chapter',
+        type: 'VIDEO',
+      );
+    }
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
+
     List<ChapterFaq> faqList = [];
-    if (json['faqs'] is List) {
-      for (var f in json['faqs'] as List) {
-        if (f is Map<String, dynamic>) {
+    var rawFaqs = map['faqs'];
+    if (rawFaqs is String) {
+      try {
+        rawFaqs = jsonDecode(rawFaqs);
+      } catch (_) {}
+    }
+    if (rawFaqs is List) {
+      for (var f in rawFaqs) {
+        if (f != null) {
           faqList.add(ChapterFaq.fromJson(f));
-        } else if (f is Map) {
-          faqList.add(ChapterFaq.fromJson(Map<String, dynamic>.from(f)));
         }
       }
     }
 
+    List<String> goodPoints = [];
+    var rawPoints = map['goodToKnowPoints'];
+    if (rawPoints is String) {
+      try {
+        rawPoints = jsonDecode(rawPoints);
+      } catch (_) {}
+    }
+    if (rawPoints is List) {
+      goodPoints = rawPoints.map((e) => e.toString()).toList();
+    }
+
     return LmsChapter(
-      id: json['id'] as String? ?? '',
-      moduleId: json['moduleId'] as String? ?? '',
-      title: json['title'] as String? ?? 'Untitled Chapter',
-      description: json['description'] as String?,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
-      type: (json['type'] as String? ?? 'VIDEO').toUpperCase(),
-      order: json['order'] is int
-          ? json['order'] as int
-          : int.tryParse(json['order']?.toString() ?? '0') ?? 0,
-      video: json['video'] != null
-          ? LmsVideo.fromJson(json['video'] as Map<String, dynamic>)
+      id: map['id']?.toString() ?? '',
+      moduleId: map['moduleId']?.toString() ?? '',
+      title: map['title']?.toString() ?? 'Untitled Chapter',
+      description: map['description']?.toString(),
+      thumbnailUrl: map['thumbnailUrl']?.toString(),
+      type: (map['type']?.toString() ?? 'VIDEO').toUpperCase(),
+      order: map['order'] is int
+          ? map['order'] as int
+          : int.tryParse(map['order']?.toString() ?? '0') ?? 0,
+      video: map['video'] != null ? LmsVideo.fromJson(map['video']) : null,
+      assessment: map['assessment'] != null
+          ? LmsAssessment.fromJson(map['assessment'])
           : null,
-      assessment: json['assessment'] != null
-          ? LmsAssessment.fromJson(json['assessment'] as Map<String, dynamic>)
-          : null,
-      goodToKnowPoints: (json['goodToKnowPoints'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const [],
+      goodToKnowPoints: goodPoints,
       faqs: faqList,
     );
   }
@@ -249,28 +299,40 @@ class LmsModule {
     this.chapters = const [],
   });
 
-  factory LmsModule.fromJson(Map<String, dynamic> json) {
-    var rawChapters = json['chapters'];
+  factory LmsModule.fromJson(dynamic json) {
+    if (json == null) {
+      return const LmsModule(id: '', courseId: '', title: 'Module');
+    }
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
+    var rawChapters = map['chapters'];
+    if (rawChapters is String) {
+      try {
+        rawChapters = jsonDecode(rawChapters);
+      } catch (_) {}
+    }
     List<LmsChapter> chList = [];
     if (rawChapters is List) {
-      chList = rawChapters
-          .map((c) => LmsChapter.fromJson(c as Map<String, dynamic>))
-          .toList()
-        ..sort((a, b) => a.order.compareTo(b.order));
+      for (var c in rawChapters) {
+        if (c != null) {
+          chList.add(LmsChapter.fromJson(c));
+        }
+      }
+      chList.sort((a, b) => a.order.compareTo(b.order));
     }
 
     return LmsModule(
-      id: json['id'] as String? ?? '',
-      courseId: json['courseId'] as String? ?? '',
-      title: json['title'] as String? ?? 'Module',
-      description: json['description'] as String?,
-      timeDuration: json['timeDuration'] is int
-          ? json['timeDuration'] as int
-          : int.tryParse(json['timeDuration']?.toString() ?? '0') ?? 0,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
-      order: json['order'] is int
-          ? json['order'] as int
-          : int.tryParse(json['order']?.toString() ?? '0') ?? 0,
+      id: map['id']?.toString() ?? '',
+      courseId: map['courseId']?.toString() ?? '',
+      title: map['title']?.toString() ?? 'Module',
+      description: map['description']?.toString(),
+      timeDuration: map['timeDuration'] is int
+          ? map['timeDuration'] as int
+          : int.tryParse(map['timeDuration']?.toString() ?? '0') ?? 0,
+      thumbnailUrl: map['thumbnailUrl']?.toString(),
+      order: map['order'] is int
+          ? map['order'] as int
+          : int.tryParse(map['order']?.toString() ?? '0') ?? 0,
       chapters: chList,
     );
   }
@@ -303,35 +365,57 @@ class LmsCourse {
     this.modules = const [],
   });
 
-  factory LmsCourse.fromJson(Map<String, dynamic> json) {
-    var rawModules = json['modules'];
+  factory LmsCourse.fromJson(dynamic json) {
+    if (json == null) {
+      return const LmsCourse(id: '', title: 'Untitled Course');
+    }
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
+
+    var rawModules = map['modules'];
+    if (rawModules is String) {
+      try {
+        rawModules = jsonDecode(rawModules);
+      } catch (_) {}
+    }
     List<LmsModule> mList = [];
     if (rawModules is List) {
-      mList = rawModules
-          .map((m) => LmsModule.fromJson(m as Map<String, dynamic>))
-          .toList()
-        ..sort((a, b) => a.order.compareTo(b.order));
+      for (var m in rawModules) {
+        if (m != null) {
+          mList.add(LmsModule.fromJson(m));
+        }
+      }
+      mList.sort((a, b) => a.order.compareTo(b.order));
+    }
+
+    List<String> hlList = [];
+    var rawHl = map['highlights'];
+    if (rawHl is String) {
+      try {
+        rawHl = jsonDecode(rawHl);
+      } catch (_) {}
+    }
+    if (rawHl is List) {
+      hlList = rawHl.map((e) => e.toString()).toList();
     }
 
     return LmsCourse(
-      id: json['id'] as String? ?? '',
-      title: json['title'] as String? ?? 'Untitled Course',
-      description: json['description'] as String?,
-      timeDuration: json['timeDuration'] is int
-          ? json['timeDuration'] as int
-          : int.tryParse(json['timeDuration']?.toString() ?? '0') ?? 0,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
-      price: json['price'] is num
-          ? (json['price'] as num).toDouble()
-          : double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      isFree: json['isFree'] as bool? ?? false,
-      category: json['category'] as String?,
-      highlights: (json['highlights'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const [],
-      instructor: json['instructor'] != null
-          ? LmsInstructor.fromJson(json['instructor'] as Map<String, dynamic>)
+      id: map['id']?.toString() ?? '',
+      title: map['title']?.toString() ?? 'Untitled Course',
+      description: map['description']?.toString(),
+      timeDuration: map['timeDuration'] is int
+          ? map['timeDuration'] as int
+          : int.tryParse(map['timeDuration']?.toString() ?? '0') ?? 0,
+      thumbnailUrl: map['thumbnailUrl']?.toString(),
+      price: map['price'] is num
+          ? (map['price'] as num).toDouble()
+          : double.tryParse(map['price']?.toString() ?? '0') ?? 0.0,
+      isFree: map['isFree'] as bool? ??
+          (map['price'] == 0 || map['price'] == null),
+      category: map['category']?.toString(),
+      highlights: hlList,
+      instructor: map['instructor'] != null
+          ? LmsInstructor.fromJson(map['instructor'])
           : null,
       modules: mList,
     );
@@ -372,32 +456,39 @@ class LmsProgress {
     this.completedAt,
   });
 
-  factory LmsProgress.fromJson(Map<String, dynamic> json) {
+  factory LmsProgress.fromJson(dynamic json) {
+    if (json == null) {
+      return const LmsProgress(chapterId: '', isCompleted: false);
+    }
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
     List<int>? ansList;
-    if (json['answers'] is List) {
-      ansList = (json['answers'] as List)
+    var rawAnswers = map['answers'];
+    if (rawAnswers is String) {
+      try {
+        rawAnswers = jsonDecode(rawAnswers);
+      } catch (_) {}
+    }
+    if (rawAnswers is List) {
+      ansList = rawAnswers
           .map((a) => a is int ? a : int.tryParse(a.toString()) ?? 0)
           .toList();
     }
 
     return LmsProgress(
-      id: json['id'] as String?,
-      enrollmentId: json['enrollmentId'] as String?,
-      chapterId: json['chapterId'] as String? ?? '',
-      isCompleted: json['isCompleted'] as bool? ?? false,
-      score: json['score'] != null
-          ? (json['score'] is int
-              ? json['score'] as int
-              : int.tryParse(json['score'].toString()))
-          : null,
+      id: map['id']?.toString(),
+      enrollmentId: map['enrollmentId']?.toString(),
+      chapterId: map['chapterId']?.toString() ?? '',
+      isCompleted: map['isCompleted'] as bool? ?? false,
+      score: map['score'] is int
+          ? map['score'] as int
+          : int.tryParse(map['score']?.toString() ?? ''),
       answers: ansList,
-      watchTime: json['watchTime'] != null
-          ? (json['watchTime'] is int
-              ? json['watchTime'] as int
-              : int.tryParse(json['watchTime'].toString()))
-          : null,
-      completedAt: json['completedAt'] != null
-          ? DateTime.tryParse(json['completedAt'].toString())
+      watchTime: map['watchTime'] is int
+          ? map['watchTime'] as int
+          : int.tryParse(map['watchTime']?.toString() ?? ''),
+      completedAt: map['completedAt'] != null
+          ? DateTime.tryParse(map['completedAt'].toString())
           : null,
     );
   }
@@ -433,25 +524,37 @@ class LmsEnrollment {
     this.createdAt,
   });
 
-  factory LmsEnrollment.fromJson(Map<String, dynamic> json) {
-    var rawProgress = json['progress'];
+  factory LmsEnrollment.fromJson(dynamic json) {
+    if (json == null) {
+      return const LmsEnrollment(
+        id: '',
+        userId: '',
+        courseId: '',
+        status: 'ACTIVE',
+        course: LmsCourse(id: '', title: ''),
+      );
+    }
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
+    var rawProgress = map['progress'];
     List<LmsProgress> progList = [];
     if (rawProgress is List) {
-      progList = rawProgress
-          .map((p) => LmsProgress.fromJson(p as Map<String, dynamic>))
-          .toList();
+      for (var p in rawProgress) {
+        if (p != null) {
+          progList.add(LmsProgress.fromJson(p));
+        }
+      }
     }
 
     return LmsEnrollment(
-      id: json['id'] as String? ?? '',
-      userId: json['userId'] as String? ?? '',
-      courseId: json['courseId'] as String? ?? '',
-      status: json['status'] as String? ?? 'ACTIVE',
-      course: LmsCourse.fromJson(
-          json['course'] as Map<String, dynamic>? ?? const {}),
+      id: map['id']?.toString() ?? '',
+      userId: map['userId']?.toString() ?? '',
+      courseId: map['courseId']?.toString() ?? '',
+      status: map['status']?.toString() ?? 'ACTIVE',
+      course: LmsCourse.fromJson(map['course']),
       progress: progList,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'].toString())
+      createdAt: map['createdAt'] != null
+          ? DateTime.tryParse(map['createdAt'].toString())
           : null,
     );
   }
@@ -493,20 +596,34 @@ class ChapterComment {
     required this.liked,
   });
 
-  factory ChapterComment.fromJson(Map<String, dynamic> json) {
+  factory ChapterComment.fromJson(dynamic json) {
+    if (json == null) {
+      return ChapterComment(
+        id: '',
+        chapterId: '',
+        authorName: 'Learner',
+        authorInitials: 'L',
+        text: '',
+        timestamp: DateTime.now(),
+        likes: 0,
+        liked: false,
+      );
+    }
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
     return ChapterComment(
-      id: json['id'] as String? ?? '',
-      chapterId: json['chapterId'] as String? ?? '',
-      authorName: json['authorName'] as String? ?? 'Learner',
-      authorInitials: json['authorInitials'] as String? ?? 'L',
-      text: json['text'] as String? ?? '',
-      timestamp: json['timestamp'] != null
-          ? DateTime.tryParse(json['timestamp'].toString()) ?? DateTime.now()
+      id: map['id']?.toString() ?? '',
+      chapterId: map['chapterId']?.toString() ?? '',
+      authorName: map['authorName']?.toString() ?? 'Learner',
+      authorInitials: map['authorInitials']?.toString() ?? 'L',
+      text: map['text']?.toString() ?? '',
+      timestamp: map['timestamp'] != null
+          ? DateTime.tryParse(map['timestamp'].toString()) ?? DateTime.now()
           : DateTime.now(),
-      likes: json['likes'] is int
-          ? json['likes'] as int
-          : int.tryParse(json['likes']?.toString() ?? '0') ?? 0,
-      liked: json['liked'] as bool? ?? false,
+      likes: map['likes'] is int
+          ? map['likes'] as int
+          : int.tryParse(map['likes']?.toString() ?? '0') ?? 0,
+      liked: map['liked'] as bool? ?? false,
     );
   }
 
@@ -530,14 +647,20 @@ class ChapterLikesInfo {
 
   const ChapterLikesInfo({required this.liked, required this.count});
 
-  factory ChapterLikesInfo.fromJson(Map<String, dynamic> json) {
+  factory ChapterLikesInfo.fromJson(dynamic json) {
+    if (json == null) return const ChapterLikesInfo(liked: false, count: 0);
+    final Map<String, dynamic> map =
+        json is Map ? Map<String, dynamic>.from(json) : {};
     return ChapterLikesInfo(
-      liked: json['liked'] as bool? ?? false,
-      count: json['likesCount'] is int
-          ? json['likesCount'] as int
-          : (json['count'] is int
-              ? json['count'] as int
-              : int.tryParse(json['likesCount']?.toString() ?? '0') ?? 0),
+      liked: map['liked'] as bool? ?? false,
+      count: map['likesCount'] is int
+          ? map['likesCount'] as int
+          : (map['count'] is int
+              ? map['count'] as int
+              : int.tryParse(map['likesCount']?.toString() ??
+                      map['count']?.toString() ??
+                      '0') ??
+                  0),
     );
   }
 }

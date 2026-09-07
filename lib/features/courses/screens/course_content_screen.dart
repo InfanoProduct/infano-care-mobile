@@ -98,16 +98,18 @@ class _CourseContentScreenState extends State<CourseContentScreen>
       final progress = results[1] as List<LmsProgress>;
 
       LmsChapter? targetChapter;
-      if (widget.initialChapterId != null) {
-        targetChapter = course.flatChapters.firstWhere(
-          (c) => c.id == widget.initialChapterId,
-          orElse: () => course.flatChapters.first,
-        );
-      } else {
-        targetChapter = course.flatChapters.firstWhere(
-          (c) => !progress.any((p) => p.chapterId == c.id && p.isCompleted),
-          orElse: () => course.flatChapters.first,
-        );
+      if (course.flatChapters.isNotEmpty) {
+        if (widget.initialChapterId != null) {
+          targetChapter = course.flatChapters.firstWhere(
+            (c) => c.id == widget.initialChapterId,
+            orElse: () => course.flatChapters.first,
+          );
+        } else {
+          targetChapter = course.flatChapters.firstWhere(
+            (c) => !progress.any((p) => p.chapterId == c.id && p.isCompleted),
+            orElse: () => course.flatChapters.first,
+          );
+        }
       }
 
       if (mounted) {
@@ -116,7 +118,9 @@ class _CourseContentScreenState extends State<CourseContentScreen>
           _progress = progress;
           _isLoading = false;
         });
-        _selectChapter(targetChapter);
+        if (targetChapter != null) {
+          _selectChapter(targetChapter);
+        }
       }
     } catch (e) {
       if (mounted) {

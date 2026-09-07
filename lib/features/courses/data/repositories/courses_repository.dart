@@ -13,8 +13,7 @@ class CoursesRepository {
       final response = await _dio.get('lms/my-courses');
       if (response.data is List) {
         return (response.data as List)
-            .map((item) =>
-                LmsEnrollment.fromJson(item as Map<String, dynamic>))
+            .map((item) => LmsEnrollment.fromJson(item))
             .toList();
       }
       return [];
@@ -30,8 +29,7 @@ class CoursesRepository {
       final response = await _dio.get('lms/explore');
       if (response.data is List) {
         return (response.data as List)
-            .map((item) =>
-                LmsCourse.fromJson(item as Map<String, dynamic>))
+            .map((item) => LmsCourse.fromJson(item))
             .toList();
       }
       return [];
@@ -45,7 +43,7 @@ class CoursesRepository {
   Future<LmsCourse> getCourseDetails(String courseId) async {
     try {
       final response = await _dio.get('lms/$courseId');
-      return LmsCourse.fromJson(response.data as Map<String, dynamic>);
+      return LmsCourse.fromJson(response.data);
     } catch (e) {
       debugPrint('[CoursesRepository] Error fetching course details: $e');
       rethrow;
@@ -56,10 +54,11 @@ class CoursesRepository {
   Future<List<LmsProgress>> getCourseProgress(String courseId) async {
     try {
       final response = await _dio.get('lms/$courseId/progress');
-      if (response.data != null && response.data['progress'] is List) {
+      if (response.data != null &&
+          response.data is Map &&
+          response.data['progress'] is List) {
         return (response.data['progress'] as List)
-            .map((item) =>
-                LmsProgress.fromJson(item as Map<String, dynamic>))
+            .map((item) => LmsProgress.fromJson(item))
             .toList();
       }
       return [];

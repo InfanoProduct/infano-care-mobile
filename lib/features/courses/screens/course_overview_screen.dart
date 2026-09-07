@@ -131,12 +131,21 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
   }
 
   void _navigateToPlayer([String? targetChapterId]) {
+    if (_course == null || _course!.flatChapters.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No video lessons available in this course yet.'),
+        ),
+      );
+      return;
+    }
+
     final next = targetChapterId != null
         ? _course?.flatChapters.firstWhere(
             (c) => c.id == targetChapterId,
             orElse: () => _course!.flatChapters.first,
           )
-        : _getNextChapter();
+        : (_getNextChapter() ?? _course!.flatChapters.first);
 
     context.push(
       '/courses/${widget.courseId}/player',
