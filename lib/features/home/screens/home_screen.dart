@@ -20,6 +20,7 @@ import 'package:infano_care_mobile/widgets/circle_details_sheet.dart';
 import 'package:infano_care_mobile/widgets/peer_mentor_detail_sheet.dart';
 import 'package:infano_care_mobile/features/tracker/presentation/screens/article_detail_screen.dart';
 import 'package:infano_care_mobile/features/home/widgets/parent_daughter_summary_home_card.dart';
+import 'package:infano_care_mobile/features/home/widgets/my_course_home_card.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:provider/provider.dart';
 
@@ -572,6 +573,11 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                           },
                         ),
                       ),
+
+                      const SizedBox(height: 32),
+
+                      // My Courses / Continue Learning Card
+                      const MyCourseHomeCard(),
 
                       const SizedBox(height: 44),
 

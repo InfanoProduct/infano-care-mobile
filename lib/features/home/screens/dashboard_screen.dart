@@ -592,7 +592,6 @@ class _DashboardScreenState extends State<DashboardScreen>
             label: 'Track',
             activeIcon: Icons.calendar_month_rounded,
             inactiveIcon: Icons.calendar_month_outlined,
-            isSpecialPulse: state.isPeriodImminent,
           ),
           _buildNavTabItem(
             context: context,
@@ -624,7 +623,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     required IconData activeIcon,
     required IconData inactiveIcon,
     bool hasBadge = false,
-    bool isSpecialPulse = false,
   }) {
     final isSelected = selectedIndex == index;
     const activeColor = Color(0xFF7C3AED); // AppColors.purple
@@ -638,8 +636,11 @@ class _DashboardScreenState extends State<DashboardScreen>
             HapticFeedback.lightImpact();
             context.read<DashboardCubit>().setTab(index);
           },
-          splashColor: activeColor.withValues(alpha: 0.1),
+          splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
+          splashFactory: NoSplash.splashFactory,
+          hoverColor: Colors.transparent,
+          focusColor: Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 2),
@@ -664,27 +665,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                     clipBehavior: Clip.none,
                     alignment: Alignment.center,
                     children: [
-                      if (isSpecialPulse && !isSelected)
-                        Icon(
-                          inactiveIcon,
-                          size: 22,
-                          color: const Color(0xFFEC4899),
-                        )
-                            .animate(onPlay: (c) => c.repeat())
-                            .scaleXY(
-                              begin: 1.0,
-                              end: 1.2,
-                              duration: 800.ms,
-                              curve: Curves.easeInOut,
-                            )
-                            .then()
-                            .scaleXY(begin: 1.2, end: 1.0, duration: 800.ms)
-                      else
-                        Icon(
-                          isSelected ? activeIcon : inactiveIcon,
-                          size: 22,
-                          color: isSelected ? activeColor : inactiveColor,
-                        ),
+                      Icon(
+                        isSelected ? activeIcon : inactiveIcon,
+                        size: 22,
+                        color: isSelected ? activeColor : inactiveColor,
+                      ),
                       if (hasBadge)
                         Positioned(
                           right: -3,
