@@ -6,15 +6,13 @@ import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:infano_care_mobile/models/chat_message.dart';
 import 'package:infano_care_mobile/widgets/crisis_resource_card.dart';
+import 'package:infano_care_mobile/widgets/voice_message_bubble.dart';
+import 'package:infano_care_mobile/widgets/voice_recorder_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:intl/intl.dart';
-import 'package:record/record.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 
 class PeerLineChatScreen extends StatefulWidget {
@@ -40,65 +38,13 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
   String? _piiError;
   String? _myRole;
 
-  // Voice recording state
-  final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecording = false;
-  String? _recordingPath;
-  Timer? _recordingTimer;
-  int _recordingDuration = 0;
 
   @override
   void initState() {
     super.initState();
     _loadData();
     _setupSocket();
-  }
-
-  Future<void> _startRecording() async {
-    try {
-      if (await Permission.microphone.request().isGranted) {
-        final directory = await getTemporaryDirectory();
-        _recordingPath = '${directory.path}/voice_note_${DateTime.now().millisecondsSinceEpoch}.m4a';
-        
-        const config = RecordConfig();
-        await _audioRecorder.start(config, path: _recordingPath!);
-        
-        setState(() {
-          _isRecording = true;
-          _recordingDuration = 0;
-        });
-        
-        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          setState(() {
-            _recordingDuration++;
-          });
-        });
-      } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Microphone permission is required to record voice notes.')),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error starting recording: $e');
-    }
-  }
-
-  Future<void> _stopRecording({bool cancel = false}) async {
-    try {
-      _recordingTimer?.cancel();
-      final path = await _audioRecorder.stop();
-      
-      setState(() {
-        _isRecording = false;
-      });
-
-      if (!cancel && path != null) {
-        _sendVoiceNote(path);
-      }
-    } catch (e) {
-      debugPrint('Error stopping recording: $e');
-    }
   }
 
   Future<void> _sendVoiceNote(String path) async {
@@ -119,7 +65,34 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       setState(() {
         _messages.add(tempMessage);
         _showIntroCard = false;
+        _isRecording = false;
       });
+      _scrollToBottom();
+      
+      final storage = Provider.of<LocalStorageService>(context, listen: false);
+      storage.setPeerlineChatIntroDismissed(widget.sessionId);
+
+      // Upload file
+      final mediaUrl = await api.uploadMedia(path);
+      
+      // Send via socket
+      _socketService?.sendMessage(
+        widget.sessionId,
+        null,
+        _myRole ?? 'mentee',
+        messageType: 'VOICE',
+        mediaUrl: mediaUrl,
+        clientId: clientId,
+      );
+    } catch (e) {
+      debugPrint('Error sending voice note: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send voice note: $e')),
+        );
+      }
+    }
+  }
       _scrollToBottom();
       
       final storage = Provider.of<LocalStorageService>(context, listen: false);
@@ -717,6 +690,26 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
   }
 
   Widget _buildInputArea({bool isPending = false}) {
+    if (_isRecording) {
+      return Container(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 12,
+          bottom: math.max(12, MediaQuery.of(context).padding.bottom),
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Color(0xFFF3F4F6))),
+        ),
+        child: VoiceRecorderBar(
+          primaryColor: AppColors.purple,
+          onRecordingFinished: (path, duration) => _sendVoiceNote(path),
+          onCancel: () => setState(() => _isRecording = false),
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.only(
         left: 16,
@@ -742,107 +735,64 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                   style:
                       TextStyle(color: Colors.red.shade700, fontSize: 12)),
             ),
-          if (_isRecording)
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: AppColors.purple.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.mic, color: Colors.red, size: 20),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Recording... ${_recordingDuration ~/ 60}:${(_recordingDuration % 60).toString().padLeft(2, '0')}',
-                    style: GoogleFonts.nunito(
-                        color: Colors.red, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => _stopRecording(cancel: true),
-                    child: Text('Cancel',
-                        style:
-                            TextStyle(color: Colors.grey.shade600)),
-                  ),
-                  IconButton(
-                    icon:
-                        const Icon(Icons.send_rounded, color: AppColors.purple),
-                    onPressed: () => _stopRecording(),
-                  ),
-                ],
-              ),
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: TextField(
-                      controller: _messageController,
-                      maxLines: null,
-                      maxLength: 500,
-                      enabled: !isPending,
-                      textCapitalization: TextCapitalization.sentences,
-                      onChanged: (val) {
-                        _sendTyping(val.isNotEmpty);
-                        if (_piiError != null) {
-                          setState(() => _piiError = null);
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: isPending
-                            ? 'Waiting for mentor to accept…'
-                            : 'Send a message...',
-                        border: InputBorder.none,
-                        counterText: "",
-                        hintStyle: const TextStyle(fontSize: 14),
-                      ),
+                  child: TextField(
+                    controller: _messageController,
+                    maxLines: null,
+                    maxLength: 500,
+                    enabled: !isPending,
+                    textCapitalization: TextCapitalization.sentences,
+                    onChanged: (val) {
+                      _sendTyping(val.isNotEmpty);
+                      if (_piiError != null) {
+                        setState(() => _piiError = null);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: isPending
+                          ? 'Waiting for mentor to accept…'
+                          : 'Send a message...',
+                      border: InputBorder.none,
+                      counterText: "",
+                      hintStyle: const TextStyle(fontSize: 14),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                if (!isPending)
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _messageController,
-                    builder: (context, value, _) {
-                      final isTextEmpty = value.text.trim().isEmpty;
-                      return CircleAvatar(
-                        backgroundColor: isTextEmpty
-                            ? Colors.grey.shade200
-                            : AppColors.purple,
-                        child: isTextEmpty
-                            ? GestureDetector(
-                                onLongPress: _startRecording,
-                                onLongPressUp: () => _stopRecording(),
-                                child: IconButton(
-                                  icon: const Icon(Icons.mic,
-                                      color: Colors.grey),
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(const SnackBar(
-                                            content: Text(
-                                                'Hold to record voice note')));
-                                  },
-                                ),
-                              )
-                            : IconButton(
-                                icon: const Icon(Icons.send_rounded,
-                                    color: Colors.white, size: 20),
-                                onPressed: _sendMessage,
-                              ),
-                      );
-                    },
-                  ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              if (!isPending)
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _messageController,
+                  builder: (context, value, _) {
+                    final isTextEmpty = value.text.trim().isEmpty;
+                    return CircleAvatar(
+                      backgroundColor: isTextEmpty
+                          ? AppColors.purple.withValues(alpha: 0.1)
+                          : AppColors.purple,
+                      child: IconButton(
+                        icon: Icon(
+                          isTextEmpty ? Icons.mic_rounded : Icons.send_rounded,
+                          color: isTextEmpty ? AppColors.purple : Colors.white,
+                          size: 20,
+                        ),
+                        onPressed: isTextEmpty
+                            ? () => setState(() => _isRecording = true)
+                            : _sendMessage,
+                        tooltip: isTextEmpty ? 'Record voice note' : 'Send message',
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
           const SizedBox(height: 4),
           // Character count
           Align(
@@ -864,121 +814,6 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         ],
       ),
     );
-  }
-}
-
-class VoiceMessageBubble extends StatefulWidget {
-  final String url;
-  final bool isMe;
-
-  const VoiceMessageBubble({super.key, required this.url, required this.isMe});
-
-  @override
-  State<VoiceMessageBubble> createState() => _VoiceMessageBubbleState();
-}
-
-class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
-  final AudioPlayer _player = AudioPlayer();
-  bool _isPlaying = false;
-  Duration _duration = Duration.zero;
-  Duration _position = Duration.zero;
-  StreamSubscription? _durationSub;
-  StreamSubscription? _positionSub;
-  StreamSubscription? _playerSub;
-
-  @override
-  void initState() {
-    super.initState();
-    _setupPlayer();
-  }
-
-  void _setupPlayer() {
-    _durationSub = _player.onDurationChanged.listen((d) => setState(() => _duration = d));
-    _positionSub = _player.onPositionChanged.listen((p) => setState(() => _position = p));
-    _playerSub = _player.onPlayerComplete.listen((_) => setState(() => _isPlaying = false));
-  }
-
-  @override
-  void dispose() {
-    _durationSub?.cancel();
-    _positionSub?.cancel();
-    _playerSub?.cancel();
-    _player.dispose();
-    super.dispose();
-  }
-
-  Future<void> _togglePlay() async {
-    if (_isPlaying) {
-      await _player.pause();
-      setState(() => _isPlaying = false);
-    } else {
-      if (widget.url.startsWith('http')) {
-        await _player.play(UrlSource(widget.url));
-      } else {
-        await _player.play(DeviceFileSource(widget.url));
-      }
-      setState(() => _isPlaying = true);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = widget.isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6);
-    
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled, color: color, size: 32),
-          onPressed: _togglePlay,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  trackHeight: 2,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                  activeTrackColor: color,
-                  inactiveTrackColor: color.withValues(alpha: 0.2),
-                  thumbColor: color,
-                ),
-                child: Slider(
-                  value: _position.inMilliseconds.toDouble(),
-                  max: _duration.inMilliseconds.toDouble() > 0 ? _duration.inMilliseconds.toDouble() : 1.0,
-                  onChanged: (val) => _player.seek(Duration(milliseconds: val.toInt())),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _formatDuration(_position),
-                      style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.6)),
-                    ),
-                    Text(
-                      _formatDuration(_duration),
-                      style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.6)),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatDuration(Duration d) {
-    return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
   }
 }
 

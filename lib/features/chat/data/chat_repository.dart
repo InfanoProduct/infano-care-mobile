@@ -1,9 +1,28 @@
+import 'package:dio/dio.dart';
+import 'package:path/path.dart' as path;
 import 'package:infano_care_mobile/core/services/api_service.dart';
 
 class ChatRepository {
   final ApiService _api;
 
   ChatRepository(this._api);
+
+  /// Upload voice note or media for chat
+  Future<String> uploadMedia(String filePath, {String folder = 'chat'}) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath, filename: path.basename(filePath)),
+      });
+      final response = await _api.dio.post(
+        '/chat/media',
+        data: formData,
+        queryParameters: {'folder': folder},
+      );
+      return response.data['mediaUrl'] ?? response.data['url'] ?? '';
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   /// Send a message to Gigi
   Future<Map<String, dynamic>> sendMessage(String content, {String? sessionId, String? moodCode}) async {

@@ -99,6 +99,17 @@ class FriendsApi {
     await _dio.post('/friends/chats/$matchId/block');
   }
 
+  Future<String> uploadMedia(String filePath, {String folder = 'friends'}) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: filePath.split('/').last.split('\\').last),
+    });
+    final response = await _dio.post('/chat/media',
+      data: formData,
+      queryParameters: {'folder': folder},
+    );
+    return response.data['mediaUrl'] ?? response.data['url'] ?? '';
+  }
+
   Future<void> toggleDiscovery(bool isActive) async {
     await _dio.put('/friends/profile/toggle-discovery', data: {'isActive': isActive});
   }

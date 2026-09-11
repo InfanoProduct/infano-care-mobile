@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/expert/services/expert_service.dart';
+import 'package:infano_care_mobile/widgets/voice_message_bubble.dart';
+import 'package:infano_care_mobile/widgets/voice_recorder_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -28,6 +30,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
   
   List<Map<String, dynamic>> _messages = [];
   bool _isLoading = true;
+  bool _isRecordingVoice = false;
 
   @override
   void initState() {
@@ -202,13 +205,42 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
     );
   }
 
+  String? _extractVoiceUrl(String content) {
+    if (content.startsWith('[VOICE:') && content.endsWith(']')) {
+      return content.substring(7, content.length - 1);
+    }
+    if (content.startsWith('http://') || content.startsWith('https://')) {
+      final lower = content.toLowerCase();
+      if (lower.endsWith('.m4a') || lower.endsWith('.mp3') || lower.endsWith('.wav') || lower.endsWith('.aac') || lower.contains('/uploads/')) {
+        return content;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _sendVoiceNote(String filePath, int durationSeconds) async {
+    setState(() => _isRecordingVoice = false);
+    try {
+      final mediaUrl = await _expertService.uploadMedia(filePath);
+      _expertService.sendMessage(widget.sessionId, '[VOICE:$mediaUrl]');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send voice note: $e')),
+        );
+      }
+    }
+  }
+
   Widget _buildMessageBubble(String content, bool isMe, String timestamp, String senderId) {
     final timeStr = timestamp.toString();
     String time = '...';
     try {
       time = DateFormat('hh:mm a').format(DateTime.parse(timeStr).toLocal());
     } catch (_) {}
-    
+
+    final voiceUrl = _extractVoiceUrl(content);
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
@@ -216,15 +248,18 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
         children: [
           Container(
             margin: const EdgeInsets.symmetric(vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
             decoration: BoxDecoration(
-              color: isMe ? AppColors.purple : AppColors.surfaceCard,
+              color: isMe ? const Color(0xFFFFF1F2) : const Color(0xFFF5F3FF),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(18),
                 topRight: const Radius.circular(18),
                 bottomLeft: Radius.circular(isMe ? 18 : 4),
                 bottomRight: Radius.circular(isMe ? 4 : 18),
+              ),
+              border: Border.all(
+                color: isMe ? const Color(0xFFFEE2E2) : const Color(0xFFEDE9FE),
               ),
               boxShadow: [
                 BoxShadow(
@@ -237,16 +272,26 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (!isMe) Text('Sender: ...${senderId.split('-').first}', 
-                  style: TextStyle(fontSize: 10, color: AppColors.textLight.withValues(alpha: 0.5))),
-                Text(
-                  content, 
-                  style: TextStyle(
-                    color: isMe ? Colors.white : AppColors.textDark,
-                    fontSize: 15,
-                    height: 1.4,
+                if (!isMe)
+                  Text(
+                    'Sender: ...${senderId.split('-').first}',
+                    style: TextStyle(fontSize: 10, color: AppColors.textLight.withValues(alpha: 0.5)),
                   ),
-                ),
+                if (voiceUrl != null)
+                  VoiceMessageBubble(
+                    url: voiceUrl,
+                    isMe: isMe,
+                    primaryColor: isMe ? const Color(0xFF9F1239) : AppColors.purple,
+                  )
+                else
+                  Text(
+                    content,
+                    style: TextStyle(
+                      color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6),
+                      fontSize: 15,
+                      height: 1.4,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -261,6 +306,20 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
   }
 
   Widget _buildInputArea() {
+    if (_isRecordingVoice) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+        color: Colors.white,
+        child: VoiceRecorderBar(
+          primaryColor: AppColors.purple,
+          onRecordingFinished: _sendVoiceNote,
+          onCancel: () => setState(() => _isRecordingVoice = false),
+        ),
+      );
+    }
+
+    final hasText = _messageController.text.trim().isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
       decoration: BoxDecoration(
@@ -284,6 +343,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
               ),
               child: TextField(
                 controller: _messageController,
+                onChanged: (_) => setState(() {}),
                 decoration: const InputDecoration(
                   hintText: 'Type your message...',
                   border: InputBorder.none,
@@ -297,22 +357,28 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
           ),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: _sendMessage,
+            onTap: hasText ? _sendMessage : () => setState(() => _isRecordingVoice = true),
             child: Container(
               width: 46,
               height: 46,
-              decoration: const BoxDecoration(
-                color: AppColors.purple,
+              decoration: BoxDecoration(
+                color: hasText ? AppColors.purple : AppColors.purple.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x667C3AED),
-                    blurRadius: 8,
-                    offset: Offset(0, 3),
-                  ),
-                ],
+                boxShadow: hasText
+                    ? const [
+                        BoxShadow(
+                          color: Color(0x667C3AED),
+                          blurRadius: 8,
+                          offset: Offset(0, 3),
+                        ),
+                      ]
+                    : null,
               ),
-              child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+              child: Icon(
+                hasText ? Icons.send_rounded : Icons.mic_rounded,
+                color: hasText ? Colors.white : AppColors.purple,
+                size: 20,
+              ),
             ),
           ),
         ],

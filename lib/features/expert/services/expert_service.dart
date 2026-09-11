@@ -245,6 +245,24 @@ class ExpertService {
     }
   }
 
+  /// Upload voice note or media for expert chat
+  Future<String> uploadMedia(String filePath, {String folder = 'expert'}) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath, filename: filePath.split('/').last.split('\\').last),
+      });
+      final response = await _dio.post(
+        '/chat/media',
+        data: formData,
+        queryParameters: {'folder': folder},
+      );
+      return response.data['mediaUrl'] ?? response.data['url'] ?? '';
+    } catch (e) {
+      debugPrint('[ExpertService] Error uploading media: $e');
+      rethrow;
+    }
+  }
+
   Future<bool> markAsRead(String sessionId) async {
     try {
       final response = await _dio.patch('/expert/session/$sessionId/read');

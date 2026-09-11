@@ -68,11 +68,13 @@ class FriendsSocketService {
     _socket?.emit('unsubscribe_chat', matchId);
   }
 
-  void sendMessage(String matchId, String content, {String? clientId}) {
+  void sendMessage(String matchId, String? content, {String? clientId, String? mediaUrl, String? messageType}) {
     _socket?.emit('send_message', {
       'matchId': matchId,
-      'content': content,
+      'content': content ?? mediaUrl ?? '',
       'clientId': clientId,
+      if (mediaUrl != null) 'mediaUrl': mediaUrl,
+      if (messageType != null) 'messageType': messageType,
     });
   }
 

@@ -4,6 +4,8 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/services/friends_api.dart';
 import 'package:infano_care_mobile/services/friends_socket_service.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/widgets/voice_message_bubble.dart';
+import 'package:infano_care_mobile/widgets/voice_recorder_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
@@ -29,6 +31,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
   bool _isLoading = true;
   bool _isPeerTyping = false;
   bool _showTagsBanner = true;
+  bool _isRecordingVoice = false;
   String? _safetyError;
   String? _currentUserId;
   
@@ -521,6 +524,63 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
     );
   }
 
+  String? _extractVoiceUrl(Map<String, dynamic> msg) {
+    if (msg['messageType'] == 'VOICE' && msg['mediaUrl'] != null) {
+      return msg['mediaUrl'];
+    }
+    final content = msg['content']?.toString() ?? '';
+    if (content.startsWith('[VOICE:') && content.endsWith(']')) {
+      return content.substring(7, content.length - 1);
+    }
+    if (content.startsWith('http://') || content.startsWith('https://')) {
+      final lower = content.toLowerCase();
+      if (lower.endsWith('.m4a') || lower.endsWith('.mp3') || lower.endsWith('.wav') || lower.endsWith('.aac') || lower.contains('/uploads/')) {
+        return content;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _sendVoiceNote(String filePath, int durationSeconds) async {
+    setState(() => _isRecordingVoice = false);
+    final clientId = 'c-voice-${DateTime.now().millisecondsSinceEpoch}';
+
+    final tempMessage = {
+      'id': clientId,
+      'matchId': widget.matchId,
+      'senderId': _currentUserId,
+      'content': 'Voice Note',
+      'mediaUrl': filePath,
+      'messageType': 'VOICE',
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+
+    setState(() {
+      _messages.add(tempMessage);
+      _safetyError = null;
+    });
+    _scrollToBottom();
+
+    try {
+      final api = FriendsApi(ApiService.instance.dio);
+      final mediaUrl = await api.uploadMedia(filePath);
+
+      _socketService?.sendMessage(
+        widget.matchId,
+        null,
+        clientId: clientId,
+        mediaUrl: mediaUrl,
+        messageType: 'VOICE',
+      );
+      _sendTyping(false);
+    } catch (e) {
+      setState(() => _messages.remove(tempMessage));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send voice note: $e')));
+      }
+    }
+  }
+
   Widget _buildMessageBubble(Map<String, dynamic> msg, bool isMe, int index) {
     final sentAt = DateTime.parse(msg['createdAt'] ?? DateTime.now().toIso8601String());
     
@@ -567,10 +627,17 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    msg['content'] ?? '',
-                    style: GoogleFonts.nunito(color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), fontSize: 15),
-                  ),
+                  if (_extractVoiceUrl(msg) != null)
+                    VoiceMessageBubble(
+                      url: _extractVoiceUrl(msg)!,
+                      isMe: isMe,
+                      primaryColor: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6),
+                    )
+                  else
+                    Text(
+                      msg['content'] ?? '',
+                      style: GoogleFonts.nunito(color: isMe ? const Color(0xFF9F1239) : const Color(0xFF5B21B6), fontSize: 15),
+                    ),
                   if (msg['isEdited'] == true) ...[
                     const SizedBox(height: 2),
                     Text(
@@ -614,6 +681,18 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
   }
 
   Widget _buildInputArea() {
+    if (_isRecordingVoice) {
+      return Container(
+        padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: math.max(12, MediaQuery.of(context).padding.bottom)),
+        decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Color(0xFFF3F4F6)))),
+        child: VoiceRecorderBar(
+          primaryColor: AppColors.purple,
+          onRecordingFinished: _sendVoiceNote,
+          onCancel: () => setState(() => _isRecordingVoice = false),
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: math.max(12, MediaQuery.of(context).padding.bottom)),
       decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Color(0xFFF3F4F6)))),
@@ -653,10 +732,11 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
                 builder: (context, value, _) {
                   final canSend = value.text.trim().isNotEmpty;
                   return CircleAvatar(
-                    backgroundColor: canSend ? AppColors.purple : Colors.grey.shade200,
+                    backgroundColor: canSend ? AppColors.purple : AppColors.purple.withValues(alpha: 0.1),
                     child: IconButton(
-                      icon: Icon(Icons.send_rounded, color: canSend ? Colors.white : Colors.grey, size: 20),
-                      onPressed: canSend ? _sendMessage : null,
+                      icon: Icon(canSend ? Icons.send_rounded : Icons.mic_rounded, color: canSend ? Colors.white : AppColors.purple, size: 20),
+                      onPressed: canSend ? _sendMessage : () => setState(() => _isRecordingVoice = true),
+                      tooltip: canSend ? 'Send message' : 'Record voice note',
                     ),
                   );
                 },
