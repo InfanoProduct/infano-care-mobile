@@ -93,33 +93,6 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       }
     }
   }
-      _scrollToBottom();
-      
-      final storage = Provider.of<LocalStorageService>(context, listen: false);
-      storage.setPeerlineChatIntroDismissed(widget.sessionId);
-
-      // Upload file
-      final mediaUrl = await api.uploadMedia(path);
-      
-      // Send via socket
-      _socketService?.sendMessage(
-        widget.sessionId,
-        null,
-        _myRole ?? 'mentee',
-        messageType: 'VOICE',
-        mediaUrl: mediaUrl,
-        clientId: clientId,
-      );
-    } catch (e) {
-      debugPrint('Error sending voice note: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send voice note: $e')),
-        );
-      }
-    }
-  }
-
 
   void _setupSocket() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -201,12 +174,10 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
 
   @override
   void dispose() {
-    _recordingTimer?.cancel();
     _socketSubscription?.cancel();
     _socketService?.unsubscribeFromConnection(widget.sessionId);
     _messageController.dispose();
     _scrollController.dispose();
-    _audioRecorder.dispose();
     super.dispose();
   }
 
