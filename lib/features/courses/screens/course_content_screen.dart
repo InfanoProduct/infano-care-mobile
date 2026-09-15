@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/courses/data/models/course_models.dart';
 import 'package:infano_care_mobile/features/courses/data/repositories/courses_repository.dart';
+import 'package:infano_care_mobile/features/courses/widgets/course_shimmer_skeletons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:infano_care_mobile/features/courses/widgets/lms_video_player.dart';
@@ -61,7 +63,50 @@ class _CourseContentScreenState extends State<CourseContentScreen>
     _confettiController =
         ConfettiController(duration: const Duration(seconds: 3));
     _tabController = TabController(length: 4, vsync: this);
-    _loadCourseAndChapter();
+
+    final cachedCourse = AppCacheManager.instance.getCourseDetails(widget.courseId);
+    final cachedProgress = AppCacheManager.instance.getCourseProgress(widget.courseId);
+
+    if (cachedCourse != null) {
+      _course = cachedCourse;
+      _progress = cachedProgress ?? [];
+      _isLoading = false;
+      _initTargetChapter(cachedCourse, _progress);
+    }
+
+    _loadCourseAndChapter(isSilent: _course != null);
+  }
+
+  void _initTargetChapter(LmsCourse course, List<LmsProgress> progress) {
+    if (course.flatChapters.isEmpty) return;
+    LmsChapter? targetChapter;
+    if (widget.initialChapterId != null) {
+      final requested = course.flatChapters.firstWhere(
+        (c) => c.id == widget.initialChapterId,
+        orElse: () => course.flatChapters.first,
+      );
+      final idx = course.flatChapters.indexWhere((c) => c.id == requested.id);
+      bool unlocked = true;
+      if (idx > 0) {
+        final prevId = course.flatChapters[idx - 1].id;
+        unlocked = progress.any((p) => p.chapterId == prevId && p.isCompleted);
+      }
+      if (unlocked) {
+        targetChapter = requested;
+      } else {
+        targetChapter = course.flatChapters.firstWhere(
+          (c) => !progress.any((p) => p.chapterId == c.id && p.isCompleted),
+          orElse: () => course.flatChapters.first,
+        );
+      }
+    } else {
+      targetChapter = course.flatChapters.firstWhere(
+        (c) => !progress.any((p) => p.chapterId == c.id && p.isCompleted),
+        orElse: () => course.flatChapters.first,
+      );
+    }
+
+    _selectChapter(targetChapter);
   }
 
   @override
@@ -78,11 +123,13 @@ class _CourseContentScreenState extends State<CourseContentScreen>
     _ytController = null;
   }
 
-  Future<void> _loadCourseAndChapter() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _loadCourseAndChapter({bool isSilent = false}) async {
+    if (!isSilent && _course == null) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final results = await Future.wait([
@@ -93,47 +140,22 @@ class _CourseContentScreenState extends State<CourseContentScreen>
       final course = results[0] as LmsCourse;
       final progress = results[1] as List<LmsProgress>;
 
-      LmsChapter? targetChapter;
-      if (course.flatChapters.isNotEmpty) {
-        if (widget.initialChapterId != null) {
-          final requested = course.flatChapters.firstWhere(
-            (c) => c.id == widget.initialChapterId,
-            orElse: () => course.flatChapters.first,
-          );
-          final idx = course.flatChapters.indexWhere((c) => c.id == requested.id);
-          bool unlocked = true;
-          if (idx > 0) {
-            final prevId = course.flatChapters[idx - 1].id;
-            unlocked = progress.any((p) => p.chapterId == prevId && p.isCompleted);
-          }
-          if (unlocked) {
-            targetChapter = requested;
-          } else {
-            targetChapter = course.flatChapters.firstWhere(
-              (c) => !progress.any((p) => p.chapterId == c.id && p.isCompleted),
-              orElse: () => course.flatChapters.first,
-            );
-          }
-        } else {
-          targetChapter = course.flatChapters.firstWhere(
-            (c) => !progress.any((p) => p.chapterId == c.id && p.isCompleted),
-            orElse: () => course.flatChapters.first,
-          );
-        }
-      }
+      AppCacheManager.instance.setCourseDetails(widget.courseId, course);
+      AppCacheManager.instance.setCourseProgress(widget.courseId, progress);
 
       if (mounted) {
         setState(() {
           _course = course;
           _progress = progress;
           _isLoading = false;
+          _error = null;
         });
-        if (targetChapter != null) {
-          _selectChapter(targetChapter);
+        if (_activeChapter == null) {
+          _initTargetChapter(course, progress);
         }
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && _course == null) {
         setState(() {
           _error = 'Failed to load chapter content.';
           _isLoading = false;
@@ -297,23 +319,25 @@ class _CourseContentScreenState extends State<CourseContentScreen>
 
       // Update local progress
       final updated = List<LmsProgress>.from(_progress);
+      final newProg = LmsProgress(
+        chapterId: _activeChapter!.id,
+        isCompleted: true,
+        score: score,
+        answers: answers,
+      );
       final idx =
           updated.indexWhere((p) => p.chapterId == _activeChapter!.id);
       if (idx >= 0) {
-        updated[idx] = LmsProgress(
-          chapterId: _activeChapter!.id,
-          isCompleted: true,
-          score: score,
-          answers: answers,
-        );
+        updated[idx] = newProg;
       } else {
-        updated.add(LmsProgress(
-          chapterId: _activeChapter!.id,
-          isCompleted: true,
-          score: score,
-          answers: answers,
-        ));
+        updated.add(newProg);
       }
+
+      AppCacheManager.instance.updateChapterProgress(
+        _course!.id,
+        _activeChapter!.id,
+        newProg,
+      );
 
       setState(() {
         _progress = updated;
@@ -486,9 +510,7 @@ class _CourseContentScreenState extends State<CourseContentScreen>
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.purple),
-      );
+      return const CourseContentSkeleton();
     }
 
     if (_error != null || _activeChapter == null) {

@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
+import 'package:infano_care_mobile/widgets/chat_shimmer_skeletons.dart';
 
 class MyChatsScreen extends StatefulWidget {
   const MyChatsScreen({super.key});
@@ -27,7 +29,12 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchChats();
+    final cached = AppCacheManager.instance.getMyChats();
+    if (cached != null && cached.isNotEmpty) {
+      _chats = cached;
+      _isLoading = false;
+    }
+    _fetchChats(isSilent: _chats.isNotEmpty);
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final socket = Provider.of<CommunitySocketService>(context, listen: false);
@@ -59,8 +66,10 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     try {
       final response = await ApiService.instance.dio.get('chat/my-chats');
       if (response.data['success'] == true && mounted) {
+        final chatData = response.data['data'] as List<dynamic>;
+        AppCacheManager.instance.setMyChats(chatData);
         setState(() {
-          _chats = response.data['data'] as List<dynamic>;
+          _chats = chatData;
           _isLoading = false;
           _error = null;
         });
@@ -296,7 +305,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
 
   Widget _buildBody(List<dynamic> filteredChats) {
     if (_isLoading && _chats.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const ChatListSkeleton();
     }
 
     if (_error != null) {

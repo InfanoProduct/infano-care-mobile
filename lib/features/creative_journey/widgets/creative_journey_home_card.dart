@@ -421,15 +421,88 @@ class CreativeJourneyHomeCard extends StatelessWidget {
 
   Widget _buildSkeletonCard() {
     return Container(
-      height: 200,
+      height: 195,
       width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF59CDEE),
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF59CDEE),
+            Color(0xFF0284C7),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0284C7).withValues(alpha: 0.28),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 90,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: 60,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 170,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: 120,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ],
+          ),
+          Container(
+            width: double.infinity,
+            height: 10,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ),
+        ],
       ),
-    );
+    ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(
+          begin: 0.55,
+          end: 1.0,
+          duration: 900.ms,
+        );
   }
 }

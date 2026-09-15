@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/courses/data/models/course_models.dart';
 import 'package:infano_care_mobile/features/courses/data/repositories/courses_repository.dart';
+import 'package:infano_care_mobile/features/courses/widgets/course_shimmer_skeletons.dart';
 
 class CourseOverviewScreen extends StatefulWidget {
   final String courseId;
@@ -27,14 +29,46 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
   void initState() {
     super.initState();
     _repo = CoursesRepository(ApiService.instance.dio);
-    _loadCourseData();
+
+    final cachedCourse = AppCacheManager.instance.getCourseDetails(widget.courseId);
+    final cachedProgress = AppCacheManager.instance.getCourseProgress(widget.courseId);
+
+    if (cachedCourse != null) {
+      _course = cachedCourse;
+      _progress = cachedProgress ?? [];
+      _isLoading = false;
+      _autoExpandModules(cachedCourse, _progress);
+    }
+
+    _loadCourseData(isSilent: _course != null);
   }
 
-  Future<void> _loadCourseData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  void _autoExpandModules(LmsCourse course, List<LmsProgress> progress) {
+    if (course.modules.isNotEmpty) {
+      bool found = false;
+      for (final mod in course.modules) {
+        final done = mod.chapters
+            .where((c) => progress.any((p) => p.chapterId == c.id && p.isCompleted))
+            .length;
+        if (done > 0 && done < mod.chapters.length) {
+          _expandedModules[mod.id] = true;
+          found = true;
+          break;
+        }
+      }
+      if (!found && course.modules.isNotEmpty) {
+        _expandedModules[course.modules.first.id] = true;
+      }
+    }
+  }
+
+  Future<void> _loadCourseData({bool isSilent = false}) async {
+    if (!isSilent && _course == null) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final results = await Future.wait([
@@ -45,33 +79,21 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
       final course = results[0] as LmsCourse;
       final progress = results[1] as List<LmsProgress>;
 
-      // Auto expand first in-progress or first module
-      if (course.modules.isNotEmpty) {
-        bool found = false;
-        for (final mod in course.modules) {
-          final done = mod.chapters
-              .where((c) => progress.any((p) => p.chapterId == c.id && p.isCompleted))
-              .length;
-          if (done > 0 && done < mod.chapters.length) {
-            _expandedModules[mod.id] = true;
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          _expandedModules[course.modules.first.id] = true;
-        }
-      }
+      AppCacheManager.instance.setCourseDetails(widget.courseId, course);
+      AppCacheManager.instance.setCourseProgress(widget.courseId, progress);
+
+      _autoExpandModules(course, progress);
 
       if (mounted) {
         setState(() {
           _course = course;
           _progress = progress;
           _isLoading = false;
+          _error = null;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && _course == null) {
         setState(() {
           _error = 'Failed to load course details. Please try again.';
           _isLoading = false;
@@ -195,9 +217,7 @@ class _CourseOverviewScreenState extends State<CourseOverviewScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.purple),
-      );
+      return const CourseOverviewSkeleton();
     }
 
     if (_error != null || _course == null) {

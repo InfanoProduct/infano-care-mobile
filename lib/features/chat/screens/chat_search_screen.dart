@@ -8,6 +8,7 @@ import 'package:infano_care_mobile/core/services/local_storage_service.dart';
 import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/features/expert/services/expert_service.dart';
 import 'package:infano_care_mobile/models/peerline_topic.dart';
+import 'package:infano_care_mobile/widgets/chat_shimmer_skeletons.dart';
 import 'package:infano_care_mobile/widgets/peer_mentor_detail_sheet.dart';
 
 class ChatSearchScreen extends StatefulWidget {
@@ -242,7 +243,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
           
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.purple))
+                ? const ChatListSkeleton(itemCount: 5)
                 : hasNoResults
                     ? _buildEmptyState()
                     : ListView(

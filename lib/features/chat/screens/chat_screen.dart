@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
+import 'package:infano_care_mobile/widgets/chat_shimmer_skeletons.dart';
+import 'package:infano_care_mobile/widgets/gigi_thinking_bubble.dart';
 import 'package:infano_care_mobile/widgets/voice_message_bubble.dart';
 import 'package:infano_care_mobile/widgets/voice_recorder_bar.dart';
 import '../bloc/chat_bloc.dart';
 import '../data/chat_repository.dart';
-import '../services/voice_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final String sessionId;
@@ -20,20 +22,13 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GigiMobileVoiceService _voiceService = GigiMobileVoiceService();
 
-  bool _isListening = false;
   bool _isRecordingVoice = false;
-  bool _isSpeaking = false;
-  String? _currentlySpeakingText;
-  bool _autoVoiceResponse = true;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _voiceService.initSpeech();
-    _voiceService.initTts();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.sessionId.isNotEmpty && widget.sessionId != 'new') {
@@ -53,8 +48,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    _voiceService.stopSpeaking();
-    _voiceService.stopListening();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -70,66 +63,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _toggleSpeak(String text) {
-    if (_isSpeaking && _currentlySpeakingText == text) {
-      _voiceService.stopSpeaking();
-      setState(() {
-        _isSpeaking = false;
-        _currentlySpeakingText = null;
-      });
-    } else {
-      setState(() {
-        _currentlySpeakingText = text;
-      });
-      _voiceService.speak(
-        text,
-        onStart: () {
-          if (mounted) setState(() => _isSpeaking = true);
-        },
-        onComplete: () {
-          if (mounted) {
-            setState(() {
-              _isSpeaking = false;
-              _currentlySpeakingText = null;
-            });
-          }
-        },
-      );
-    }
-  }
-
-  void _toggleListening() async {
-    if (_isListening) {
-      await _voiceService.stopListening();
-      if (mounted) setState(() => _isListening = false);
-      return;
-    }
-
-    _voiceService.stopSpeaking();
-    setState(() {
-      _isSpeaking = false;
-      _currentlySpeakingText = null;
-    });
-
-    await _voiceService.startListening(
-      onStart: () {
-        if (mounted) setState(() => _isListening = true);
-      },
-      onResult: (recognizedText, isFinal) {
-        if (mounted) {
-          _controller.text = recognizedText;
-          if (isFinal && recognizedText.trim().isNotEmpty) {
-            setState(() => _isListening = false);
-            _handleSend();
-          }
-        }
-      },
-      onEnd: () {
-        if (mounted) setState(() => _isListening = false);
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,61 +71,29 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                if (_isSpeaking)
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.purple, width: 2),
-                    ),
-                  ),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.purple.withValues(alpha: 0.15), width: 1.5),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/gigi_avatar.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.purple.withValues(alpha: 0.15), width: 1.5),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/gigi_avatar.png'),
+                  fit: BoxFit.cover,
                 ),
-              ],
+              ),
             ),
             const SizedBox(width: 12),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'Talk to Gigi',
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                      ),
-                      if (_isSpeaking) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.purple.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Text(
-                            'Speaking ✨',
-                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.purple),
-                          ),
-                        ),
-                      ],
-                    ],
+                  Text(
+                    'Talk to Gigi',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                   ),
-                  const Text(
+                  Text(
                     'Always here for you 🌸',
                     style: TextStyle(fontSize: 11, color: AppColors.textLight),
                   ),
@@ -201,22 +102,6 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _autoVoiceResponse ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-              color: _autoVoiceResponse ? AppColors.purple : Colors.grey,
-            ),
-            tooltip: _autoVoiceResponse ? 'Voice read-aloud active' : 'Voice muted',
-            onPressed: () {
-              if (_isSpeaking) {
-                _voiceService.stopSpeaking();
-                setState(() => _isSpeaking = false);
-              }
-              setState(() => _autoVoiceResponse = !_autoVoiceResponse);
-            },
-          ),
-        ],
         backgroundColor: Colors.white,
         elevation: 0.5,
         iconTheme: const IconThemeData(color: AppColors.purple),
@@ -228,21 +113,11 @@ class _ChatScreenState extends State<ChatScreen> {
               listener: (context, state) {
                 if (state is ChatSuccess && state.messages.isNotEmpty) {
                   WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-
-                  final lastMsg = state.messages.last;
-                  if (lastMsg['sender'] == 'GIGI' && _autoVoiceResponse && !state.isSending) {
-                    final content = lastMsg['content'] as String? ?? '';
-                    if (content.isNotEmpty && _currentlySpeakingText != content) {
-                      _toggleSpeak(content);
-                    }
-                  }
                 }
               },
               builder: (context, state) {
-                if (state is ChatLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: AppColors.purple),
-                  );
+                if (state is ChatLoading || state is ChatInitial) {
+                  return const ChatMessagesSkeleton();
                 }
 
                 if (state is ChatSuccess) {
@@ -270,7 +145,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       final adjustedIndex = state.isLoadingMore ? index - 1 : index;
 
                       if (adjustedIndex == state.messages.length) {
-                        return _buildTypingIndicator();
+                        final lastMsg = state.messages.isNotEmpty ? state.messages.last : null;
+                        final lastContent = (lastMsg?['content'] as String? ?? '');
+                        final isVoice = lastContent.startsWith('[VOICE:') || lastContent.endsWith('.m4a');
+                        return _buildTypingIndicator(isVoice);
                       }
 
                       final msg = state.messages[adjustedIndex];
@@ -343,43 +221,7 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
-          if (_isListening) _buildListeningBanner(),
           _buildInputArea(),
-        ],
-      ),
-    );
-  }
-
-  // ─── Listening Banner ───────────────────────────────────────────────────────
-  Widget _buildListeningBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.purple, AppColors.pink],
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.mic, color: Colors.white, size: 16),
-              SizedBox(width: 8),
-              Text(
-                'Gigi is listening... speak now!',
-                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          InkWell(
-            onTap: _toggleListening,
-            child: const Text(
-              'Done',
-              style: TextStyle(color: Colors.white, fontSize: 12, decoration: TextDecoration.underline),
-            ),
-          ),
         ],
       ),
     );
@@ -559,7 +401,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     final parsed = ParsedMessage.parse(text);
-    final isSpeakingThis = _isSpeaking && _currentlySpeakingText == text;
 
     return Align(
       alignment: Alignment.centerLeft,
@@ -586,51 +427,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  parsed.cleanedText,
-                  style: const TextStyle(
-                    color: AppColors.textDark,
-                    fontSize: 15,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                InkWell(
-                  onTap: () => _toggleSpeak(text),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: isSpeakingThis
-                          ? AppColors.purple.withValues(alpha: 0.15)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isSpeakingThis ? Icons.stop_rounded : Icons.volume_up_rounded,
-                          size: 14,
-                          color: isSpeakingThis ? AppColors.purple : Colors.grey,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          isSpeakingThis ? 'Speaking...' : 'Listen',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isSpeakingThis ? AppColors.purple : Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            child: Text(
+              parsed.cleanedText,
+              style: const TextStyle(
+                color: AppColors.textDark,
+                fontSize: 15,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -640,17 +443,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _handleSendVoiceNote(String filePath, int durationSeconds) async {
     setState(() => _isRecordingVoice = false);
-    _voiceService.stopSpeaking();
-    setState(() {
-      _isSpeaking = false;
-      _currentlySpeakingText = null;
-    });
 
     try {
-      final repo = context.read<ChatRepository>();
+      final repo = ChatRepository(ApiService.instance);
       final mediaUrl = await repo.uploadMedia(filePath);
       final voicePayload = '[VOICE:$mediaUrl]';
 
+      if (!mounted) return;
       final state = context.read<ChatBloc>().state;
       if (state is ChatSuccess && state.sessionId != null) {
         context.read<ChatBloc>().add(SendChatMessage(voicePayload, state.sessionId!));
@@ -772,34 +571,9 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ─── Typing Indicator ─────────────────────────────────────────────────────
-  Widget _buildTypingIndicator() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceCard,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
-            bottomRight: Radius.circular(18),
-            bottomLeft: Radius.circular(4),
-          ),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _BouncingDot(delay: 0),
-            SizedBox(width: 5),
-            _BouncingDot(delay: 180),
-            SizedBox(width: 5),
-            _BouncingDot(delay: 360),
-          ],
-        ),
-      ),
-    );
+  // ─── WhatsApp Meta AI-Style Thinking Indicator ──────────────────────────────
+  Widget _buildTypingIndicator([bool isVoiceNote = false]) {
+    return GigiThinkingBubble(isVoiceNote: isVoiceNote);
   }
 
   // ─── Input Area ───────────────────────────────────────────────────────────
@@ -836,46 +610,22 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // Voice Note Record Button (tap to record real voice note)
-            GestureDetector(
-              onTap: () => setState(() => _isRecordingVoice = true),
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: AppColors.purple.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.purple.withValues(alpha: 0.2),
-                    width: 1.5,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.mic_rounded,
-                  color: AppColors.purple,
-                  size: 22,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.surfaceCard.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: _isListening
-                        ? Colors.redAccent.withValues(alpha: 0.5)
-                        : AppColors.purple.withValues(alpha: 0.2),
+                    color: AppColors.purple.withValues(alpha: 0.2),
                   ),
                 ),
                 child: TextField(
                   controller: _controller,
                   onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: _isListening ? 'Listening to you...' : 'Message Gigi...',
+                  decoration: const InputDecoration(
+                    hintText: 'Message Gigi...',
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   ),
                   textCapitalization: TextCapitalization.sentences,
                   maxLines: 4,
@@ -902,34 +652,31 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: 46,
                     height: 46,
                     decoration: BoxDecoration(
-                      color: isSending
-                          ? AppColors.purple.withValues(alpha: 0.6)
-                          : AppColors.purple,
+                      color: hasText
+                          ? (isSending ? AppColors.purple.withValues(alpha: 0.6) : AppColors.purple)
+                          : AppColors.purple.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.purple.withValues(alpha: 0.35),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: isSending
-                        ? const Center(
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
+                      border: !hasText
+                          ? Border.all(
+                              color: AppColors.purple.withValues(alpha: 0.2),
+                              width: 1.5,
+                            )
+                          : null,
+                      boxShadow: hasText
+                          ? [
+                              BoxShadow(
+                                color: AppColors.purple.withValues(alpha: 0.35),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
                               ),
-                            ),
-                          )
-                        : Icon(
-                            hasText ? Icons.send_rounded : Icons.mic_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                            ]
+                          : null,
+                    ),
+                    child: Icon(
+                      hasText ? Icons.send_rounded : Icons.mic_rounded,
+                      color: hasText ? Colors.white : AppColors.purple,
+                      size: 20,
+                    ),
                   ),
                 );
               },
@@ -944,12 +691,6 @@ class _ChatScreenState extends State<ChatScreen> {
   void _handleSend() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-
-    _voiceService.stopSpeaking();
-    setState(() {
-      _isSpeaking = false;
-      _currentlySpeakingText = null;
-    });
 
     final state = context.read<ChatBloc>().state;
     if (state is ChatSuccess && state.sessionId != null) {

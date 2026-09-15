@@ -3,9 +3,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/courses/data/models/course_models.dart';
 import 'package:infano_care_mobile/features/courses/data/repositories/courses_repository.dart';
+import 'package:infano_care_mobile/features/courses/widgets/course_shimmer_skeletons.dart';
 
 class MyCoursesScreen extends StatefulWidget {
   const MyCoursesScreen({super.key});
@@ -24,25 +26,34 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   void initState() {
     super.initState();
     _repo = CoursesRepository(ApiService.instance.dio);
-    _loadCourses();
+    final cached = AppCacheManager.instance.getMyCourses();
+    if (cached != null && cached.isNotEmpty) {
+      _enrollments = cached;
+      _isLoading = false;
+    }
+    _loadCourses(isSilent: _enrollments.isNotEmpty);
   }
 
-  Future<void> _loadCourses() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _loadCourses({bool isSilent = false}) async {
+    if (!isSilent && _enrollments.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final courses = await _repo.getMyCourses();
+      AppCacheManager.instance.setMyCourses(courses);
       if (mounted) {
         setState(() {
           _enrollments = courses;
           _isLoading = false;
+          _error = null;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && _enrollments.isEmpty) {
         setState(() {
           _error = 'Failed to load courses. Please try again.';
           _isLoading = false;
@@ -101,7 +112,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return _buildLoadingShimmer();
+      return const MyCoursesListSkeleton();
     }
 
     if (_error != null) {
@@ -663,61 +674,6 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingShimmer() {
-    return ListView(
-      padding: const EdgeInsets.all(18),
-      children: List.generate(
-        3,
-        (index) => Container(
-          margin: const EdgeInsets.only(bottom: 18),
-          height: 240,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: const Color(0xFFF1EAFA)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                height: 140,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF3E8FF),
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(22)),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 16,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      height: 12,
-                      width: 140,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

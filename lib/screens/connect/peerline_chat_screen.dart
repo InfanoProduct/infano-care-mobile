@@ -6,10 +6,12 @@ import 'package:infano_care_mobile/services/community_api.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
 import 'package:infano_care_mobile/models/chat_message.dart';
 import 'package:infano_care_mobile/widgets/crisis_resource_card.dart';
+import 'package:infano_care_mobile/widgets/chat_shimmer_skeletons.dart';
 import 'package:infano_care_mobile/widgets/voice_message_bubble.dart';
 import 'package:infano_care_mobile/widgets/voice_recorder_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:intl/intl.dart';
@@ -43,6 +45,13 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
   @override
   void initState() {
     super.initState();
+    final cachedSession = AppCacheManager.instance.getPeerLineSession(widget.sessionId);
+    final cachedMessages = AppCacheManager.instance.getPeerLineMessages(widget.sessionId);
+    if (cachedSession != null || (cachedMessages != null && cachedMessages.isNotEmpty)) {
+      if (cachedSession != null) _session = cachedSession;
+      if (cachedMessages != null) _messages.addAll(cachedMessages);
+      _isLoading = false;
+    }
     _loadData();
     _setupSocket();
   }
@@ -67,6 +76,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
         _showIntroCard = false;
         _isRecording = false;
       });
+      AppCacheManager.instance.setPeerLineMessages(widget.sessionId, _messages);
       _scrollToBottom();
       
       final storage = Provider.of<LocalStorageService>(context, listen: false);
@@ -128,6 +138,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
             }
           }
         });
+        AppCacheManager.instance.setPeerLineMessages(widget.sessionId, _messages);
         _scrollToBottom();
         break;
       case 'messages_read':
@@ -139,12 +150,14 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
               }
             }
           });
+          AppCacheManager.instance.setPeerLineMessages(widget.sessionId, _messages);
         }
         break;
       case 'message_deleted':
         setState(() {
           _messages.removeWhere((m) => m.id == event['messageId']);
         });
+        AppCacheManager.instance.setPeerLineMessages(widget.sessionId, _messages);
         break;
       case 'peer_typing':
         final String senderRole = event['senderRole'] ?? '';
@@ -209,6 +222,8 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
           _isLoading = false;
           _showIntroCard = !storage.isPeerlineChatIntroDismissed(widget.sessionId);
         });
+        AppCacheManager.instance.setPeerLineSession(widget.sessionId, session);
+        AppCacheManager.instance.setPeerLineMessages(widget.sessionId, allMessages);
         _socketService?.readMessages(widget.sessionId);
         _scrollToBottom();
       }
@@ -273,6 +288,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
       _piiError = null;
       _showIntroCard = false;
     });
+    AppCacheManager.instance.setPeerLineMessages(widget.sessionId, _messages);
     _scrollToBottom();
 
     final storage = Provider.of<LocalStorageService>(context, listen: false);
@@ -302,11 +318,11 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    final bool isPending = _session!.status.toUpperCase() == 'MATCHING';
+    final bool isPending = _session != null && _session!.status.toUpperCase() == 'MATCHING';
+    final mentorName = _session?.mentorName ?? '';
+    final String initialChar = _myRole == 'mentor'
+        ? 'T'
+        : (mentorName.isNotEmpty ? mentorName[0] : 'M');
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -322,8 +338,8 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                   radius: 18,
                   backgroundColor: AppColors.purple.withValues(alpha: 0.1),
                   child: Text(
-                    (_myRole == 'mentor' ? 'T' : (_session?.mentorName ?? 'M')[0]),
-                    style: TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold),
+                    initialChar,
+                    style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Positioned(
@@ -403,25 +419,27 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
                   ),
                 ),
               Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                  itemCount:
-                      _messages.length + (_isPeerTyping && !isPending ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == 0 && _showIntroCard && !isPending) {
-                      return _buildIntroCard();
-                    }
-                    if (index == _messages.length && _isPeerTyping) {
-                      return _buildTypingIndicator();
-                    }
-                    final message = _messages[index];
-                    final bool isMe =
-                        _myRole != null && message.senderRole == _myRole;
-                    return _buildMessageBubble(message, index, isMe);
-                  },
-                ),
+                child: _isLoading
+                    ? const ChatMessagesSkeleton()
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                        itemCount:
+                            _messages.length + (_isPeerTyping && !isPending ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == 0 && _showIntroCard && !isPending) {
+                            return _buildIntroCard();
+                          }
+                          if (index == _messages.length && _isPeerTyping) {
+                            return _buildTypingIndicator();
+                          }
+                          final message = _messages[index];
+                          final bool isMe =
+                              _myRole != null && message.senderRole == _myRole;
+                          return _buildMessageBubble(message, index, isMe);
+                        },
+                      ),
               ),
               _buildInputArea(isPending: isPending),
             ],

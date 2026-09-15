@@ -43,6 +43,9 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar> with SingleTickerPr
   void dispose() {
     _pulseController.dispose();
     _timer?.cancel();
+    if (_isRecording) {
+      _audioRecorder.stop().catchError((_) => null);
+    }
     _audioRecorder.dispose();
     super.dispose();
   }
@@ -67,6 +70,7 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar> with SingleTickerPr
         encoder: AudioEncoder.aacLc,
         bitRate: 128000,
         sampleRate: 44100,
+        numChannels: 1,
       );
 
       await _audioRecorder.start(config, path: _recordingPath!);
@@ -88,10 +92,13 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar> with SingleTickerPr
   }
 
   Future<void> _stopAndSend() async {
+    if (!_isRecording) return;
+    _timer?.cancel();
+    _isRecording = false;
+
     try {
-      _timer?.cancel();
       final path = await _audioRecorder.stop();
-      setState(() => _isRecording = false);
+      if (mounted) setState(() {});
 
       if (path != null && _seconds >= 1) {
         widget.onRecordingFinished(path, _seconds);
@@ -105,10 +112,15 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar> with SingleTickerPr
   }
 
   Future<void> _cancelRecording() async {
+    if (!_isRecording) {
+      widget.onCancel();
+      return;
+    }
+    _timer?.cancel();
+    _isRecording = false;
+
     try {
-      _timer?.cancel();
       await _audioRecorder.stop();
-      setState(() => _isRecording = false);
     } catch (_) {}
     widget.onCancel();
   }

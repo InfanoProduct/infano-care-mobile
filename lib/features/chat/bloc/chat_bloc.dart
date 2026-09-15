@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import '../data/chat_repository.dart';
 
 // ─── Events ───────────────────────────────────────────────────────────────────
@@ -131,12 +132,27 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   Future<void> _onLoadSessions(LoadSessions event, Emitter<ChatState> emit) async {
-    emit(ChatLoading());
+    final cachedSessions = AppCacheManager.instance.getGigiSessions();
+    if (cachedSessions != null && cachedSessions.isNotEmpty) {
+      final latestSessionId = cachedSessions.first['id'] as String;
+      final cachedHistory = AppCacheManager.instance.getGigiHistory(latestSessionId);
+      emit(ChatSuccess(
+        messages: cachedHistory ?? const [],
+        sessionId: latestSessionId,
+        sessions: cachedSessions,
+        hasReachedMax: (cachedHistory?.length ?? 0) < 20,
+      ));
+    } else {
+      emit(ChatLoading());
+    }
+
     try {
       final sessions = await _repo.getSessions();
+      AppCacheManager.instance.setGigiSessions(sessions);
       if (sessions.isNotEmpty) {
         final latestSessionId = sessions.first['id'] as String;
         final history = await _repo.getHistory(latestSessionId);
+        AppCacheManager.instance.setGigiHistory(latestSessionId, history);
         emit(ChatSuccess(
           messages: history,
           sessionId: latestSessionId,
@@ -147,7 +163,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         emit(ChatSuccess(messages: const [], sessions: sessions));
       }
     } catch (e) {
-      emit(ChatError(e.toString()));
+      if (cachedSessions == null || cachedSessions.isEmpty) {
+        emit(ChatError(e.toString()));
+      }
     }
   }
 
@@ -168,18 +186,32 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<void> _onSelectSession(SelectSession event, Emitter<ChatState> emit) async {
     final sessions =
         state is ChatSuccess ? (state as ChatSuccess).sessions : const <dynamic>[];
-    emit(ChatLoading());
+    final cachedHistory = AppCacheManager.instance.getGigiHistory(event.sessionId);
+    if (cachedHistory != null && cachedHistory.isNotEmpty) {
+      emit(ChatSuccess(
+        messages: cachedHistory,
+        sessionId: event.sessionId,
+        sessions: sessions,
+        hasReachedMax: cachedHistory.length < 20,
+      ));
+    } else {
+      emit(ChatLoading());
+    }
+
     try {
       final history = await _repo.getHistory(event.sessionId);
+      AppCacheManager.instance.setGigiHistory(event.sessionId, history);
       final allSessions = sessions.isNotEmpty ? sessions : await _repo.getSessions();
       emit(ChatSuccess(
         messages: history,
         sessionId: event.sessionId,
         sessions: allSessions,
-        hasReachedMax: history.length < 20, // Check if we fetched less than limit
+        hasReachedMax: history.length < 20,
       ));
     } catch (e) {
-      emit(ChatError(e.toString()));
+      if (cachedHistory == null) {
+        emit(ChatError(e.toString()));
+      }
     }
   }
 
@@ -202,14 +234,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     try {
       final result = await _repo.sendMessage(event.initialMessage, moodCode: event.moodCode);
-
       final updatedSessions = await _repo.getSessions();
+      final newSessionId = result['sessionId'] as String;
+      final newMessages = [optimisticMsg, result['message']];
+
+      AppCacheManager.instance.setGigiSessions(updatedSessions);
+      AppCacheManager.instance.setGigiHistory(newSessionId, newMessages);
 
       emit(ChatSuccess(
-        messages: [optimisticMsg, result['message']],
-        sessionId: result['sessionId'] as String,
+        messages: newMessages,
+        sessionId: newSessionId,
         sessions: updatedSessions,
-        hasReachedMax: true, // It’s a brand new session, so no older history exists yet
+        hasReachedMax: true,
       ));
     } catch (e) {
       emit(ChatError(e.toString()));
@@ -219,9 +255,21 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<void> _onLoadHistory(LoadHistory event, Emitter<ChatState> emit) async {
     final sessions =
         state is ChatSuccess ? (state as ChatSuccess).sessions : const <dynamic>[];
-    emit(ChatLoading());
+    final cachedHistory = AppCacheManager.instance.getGigiHistory(event.sessionId);
+    if (cachedHistory != null && cachedHistory.isNotEmpty) {
+      emit(ChatSuccess(
+        messages: cachedHistory,
+        sessionId: event.sessionId,
+        sessions: sessions,
+        hasReachedMax: cachedHistory.length < 20,
+      ));
+    } else {
+      emit(ChatLoading());
+    }
+
     try {
       final history = await _repo.getHistory(event.sessionId);
+      AppCacheManager.instance.setGigiHistory(event.sessionId, history);
       emit(ChatSuccess(
         messages: history,
         sessionId: event.sessionId,
@@ -229,7 +277,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         hasReachedMax: history.length < 20,
       ));
     } catch (e) {
-      emit(ChatError(e.toString()));
+      if (cachedHistory == null) {
+        emit(ChatError(e.toString()));
+      }
     }
   }
 
@@ -243,7 +293,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     emit(currentState.copyWith(isLoadingMore: true));
     try {
-      // Find the oldest cursor (the first one chronologically)
       final earliestMessage = currentState.messages.first;
       final cursorId = earliestMessage['id'] as String?;
       
@@ -253,14 +302,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       }
 
       final olderMessages = await _repo.getHistory(currentState.sessionId!, cursor: cursorId);
+      final combined = [...olderMessages, ...currentState.messages];
+      AppCacheManager.instance.setGigiHistory(currentState.sessionId!, combined);
       
       emit(currentState.copyWith(
-        messages: [...olderMessages, ...currentState.messages],
+        messages: combined,
         isLoadingMore: false,
         hasReachedMax: olderMessages.length < 20,
       ));
     } catch (e) {
-      // Just drop loading state if it fails, let them retry by scrolling again
       emit(currentState.copyWith(isLoadingMore: false));
     }
   }
@@ -284,14 +334,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     try {
       final result = await _repo.sendMessage(event.content, sessionId: event.sessionId, moodCode: event.moodCode);
       final latestState = state as ChatSuccess;
+      final newMessages = [...latestState.messages, result['message']];
+      AppCacheManager.instance.setGigiHistory(event.sessionId, newMessages);
 
       emit(latestState.copyWith(
-        messages: [...latestState.messages, result['message']],
+        messages: newMessages,
         isSending: false,
       ));
     } catch (e) {
-      // Note: Ideally we'd remove the optimistic message on failure, but for simplicity
-      // we'll just emit an error or silently catch.
       final latestState = state as ChatSuccess;
       emit(latestState.copyWith(isSending: false));
     }
@@ -303,12 +353,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     
     try {
       await _repo.deleteSession(event.sessionId);
+      AppCacheManager.instance.clearGigiCache();
       
-      // Refresh local state without network call where possible
       final newSessions = currentState.sessions.where((s) => s['id'] != event.sessionId).toList();
       
       if (currentState.sessionId == event.sessionId) {
-        // We deleted the active session, switch to new chat
         emit(currentState.copyWith(
           messages: const [],
           sessionId: null,
@@ -319,7 +368,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         emit(currentState.copyWith(sessions: newSessions));
       }
     } catch (e) {
-      // Silently fail or show toast
+      // Silently fail
     }
   }
 
@@ -329,6 +378,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     
     try {
       await _repo.deleteAllSessions();
+      AppCacheManager.instance.clearGigiCache();
       
       emit(currentState.copyWith(
         messages: const [],
@@ -340,5 +390,4 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       // Silently fail
     }
   }
-
 }

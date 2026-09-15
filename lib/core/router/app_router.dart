@@ -272,24 +272,30 @@ GoRouter createRouter(
         path: '/chat',
         builder: (_, state) {
           final sessionId = state.uri.queryParameters['sessionId'] ?? '';
-          return BlocProvider(
-            create: (context) =>
-                ChatBloc(chatRepo)..add(
-                  sessionId.isNotEmpty
-                      ? SelectSession(sessionId)
-                      : LoadSessions(),
-                ),
-            child: ChatScreen(sessionId: sessionId),
+          return RepositoryProvider.value(
+            value: chatRepo,
+            child: BlocProvider(
+              create: (context) =>
+                  ChatBloc(chatRepo)..add(
+                    sessionId.isNotEmpty
+                        ? SelectSession(sessionId)
+                        : LoadSessions(),
+                  ),
+              child: ChatScreen(sessionId: sessionId),
+            ),
           );
         },
       ),
       GoRoute(
         path: '/gigi/chat/:sessionId',
-        builder: (_, state) => BlocProvider(
-          create: (context) =>
-              ChatBloc(chatRepo)
-                ..add(SelectSession(state.pathParameters['sessionId']!)),
-          child: ChatScreen(sessionId: state.pathParameters['sessionId']!),
+        builder: (_, state) => RepositoryProvider.value(
+          value: chatRepo,
+          child: BlocProvider(
+            create: (context) =>
+                ChatBloc(chatRepo)
+                  ..add(SelectSession(state.pathParameters['sessionId']!)),
+            child: ChatScreen(sessionId: state.pathParameters['sessionId']!),
+          ),
         ),
       ),
       GoRoute(

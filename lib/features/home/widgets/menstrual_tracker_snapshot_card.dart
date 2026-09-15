@@ -62,14 +62,84 @@ class _MenstrualTrackerSnapshotCardState extends State<MenstrualTrackerSnapshotC
     return Container(
       width: double.infinity,
       height: 180,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFDB337D),
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFE84E8F),
+            Color(0xFFDB337D),
+            Color(0xFFC2185B),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFDB337D).withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+      child: Row(
+        children: [
+          // Cycle circle placeholder
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.35),
+                width: 3,
+              ),
+            ),
+          ),
+          const SizedBox(width: 18),
+          // Info lines placeholder
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 90,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  width: 140,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  width: 110,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-    );
+    ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(
+          begin: 0.55,
+          end: 1.0,
+          duration: 900.ms,
+        );
   }
 
   Widget _buildNotStartedCard(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/audio_manager.dart';
 
 class VoiceMessageBubble extends StatefulWidget {
@@ -79,6 +80,32 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
     super.dispose();
   }
 
+  String _resolveAudioUrl(String rawUrl) {
+    if (rawUrl.isEmpty) return rawUrl;
+
+    final apiBase = ApiService.instance.dio.options.baseUrl;
+    final serverBase = apiBase.replaceAll(RegExp(r'/api/?$'), '');
+
+    if (rawUrl.startsWith('/uploads/') || rawUrl.startsWith('uploads/')) {
+      final clean = rawUrl.startsWith('/') ? rawUrl : '/$rawUrl';
+      return '$serverBase$clean';
+    }
+
+    if (rawUrl.contains('/uploads/')) {
+      final uri = Uri.tryParse(rawUrl);
+      if (uri != null) {
+        if (uri.host == 'localhost' ||
+            uri.host == '127.0.0.1' ||
+            serverBase.contains('192.168.') ||
+            serverBase.contains('10.0.2.2')) {
+          return '$serverBase${uri.path}';
+        }
+      }
+    }
+
+    return rawUrl;
+  }
+
   Future<void> _togglePlay() async {
     if (_isPlaying) {
       await _player.pause();
@@ -86,11 +113,12 @@ class _VoiceMessageBubbleState extends State<VoiceMessageBubble> {
     } else {
       setState(() => _isLoading = true);
       try {
-        final Source source = widget.url.startsWith('http://') || widget.url.startsWith('https://')
-            ? UrlSource(widget.url)
-            : DeviceFileSource(widget.url);
+        final resolvedUrl = _resolveAudioUrl(widget.url);
+        final Source source = (resolvedUrl.startsWith('http://') || resolvedUrl.startsWith('https://'))
+            ? UrlSource(resolvedUrl)
+            : DeviceFileSource(resolvedUrl);
 
-        await AudioManager.instance.registerAndPlay(_player, widget.url, source);
+        await AudioManager.instance.registerAndPlay(_player, resolvedUrl, source);
         await _player.setPlaybackRate(_playbackRate);
       } catch (e) {
         debugPrint('[VoiceMessageBubble] Error playing audio: $e');

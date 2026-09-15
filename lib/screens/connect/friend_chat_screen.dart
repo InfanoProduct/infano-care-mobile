@@ -4,6 +4,8 @@ import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/services/friends_api.dart';
 import 'package:infano_care_mobile/services/friends_socket_service.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
+import 'package:infano_care_mobile/widgets/chat_shimmer_skeletons.dart';
 import 'package:infano_care_mobile/widgets/voice_message_bubble.dart';
 import 'package:infano_care_mobile/widgets/voice_recorder_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -41,6 +43,12 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
   @override
   void initState() {
     super.initState();
+    final cached = AppCacheManager.instance.getFriendMessages(widget.matchId);
+    if (cached != null && cached.isNotEmpty) {
+      _messages.addAll(List<Map<String, dynamic>>.from(cached));
+      _isLoading = false;
+      _showTagsBanner = _messages.length <= 3;
+    }
     _loadData();
     _setupSocket();
   }
@@ -80,6 +88,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
             _showTagsBanner = false;
           }
         });
+        AppCacheManager.instance.setFriendMessages(widget.matchId, _messages);
         _scrollToBottom();
         break;
       case 'messages_read':
@@ -90,6 +99,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
             }
           }
         });
+        AppCacheManager.instance.setFriendMessages(widget.matchId, _messages);
         break;
       case 'message_edited':
         setState(() {
@@ -105,6 +115,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
             };
           }
         });
+        AppCacheManager.instance.setFriendMessages(widget.matchId, _messages);
         break;
       case 'message_unsent':
         setState(() {
@@ -113,6 +124,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
             _messages.removeWhere((m) => m['id'] == messageId);
           }
         });
+        AppCacheManager.instance.setFriendMessages(widget.matchId, _messages);
         break;
       case 'peer_typing':
         setState(() => _isPeerTyping = event['isTyping'] ?? false);
@@ -154,6 +166,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
           _isLoading = false;
           _showTagsBanner = _messages.length <= 3;
         });
+        AppCacheManager.instance.setFriendMessages(widget.matchId, _messages);
         _socketService?.readMessages(widget.matchId);
         _scrollToBottom();
       }
@@ -201,6 +214,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
       _messages.add(tempMessage);
       _safetyError = null;
     });
+    AppCacheManager.instance.setFriendMessages(widget.matchId, _messages);
     _scrollToBottom();
 
     try {
@@ -224,10 +238,6 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     final nickname = _matchData?['nickname'] ?? 'Friend';
     final photoUrl = _matchData?['photoUrl'];
     final vibeTags = List<String>.from(_matchData?['vibeTags'] ?? []);
@@ -272,7 +282,9 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
         children: [
           if (vibeTags.isNotEmpty) _buildTagsBanner(vibeTags),
           Expanded(
-            child: ListView.builder(
+            child: _isLoading
+                ? const ChatMessagesSkeleton()
+                : ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               itemCount: _messages.length + (_messages.isEmpty ? 1 : 0),

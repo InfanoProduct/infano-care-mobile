@@ -22,6 +22,7 @@ import 'package:infano_care_mobile/features/tracker/presentation/screens/article
 import 'package:infano_care_mobile/features/home/widgets/parent_daughter_summary_home_card.dart';
 import 'package:infano_care_mobile/features/home/widgets/my_course_home_card.dart';
 import 'package:infano_care_mobile/services/community_socket_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -2636,6 +2637,11 @@ class _GoodToKnowHomepageSectionState extends State<GoodToKnowHomepageSection> {
   @override
   void initState() {
     super.initState();
+    final cached = AppCacheManager.instance.getGoodToKnowArticles();
+    if (cached != null && cached.isNotEmpty) {
+      _articles = cached;
+      _isLoading = false;
+    }
     _fetchArticles();
   }
 
@@ -2677,9 +2683,12 @@ class _GoodToKnowHomepageSectionState extends State<GoodToKnowHomepageSection> {
                 };
               }).toList();
 
+          final articlesList = mapped.cast<Map<String, dynamic>>();
+          AppCacheManager.instance.setGoodToKnowArticles(articlesList);
+
           if (mounted) {
             setState(() {
-              _articles = mapped.cast<Map<String, dynamic>>();
+              _articles = articlesList;
               _isLoading = false;
             });
             return;
@@ -2789,9 +2798,48 @@ class _GoodToKnowHomepageSectionState extends State<GoodToKnowHomepageSection> {
           height: listContainerHeight,
           child:
               _isLoading
-                  ? const Center(
-                    child: CircularProgressIndicator(color: _purpleTheme),
-                  )
+                  ? ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(top: 4, bottom: 18),
+                      itemCount: 3,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: cardWidth,
+                                height: imageHeight,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(22),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                width: cardWidth * 0.45,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE2E8F0),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                width: cardWidth * 0.8,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFCBD5E1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    )
                   : ListView.builder(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),

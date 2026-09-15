@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import 'package:infano_care_mobile/core/services/app_sound_service.dart';
 import 'package:infano_care_mobile/features/courses/data/models/course_models.dart';
 import 'package:infano_care_mobile/features/courses/data/repositories/courses_repository.dart';
@@ -24,12 +25,18 @@ class _MyCourseHomeCardState extends State<MyCourseHomeCard> {
   void initState() {
     super.initState();
     _repo = CoursesRepository(ApiService.instance.dio);
+    final cached = AppCacheManager.instance.getMyCourses();
+    if (cached != null && cached.isNotEmpty) {
+      _enrollments = cached;
+      _isLoading = false;
+    }
     _fetchCourses();
   }
 
   Future<void> _fetchCourses() async {
     try {
       final courses = await _repo.getMyCourses();
+      AppCacheManager.instance.setMyCourses(courses);
       if (mounted) {
         setState(() {
           _enrollments = courses;

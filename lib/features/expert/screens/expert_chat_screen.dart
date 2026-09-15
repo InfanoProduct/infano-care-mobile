@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
+import 'package:infano_care_mobile/core/services/app_cache_manager.dart';
 import 'package:infano_care_mobile/core/theme/app_theme.dart';
 import 'package:infano_care_mobile/features/expert/services/expert_service.dart';
+import 'package:infano_care_mobile/widgets/chat_shimmer_skeletons.dart';
 import 'package:infano_care_mobile/widgets/voice_message_bubble.dart';
 import 'package:infano_care_mobile/widgets/voice_recorder_bar.dart';
 import 'package:intl/intl.dart';
@@ -36,6 +38,12 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
   void initState() {
     super.initState();
     _expertService = ExpertService(widget.storage);
+
+    final cached = AppCacheManager.instance.getExpertMessages(widget.sessionId);
+    if (cached != null && cached.isNotEmpty) {
+      _messages = List<Map<String, dynamic>>.from(cached);
+      _isLoading = false;
+    }
     
     // Mark messages as read when opening the chat
     _expertService.markAsRead(widget.sessionId);
@@ -46,6 +54,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
         setState(() {
           _messages.add(message);
         });
+        AppCacheManager.instance.setExpertMessages(widget.sessionId, _messages);
         _scrollToBottom();
         // If we receive a message while the screen is open, mark it read immediately
         _expertService.markAsRead(widget.sessionId);
@@ -60,6 +69,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
         _messages = List<Map<String, dynamic>>.from(history);
         _isLoading = false;
       });
+      AppCacheManager.instance.setExpertMessages(widget.sessionId, _messages);
       _scrollToBottom();
     }
   }
@@ -183,7 +193,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
         children: [
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.purple))
+                ? const ChatMessagesSkeleton()
                 : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
