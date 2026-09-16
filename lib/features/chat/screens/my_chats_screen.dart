@@ -108,19 +108,9 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     }).toList();
   }
 
-  int _getTotalUnreadCount() {
-    return _chats.fold<int>(0, (sum, chat) => sum + ((chat['unreadCount'] ?? 0) as int));
-  }
-
-  int _getActiveChatsCount() {
-    return _chats.where((chat) => chat['isActive'] == true || chat['status'] == 'ACTIVE').length;
-  }
-
   @override
   Widget build(BuildContext context) {
     final filteredChats = _getFilteredChats();
-    final totalUnread = _getTotalUnreadCount();
-    final activeCount = _getActiveChatsCount();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -145,39 +135,12 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
       ),
       body: Column(
         children: [
-          // Stat Cards (Summary Row)
-          if (!_isLoading && _error == null && _chats.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Active Chats',
-                      value: '$activeCount',
-                      icon: Icons.chat_bubble_rounded,
-                      color: AppColors.purple,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      title: 'Unread Messages',
-                      value: '$totalUnread',
-                      icon: Icons.mark_chat_unread_rounded,
-                      color: AppColors.pink,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          
           // Search & Filter Row
           if (!_isLoading && _error == null && _chats.isNotEmpty) ...[
             GestureDetector(
               onTap: () => context.push('/my-chats/search'),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: TextField(
                   readOnly: true,
                   onTap: () => context.push('/my-chats/search'),
@@ -218,58 +181,6 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
           
           Expanded(
             child: _buildBody(filteredChats),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.15), width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: color,
-                  ),
-                ),
-                Text(
-                  title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    color: AppColors.textMedium,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -514,13 +425,27 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                     ),
                 ],
               ),
-              onTap: () {
+              onTap: () async {
+                final String chatId = (chat['id'] ?? '').toString();
+                if (unreadCount > 0) {
+                  setState(() {
+                    chat['unreadCount'] = 0;
+                  });
+                  AppCacheManager.instance.markChatAsRead(chatId);
+                }
+
                 if (type == 'expert') {
-                  context.push('/expert/chat/${chat['id']}', extra: {'expertName': name});
+                  await context.push('/expert/chat/$chatId', extra: {'expertName': name});
                 } else if (type == 'peer') {
-                  context.push('/peerline/chat/${chat['id']}').then((_) => _fetchChats(isSilent: true));
+                  await context.push('/peerline/chat/$chatId');
                 } else if (type == 'gigi') {
-                  context.push('/gigi/chat/${chat['id']}');
+                  await context.push('/gigi/chat/$chatId');
+                }
+
+                if (mounted) {
+                  _fetchChats(isSilent: true);
+                  final socket = Provider.of<CommunitySocketService>(context, listen: false);
+                  socket.updateUnreadChatsCount(force: true);
                 }
               },
             ),

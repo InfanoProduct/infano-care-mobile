@@ -61,11 +61,26 @@ class AppCacheManager {
     _cache.clear();
   }
 
-  // ── My Inbox Aggregated List ───────────────────────────────────────────────
-
   List<dynamic>? getMyChats() => get<List<dynamic>>('my_chats_list');
 
   void setMyChats(List<dynamic> chats) => set<List<dynamic>>('my_chats_list', chats, ttl: shortTtl);
+
+  void markChatAsRead(String chatId) {
+    final currentChats = getMyChats();
+    if (currentChats != null && currentChats.isNotEmpty) {
+      final updated = currentChats.map((item) {
+        if (item is Map) {
+          final map = Map<String, dynamic>.from(item);
+          if (map['id']?.toString() == chatId || map['peerId']?.toString() == chatId) {
+            map['unreadCount'] = 0;
+          }
+          return map;
+        }
+        return item;
+      }).toList();
+      setMyChats(updated);
+    }
+  }
 
   // ── PeerLine Chat & Messages ───────────────────────────────────────────────
 

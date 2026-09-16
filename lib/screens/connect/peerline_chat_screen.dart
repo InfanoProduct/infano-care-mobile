@@ -45,6 +45,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
   @override
   void initState() {
     super.initState();
+    AppCacheManager.instance.markChatAsRead(widget.sessionId);
     final cachedSession = AppCacheManager.instance.getPeerLineSession(widget.sessionId);
     final cachedMessages = AppCacheManager.instance.getPeerLineMessages(widget.sessionId);
     if (cachedSession != null || (cachedMessages != null && cachedMessages.isNotEmpty)) {
@@ -108,6 +109,7 @@ class _PeerLineChatScreenState extends State<PeerLineChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _socketService = Provider.of<CommunitySocketService>(context, listen: false);
       _socketService?.subscribeToConnection(widget.sessionId);
+      _socketService?.readMessages(widget.sessionId);
       _socketSubscription = _socketService?.chatEvents.listen(_handleSocketEvent);
     });
   }

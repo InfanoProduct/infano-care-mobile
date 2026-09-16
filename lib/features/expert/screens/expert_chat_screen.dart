@@ -38,6 +38,7 @@ class _ExpertChatScreenState extends State<ExpertChatScreen> {
   void initState() {
     super.initState();
     _expertService = ExpertService(widget.storage);
+    AppCacheManager.instance.markChatAsRead(widget.sessionId);
 
     final cached = AppCacheManager.instance.getExpertMessages(widget.sessionId);
     if (cached != null && cached.isNotEmpty) {

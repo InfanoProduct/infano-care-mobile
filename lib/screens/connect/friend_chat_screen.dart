@@ -43,6 +43,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
   @override
   void initState() {
     super.initState();
+    AppCacheManager.instance.markChatAsRead(widget.matchId);
     final cached = AppCacheManager.instance.getFriendMessages(widget.matchId);
     if (cached != null && cached.isNotEmpty) {
       _messages.addAll(List<Map<String, dynamic>>.from(cached));
