@@ -1,0 +1,114 @@
+{
+  "@@locale": "en",
+
+  "appName": "Infano Care",
+  "@appName": { "description": "The name of the application" },
+
+  "language": "Language",
+  "@language": { "description": "Label for language setting" },
+
+  "languageEnglish": "English",
+  "@languageEnglish": { "description": "English language option" },
+
+  "languageHindi": "हिन्दी (Hindi)",
+  "@languageHindi": { "description": "Hindi language option" },
+
+  "selectLanguage": "Select Language",
+  "@selectLanguage": { "description": "Title of the language picker bottom sheet" },
+
+  "languageCurrentLabel": "Current language",
+  "@languageCurrentLabel": { "description": "Subtitle showing current language in settings row" },
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": { "description": "Settings screen title" },
+
+  "settingsSectionPreferences": "PREFERENCES & PRIVACY",
+  "@settingsSectionPreferences": { "description": "Section header for preferences" },
+
+  "settingsSectionAppearance": "APPEARANCE & LANGUAGE",
+  "@settingsSectionAppearance": { "description": "Section header for appearance and language" },
+
+  "settingsSectionAccount": "ACCOUNT ACTIONS",
+  "@settingsSectionAccount": { "description": "Section header for account actions" },
+
+  "settingsSafetySos": "Safety & SOS Configuration",
+  "@settingsSafetySos": { "description": "Safety SOS settings row label" },
+
+  "settingsSafetyHub": "Safety Hub & Trigger",
+  "@settingsSafetyHub": { "description": "Safety hub row label" },
+
+  "settingsDataNotifications": "Data & Notifications",
+  "@settingsDataNotifications": { "description": "Data and notifications row label" },
+
+  "settingsHealthPrivacy": "Health Data Privacy",
+  "@settingsHealthPrivacy": { "description": "Health data privacy row label" },
+
+  "logOut": "Log Out",
+  "@logOut": { "description": "Log out button label" },
+
+  "logOutSubtitle": "Sign out of your account on this device",
+  "@logOutSubtitle": { "description": "Log out row subtitle" },
+
+  "logOutConfirmTitle": "Logout?",
+  "@logOutConfirmTitle": { "description": "Logout confirmation dialog title" },
+
+  "logOutConfirmMessage": "Are you sure you want to sign out? Your progress is saved safely.",
+  "@logOutConfirmMessage": { "description": "Logout confirmation dialog message" },
+
+  "cancel": "Cancel",
+  "@cancel": { "description": "Cancel button label" },
+
+  "confirm": "Confirm",
+  "@confirm": { "description": "Generic confirm button label" },
+
+  "ok": "OK",
+  "@ok": { "description": "OK button label" },
+
+  "save": "Save",
+  "@save": { "description": "Save button label" },
+
+  "done": "Done",
+  "@done": { "description": "Done button label" },
+
+  "back": "Back",
+  "@back": { "description": "Back button label" },
+
+  "next": "Next",
+  "@next": { "description": "Next button label" },
+
+  "loading": "Loading…",
+  "@loading": { "description": "Generic loading state label" },
+
+  "error": "Something went wrong. Please try again.",
+  "@error": { "description": "Generic error message" },
+
+  "retry": "Retry",
+  "@retry": { "description": "Retry button label" },
+
+  "profile": "Profile",
+  "@profile": { "description": "Profile tab/section label" },
+
+  "account": "Account",
+  "@account": { "description": "Account tab/section label" },
+
+  "home": "Home",
+  "@home": { "description": "Home tab label" },
+
+  "community": "Community",
+  "@community": { "description": "Community tab label" },
+
+  "learn": "Learn",
+  "@learn": { "description": "Learn tab label" },
+
+  "journal": "Journal",
+  "@journal": { "description": "Journal tab label" },
+
+  "tracker": "Tracker",
+  "@tracker": { "description": "Tracker tab label" },
+
+  "welcomeBack": "Welcome back",
+  "@welcomeBack": { "description": "Welcome back greeting" },
+
+  "hello": "Hello",
+  "@hello": { "description": "Generic hello greeting" }
+}

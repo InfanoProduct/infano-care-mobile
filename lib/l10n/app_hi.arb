@@ -1,0 +1,77 @@
+{
+  "@@locale": "hi",
+
+  "appName": "Infano Care",
+
+  "language": "भाषा",
+
+  "languageEnglish": "English",
+
+  "languageHindi": "हिन्दी (Hindi)",
+
+  "selectLanguage": "भाषा चुनें",
+
+  "languageCurrentLabel": "वर्तमान भाषा",
+
+  "settingsTitle": "सेटिंग्स",
+
+  "settingsSectionPreferences": "प्राथमिकताएँ और गोपनीयता",
+
+  "settingsSectionAppearance": "रूप और भाषा",
+
+  "settingsSectionAccount": "खाता क्रियाएँ",
+
+  "settingsSafetySos": "सुरक्षा और SOS कॉन्फ़िगरेशन",
+
+  "settingsSafetyHub": "सुरक्षा हब और ट्रिगर",
+
+  "settingsDataNotifications": "डेटा और सूचनाएँ",
+
+  "settingsHealthPrivacy": "स्वास्थ्य डेटा गोपनीयता",
+
+  "logOut": "लॉग आउट",
+
+  "logOutSubtitle": "इस डिवाइस पर अपने खाते से साइन आउट करें",
+
+  "logOutConfirmTitle": "लॉग आउट करें?",
+
+  "logOutConfirmMessage": "क्या आप वाकई साइन आउट करना चाहते हैं? आपकी प्रगति सुरक्षित रूप से सहेजी गई है।",
+
+  "cancel": "रद्द करें",
+
+  "confirm": "पुष्टि करें",
+
+  "ok": "ठीक है",
+
+  "save": "सहेजें",
+
+  "done": "हो गया",
+
+  "back": "वापस",
+
+  "next": "अगला",
+
+  "loading": "लोड हो रहा है…",
+
+  "error": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
+
+  "retry": "पुनः प्रयास करें",
+
+  "profile": "प्रोफ़ाइल",
+
+  "account": "खाता",
+
+  "home": "होम",
+
+  "community": "समुदाय",
+
+  "learn": "सीखें",
+
+  "journal": "जर्नल",
+
+  "tracker": "ट्रैकर",
+
+  "welcomeBack": "वापस आपका स्वागत है",
+
+  "hello": "नमस्ते"
+}

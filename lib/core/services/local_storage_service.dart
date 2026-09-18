@@ -421,5 +421,17 @@ class LocalStorageService extends ChangeNotifier {
     await _prefs.setString(_sosConfig, jsonMapping);
     notifyListeners();
   }
-}
 
+  // ── App Locale (Language) ─────────────────────────────────────────────────
+  static const _appLocale = 'app_locale';
+
+  /// Returns the persisted language code. Defaults to 'en' (English).
+  String get appLocale => _prefs.getString(_appLocale) ?? 'en';
+
+  /// Persists [languageCode] (e.g. 'en', 'hi') and notifies listeners so that
+  /// MaterialApp.locale rebuilds immediately without an app restart.
+  Future<void> setAppLocale(String languageCode) async {
+    await _prefs.setString(_appLocale, languageCode);
+    notifyListeners();
+  }
+}

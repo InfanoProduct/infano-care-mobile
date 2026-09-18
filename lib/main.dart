@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:infano_care_mobile/l10n/generated/app_localizations.dart';
 import 'package:infano_care_mobile/core/router/app_router.dart';
 import 'package:infano_care_mobile/core/services/api_service.dart';
 import 'package:infano_care_mobile/core/services/local_storage_service.dart';
@@ -129,11 +131,17 @@ class _InfanoCareAppState extends State<InfanoCareApp> {
             ),
           ),
         ],
-        child: MaterialApp.router(
-          title: 'Infano.Care',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          routerConfig: _router,
+        child: Consumer<LocalStorageService>(
+          builder: (context, storage, _) => MaterialApp.router(
+            title: 'Infano.Care',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            routerConfig: _router,
+            // ── Localisation ────────────────────────────────────────────────
+            locale: Locale(storage.appLocale),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
         ),
       ),
     );
